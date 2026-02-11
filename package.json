@@ -1,0 +1,17 @@
+{
+  "name": "beaulab-web",
+  "private": true,
+  "packageManager": "pnpm@10.29.2",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.3",
+    "typescript": "^5"
+  }
+
+}

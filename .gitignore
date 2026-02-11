@@ -1,0 +1,91 @@
+# ------------------------------
+# Node / Package Manager
+# ------------------------------
+
+node_modules/
+.pnpm-store/
+.pnp.*
+.npm/
+.yarn/
+.yarnrc.yml
+
+# ------------------------------
+# Next.js
+# ------------------------------
+
+.next/
+out/
+build/
+dist/
+
+# ------------------------------
+# Logs
+# ------------------------------
+
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ------------------------------
+# Environment Variables
+# ------------------------------
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ------------------------------
+# OS Files
+# ------------------------------
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------------
+# IDE
+# ------------------------------
+
+.vscode/
+.idea/
+*.iml
+
+# ------------------------------
+# TypeScript
+# ------------------------------
+
+*.tsbuildinfo
+
+# ------------------------------
+# Coverage / Testing
+# ------------------------------
+
+coverage/
+.nyc_output/
+
+# ------------------------------
+# Cache
+# ------------------------------
+
+.cache/
+.tmp/
+.eslintcache
+
+# ------------------------------
+# WSL / Linux Specific
+# ------------------------------
+
+*~
+*.swp
+*.swo
+
+# ------------------------------
+# Turbo / Monorepo (if used later)
+# ------------------------------
+
+.turbo/
