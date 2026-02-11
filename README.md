@@ -9,6 +9,7 @@ Laravel API 서버와 완전히 분리된 아키텍처를 전제로 합니다.
 
 # 📦 프로젝트 구조
 
+``` text
 frontend/
 ├─ apps/
 │ ├─ user-web/ # 사용자 서비스 (Custom UI)
@@ -21,7 +22,7 @@ frontend/
 │ ├─ auth/ # 인증 / 권한 헬퍼
 │ └─ types/ # DTO / 공통 타입
 
-
+```
 ---
 
 # 🏗 아키텍처 원칙
