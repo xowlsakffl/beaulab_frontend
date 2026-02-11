@@ -61,6 +61,7 @@ frontend/
 
 ```bash
 pnpm install
+```
 
 # 🚀 개발 서버 실행
 
