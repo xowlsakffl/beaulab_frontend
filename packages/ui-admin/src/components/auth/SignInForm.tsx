@@ -7,7 +7,7 @@ import { ChevronLeft, EyeOff, Eye } from "../../icons";
 import Link from "next/link";
 import React, { useState } from "react";
 
-export default function SignInForm() {
+export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   return (
@@ -106,9 +106,9 @@ export default function SignInForm() {
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                     >
                       {showPassword ? (
-                        <Eye className="fill-gray-500 dark:fill-gray-400" />
+                        <Eye className="dark:text-gray-400" />
                       ) : (
-                        <EyeOff className="fill-gray-500 dark:fill-gray-400" />
+                        <EyeOff className="dark:text-gray-400" />
                       )}
                     </span>
                   </div>

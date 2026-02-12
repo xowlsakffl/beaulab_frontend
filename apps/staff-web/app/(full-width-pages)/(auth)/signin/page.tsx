@@ -1,4 +1,4 @@
-import SignInForm from "@beaulab/ui-admin";
+import { SignInForm } from "@beaulab/ui-admin/components/auth";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

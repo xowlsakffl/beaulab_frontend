@@ -1,5 +1,5 @@
-import GridShape from "@beaulab/ui-admin";
-import ThemeTogglerTwo from "@beaulab/ui-admin";
+import { GridShape } from "@beaulab/ui-admin";
+import { ThemeTogglerTwo } from "@beaulab/ui-admin";
 
 import { ThemeProvider } from "@beaulab/ui-admin";
 import Image from "next/image";

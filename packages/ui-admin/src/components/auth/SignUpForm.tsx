@@ -6,7 +6,7 @@ import { ChevronLeft, EyeOff, Eye } from "../../icons";
 import Link from "next/link";
 import React, { useState } from "react";
 
-export default function SignUpForm() {
+export function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   return (

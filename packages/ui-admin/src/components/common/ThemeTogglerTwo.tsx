@@ -2,7 +2,7 @@
 import { useTheme } from "../../context";
 import React from "react";
 
-export default function ThemeTogglerTwo() {
+export function ThemeTogglerTwo() {
   const { toggleTheme } = useTheme();
   return (
     <button

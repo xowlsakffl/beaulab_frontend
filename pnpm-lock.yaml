@@ -17,6 +17,15 @@ importers:
 
   apps/staff-web:
     dependencies:
+      '@beaulab/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@beaulab/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@beaulab/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@beaulab/ui-admin':
         specifier: workspace:*
         version: link:../../packages/ui-admin
@@ -57,6 +66,12 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/api-client: {}
+
+  packages/auth: {}
+
+  packages/types: {}
 
   packages/ui-admin:
     dependencies:
