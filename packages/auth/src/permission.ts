@@ -13,7 +13,6 @@ type AuthorizationLike = Partial<ActorAuthorization> | undefined;
  * const menus = allMenus.filter(m => hasAnyPermission(session.auth, m.permissions));
  */
 
-type AuthorizationLike = Partial<ActorAuthorization> | undefined;
 /**
  * 단일 permission 확인
  */
