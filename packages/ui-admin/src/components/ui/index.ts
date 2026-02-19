@@ -1,4 +1,4 @@
-export * from "./button/Button";
+export { Button } from "./button/Button";
 export * from "./dropdown/Dropdown";
 export * from "./dropdown/DropdownItem";
 export * from "./alert/Alert";
