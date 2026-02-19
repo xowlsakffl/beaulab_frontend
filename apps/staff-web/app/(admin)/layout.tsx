@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { ReactNode } from "react";
 import {
     AppHeader,
     AppSidebar,
@@ -10,7 +10,11 @@ import {
     useSidebar,
 } from "@beaulab/ui-admin";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+interface AdminLayoutProps {
+    children: ReactNode;
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <ThemeProvider>
             <SidebarProvider>
@@ -20,8 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
 }
 
-function AdminLayoutInner({ children }: { children: React.ReactNode }) {
-
+function AdminLayoutInner({ children }: AdminLayoutProps) {
     const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
     const mainContentMargin = isMobileOpen
@@ -31,12 +34,22 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             : "lg:ml-[90px]";
 
     return (
-        <div className="min-h-screen xl:flex">
+        <div className="min-h-dvh bg-gray-50 dark:bg-gray-900 xl:flex">
+            {/* Sidebar */}
             <AppSidebar />
-            {/*<Backdrop />*/}
-            <div className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}>
-                {/*<AppHeader />*/}
-                <div className="p-4 mx-auto max-w-screen-2xl md:p-6">{children}</div>
+
+            {/* Mobile overlay */}
+            <Backdrop />
+
+            {/* Main Area */}
+            <div
+                className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${mainContentMargin}`}
+            >
+                <AppHeader />
+
+                <main className="flex-1 p-4 mx-auto w-full max-w-screen-2xl md:p-6">
+                    {children}
+                </main>
             </div>
         </div>
     );
