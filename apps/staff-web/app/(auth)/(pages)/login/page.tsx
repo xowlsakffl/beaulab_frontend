@@ -1,11 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SignInForm, type SignInFormValues } from "@beaulab/ui-admin/components/auth";
 import { login } from "@/lib/session";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleSubmit = async ({ identifier, password }: SignInFormValues) => {
     if (!identifier || !password) {
@@ -13,7 +14,8 @@ export default function SignInPage() {
     }
 
     await login({ nickname: identifier, password });
-    router.replace("/");
+    const nextPath = searchParams.get("next") || "/";
+    router.replace(nextPath);
     router.refresh();
   };
 

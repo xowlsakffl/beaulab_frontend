@@ -1,6 +1,7 @@
 "use client";
 
 import React, { ReactNode } from "react";
+import { Guard } from "@/components/guard";
 import {
     AppHeader,
     AppSidebar,
@@ -16,11 +17,13 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
-        <ThemeProvider>
-            <SidebarProvider>
-                <AdminLayoutInner>{children}</AdminLayoutInner>
-            </SidebarProvider>
-        </ThemeProvider>
+        <Guard>
+            <ThemeProvider>
+                <SidebarProvider>
+                    <AdminLayoutInner>{children}</AdminLayoutInner>
+                </SidebarProvider>
+            </ThemeProvider>
+        </Guard>
     );
 }
 
