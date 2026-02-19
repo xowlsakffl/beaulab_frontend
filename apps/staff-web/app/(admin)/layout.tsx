@@ -3,7 +3,7 @@
 import React, { ReactNode, useMemo } from "react";
 import { Guard } from "@/components/guard";
 import { getSession } from "@/lib/session";
-import { buildSidebarMenu } from "@/components/admin/sidebar-menu";
+import { buildStaffSidebarMenu } from "@/components/admin/sidebar-menu";
 import {
     AppHeader,
     AppSidebar,
@@ -33,9 +33,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     const { isExpanded, isHovered, isMobileOpen } = useSidebar();
     const session = getSession();
 
-    const actor = session?.actor === "partner" ? "partner" : "staff";
     const permissions = useMemo(() => session?.auth?.permissions ?? [], [session?.auth?.permissions]);
-    const menuByActor = useMemo(() => buildSidebarMenu(actor, permissions), [actor, permissions]);
+    const menuByActor = useMemo(() => buildStaffSidebarMenu(permissions), [permissions]);
 
     const mainContentMargin = isMobileOpen
         ? "ml-0"
