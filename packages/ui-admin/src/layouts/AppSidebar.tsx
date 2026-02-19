@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -22,16 +22,33 @@ import {
   UserRound,
 } from "../icons";
 
-type NavItem = {
+type SidebarAuth = {
+  roles?: string[];
+  permissions?: string[];
+};
+
+type VisibilityRule = {
+  roles?: string[];
+  permissions?: string[];
+};
+
+export type SidebarNavSubItem = {
+  name: string;
+  path: string;
+  pro?: boolean;
+  new?: boolean;
+} & VisibilityRule;
+
+export type SidebarNavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
-};
+  subItems?: SidebarNavSubItem[];
+} & VisibilityRule;
 
 const iconClass = "w-5 h-5";
 
-const navItems: NavItem[] = [
+const navItems: SidebarNavItem[] = [
   {
     icon: <LayoutGrid className={iconClass} />,
     name: "Dashboard",
@@ -51,7 +68,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-const othersItems: NavItem[] = [
+const othersItems: SidebarNavItem[] = [
   {
     icon: <PieChart className={iconClass} />,
     name: "Charts",
@@ -82,9 +99,49 @@ const othersItems: NavItem[] = [
   },
 ];
 
-export function AppSidebar() {
+type AppSidebarProps = {
+  actor?: "staff" | "partner" | "user";
+  auth?: SidebarAuth;
+  menu?: {
+    main: SidebarNavItem[];
+    others: SidebarNavItem[];
+  };
+};
+
+function canViewItem(item: VisibilityRule, actor: AppSidebarProps["actor"], auth?: SidebarAuth) {
+  const actorRole = actor ? [actor] : [];
+  const rolePool = [...actorRole, ...(auth?.roles ?? [])];
+  const permissionPool = auth?.permissions ?? [];
+
+  const roleAllowed = !item.roles || item.roles.some((role) => rolePool.includes(role));
+  const permissionAllowed = !item.permissions || item.permissions.some((permission) => permissionPool.includes(permission));
+
+  return roleAllowed && permissionAllowed;
+}
+
+function filterMenuItems(items: SidebarNavItem[], actor: AppSidebarProps["actor"], auth?: SidebarAuth): SidebarNavItem[] {
+  return items
+    .map((item) => {
+      if (!canViewItem(item, actor, auth)) return null;
+
+      if (!item.subItems) return item;
+
+      const filteredSubItems = item.subItems.filter((subItem) => canViewItem(subItem, actor, auth));
+      if (filteredSubItems.length === 0) return null;
+
+      return {
+        ...item,
+        subItems: filteredSubItems,
+      };
+    })
+    .filter((item): item is SidebarNavItem => item !== null);
+}
+
+export function AppSidebar({ actor, auth, menu }: AppSidebarProps) {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const resolvedMainItems = useMemo(() => filterMenuItems(menu?.main ?? navItems, actor, auth), [menu?.main, actor, auth]);
+  const resolvedOtherItems = useMemo(() => filterMenuItems(menu?.others ?? othersItems, actor, auth), [menu?.others, actor, auth]);
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
@@ -99,7 +156,7 @@ export function AppSidebar() {
     });
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
+  const renderMenuItems = (items: SidebarNavItem[], menuType: "main" | "others") => (
       <ul className="flex flex-col gap-4">
         {items.map((nav, index) => (
             <li key={nav.name}>
@@ -193,7 +250,7 @@ export function AppSidebar() {
     let submenuMatched = false;
 
     (["main", "others"] as const).forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+      const items = menuType === "main" ? resolvedMainItems : resolvedOtherItems;
       items.forEach((nav, index) => {
         nav.subItems?.forEach((subItem) => {
           if (isActive(subItem.path)) {
@@ -205,7 +262,7 @@ export function AppSidebar() {
     });
 
     if (!submenuMatched) setOpenSubmenu(null);
-  }, [pathname, isActive]);
+  }, [pathname, isActive, resolvedMainItems, resolvedOtherItems]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
@@ -248,7 +305,7 @@ export function AppSidebar() {
                 >
                   {isExpanded || isHovered || isMobileOpen ? "Menu" : <MoreHorizontal className="w-5 h-5" />}
                 </h2>
-                {renderMenuItems(navItems, "main")}
+                {renderMenuItems(resolvedMainItems, "main")}
               </div>
 
               <div>
@@ -259,7 +316,7 @@ export function AppSidebar() {
                 >
                   {isExpanded || isHovered || isMobileOpen ? "Others" : <MoreHorizontal className="w-5 h-5" />}
                 </h2>
-                {renderMenuItems(othersItems, "others")}
+                {renderMenuItems(resolvedOtherItems, "others")}
               </div>
             </div>
           </nav>
