@@ -22,16 +22,23 @@ import {
   UserRound,
 } from "../icons";
 
-type NavItem = {
+export type SidebarNavSubItem = {
+  name: string;
+  path: string;
+  pro?: boolean;
+  new?: boolean;
+};
+
+export type SidebarNavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: SidebarNavSubItem[];
 };
 
 const iconClass = "w-5 h-5";
 
-const navItems: NavItem[] = [
+const defaultMainItems: SidebarNavItem[] = [
   {
     icon: <LayoutGrid className={iconClass} />,
     name: "Dashboard",
@@ -51,7 +58,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-const othersItems: NavItem[] = [
+const defaultOtherItems: SidebarNavItem[] = [
   {
     icon: <PieChart className={iconClass} />,
     name: "Charts",
@@ -82,9 +89,18 @@ const othersItems: NavItem[] = [
   },
 ];
 
-export function AppSidebar() {
+type AppSidebarProps = {
+  menu?: {
+    main: SidebarNavItem[];
+    others: SidebarNavItem[];
+  };
+};
+
+export function AppSidebar({ menu }: AppSidebarProps) {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const mainItems = menu?.main ?? defaultMainItems;
+  const otherItems = menu?.others ?? defaultOtherItems;
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
@@ -99,7 +115,7 @@ export function AppSidebar() {
     });
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
+  const renderMenuItems = (items: SidebarNavItem[], menuType: "main" | "others") => (
       <ul className="flex flex-col gap-4">
         {items.map((nav, index) => (
             <li key={nav.name}>
@@ -193,7 +209,7 @@ export function AppSidebar() {
     let submenuMatched = false;
 
     (["main", "others"] as const).forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+      const items = menuType === "main" ? mainItems : otherItems;
       items.forEach((nav, index) => {
         nav.subItems?.forEach((subItem) => {
           if (isActive(subItem.path)) {
@@ -205,7 +221,7 @@ export function AppSidebar() {
     });
 
     if (!submenuMatched) setOpenSubmenu(null);
-  }, [pathname, isActive]);
+  }, [pathname, isActive, mainItems, otherItems]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
@@ -248,7 +264,7 @@ export function AppSidebar() {
                 >
                   {isExpanded || isHovered || isMobileOpen ? "Menu" : <MoreHorizontal className="w-5 h-5" />}
                 </h2>
-                {renderMenuItems(navItems, "main")}
+                {renderMenuItems(mainItems, "main")}
               </div>
 
               <div>
@@ -259,7 +275,7 @@ export function AppSidebar() {
                 >
                   {isExpanded || isHovered || isMobileOpen ? "Others" : <MoreHorizontal className="w-5 h-5" />}
                 </h2>
-                {renderMenuItems(othersItems, "others")}
+                {renderMenuItems(otherItems, "others")}
               </div>
             </div>
           </nav>
