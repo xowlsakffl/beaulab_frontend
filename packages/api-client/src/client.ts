@@ -1,5 +1,5 @@
-import type { ApiResponse, ActorType } from "@beaulab/types";
-import { tokenStorage } from "@beaulab/auth";
+import type { ApiResponse, ActorType } from "../../types";
+import { tokenStorage } from "../../auth";
 import { buildUrl, type Query } from "./url";
 
 /**

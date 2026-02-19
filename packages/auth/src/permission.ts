@@ -1,4 +1,4 @@
-import type { ActorAuthorization } from "@beaulab/types";
+import type { ActorAuthorization } from "../../types";
 
 type AuthorizationLike = Partial<ActorAuthorization> | undefined;
 

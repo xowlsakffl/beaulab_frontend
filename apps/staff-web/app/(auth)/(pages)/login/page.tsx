@@ -21,13 +21,13 @@ export default function SignInPage() {
 
   return (
     <SignInForm
-      title="Staff Sign In"
-      description="닉네임 로그인으로 staff 어드민에 접속합니다."
-      identifierLabel="Nickname"
-      identifierPlaceholder="nickname"
+      title="뷰랩 관리자 로그인"
+      description="아이디와 비밀번호를 입력해 뷰랩 관리자에 로그인하세요!"
+      identifierLabel="아이디"
+      identifierPlaceholder="아이디를 입력하세요."
       identifierType="text"
-      passwordPlaceholder="password"
-      submitText="Sign in"
+      passwordPlaceholder="비밀번호를 입력하세요."
+      submitText="로그인"
       hideSocialButtons
       onSubmit={handleSubmit}
     />

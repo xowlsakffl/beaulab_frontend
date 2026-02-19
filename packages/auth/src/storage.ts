@@ -1,4 +1,4 @@
-import type { ActorType, StaffSession, PartnerSession, UserSession } from "@beaulab/types";
+import type { ActorType, StaffSession, PartnerSession, UserSession } from "../../types";
 
 const TOKEN_KEY_PREFIX = "beaulab.token.";
 const SESSION_KEY_PREFIX = "beaulab.session.";

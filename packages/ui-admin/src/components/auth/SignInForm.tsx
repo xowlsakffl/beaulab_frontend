@@ -31,14 +31,13 @@ type SignInFormProps = {
 };
 
 export function SignInForm({
-  title = "Sign In",
-  description = "Enter your email and password to sign in!",
-  identifierLabel = "Email",
-  identifierPlaceholder = "info@gmail.com",
-  identifierType = "email",
-  passwordPlaceholder = "Enter your password",
-  submitText = "Sign in",
-  backHref = "/",
+  title = "로그인",
+  description = "아이디와 비밀번호를 입력해 로그인하세요!",
+  identifierLabel = "아이디",
+  identifierPlaceholder = "아이디를 입력하세요.",
+  identifierType = "text",
+  passwordPlaceholder = "비밀번호를 입력하세요.",
+  submitText = "로그인",
   forgotPasswordHref = "/reset-password",
   signUpHref = "/signup",
   hideSocialButtons = false,
@@ -77,15 +76,6 @@ export function SignInForm({
 
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
-      <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
-        <Link
-          href={backHref}
-          className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-        >
-          <ChevronLeft />
-          Back to dashboard
-        </Link>
-      </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
@@ -130,9 +120,9 @@ export function SignInForm({
                     onChange={(e) => setIdentifier(e.target.value)}
                   />
                 </div>
-                <div>
+                <div className="mb-4">
                   <Label>
-                    Password <span className="text-error-500">*</span>{" "}
+                    비밀번호 <span className="text-error-500">*</span>{" "}
                   </Label>
                   <div className="relative">
                     <Input
@@ -160,35 +150,35 @@ export function SignInForm({
                   <div className="flex items-center gap-3">
                     <Checkbox checked={isChecked} onChange={setIsChecked} />
                     <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
+                      로그인 유지
                     </span>
                   </div>
                   <Link
                     href={forgotPasswordHref}
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
-                    Forgot password?
+                    비밀번호를 잊으셨나요?
                   </Link>
                 </div>
                 <div>
                   <Button className="w-full" size="sm" disabled={isSubmitting}>
-                    {isSubmitting ? "Signing in..." : submitText}
+                    {isSubmitting ? "로그인 중..." : submitText}
                   </Button>
                 </div>
               </div>
             </form>
 
-            <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Don&apos;t have an account? {""}
-                <Link
-                  href={signUpHref}
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                >
-                  Sign Up
-                </Link>
-              </p>
-            </div>
+            {/*<div className="mt-5">*/}
+            {/*  <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">*/}
+            {/*    Don&apos;t have an account? {""}*/}
+            {/*    <Link*/}
+            {/*      href={signUpHref}*/}
+            {/*      className="text-brand-500 hover:text-brand-600 dark:text-brand-400"*/}
+            {/*    >*/}
+            {/*      Sign Up*/}
+            {/*    </Link>*/}
+            {/*  </p>*/}
+            {/*</div>*/}
           </div>
         </div>
       </div>
