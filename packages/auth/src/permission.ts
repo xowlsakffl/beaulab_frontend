@@ -1,5 +1,7 @@
 import type { ActorAuthorization } from "@beaulab/types";
 
+type AuthorizationLike = Partial<ActorAuthorization> | undefined;
+
 /**
  * 사용법 예)
  * const session = sessionStorage.get("staff");
