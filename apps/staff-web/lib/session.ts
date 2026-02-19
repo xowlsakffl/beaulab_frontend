@@ -4,7 +4,7 @@ import { tokenStorage, sessionStorage } from "@beaulab/auth";
 import type { StaffSession } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 
-type LoginPayload = { email: string; password: string };
+type LoginPayload = { nickname: string; password: string };
 
 // 1) 로그인
 export async function login(payload: LoginPayload): Promise<{ actor: string; profile: any; auth: any }> {
@@ -19,9 +19,9 @@ export async function login(payload: LoginPayload): Promise<{ actor: string; pro
 // 2) 세션 복구(/me)
 export async function restoreSession(): Promise<{ actor: string; profile: any; auth: any }> {
     const me = await api.get<{
-        profile: any; // 너희 /me DTO로 교체
+        profile: any; //
         auth: { roles: string[]; permissions: string[]; scope?: string };
-    }>("/me");
+    }>("/profile");
 
     if (!isApiSuccess(me)) throw me;
 
