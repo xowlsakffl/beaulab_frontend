@@ -24,7 +24,7 @@ export function Guard(props: { children: ReactNode }) {
             if (!isMounted) return;
 
             if (!resolvedSession) {
-                router.replace(`/signin${next}`);
+                router.replace(`/login${next}`);
                 setIsChecking(false);
                 return;
             }

@@ -5,11 +5,35 @@ import { isApiSuccess } from "@beaulab/types";
 
 
 type LoginPayload = { nickname: string; password: string };
-type LoginResponse = { token: string };
+type AuthFields = {
+  auth?: Partial<ActorAuthorization>;
+  roles?: string[];
+  permissions?: string[];
+};
+
+type LoginResponse = {
+  token: string;
+  profile?: StaffProfile;
+} & AuthFields;
+
 type StaffProfileResponse = {
   profile: StaffProfile;
-  auth?: Partial<ActorAuthorization>;
-};
+} & AuthFields;
+
+function resolveAuth(data: AuthFields): Partial<ActorAuthorization> | undefined {
+  if (data.auth) return data.auth;
+
+  const hasAuthFields =
+      Array.isArray(data.roles) ||
+      Array.isArray(data.permissions)
+
+  if (!hasAuthFields) return undefined;
+
+  return {
+    roles: data.roles ?? [],
+    permissions: data.permissions ?? [],
+  };
+}
 
 export async function login(payload: LoginPayload): Promise<StaffSession> {
   const res = await api.post<LoginResponse>("/auth/login", payload);
@@ -17,6 +41,17 @@ export async function login(payload: LoginPayload): Promise<StaffSession> {
   if (!isApiSuccess(res)) throw res;
 
   tokenStorage.set("staff", res.data.token);
+
+  if (res.data.profile) {
+    const session: StaffSession = {
+      actor: "staff",
+      profile: res.data.profile,
+      auth: resolveAuth(res.data),
+    };
+
+    sessionStorage.set("staff", session);
+    return session;
+  }
 
   return restoreSession();
 }
@@ -29,7 +64,7 @@ export async function restoreSession(): Promise<StaffSession> {
   const session: StaffSession = {
     actor: "staff",
     profile: me.data.profile,
-    auth: me.data.auth,
+    auth: resolveAuth(me.data),
   };
 
   sessionStorage.set("staff", session);

@@ -3,7 +3,7 @@ import {
     type SidebarNavItem,
     LayoutGrid,
     UserRound,
-    CalendarDays,
+    Hospital,
     List,
     FileText,
 } from "@beaulab/ui-admin";
@@ -28,10 +28,13 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             requiredPermissions: ["common.dashboard.show"],
         },
         {
-            icon: <CalendarDays className={iconClass} />,
-            name: "예약 캘린더",
-            path: "/calendar",
-            requiredPermissions: ["common.access"],
+            icon: <Hospital className={iconClass} />,
+            name: "병원 관리",
+            requiredPermissions: ["beaulab.hospital.show"],
+            subItems: [
+                { name: "병원 리스트", path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
+                { name: "병원 생성", path: "/basic-tables", requiredPermissions: ["beaulab.hospital.create"] },
+            ],
         },
         {
             icon: <UserRound className={iconClass} />,
