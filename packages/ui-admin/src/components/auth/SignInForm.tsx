@@ -8,6 +8,28 @@ import { ChevronLeft, EyeOff, Eye } from "../../icons";
 import Link from "next/link";
 import React, { FormEvent, useState } from "react";
 
+function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+
+  if (typeof error === "object" && error !== null) {
+    const maybeApiError = (error as {
+      error?: { message?: unknown };
+      message?: unknown;
+    });
+
+    if (typeof maybeApiError.error?.message === "string") {
+      return maybeApiError.error.message;
+    }
+
+    if (typeof maybeApiError.message === "string") {
+      return maybeApiError.message;
+    }
+  }
+
+  return "로그인 실패.";
+}
+
+
 export type SignInFormValues = {
   identifier: string;
   password: string;
@@ -66,7 +88,7 @@ export function SignInForm({
         keepLoggedIn: isChecked,
       });
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Sign in failed.");
+      setLocalError(extractErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

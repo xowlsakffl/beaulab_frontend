@@ -40,6 +40,22 @@ export function getSession(): StaffSession | null {
   return sessionStorage.get("staff") as StaffSession | null;
 }
 
+export async function ensureSession(): Promise<StaffSession | null> {
+  const cached = getSession();
+  if (cached) return cached;
+
+  const token = tokenStorage.get("staff");
+  if (!token) return null;
+
+  try {
+    return await restoreSession();
+  } catch {
+    logout();
+    return null;
+  }
+}
+
+
 export function logout() {
   tokenStorage.clear("staff");
   sessionStorage.clear("staff");

@@ -1,22 +1,46 @@
 "use client"
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { hasPermission, hasAnyPermission } from "@beaulab/auth";
-import { getSession } from "@/lib/session";
+import { ensureSession, getSession } from "@/lib/session";
 import { usePathname, useRouter } from "next/navigation";
 
 export function Guard(props: { children: ReactNode }) {
-    const session = getSession();
+    const [session, setSession] = useState(() => getSession());
+    const [isChecking, setIsChecking] = useState(() => !getSession());
     const router = useRouter();
     const pathname = usePathname();
 
-    useEffect(() => {
-        if (!session) {
-            const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
-            router.replace(`/login${next}`);
-        }
-    }, [pathname, router, session]);
+    const next = useMemo(
+        () => (pathname ? `?next=${encodeURIComponent(pathname)}` : ""),
+        [pathname],
+    );
 
+    useEffect(() => {
+        let isMounted = true;
+
+        if (!session) {
+            void ensureSession().then((resolvedSession) => {
+                if (!isMounted) return;
+
+                if (!resolvedSession) {
+                    router.replace(`/signin${next}`);
+                    setIsChecking(false);
+                    return;
+                }
+
+                setSession(resolvedSession);
+                setIsChecking(false);
+            });
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, [next, router, session]);
+
+    if (isChecking) return null;
     if (!session) return null;
+
     return props.children;
 }
 export function Can(props: { permission: string; children: ReactNode }) {
