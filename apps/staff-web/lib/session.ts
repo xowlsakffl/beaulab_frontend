@@ -3,6 +3,7 @@ import { tokenStorage, sessionStorage } from "@beaulab/auth";
 import type { ActorAuthorization, StaffProfile, StaffSession } from "@beaulab/types";
 import { isApiSuccess } from "@beaulab/types";
 
+
 type LoginPayload = { nickname: string; password: string };
 type LoginResponse = { token: string };
 type StaffProfileResponse = {

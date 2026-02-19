@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { ReactNode } from "react";
 import { hasPermission, hasAnyPermission } from "@beaulab/auth";
 import { getSession } from "@/lib/session";
