@@ -1,8 +1,7 @@
 // apps/staff-web/src/lib/session.ts
 import { api } from "./api";
 import { tokenStorage, sessionStorage } from "@beaulab/auth";
-import type { StaffSession } from "@beaulab/auth";
-import { isApiSuccess } from "@beaulab/types";
+import { isApiSuccess, StaffSession } from "@beaulab/types";
 
 type LoginPayload = { nickname: string; password: string };
 
@@ -42,6 +41,6 @@ export function getSession(): StaffSession | null {
 
 // 4) 로그아웃
 export function logout() {
-    tokenStorage.remove("staff");
-    sessionStorage.remove("staff");
+    tokenStorage.clear("staff");
+    sessionStorage.clear("staff");
 }

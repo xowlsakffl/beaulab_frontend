@@ -52,10 +52,7 @@ export const tokenStorage = {
  * Actor별 session 저장소
  */
 export const sessionStorage = {
-    get(actor: "staff"): StaffSession | null;
-    get(actor: "partner"): PartnerSession | null;
-    get(actor: "user"): UserSession | null;
-    get(actor: ActorType): unknown | null {
+    get(actor: ActorType): StaffSession | PartnerSession | UserSession | null {
         if (!isBrowser()) return null;
 
         const raw = window.localStorage.getItem(SESSION_KEY_PREFIX + actor);
