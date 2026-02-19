@@ -1,52 +1,89 @@
+"use client";
+
+import React from "react";
+import Button from "../ui/button/Button";
+
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 };
 
-const Pagination: React.FC<PaginationProps> = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-}) => {
-  const pagesAroundCurrent = Array.from(
-    { length: Math.min(3, totalPages) },
-    (_, i) => i + Math.max(currentPage - 1, 1)
-  );
+function buildPages(currentPage: number, totalPages: number) {
+  const pages: Array<number | "..."> = [];
+  if (totalPages <= 7) {
+    for (let p = 1; p <= totalPages; p += 1) pages.push(p);
+    return pages;
+  }
+
+  pages.push(1);
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  if (start > 2) pages.push("...");
+  for (let p = start; p <= end; p += 1) pages.push(p);
+  if (end < totalPages - 1) pages.push("...");
+
+  pages.push(totalPages);
+  return pages;
+}
+
+const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange, disabled = false }) => {
+  const pages = React.useMemo(() => buildPages(currentPage, totalPages), [currentPage, totalPages]);
 
   return (
-    <div className="flex items-center ">
-      <button
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="mr-2.5 flex items-center h-10 justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] text-sm"
+        disabled={disabled || currentPage <= 1}
+        className="h-9 min-w-9 px-3"
       >
-        Previous
-      </button>
-      <div className="flex items-center gap-2">
-        {currentPage > 3 && <span className="px-2">...</span>}
-        {pagesAroundCurrent.map((page) => (
+        ←
+      </Button>
+
+      {pages.map((page, index) => {
+        if (page === "...") {
+          return (
+            <span
+              key={`ellipsis-${index}`}
+              className="flex h-9 min-w-9 select-none items-center justify-center rounded-lg border border-gray-200 px-3 text-sm text-gray-500 dark:border-white/[0.05] dark:text-gray-400"
+            >
+              …
+            </span>
+          );
+        }
+
+        const active = page === currentPage;
+        return (
           <button
             key={page}
-            onClick={() => onPageChange(page)}
-            className={`px-4 py-2 rounded ${
-              currentPage === page
-                ? "bg-brand-500 text-white"
-                : "text-gray-700 dark:text-gray-400"
-            } flex w-10 items-center justify-center h-10 rounded-lg text-sm font-medium hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
+            type="button"
+            onClick={active ? undefined : () => onPageChange(page)}
+            disabled={disabled || active}
+            className={[
+              "h-9 min-w-9 rounded-lg border px-3 text-sm font-medium",
+              active
+                ? "border-brand-500 bg-brand-500 text-white"
+                : "border-gray-200 text-gray-800 hover:bg-gray-50 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]",
+            ].join(" ")}
           >
             {page}
           </button>
-        ))}
-        {currentPage < totalPages - 2 && <span className="px-2">...</span>}
-      </div>
-      <button
+        );
+      })}
+
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="ml-2.5 flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 shadow-theme-xs text-sm hover:bg-gray-50 h-10 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        disabled={disabled || currentPage >= totalPages}
+        className="h-9 min-w-9 px-3"
       >
-        Next
-      </button>
+        →
+      </Button>
     </div>
   );
 };

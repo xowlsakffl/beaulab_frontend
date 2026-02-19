@@ -34,20 +34,25 @@ type HospitalRow = {
   address: string;
   tel: string;
   viewCount: number;
-  allowStatus: string;
-  status: string;
+  reviewStatus: string;
+  approvalStatus: string;
   createdAt: string;
-};
-
-type Filters = {
-  status: string;
-  allowStatus: string;
-  startDate: string;
-  endDate: string;
 };
 
 type SortField = "id" | "name" | "created_at" | "view_count";
 type SortDirection = "asc" | "desc";
+
+type SortState = {
+  field: SortField;
+  direction: SortDirection;
+  enabled: boolean;
+};
+
+type Filters = {
+  approvalStatus: string;
+  reviewStatuses: string[];
+  dateRange: string;
+};
 
 type HospitalsQuery = {
   q?: string;
@@ -60,27 +65,29 @@ type HospitalsQuery = {
 };
 
 const DEFAULT_FILTERS: Filters = {
-  status: "",
-  allowStatus: "",
-  startDate: "",
-  endDate: "",
+  approvalStatus: "",
+  reviewStatuses: [],
+  dateRange: "",
 };
 
-const STATUS_OPTIONS = [
-  { value: "ACTIVE", label: "ACTIVE" },
-  { value: "SUSPENDED", label: "SUSPENDED" },
-];
+const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: true };
 
-const ALLOW_STATUS_OPTIONS = [
-  { value: "APPROVED", label: "APPROVED" },
-  { value: "PENDING", label: "PENDING" },
-  { value: "REJECTED", label: "REJECTED" },
+const APPROVAL_STATUS_OPTIONS = [
+  { value: "ACTIVE", label: "정상" },
+  { value: "SUSPENDED", label: "정지" },
+  { value: "WITHDRAWN", label: "탈퇴" },
 ];
 
 const PER_PAGE_OPTIONS = [
   { value: "15", label: "15개" },
   { value: "30", label: "30개" },
   { value: "50", label: "50개" },
+];
+
+const REVIEW_STATUS_OPTIONS = [
+  { value: "PENDING", label: "검수신청" },
+  { value: "APPROVED", label: "검수완료" },
+  { value: "REJECTED", label: "검수반려" },
 ];
 
 function normalizeHospital(item: HospitalApiItem): HospitalRow {
@@ -93,13 +100,34 @@ function normalizeHospital(item: HospitalApiItem): HospitalRow {
     address: item.address,
     tel: item.tel,
     viewCount: item.viewCount ?? item.view_count ?? 0,
-    allowStatus: item.allowStatus ?? item.allow_status ?? "UNKNOWN",
-    status: item.status,
+    reviewStatus: item.allowStatus ?? item.allow_status ?? "UNKNOWN",
+    approvalStatus: item.status,
     createdAt:
       createdDate && !Number.isNaN(createdDate.getTime())
         ? createdDate.toLocaleString("ko-KR")
         : "-",
   };
+}
+
+function labelApprovalStatus(status: string) {
+  if (status === "ACTIVE") return "정상";
+  if (status === "SUSPENDED") return "정지";
+  if (status === "WITHDRAWN") return "탈퇴";
+  return status;
+}
+
+function labelReviewStatus(status: string) {
+  if (status === "PENDING") return "검수신청";
+  if (status === "APPROVED") return "검수완료";
+  if (status === "REJECTED") return "검수반려";
+  return status;
+}
+
+function nextSortState(prev: SortState, field: SortField): SortState {
+  if (prev.field !== field) return { field, direction: "desc", enabled: true };
+  if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
+  if (prev.enabled && prev.direction === "asc") return { field: "id", direction: "desc", enabled: false };
+  return { field, direction: "desc", enabled: true };
 }
 
 export default function HospitalsTableClient() {
@@ -109,10 +137,9 @@ export default function HospitalsTableClient() {
   const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(DEFAULT_FILTERS);
-  const [filterFormKey, setFilterFormKey] = React.useState(0);
+  const [resetKey, setResetKey] = React.useState(0);
 
-  const [sort, setSort] = React.useState<SortField>("id");
-  const [direction, setDirection] = React.useState<SortDirection>("desc");
+  const [sortState, setSortState] = React.useState<SortState>(DEFAULT_SORT);
   const [perPage, setPerPage] = React.useState(15);
   const [page, setPage] = React.useState(1);
 
@@ -122,26 +149,35 @@ export default function HospitalsTableClient() {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
+  const requestKeyRef = React.useRef("");
   const hasFetchedRef = React.useRef(false);
+
+  const query = React.useMemo(() => {
+    const q: HospitalsQuery = {
+      sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
+      direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
+      per_page: perPage,
+      page,
+    };
+
+    if (searchKeyword.trim()) q.q = searchKeyword.trim();
+    if (appliedFilters.approvalStatus) q.status = appliedFilters.approvalStatus;
+    if (appliedFilters.reviewStatuses.length > 0) q.allow_status = appliedFilters.reviewStatuses.join(",");
+
+    return q;
+  }, [appliedFilters.approvalStatus, appliedFilters.reviewStatuses, page, perPage, searchKeyword, sortState]);
 
   const fetchHospitals = React.useCallback(
     async (manualRefresh = false) => {
+      const requestKey = JSON.stringify(query);
+      if (!manualRefresh && requestKeyRef.current === requestKey) return;
+      requestKeyRef.current = requestKey;
+
       if (!hasFetchedRef.current) setLoading(true);
       else setRefreshing(true);
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
-
-      const query: HospitalsQuery = {
-        sort,
-        direction,
-        per_page: perPage,
-        page,
-      };
-
-      if (searchKeyword.trim()) query.q = searchKeyword.trim();
-      if (appliedFilters.status) query.status = appliedFilters.status;
-      if (appliedFilters.allowStatus) query.allow_status = appliedFilters.allowStatus;
 
       try {
         const response = await api.get<HospitalApiItem[]>("/hospitals", query);
@@ -160,7 +196,7 @@ export default function HospitalsTableClient() {
         setRefreshing(false);
       }
     },
-    [appliedFilters, direction, page, perPage, searchKeyword, sort],
+    [query],
   );
 
   React.useEffect(() => {
@@ -176,7 +212,7 @@ export default function HospitalsTableClient() {
 
   const resetFilters = (applyNow = true) => {
     setDraftFilters(DEFAULT_FILTERS);
-    setFilterFormKey((prev) => prev + 1);
+    setResetKey((prev) => prev + 1);
     if (applyNow) {
       setPage(1);
       setAppliedFilters(DEFAULT_FILTERS);
@@ -189,25 +225,29 @@ export default function HospitalsTableClient() {
       setIsFilterOpen(false);
       return;
     }
-
     setIsFilterOpen(true);
+  };
+
+  const toggleReviewStatus = (value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.reviewStatuses.includes(value);
+      return {
+        ...prev,
+        reviewStatuses: exists
+          ? prev.reviewStatuses.filter((item) => item !== value)
+          : [...prev.reviewStatuses, value],
+      };
+    });
   };
 
   const toggleSort = (field: SortField) => {
     setPage(1);
-
-    if (sort !== field) {
-      setSort(field);
-      setDirection("desc");
-      return;
-    }
-
-    setDirection((prev) => (prev === "desc" ? "asc" : "desc"));
+    setSortState((prev) => nextSortState(prev, field));
   };
 
-  const renderSortIcon = (field: SortField) => {
-    if (sort !== field) return "↕";
-    return direction === "asc" ? "↑" : "↓";
+  const sortMark = (field: SortField) => {
+    if (!sortState.enabled || sortState.field !== field) return "↕";
+    return sortState.direction === "desc" ? "↓" : "↑";
   };
 
   const columns: DataTableColumn<HospitalRow>[] = [
@@ -215,7 +255,7 @@ export default function HospitalsTableClient() {
       key: "id",
       header: (
         <button type="button" onClick={() => toggleSort("id")} className="inline-flex items-center gap-1">
-          ID <span className="text-xs text-gray-400">{renderSortIcon("id")}</span>
+          ID <span className="text-xs text-gray-400">{sortMark("id")}</span>
         </button>
       ),
       render: (row) => row.id,
@@ -224,7 +264,7 @@ export default function HospitalsTableClient() {
       key: "name",
       header: (
         <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1">
-          병원명 <span className="text-xs text-gray-400">{renderSortIcon("name")}</span>
+          병원명 <span className="text-xs text-gray-400">{sortMark("name")}</span>
         </button>
       ),
       render: (row) => <span className="font-medium text-gray-800 dark:text-white/90">{row.name}</span>,
@@ -236,6 +276,16 @@ export default function HospitalsTableClient() {
       render: (row) => <span className="whitespace-pre-line">{row.address}</span>,
     },
     {
+      key: "approvalStatus",
+      header: "승인상태",
+      render: (row) => labelApprovalStatus(row.approvalStatus),
+    },
+    {
+      key: "reviewStatus",
+      header: "병원 검수 상태",
+      render: (row) => labelReviewStatus(row.reviewStatus),
+    },
+    {
       key: "viewCount",
       header: (
         <button
@@ -243,48 +293,10 @@ export default function HospitalsTableClient() {
           onClick={() => toggleSort("view_count")}
           className="inline-flex items-center gap-1"
         >
-          조회수 <span className="text-xs text-gray-400">{renderSortIcon("view_count")}</span>
+          조회수 <span className="text-xs text-gray-400">{sortMark("view_count")}</span>
         </button>
       ),
       render: (row) => row.viewCount.toLocaleString(),
-    },
-    {
-      key: "allowStatus",
-      header: "승인상태",
-      render: (row) => {
-        const approved = row.allowStatus === "APPROVED";
-        return (
-          <span
-            className={[
-              "inline-flex rounded-full px-2 py-1 text-xs font-medium",
-              approved
-                ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
-                : "bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400",
-            ].join(" ")}
-          >
-            {row.allowStatus}
-          </span>
-        );
-      },
-    },
-    {
-      key: "status",
-      header: "노출상태",
-      render: (row) => {
-        const active = row.status === "ACTIVE";
-        return (
-          <span
-            className={[
-              "inline-flex rounded-full px-2 py-1 text-xs font-medium",
-              active
-                ? "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400"
-                : "bg-gray-100 text-gray-700 dark:bg-gray-700/40 dark:text-gray-300",
-            ].join(" ")}
-          >
-            {row.status}
-          </span>
-        );
-      },
     },
     {
       key: "createdAt",
@@ -294,7 +306,7 @@ export default function HospitalsTableClient() {
           onClick={() => toggleSort("created_at")}
           className="inline-flex items-center gap-1"
         >
-          등록일 <span className="text-xs text-gray-400">{renderSortIcon("created_at")}</span>
+          등록일 <span className="text-xs text-gray-400">{sortMark("created_at")}</span>
         </button>
       ),
       render: (row) => row.createdAt,
@@ -305,118 +317,97 @@ export default function HospitalsTableClient() {
     <div className="space-y-4">
       <form
         onSubmit={applySearch}
-        className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
+        className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
       >
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full">
+        <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="w-full">
             <InputField
-              key={`search-${filterFormKey}`}
+              key={`search-${resetKey}`}
               defaultValue={searchInput}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-              placeholder="종합검색"
-              className="pr-10"
+              placeholder="종합검색 (병원명, 주소, 연락처)"
             />
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400">⌕</span>
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={toggleFilters}
-              className="h-11 border border-brand-200 px-4 text-brand-500"
-            >
-              ⛭ Filter
+            <Button type="submit" size="sm" className="h-11 px-4">
+              검색
             </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-11 border border-brand-200 px-4 text-brand-500"
-            >
-              ⇩ Export
+            <Button type="button" variant="outline" size="sm" className="h-11 px-4">
+              Export
             </Button>
-
             <Can permission="beaulab.hostpital.create">
               <Link href="/hospitals/create">
                 <Button type="button" size="sm" className="h-11 px-4">
-                  + 병원 등록
+                  병원 등록
                 </Button>
               </Link>
             </Can>
           </div>
         </div>
 
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={toggleFilters}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:border-white/[0.05] dark:text-white/90"
+          >
+            {isFilterOpen ? "필터 닫기" : "필터 열기"}
+          </button>
+          <button
+            type="button"
+            onClick={() => resetFilters(true)}
+            className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
+          >
+            필터 초기화
+          </button>
+        </div>
+
         <div
           className={[
             "grid transition-all duration-300",
-            isFilterOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+            isFilterOpen ? "mt-3 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
           ].join(" ")}
         >
           <div className="overflow-hidden">
-            <div className="grid grid-cols-1 gap-3 pt-1 md:grid-cols-6">
-              <div>
-                <p className="mb-1 text-xs font-medium text-gray-500">노출상태</p>
-                <Select
-                  key={`status-${filterFormKey}`}
-                  placeholder="전체"
-                  options={STATUS_OPTIONS}
-                  defaultValue={draftFilters.status}
-                  onChange={(value: string) => setDraftFilters((prev) => ({ ...prev, status: value }))}
-                />
-              </div>
-
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div>
                 <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
                 <Select
-                  key={`allow-${filterFormKey}`}
+                  key={`approval-${resetKey}`}
                   placeholder="전체"
-                  options={ALLOW_STATUS_OPTIONS}
-                  defaultValue={draftFilters.allowStatus}
-                  onChange={(value: string) => setDraftFilters((prev) => ({ ...prev, allowStatus: value }))}
+                  options={APPROVAL_STATUS_OPTIONS}
+                  defaultValue={draftFilters.approvalStatus}
+                  onChange={(value: string) => setDraftFilters((prev) => ({ ...prev, approvalStatus: value }))}
                 />
               </div>
 
               <div>
-                <p className="mb-1 text-xs font-medium text-gray-500">시작일</p>
+                <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
                 <InputField
-                  key={`start-${filterFormKey}`}
-                  type="date"
-                  defaultValue={draftFilters.startDate}
+                  key={`range-${resetKey}`}
+                  defaultValue={draftFilters.dateRange}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setDraftFilters((prev) => ({ ...prev, startDate: event.target.value }))
+                    setDraftFilters((prev) => ({ ...prev, dateRange: event.target.value }))
                   }
+                  placeholder="예: 2026-01-01 ~ 2026-01-31"
                 />
               </div>
 
               <div>
-                <p className="mb-1 text-xs font-medium text-gray-500">종료일</p>
-                <InputField
-                  key={`end-${filterFormKey}`}
-                  type="date"
-                  defaultValue={draftFilters.endDate}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setDraftFilters((prev) => ({ ...prev, endDate: event.target.value }))
-                  }
-                />
-              </div>
-
-              <div className="flex items-end">
-                <Button type="submit" size="sm" className="h-11 w-full px-4">
-                  검색
-                </Button>
-              </div>
-
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={() => resetFilters(true)}
-                  className="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-white/[0.05] dark:text-gray-300 dark:hover:bg-white/[0.06]"
-                >
-                  필터 초기화
-                </button>
+                <p className="mb-1 text-xs font-medium text-gray-500">병원 검수 상태</p>
+                <div className="flex h-11 items-center gap-4 rounded-lg border border-gray-300 px-3 dark:border-gray-700">
+                  {REVIEW_STATUS_OPTIONS.map((item) => (
+                    <label key={item.value} className="inline-flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
+                      <input
+                        type="checkbox"
+                        checked={draftFilters.reviewStatuses.includes(item.value)}
+                        onChange={() => toggleReviewStatus(item.value)}
+                      />
+                      {item.label}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -425,7 +416,7 @@ export default function HospitalsTableClient() {
 
       <DataTable
         title="병원 목록"
-        description="Enter 또는 검색 버튼으로 조건을 적용합니다."
+        description="검색/필터는 Enter 또는 검색 버튼으로 적용됩니다."
         columns={columns}
         rows={rows}
         getRowKey={(row) => row.id}
