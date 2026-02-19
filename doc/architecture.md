@@ -12,19 +12,19 @@ Actor 기반 설계, 인증 및 권한 처리 전략을 정의합니다.
 # 1. 전체 구조
 
 apps/
-staff-web/
-partner-web/
-user-web/
-mobile/
+    staff-web/
+    partner-web/
+    user-web/
+    mobile/
 
 packages/
-api-client/
-auth/
-types/
-ui-admin/
+    api-client/
+    auth/
+    types/
+    ui-admin/
 
 doc/
-architecture.md
+    architecture.md
 
 ---
 
