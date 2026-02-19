@@ -1,7 +1,9 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { Guard } from "@/components/guard";
+import { getSession } from "@/lib/session";
+import { buildStaffSidebarMenu } from "@/components/admin/sidebar-menu";
 import {
     AppHeader,
     AppSidebar,
@@ -29,6 +31,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
 function AdminLayoutInner({ children }: AdminLayoutProps) {
     const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+    const session = getSession();
+
+    const permissions = useMemo(() => session?.auth?.permissions ?? [], [session?.auth?.permissions]);
+    const menuByActor = useMemo(() => buildStaffSidebarMenu(permissions), [permissions]);
 
     const mainContentMargin = isMobileOpen
         ? "ml-0"
@@ -38,21 +44,12 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
 
     return (
         <div className="min-h-dvh bg-gray-50 dark:bg-gray-900 xl:flex">
-            {/* Sidebar */}
-            <AppSidebar />
-
-            {/* Mobile overlay */}
+            <AppSidebar menu={menuByActor} />
             <Backdrop />
 
-            {/* Main Area */}
-            <div
-                className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${mainContentMargin}`}
-            >
+            <div className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${mainContentMargin}`}>
                 <AppHeader />
-
-                <main className="flex-1 p-4 mx-auto w-full max-w-screen-2xl md:p-6">
-                    {children}
-                </main>
+                <main className="flex-1 p-4 mx-auto w-full max-w-screen-2xl md:p-6">{children}</main>
             </div>
         </div>
     );
