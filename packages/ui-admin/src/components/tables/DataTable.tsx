@@ -148,9 +148,13 @@ export function DataTable<T>({
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {(title || description || rightActions || onRefresh) && (
         <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-4">
-          <div>{title ? <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3> : null}{description ? <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{description}</p> : null}</div>
+          <div>
+            {title ? <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3> : null}
+            {description ? <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{description}</p> : null}
+          </div>
 
           <div className="flex items-center gap-3">
+            {rightActions}
             {onRefresh ? (
               <button
                 type="button"
@@ -162,7 +166,6 @@ export function DataTable<T>({
                 {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
               </button>
             ) : null}
-            {rightActions}
           </div>
         </div>
       )}
@@ -228,7 +231,9 @@ export function DataTable<T>({
       </div>
 
       {meta && onGoPage ? (
-        <div className="flex items-center justify-end px-5 py-4 sm:px-6">
+        <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="text-sm text-gray-500 dark:text-gray-400">총 {meta.total.toLocaleString()}개</div>
+
           <div className="flex items-center gap-2">
             {current > 1 ? (
               <Button
