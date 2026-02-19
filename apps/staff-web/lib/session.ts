@@ -1,47 +1,45 @@
-// apps/staff-web/src/lib/session.ts
 import { api } from "./api";
 import { tokenStorage, sessionStorage } from "@beaulab/auth";
-import type { StaffSession } from "@beaulab/auth";
+import type { ActorAuthorization, StaffProfile, StaffSession } from "@beaulab/types";
 import { isApiSuccess } from "@beaulab/types";
 
 type LoginPayload = { nickname: string; password: string };
+type LoginResponse = { token: string };
+type StaffProfileResponse = {
+  profile: StaffProfile;
+  auth?: Partial<ActorAuthorization>;
+};
 
-// 1) 로그인
-export async function login(payload: LoginPayload): Promise<{ actor: string; profile: any; auth: any }> {
-    const res = await api.post<{ token: string }>("/login", payload);
+export async function login(payload: LoginPayload): Promise<StaffSession> {
+  const res = await api.post<LoginResponse>("/auth/login", payload);
 
-    if (!isApiSuccess(res)) throw res; // 서비스/페이지에서 공통 처리
-    tokenStorage.set("staff", res.data.token);
+  if (!isApiSuccess(res)) throw res;
 
-    return await restoreSession(); // 로그인 직후 me로 세션 구성
+  tokenStorage.set("staff", res.data.token);
+
+  return restoreSession();
 }
 
-// 2) 세션 복구(/me)
-export async function restoreSession(): Promise<{ actor: string; profile: any; auth: any }> {
-    const me = await api.get<{
-        profile: any; //
-        auth: { roles: string[]; permissions: string[]; scope?: string };
-    }>("/profile");
+export async function restoreSession(): Promise<StaffSession> {
+  const me = await api.get<StaffProfileResponse>("/profile");
 
-    if (!isApiSuccess(me)) throw me;
+  if (!isApiSuccess(me)) throw me;
 
-    const session: { actor: string; profile: any; auth: any } = {
-        actor: "staff",
-        profile: me.data.profile,
-        auth: me.data.auth,
-    };
+  const session: StaffSession = {
+    actor: "staff",
+    profile: me.data.profile,
+    auth: me.data.auth,
+  };
 
-    sessionStorage.set("staff", session);
-    return session;
+  sessionStorage.set("staff", session);
+  return session;
 }
 
-// 3) 현재 세션 읽기
 export function getSession(): StaffSession | null {
-    return sessionStorage.get("staff") as StaffSession | null;
+  return sessionStorage.get("staff") as StaffSession | null;
 }
 
-// 4) 로그아웃
 export function logout() {
-    tokenStorage.remove("staff");
-    sessionStorage.remove("staff");
+  tokenStorage.clear("staff");
+  sessionStorage.clear("staff");
 }

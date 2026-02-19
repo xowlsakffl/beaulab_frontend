@@ -1,5 +1,7 @@
 import type { ActorAuthorization } from "@beaulab/types";
 
+type AuthorizationLike = Partial<ActorAuthorization> | undefined;
+
 /**
  * 사용법 예)
  * const session = sessionStorage.get("staff");
@@ -16,7 +18,7 @@ import type { ActorAuthorization } from "@beaulab/types";
  * 단일 permission 확인
  */
 export function hasPermission(
-    auth: ActorAuthorization | undefined,
+    auth: AuthorizationLike,
     permission: string
 ): boolean {
     if (!auth?.permissions) return false;
@@ -27,7 +29,7 @@ export function hasPermission(
  * 여러 permission 중 하나라도 있으면 true
  */
 export function hasAnyPermission(
-    auth: ActorAuthorization | undefined,
+    auth: AuthorizationLike,
     permissions: string[]
 ): boolean {
     if (!auth?.permissions) return false;
@@ -38,7 +40,7 @@ export function hasAnyPermission(
  * 모든 permission을 가지고 있어야 true
  */
 export function hasAllPermissions(
-    auth: ActorAuthorization | undefined,
+    auth: AuthorizationLike,
     permissions: string[]
 ): boolean {
     if (!auth?.permissions) return false;
