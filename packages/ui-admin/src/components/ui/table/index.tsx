@@ -63,7 +63,7 @@ const TableCell: React.FC<TableCellProps> = ({ children, isHeader = false, class
   }
 
   return (
-    <td className={className ?? ""} {...props}>
+    <td className={`text-sm ${className ?? ""}`} {...props}>
       {children}
     </td>
   );
