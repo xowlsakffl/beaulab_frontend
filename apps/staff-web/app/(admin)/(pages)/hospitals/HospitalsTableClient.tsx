@@ -4,10 +4,10 @@ import { Can } from "@/components/guard";
 import { api } from "@/lib/api";
 import { isApiSuccess } from "@beaulab/types";
 import {
+  StatusBadge,
   Button,
   DataTable,
   InputField,
-  Select,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -49,7 +49,7 @@ type SortState = {
 };
 
 type Filters = {
-  approvalStatus: string;
+  approvalStatuses: string[];
   reviewStatuses: string[];
   dateRange: string;
 };
@@ -65,7 +65,7 @@ type HospitalsQuery = {
 };
 
 const DEFAULT_FILTERS: Filters = {
-  approvalStatus: "",
+  approvalStatuses: [],
   reviewStatuses: [],
   dateRange: "",
 };
@@ -135,9 +135,11 @@ export default function HospitalsTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState("");
 
   const [isFilterOpen, setIsFilterOpen] = React.useState(true);
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [resetKey, setResetKey] = React.useState(0);
+  const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(DEFAULT_SORT);
   const [perPage, setPerPage] = React.useState(15);
@@ -161,11 +163,11 @@ export default function HospitalsTableClient() {
     };
 
     if (searchKeyword.trim()) q.q = searchKeyword.trim();
-    if (appliedFilters.approvalStatus) q.status = appliedFilters.approvalStatus;
+    if (appliedFilters.approvalStatuses.length > 0) q.status = appliedFilters.approvalStatuses.join(",");
     if (appliedFilters.reviewStatuses.length > 0) q.allow_status = appliedFilters.reviewStatuses.join(",");
 
     return q;
-  }, [appliedFilters.approvalStatus, appliedFilters.reviewStatuses, page, perPage, searchKeyword, sortState]);
+  }, [appliedFilters.approvalStatuses, appliedFilters.reviewStatuses, page, perPage, searchKeyword, sortState]);
 
   const fetchHospitals = React.useCallback(
     async (manualRefresh = false) => {
@@ -203,10 +205,28 @@ export default function HospitalsTableClient() {
     fetchHospitals(false);
   }, [fetchHospitals]);
 
-  const applySearch = (event?: React.FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setPage(1);
+      setSearchKeyword(searchInput.trim());
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
+
+  React.useEffect(() => {
+    const onOutsideClick = (event: MouseEvent) => {
+      if (!statusDropdownRef.current?.contains(event.target as Node)) {
+        setIsStatusDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => document.removeEventListener("mousedown", onOutsideClick);
+  }, []);
+
+  const applyFilters = () => {
     setPage(1);
-    setSearchKeyword(searchInput);
     setAppliedFilters(draftFilters);
   };
 
@@ -238,6 +258,28 @@ export default function HospitalsTableClient() {
           : [...prev.reviewStatuses, value],
       };
     });
+  };
+
+  const toggleApprovalStatus = (value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.approvalStatuses.includes(value);
+      return {
+        ...prev,
+        approvalStatuses: exists
+          ? prev.approvalStatuses.filter((item) => item !== value)
+          : [...prev.approvalStatuses, value],
+      };
+    });
+  };
+
+  const toggleAllApprovalStatus = () => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      approvalStatuses:
+        prev.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length
+          ? []
+          : APPROVAL_STATUS_OPTIONS.map((item) => item.value),
+    }));
   };
 
   const toggleSort = (field: SortField) => {
@@ -278,12 +320,20 @@ export default function HospitalsTableClient() {
     {
       key: "approvalStatus",
       header: "승인상태",
-      render: (row) => labelApprovalStatus(row.approvalStatus),
+      render: (row) => (
+        <StatusBadge size="sm" color={row.approvalStatus === "ACTIVE" ? "success" : row.approvalStatus === "SUSPENDED" ? "warning" : "error"}>
+          {labelApprovalStatus(row.approvalStatus)}
+        </StatusBadge>
+      ),
     },
     {
       key: "reviewStatus",
       header: "병원 검수 상태",
-      render: (row) => labelReviewStatus(row.reviewStatus),
+      render: (row) => (
+        <StatusBadge size="sm" color={row.reviewStatus === "APPROVED" ? "success" : row.reviewStatus === "PENDING" ? "warning" : "error"}>
+          {labelReviewStatus(row.reviewStatus)}
+        </StatusBadge>
+      ),
     },
     {
       key: "viewCount",
@@ -315,35 +365,34 @@ export default function HospitalsTableClient() {
 
   return (
     <div className="space-y-4">
-      <form
-        onSubmit={applySearch}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
+      >
+        <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-white/90">종합 검색</p>
+        <InputField
+          key={`search-${resetKey}`}
+          defaultValue={searchInput}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
+          placeholder="종합검색 (병원명, 주소, 연락처)"
+        />
+      </div>
+
+      <div
         className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
       >
-        <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="w-full">
-            <InputField
-              key={`search-${resetKey}`}
-              defaultValue={searchInput}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-              placeholder="종합검색 (병원명, 주소, 연락처)"
-            />
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <Button type="submit" size="sm" className="h-11 px-4">
-              검색
-            </Button>
-            <Button type="button" variant="outline" size="sm" className="h-11 px-4">
-              Export
-            </Button>
-            <Can permission="beaulab.hostpital.create">
-              <Link href="/hospitals/create">
-                <Button type="button" size="sm" className="h-11 px-4">
-                  병원 등록
-                </Button>
-              </Link>
-            </Can>
-          </div>
+        <div className="mb-3 flex shrink-0 items-center justify-end gap-2">
+          <Button type="button" onClick={applyFilters} size="sm" className="h-11 px-4">
+            필터 적용
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-11 px-4">
+            Export
+          </Button>
+          <Can permission="beaulab.hostpital.create">
+            <Link href="/hospitals/create">
+              <Button type="button" size="sm" className="h-11 px-4">
+                병원 등록
+              </Button>
+            </Link>
+          </Can>
         </div>
 
         <div className="flex items-center justify-between">
@@ -373,13 +422,41 @@ export default function HospitalsTableClient() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div>
                 <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
-                <Select
-                  key={`approval-${resetKey}`}
-                  placeholder="전체"
-                  options={APPROVAL_STATUS_OPTIONS}
-                  defaultValue={draftFilters.approvalStatus}
-                  onChange={(value: string) => setDraftFilters((prev) => ({ ...prev, approvalStatus: value }))}
-                />
+                <div className="relative" ref={statusDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
+                    className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                  >
+                    {draftFilters.approvalStatuses.length > 0
+                      ? `${draftFilters.approvalStatuses.length}개 선택`
+                      : "전체"}
+                    <span className="text-xs">▾</span>
+                  </button>
+
+                  {isStatusDropdownOpen && (
+                    <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                      <label className="flex items-center gap-2 px-1 py-1 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={draftFilters.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length}
+                          onChange={toggleAllApprovalStatus}
+                        />
+                        전체
+                      </label>
+                      {APPROVAL_STATUS_OPTIONS.map((item) => (
+                        <label key={item.value} className="flex items-center gap-2 px-1 py-1 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={draftFilters.approvalStatuses.includes(item.value)}
+                            onChange={() => toggleApprovalStatus(item.value)}
+                          />
+                          {item.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -412,11 +489,11 @@ export default function HospitalsTableClient() {
             </div>
           </div>
         </div>
-      </form>
+      </div>
 
       <DataTable
         title="병원 목록"
-        description="검색/필터는 Enter 또는 검색 버튼으로 적용됩니다."
+        description="종합검색은 입력 시 자동 반영되며, 필터는 '필터 적용' 버튼으로 적용됩니다."
         columns={columns}
         rows={rows}
         getRowKey={(row) => row.id}
@@ -427,16 +504,23 @@ export default function HospitalsTableClient() {
         onRefresh={() => fetchHospitals(true)}
         onGoPage={(nextPage) => setPage(nextPage)}
         rightActions={
-          <Select
-            key={`per-page-${perPage}`}
-            options={PER_PAGE_OPTIONS}
-            defaultValue={String(perPage)}
-            onChange={(value: string) => {
-              setPage(1);
-              setPerPage(Number(value));
-            }}
-            className="h-9 w-[88px] py-0 text-xs"
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">페이지당</span>
+            <select
+              value={perPage}
+              onChange={(event) => {
+                setPage(1);
+                setPerPage(Number(event.target.value));
+              }}
+              className="h-9 w-[88px] rounded-lg border border-gray-300 px-2 text-xs dark:border-gray-700 dark:bg-gray-800"
+            >
+              {PER_PAGE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         }
         emptyText="조건에 맞는 병원이 없습니다."
       />

@@ -4,7 +4,7 @@ export * from "./dropdown/DropdownItem";
 export * from "./alert/Alert";
 export * from "./avatar/Avatar";
 export * from "./avatar/AvatarText";
-export * from "./badge/Badge";
+export { default as StatusBadge } from "./badge/Badge";
 export * from "./images/ResponsiveImage";
 export * from "./images/ThreeColumnImageGrid";
 export * from "./images/TwoColumnImageGrid";
