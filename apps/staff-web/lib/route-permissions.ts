@@ -13,10 +13,12 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
 export function resolveRoutePermissions(pathname: string | null, rules: RoutePermissionRule[]): string[] {
   if (!pathname) return [];
 
-  const matchedRule = rules.find((rule) => {
-    if (rule.path === "/") return pathname === "/";
-    return pathname === rule.path || pathname.startsWith(`${rule.path}/`);
-  });
+  const matchedRule = rules
+      .filter((rule) => {
+        if (rule.path === "/") return pathname === "/";
+        return pathname === rule.path || pathname.startsWith(`${rule.path}/`);
+      })
+      .sort((a, b) => b.path.length - a.path.length)[0];
 
   return matchedRule?.requiredPermissions ?? [];
 }

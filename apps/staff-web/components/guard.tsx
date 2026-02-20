@@ -42,13 +42,12 @@ export function Guard(props: GuardProps) {
 
       if (requiredPermissions.length > 0) {
         const canAccess = hasAnyPermission(resolvedSession.auth, requiredPermissions);
-        console.log(props.requiredPermissions);
 
-        // if (!canAccess) {
-        //   router.replace(props.unauthorizedRedirectPath ?? "/error-404");
-        //   setIsChecking(false);
-        //   return;
-        // }
+        if (!canAccess) {
+          router.replace(props.unauthorizedRedirectPath ?? "/error-404");
+          setIsChecking(false);
+          return;
+        }
       }
 
       setSession(resolvedSession);
