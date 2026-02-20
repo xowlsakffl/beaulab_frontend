@@ -33,7 +33,7 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             requiredPermissions: ["beaulab.hospital.show"],
             subItems: [
                 { name: "병원 리스트", path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
-                { name: "병원 생성", path: "/basic-tables", requiredPermissions: ["beaulab.hospital.create"] },
+                { name: "병원 생성", path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
             ],
         },
         {

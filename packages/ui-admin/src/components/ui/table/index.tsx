@@ -31,7 +31,7 @@ const Table: React.FC<TableProps> = ({ children, className, ...props }) => {
 
 const TableHeader: React.FC<TableHeaderProps> = ({ children, className, ...props }) => {
   return (
-    <thead className={className} {...props}>
+    <thead className={`text-xs ${className ?? ""}`} {...props}>
       {children}
     </thead>
   );

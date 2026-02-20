@@ -7,8 +7,7 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/", requiredPermissions: ["common.dashboard.show"] },
   { path: "/profile", requiredPermissions: ["common.profile.show"] },
   { path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
-  { path: "/basic-tables", requiredPermissions: ["beaulab.hospital.show"] },
-  { path: "/form-elements", requiredPermissions: ["beaulab.hospital.create"] },
+  { path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
 ];
 
 export function resolveRoutePermissions(pathname: string | null, rules: RoutePermissionRule[]): string[] {

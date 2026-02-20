@@ -50,7 +50,7 @@ type HospitalRow = {
   createdAt: string;
 };
 
-type SortField = "id" | "name" | "created_at" | "view_count";
+type SortField = "id" | "name" | "created_at" | "view_count" | "status" | "allow_status";
 type SortDirection = "asc" | "desc";
 
 type SortState = {
@@ -63,12 +63,16 @@ type Filters = {
   approvalStatuses: string[];
   reviewStatuses: string[];
   dateRange: string;
+  startDate: string;
+  endDate: string;
 };
 
 type HospitalsQuery = {
   q?: string;
   status?: string;
   allow_status?: string;
+  start_date?: string;
+  end_date?: string;
   sort: SortField;
   direction: SortDirection;
   per_page: number;
@@ -79,6 +83,8 @@ const DEFAULT_FILTERS: Filters = {
   approvalStatuses: [],
   reviewStatuses: [],
   dateRange: "",
+  startDate: "",
+  endDate: "",
 };
 
 const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: true };
@@ -141,13 +147,20 @@ function nextSortState(prev: SortState, field: SortField): SortState {
   return { field, direction: "desc", enabled: true };
 }
 
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 function formatDateRange(range?: DateRange) {
   if (!range?.from) return "";
 
-  const fromDate = range.from.toISOString().slice(0, 10);
+  const fromDate = formatLocalDate(range.from);
   if (!range.to) return fromDate;
 
-  return `${fromDate} ~ ${range.to.toISOString().slice(0, 10)}`;
+  return `${fromDate} ~ ${formatLocalDate(range.to)}`;
 }
 
 export default function HospitalsTableClient() {
@@ -190,9 +203,11 @@ export default function HospitalsTableClient() {
     if (searchKeyword.trim()) q.q = searchKeyword.trim();
     if (appliedFilters.approvalStatuses.length > 0) q.status = appliedFilters.approvalStatuses.join(",");
     if (appliedFilters.reviewStatuses.length > 0) q.allow_status = appliedFilters.reviewStatuses.join(",");
+    if (appliedFilters.startDate) q.start_date = appliedFilters.startDate;
+    if (appliedFilters.endDate) q.end_date = appliedFilters.endDate;
 
     return q;
-  }, [appliedFilters.approvalStatuses, appliedFilters.reviewStatuses, page, perPage, searchKeyword, sortState]);
+  }, [appliedFilters.approvalStatuses, appliedFilters.reviewStatuses, appliedFilters.startDate, appliedFilters.endDate, page, perPage, searchKeyword, sortState]);
 
   const fetchHospitals = React.useCallback(
     async (manualRefresh = false) => {
@@ -258,7 +273,13 @@ export default function HospitalsTableClient() {
 
   const applyFilters = () => {
     setPage(1);
-    setAppliedFilters(draftFilters);
+    setAppliedFilters({
+      approvalStatuses: [...draftFilters.approvalStatuses],
+      reviewStatuses: [...draftFilters.reviewStatuses],
+      dateRange: draftFilters.dateRange,
+      startDate: draftFilters.startDate,
+      endDate: draftFilters.endDate,
+    });
   };
 
   const resetFilters = (applyNow = true) => {
@@ -333,7 +354,7 @@ export default function HospitalsTableClient() {
     {
       key: "id",
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("id")} className="inline-flex items-center gap-1 px-0">
+        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("id")} className="text-xs inline-flex items-center gap-1 px-0">
           ID <span className="text-xs text-gray-400">{sortMark("id")}</span>
         </Button>
       ),
@@ -342,7 +363,7 @@ export default function HospitalsTableClient() {
     {
       key: "name",
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 px-0">
+        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("name")} className="text-xs inline-flex items-center gap-1 px-0">
           병원명 <span className="text-xs text-gray-400">{sortMark("name")}</span>
         </Button>
       ),
@@ -356,7 +377,17 @@ export default function HospitalsTableClient() {
     },
     {
       key: "approvalStatus",
-      header: "승인상태",
+      header: (
+          <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleSort("status")}
+              className="text-xs inline-flex items-center gap-1 px-0"
+          >
+            승인상태 <span className="text-xs text-gray-400">{sortMark("status")}</span>
+          </Button>
+      ),
       render: (row) => (
         <StatusBadge size="sm" color={row.approvalStatus === "ACTIVE" ? "success" : row.approvalStatus === "SUSPENDED" ? "warning" : "error"}>
           {labelApprovalStatus(row.approvalStatus)}
@@ -365,7 +396,17 @@ export default function HospitalsTableClient() {
     },
     {
       key: "reviewStatus",
-      header: "검수 상태",
+      header: (
+          <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleSort("allow_status")}
+              className="text-xs inline-flex items-center gap-1 px-0"
+          >
+            검수 상태 <span className="text-xs text-gray-400">{sortMark("allow_status")}</span>
+          </Button>
+      ),
       render: (row) => (
         <StatusBadge size="sm" color={row.reviewStatus === "APPROVED" ? "success" : row.reviewStatus === "PENDING" ? "warning" : "error"}>
           {labelReviewStatus(row.reviewStatus)}
@@ -380,7 +421,7 @@ export default function HospitalsTableClient() {
           variant="ghost"
           size="sm"
           onClick={() => toggleSort("view_count")}
-          className="inline-flex items-center gap-1 px-0"
+          className="text-xs inline-flex items-center gap-1 px-0"
         >
           조회수 <span className="text-xs text-gray-400">{sortMark("view_count")}</span>
         </Button>
@@ -395,7 +436,7 @@ export default function HospitalsTableClient() {
           variant="ghost"
           size="sm"
           onClick={() => toggleSort("created_at")}
-          className="inline-flex items-center gap-1 px-0"
+          className="text-xs inline-flex items-center gap-1 px-0"
         >
           등록일 <span className="text-xs text-gray-400">{sortMark("created_at")}</span>
         </Button>
@@ -433,12 +474,12 @@ export default function HospitalsTableClient() {
             <SlidersHorizontal className="size-5" />
             <span>필터</span>
           </Button>
-          <Button type="button" variant="outline" size="sm" className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100">
+          <Button type="button" variant="outline" size="sm" className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]">
             <Download className="size-5" />
             <span>다운로드</span>
           </Button>
-          <Can permission="beaulab.hostpital.create">
-            <Link href="/hospitals/create">
+          <Can permission="beaulab.hospital.create">
+            <Link href="/hospitals/new">
               <Button type="button" variant="brand" size="sm" className="h-11 px-5">
                 <SquarePlus className="size-5" />
                 <span>병원 등록</span>
@@ -544,7 +585,7 @@ export default function HospitalsTableClient() {
                   </div>
                 </div>
                 <div className="w-full">
-                  <p className="mb-1 text-xs font-medium text-gray-500">기간</p>
+                  <p className="mb-1 text-xs font-medium text-gray-500">등록일</p>
                   <div ref={datePickerRef} className="relative">
                     <Button
                         type="button"
@@ -553,7 +594,7 @@ export default function HospitalsTableClient() {
                         onClick={() => setIsDatePickerOpen((prev) => !prev)}
                         className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
                     >
-                      <span>{draftFilters.dateRange || "기간 선택"}</span>
+                      <span>{draftFilters.dateRange || "등록일 기간 선택"}</span>
                       <ChevronDown className="size-4" />
                     </Button>
                     {isDatePickerOpen && (
@@ -564,9 +605,14 @@ export default function HospitalsTableClient() {
                               locale={ko}
                               onSelect={(nextRange) => {
                                 setDraftDateRange(nextRange);
-                                setDraftFilters((prev) => ({ ...prev, dateRange: formatDateRange(nextRange) }));
+                                setDraftFilters((prev) => ({
+                                  ...prev,
+                                  dateRange: formatDateRange(nextRange),
+                                  startDate: nextRange?.from ? formatLocalDate(nextRange.from) : "",
+                                  endDate: nextRange?.to ? formatLocalDate(nextRange.to) : "",
+                                }));
 
-                                if (nextRange?.from && nextRange?.to) {
+                                if (draftDateRange?.from && nextRange?.from && nextRange?.to) {
                                   setIsDatePickerOpen(false);
                                 }
                               }}

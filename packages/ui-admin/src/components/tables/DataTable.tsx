@@ -116,7 +116,7 @@ export function DataTable<T>({
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {!loading && error ? (
               <TableRow>
-                <TableCell className="px-5 py-6 text-start text-theme-sm text-rose-600" colSpan={colCount}>
+                <TableCell className="px-5 py-6 text-center text-theme-sm text-rose-600" colSpan={colCount}>
                   {error}
                 </TableCell>
               </TableRow>
