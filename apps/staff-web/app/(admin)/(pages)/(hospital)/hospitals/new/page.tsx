@@ -1,5 +1,6 @@
 import { PageBreadcrumb } from "@beaulab/ui-admin";
 import { Metadata } from "next";
+import HospitalsCreateFormClient from "./HospitalsCreateFormClient";
 
 export const metadata: Metadata = {
   title: "병원 생성 | 뷰랩 관리자",
@@ -10,6 +11,7 @@ export default function HospitalsCreatePage() {
   return (
     <div className="space-y-6">
       <PageBreadcrumb pageTitle="병원 생성" />
+      <HospitalsCreateFormClient />
     </div>
   );
 }
