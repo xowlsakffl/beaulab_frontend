@@ -404,12 +404,17 @@ export default function HospitalsTableClient() {
               onClick={toggleFilters}
               variant="outline"
               size="sm"
-              className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 active:bg-brand-500 active:text-white"
+              className={[
+                "h-11 border-brand-500 px-5",
+                isFilterOpen
+                    ? "bg-brand-500 text-white hover:bg-brand-600"
+                    : "text-brand-500 hover:bg-gray-100",
+              ].join(" ")}
           >
             <SlidersHorizontal className="size-5" />
             <span>필터</span>
           </Button>
-          <Button type="button" variant="outline" size="sm" className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 active:bg-brand-500 active:text-white">
+          <Button type="button" variant="outline" size="sm" className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100">
             <Download className="size-5" />
             <span>다운로드</span>
           </Button>
@@ -424,15 +429,15 @@ export default function HospitalsTableClient() {
         </div>
       </div>
       <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="overflow-hidden rounded-xl">
+        <div className="">
           <Button
             type="button"
             variant="ghost"
             onClick={toggleFilters}
-            className="flex h-11 w-full items-center justify-between rounded-none bg-white px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
+            className="flex h-11 w-full items-center justify-between rounded-none px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
           >
             <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">필터</h3>
-            <span className={["text-xs transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")}>▾</span>
+            <ChevronDown className={["size-4 transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")} />
           </Button>
 
           <div
@@ -456,11 +461,11 @@ export default function HospitalsTableClient() {
                       {draftFilters.approvalStatuses.length > 0
                         ? `${draftFilters.approvalStatuses.length}개 선택`
                         : "전체"}
-                      <span className="text-xs">▾</span>
+                      <ChevronDown className="size-4" />
                     </Button>
 
                     {isStatusDropdownOpen && (
-                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <div className="absolute z-20 mt-1 w-full min-w-[220px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-1 py-1 text-sm">
                           <FormCheckbox
                             label="전체"
@@ -494,11 +499,11 @@ export default function HospitalsTableClient() {
                       {draftFilters.reviewStatuses.length > 0
                         ? `${draftFilters.reviewStatuses.length}개 선택`
                         : "전체"}
-                      <span className="text-xs">▾</span>
+                      <ChevronDown className="size-4" />
                     </Button>
 
                     {isReviewDropdownOpen && (
-                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <div className="absolute z-20 mt-1 w-full min-w-[220px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-1 py-1 text-sm">
                           <FormCheckbox
                             label="전체"
@@ -572,7 +577,7 @@ export default function HospitalsTableClient() {
                 setPerPage(Number(value));
               }}
               placeholder="갯수를 선택하세요."
-              className="h-8 w-[88px] px-2 text-xs"
+              className="h-2 w-[50px] px-2 text-xs"
             />
           </div>
         }
