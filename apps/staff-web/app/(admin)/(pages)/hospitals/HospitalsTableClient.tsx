@@ -399,17 +399,17 @@ export default function HospitalsTableClient() {
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-2">
-          <Button type="button" variant="outline" onClick={toggleFilters} size="sm" className="h-11 px-4">
+          <Button type="button" onClick={toggleFilters} size="sm" className="h-11 px-5 text-brand-500 border-brand-500 hover:bg-brand-500">
             <SlidersHorizontal className="size-5" />
             <span>필터</span>
           </Button>
-          <Button type="button" variant="outline" size="sm" className="h-11 px-4">
+          <Button type="button" variant="outline" size="sm" className="h-11 px-5">
             <Download className="size-5" />
             <span>다운로드</span>
           </Button>
           <Can permission="beaulab.hostpital.create">
             <Link href="/hospitals/create">
-              <Button type="button" size="sm" className="h-11 px-4">
+              <Button type="button" variant="brand" size="sm" className="h-11 px-5">
                 <SquarePlus className="size-5" />
                 <span>병원 등록</span>
               </Button>
@@ -437,12 +437,12 @@ export default function HospitalsTableClient() {
           >
             <div className="overflow-hidden">
               <div className="flex items-center justify-end gap-2 px-3 pt-3">
-                <Button type="button" onClick={applyFilters} size="sm" className="h-10 px-4">
+                <Button type="button" variant="brand" onClick={applyFilters} size="sm" className="h-10 px-5">
                   필터 적용
                 </Button>
                 <Button
                   type="button"
-                  variant="link"
+                  variant="ghost"
                   size="sm"
                   onClick={() => resetFilters(true)}
                   className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
