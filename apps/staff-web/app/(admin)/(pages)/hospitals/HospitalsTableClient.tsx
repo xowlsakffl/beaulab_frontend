@@ -442,11 +442,11 @@ export default function HospitalsTableClient() {
 
           <div
             className={[
-              "grid transition-all duration-300",
-              isFilterOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-100",
+              "transition-all duration-300 ease-in-out",
+              isFilterOpen ? "max-h-[520px] overflow-visible opacity-100" : "max-h-0 overflow-hidden opacity-0",
             ].join(" ")}
           >
-            <div className={isFilterOpen ? "overflow-visible" : "overflow-hidden"}>
+            <div>
               <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-3">
                 <div className="w-full">
                   <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>

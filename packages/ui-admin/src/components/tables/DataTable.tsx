@@ -72,6 +72,8 @@ export function DataTable<T>({
   onRowClick,
 }: DataTableProps<T>) {
   const colCount = Math.max(1, columns.length);
+  const totalPages = Number(meta?.last_page ?? 0);
+  const shouldShowPagination = Boolean(meta && onGoPage && Number.isFinite(totalPages) && totalPages > 1);
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -159,12 +161,12 @@ export function DataTable<T>({
         </Table>
       </div>
 
-      {meta && onGoPage ? (
+      {shouldShowPagination && meta ? (
         <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="text-sm text-gray-500 dark:text-gray-400">총 {meta.total.toLocaleString()}개</div>
           <Pagination
             currentPage={meta.current_page}
-            totalPages={meta.last_page}
+            totalPages={totalPages}
             onPageChange={onGoPage}
             disabled={refreshing}
           />
