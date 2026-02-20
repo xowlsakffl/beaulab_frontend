@@ -4,6 +4,9 @@ import { Can } from "@/components/guard";
 import { api } from "@/lib/api";
 import { isApiSuccess } from "@beaulab/types";
 import {
+  ChevronsUpDown,
+  ChevronUp,
+  ChevronDown,
   SquarePlus,
   Download,
   SlidersHorizontal,
@@ -301,8 +304,8 @@ export default function HospitalsTableClient() {
   };
 
   const sortMark = (field: SortField) => {
-    if (!sortState.enabled || sortState.field !== field) return "↕";
-    return sortState.direction === "desc" ? "↓" : "↑";
+    if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
+    return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
   };
 
   const columns: DataTableColumn<HospitalRow>[] = [
