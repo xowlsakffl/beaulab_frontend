@@ -1,56 +1,68 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import * as React from "react";
 
-interface ButtonProps {
-  children: ReactNode;
-  size?: "sm" | "md";
-  variant?: "primary" | "outline";
-  startIcon?: ReactNode;
-  endIcon?: ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  className?: string;
-  type?: "button" | "submit" | "reset";
+import { cn } from "../../../lib/utils";
+
+type ButtonVariant =
+  | "default"
+  | "destructive"
+  | "outline"
+  | "secondary"
+  | "ghost"
+  | "link"
+  | "brand";
+type ButtonSize = "default" | "sm" | "lg" | "icon" | "auth";
+
+const baseClassName =
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive";
+
+const variantClassNames: Record<ButtonVariant, string> = {
+  default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+  destructive:
+    "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+  outline: "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+  secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+  ghost: "hover:bg-accent hover:text-accent-foreground",
+  link: "text-primary underline-offset-4 hover:underline",
+  brand: "bg-brand-500 text-white shadow-xs hover:bg-brand-600 focus-visible:ring-brand-500/20",
+};
+
+const sizeClassNames: Record<ButtonSize, string> = {
+  default: "h-9 px-4 py-2 has-[>svg]:px-3",
+  sm: "h-8 rounded-md px-3 has-[>svg]:px-2.5",
+  lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+  icon: "size-9",
+  auth: "h-11 rounded-lg px-5 py-3 has-[>svg]:px-4",
+};
+
+export interface ButtonProps extends React.ComponentProps<"button"> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  asChild?: boolean;
 }
 
-export const Button: React.FC<ButtonProps> = ({
-  children,
-  size = "md",
-  variant = "primary",
-  startIcon,
-  endIcon,
-  onClick,
-  className = "",
-  disabled = false,
-  type = "button",
-}) => {
-  const sizeClasses = {
-    sm: "px-4 py-3 text-sm",
-    md: "px-5 py-3.5 text-sm",
-  };
+function Button({ className, variant = "default", size = "default", asChild = false, children, ...props }: ButtonProps) {
+  const mergedClassName = cn(baseClassName, variantClassNames[variant], sizeClassNames[size], className);
 
-  const variantClasses = {
-    primary:
-      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300",
-    outline:
-      "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
-  };
+  if (asChild && React.isValidElement(children)) {
+    const child = React.Children.only(children) as React.ReactElement<{ className?: string }>;
+    return React.cloneElement(child, {
+      ...props,
+      className: cn(mergedClassName, child.props.className),
+    });
+  }
 
   return (
-    <button
-      type={type}
-      className={`inline-flex items-center justify-center font-medium gap-2 rounded-lg transition ${className} ${
-        sizeClasses[size]
-      } ${variantClasses[variant]} ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {startIcon && <span className="flex items-center">{startIcon}</span>}
+    <button data-slot="button" className={mergedClassName} {...props}>
       {children}
-      {endIcon && <span className="flex items-center">{endIcon}</span>}
     </button>
   );
-};
+}
+
+const buttonVariants = ({ variant = "default", size = "default", className = "" }: Partial<ButtonProps>) =>
+  cn(baseClassName, variantClassNames[variant], sizeClassNames[size], className);
+
+export { Button, buttonVariants };
 
 export default Button;
