@@ -217,6 +217,20 @@ export function AppSidebar({ menu }: AppSidebarProps) {
     updateSubMenuHeights();
   }, [openSubmenu, isExpanded, isHovered, isMobileOpen, updateSubMenuHeights]);
 
+  useEffect(() => {
+    if (!isExpanded && !isHovered && !isMobileOpen) return;
+
+    updateSubMenuHeights();
+
+    const rafId = window.requestAnimationFrame(updateSubMenuHeights);
+    const timeoutId = window.setTimeout(updateSubMenuHeights, 350);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [isExpanded, isHovered, isMobileOpen, updateSubMenuHeights]);
+
   return (
       <aside
           className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
@@ -225,6 +239,9 @@ export function AppSidebar({ menu }: AppSidebarProps) {
         lg:translate-x-0`}
           onMouseEnter={() => !isExpanded && setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          onTransitionEnd={(event) => {
+            if (event.propertyName === "width") updateSubMenuHeights();
+          }}
       >
         <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
           <Link href="/">
