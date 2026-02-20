@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import React from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
+import { ko } from "react-day-picker/locale";
 import "react-day-picker/style.css";
 
 type HospitalApiItem = {
@@ -546,26 +547,31 @@ export default function HospitalsTableClient() {
                   <p className="mb-1 text-xs font-medium text-gray-500">기간</p>
                   <div ref={datePickerRef} className="relative">
                     <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() => setIsDatePickerOpen((prev) => !prev)}
-                      className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                        type="button"
+                        variant="outline"
+                        size="default"
+                        onClick={() => setIsDatePickerOpen((prev) => !prev)}
+                        className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
                     >
                       <span>{draftFilters.dateRange || "기간 선택"}</span>
                       <ChevronDown className="size-4" />
                     </Button>
                     {isDatePickerOpen && (
-                      <div className="absolute z-20 mt-1 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <DayPicker
-                          mode="range"
-                          selected={draftDateRange}
-                          onSelect={(nextRange) => {
-                            setDraftDateRange(nextRange);
-                            setDraftFilters((prev) => ({ ...prev, dateRange: formatDateRange(nextRange) }));
-                          }}
-                        />
-                      </div>
+                        <div className="absolute z-20 mt-1 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                          <DayPicker
+                              mode="range"
+                              selected={draftDateRange}
+                              locale={ko}
+                              onSelect={(nextRange) => {
+                                setDraftDateRange(nextRange);
+                                setDraftFilters((prev) => ({ ...prev, dateRange: formatDateRange(nextRange) }));
+
+                                if (nextRange?.from && nextRange?.to) {
+                                  setIsDatePickerOpen(false);
+                                }
+                              }}
+                          />
+                        </div>
                     )}
                   </div>
                 </div>
