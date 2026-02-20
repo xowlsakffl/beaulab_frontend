@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Button from "../ui/button/Button";
 
 type PaginationProps = {
@@ -30,6 +31,8 @@ function buildPages(currentPage: number, totalPages: number) {
 }
 
 const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange, disabled = false }) => {
+  if (totalPages <= 1) return null;
+
   const pages = React.useMemo(() => buildPages(currentPage, totalPages), [currentPage, totalPages]);
 
   return (
@@ -41,7 +44,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         disabled={disabled || currentPage <= 1}
         className="h-9 min-w-9 px-3"
       >
-        ←
+        <ChevronLeft className="h-4 w-4" />
       </Button>
 
       {pages.map((page, index) => {
@@ -82,7 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         disabled={disabled || currentPage >= totalPages}
         className="h-9 min-w-9 px-3"
       >
-        →
+        <ChevronRight className="h-4 w-4" />
       </Button>
     </div>
   );
