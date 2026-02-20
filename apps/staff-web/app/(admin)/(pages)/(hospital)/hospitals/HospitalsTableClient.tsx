@@ -21,6 +21,8 @@ import {
 } from "@beaulab/ui-admin";
 import Link from "next/link";
 import React from "react";
+import { DayPicker, type DateRange } from "react-day-picker";
+import "react-day-picker/style.css";
 
 type HospitalApiItem = {
   id: number;
@@ -138,10 +140,13 @@ function nextSortState(prev: SortState, field: SortField): SortState {
   return { field, direction: "desc", enabled: true };
 }
 
-function formatDateRange(fromDate: string, toDate: string) {
-  if (!fromDate && !toDate) return "";
-  if (fromDate && toDate) return `${fromDate} ~ ${toDate}`;
-  return fromDate || toDate;
+function formatDateRange(range?: DateRange) {
+  if (!range?.from) return "";
+
+  const fromDate = range.from.toISOString().slice(0, 10);
+  if (!range.to) return fromDate;
+
+  return `${fromDate} ~ ${range.to.toISOString().slice(0, 10)}`;
 }
 
 export default function HospitalsTableClient() {
@@ -152,8 +157,7 @@ export default function HospitalsTableClient() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isReviewDropdownOpen, setIsReviewDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [draftStartDate, setDraftStartDate] = React.useState("");
-  const [draftEndDate, setDraftEndDate] = React.useState("");
+  const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>();
   const [draftFilters, setDraftFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [resetKey, setResetKey] = React.useState(0);
@@ -258,8 +262,7 @@ export default function HospitalsTableClient() {
 
   const resetFilters = (applyNow = true) => {
     setDraftFilters(DEFAULT_FILTERS);
-    setDraftStartDate("");
-    setDraftEndDate("");
+    setDraftDateRange(undefined);
     setResetKey((prev) => prev + 1);
     if (applyNow) {
       setPage(1);
@@ -553,33 +556,15 @@ export default function HospitalsTableClient() {
                       <ChevronDown className="size-4" />
                     </Button>
                     {isDatePickerOpen && (
-                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <div className="space-y-2">
-                          <InputField
-                            type="date"
-                            value={draftStartDate}
-                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                              const nextStart = event.target.value;
-                              setDraftStartDate(nextStart);
-                              setDraftFilters((prev) => ({
-                                ...prev,
-                                dateRange: formatDateRange(nextStart, draftEndDate),
-                              }));
-                            }}
-                          />
-                          <InputField
-                            type="date"
-                            value={draftEndDate}
-                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                              const nextEnd = event.target.value;
-                              setDraftEndDate(nextEnd);
-                              setDraftFilters((prev) => ({
-                                ...prev,
-                                dateRange: formatDateRange(draftStartDate, nextEnd),
-                              }));
-                            }}
-                          />
-                        </div>
+                      <div className="absolute z-20 mt-1 rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <DayPicker
+                          mode="range"
+                          selected={draftDateRange}
+                          onSelect={(nextRange) => {
+                            setDraftDateRange(nextRange);
+                            setDraftFilters((prev) => ({ ...prev, dateRange: formatDateRange(nextRange) }));
+                          }}
+                        />
                       </div>
                     )}
                   </div>
