@@ -221,6 +221,10 @@
   @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
 }
 
+@utility menu-item-text {
+  @apply whitespace-nowrap;
+}
+
 @utility menu-item-arrow {
   @apply relative;
 }

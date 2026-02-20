@@ -37,15 +37,17 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={disabled || currentPage <= 1}
-        className="h-9 min-w-9 px-3"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
+      {currentPage > 1 ? (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={disabled}
+          className="h-9 min-w-9 px-3"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+      ) : null}
 
       {pages.map((page, index) => {
         if (page === "...") {
@@ -78,15 +80,17 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         );
       })}
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={disabled || currentPage >= totalPages}
-        className="h-9 min-w-9 px-3"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+      {currentPage < totalPages ? (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={disabled}
+          className="h-9 min-w-9 px-3"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      ) : null}
     </div>
   );
 };
