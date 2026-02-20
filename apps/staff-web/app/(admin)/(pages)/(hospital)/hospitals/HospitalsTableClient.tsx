@@ -442,7 +442,7 @@ export default function HospitalsTableClient() {
 
           <div
             className={[
-              "transition-all duration-300 ease-in-out",
+              "transition-all duration-200 ease-in-out",
               isFilterOpen ? "max-h-[520px] overflow-visible opacity-100" : "max-h-0 overflow-hidden opacity-0",
             ].join(" ")}
           >
