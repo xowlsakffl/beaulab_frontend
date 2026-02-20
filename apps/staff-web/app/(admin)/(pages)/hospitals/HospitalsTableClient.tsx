@@ -346,7 +346,7 @@ export default function HospitalsTableClient() {
     },
     {
       key: "reviewStatus",
-      header: "병원 검수 상태",
+      header: "검수 상태",
       render: (row) => (
         <StatusBadge size="sm" color={row.reviewStatus === "APPROVED" ? "success" : row.reviewStatus === "PENDING" ? "warning" : "error"}>
           {labelReviewStatus(row.reviewStatus)}
@@ -399,11 +399,17 @@ export default function HospitalsTableClient() {
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-2">
-          <Button type="button" onClick={toggleFilters} size="sm" className="h-11 px-5 text-brand-500 border-brand-500 hover:bg-brand-500">
+          <Button
+              type="button"
+              onClick={toggleFilters}
+              variant="outline"
+              size="sm"
+              className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 active:bg-brand-500 active:text-white"
+          >
             <SlidersHorizontal className="size-5" />
             <span>필터</span>
           </Button>
-          <Button type="button" variant="outline" size="sm" className="h-11 px-5">
+          <Button type="button" variant="outline" size="sm" className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 active:bg-brand-500 active:text-white">
             <Download className="size-5" />
             <span>다운로드</span>
           </Button>
@@ -425,7 +431,7 @@ export default function HospitalsTableClient() {
             onClick={toggleFilters}
             className="flex h-11 w-full items-center justify-between rounded-none bg-white px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
           >
-            <span>필터</span>
+            <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">필터</h3>
             <span className={["text-xs transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")}>▾</span>
           </Button>
 
@@ -436,21 +442,6 @@ export default function HospitalsTableClient() {
             ].join(" ")}
           >
             <div className="overflow-hidden">
-              <div className="flex items-center justify-end gap-2 px-3 pt-3">
-                <Button type="button" variant="brand" onClick={applyFilters} size="sm" className="h-10 px-5">
-                  필터 적용
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => resetFilters(true)}
-                  className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
-                >
-                  필터 초기화
-                </Button>
-              </div>
-
               <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-3">
                 <div>
                   <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
@@ -490,21 +481,8 @@ export default function HospitalsTableClient() {
                     )}
                   </div>
                 </div>
-
                 <div>
-                  <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
-                  <InputField
-                    key={`range-${resetKey}`}
-                    defaultValue={draftFilters.dateRange}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      setDraftFilters((prev) => ({ ...prev, dateRange: event.target.value }))
-                    }
-                    placeholder="예: 2026-01-01 ~ 2026-01-31"
-                  />
-                </div>
-
-                <div>
-                  <p className="mb-1 text-xs font-medium text-gray-500">병원 검수 상태</p>
+                  <p className="mb-1 text-xs font-medium text-gray-500">검수 상태</p>
                   <div className="relative" ref={reviewDropdownRef}>
                     <Button
                       type="button"
@@ -541,9 +519,34 @@ export default function HospitalsTableClient() {
                     )}
                   </div>
                 </div>
+                <div>
+                  <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
+                  <InputField
+                      key={`range-${resetKey}`}
+                      defaultValue={draftFilters.dateRange}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                          setDraftFilters((prev) => ({ ...prev, dateRange: event.target.value }))
+                      }
+                      placeholder="예: 2026-01-01 ~ 2026-01-31"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 px-3 pb-3">
+                <Button type="button" variant="brand" onClick={applyFilters} size="sm" className="h-10 px-5">
+                  필터 적용
+                </Button>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetFilters(true)}
+                    className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                >
+                  필터 초기화
+                </Button>
+              </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
 
@@ -561,7 +564,6 @@ export default function HospitalsTableClient() {
         onGoPage={(nextPage) => setPage(nextPage)}
         rightActions={
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">페이지당</span>
             <Select
               defaultValue={String(perPage)}
               options={PER_PAGE_OPTIONS}
@@ -569,7 +571,8 @@ export default function HospitalsTableClient() {
                 setPage(1);
                 setPerPage(Number(value));
               }}
-              className="h-9 w-[88px] px-2 text-xs"
+              placeholder="갯수를 선택하세요."
+              className="h-8 w-[88px] px-2 text-xs"
             />
           </div>
         }
