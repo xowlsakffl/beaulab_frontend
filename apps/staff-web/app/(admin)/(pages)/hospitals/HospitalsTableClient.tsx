@@ -446,7 +446,12 @@ export default function HospitalsTableClient() {
               isFilterOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-100",
             ].join(" ")}
           >
-            <div className="overflow-hidden">
+            <div
+              className={[
+                "overflow-x-hidden",
+                isStatusDropdownOpen || isReviewDropdownOpen ? "overflow-y-visible" : "overflow-y-hidden",
+              ].join(" ")}
+            >
               <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-3">
                 <div>
                   <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
@@ -572,6 +577,7 @@ export default function HospitalsTableClient() {
             <Select
               defaultValue={String(perPage)}
               options={PER_PAGE_OPTIONS}
+              showPlaceholderOption={false}
               onChange={(value) => {
                 setPage(1);
                 setPerPage(Number(value));

@@ -10,6 +10,7 @@ interface Option {
 interface SelectProps {
   options: Option[];
   placeholder?: string;
+  showPlaceholderOption?: boolean;
   onChange: (value: string) => void;
   className?: string;
   defaultValue?: string;
@@ -18,6 +19,7 @@ interface SelectProps {
 export const Select: React.FC<SelectProps> = ({
   options,
   placeholder = "Select an option",
+  showPlaceholderOption = true,
   onChange,
   className = "",
   defaultValue = "",
@@ -38,9 +40,11 @@ export const Select: React.FC<SelectProps> = ({
       value={selectedValue}
       onChange={handleChange}
     >
-      <option value="" disabled className="text-gray-700 dark:bg-gray-900 dark:text-gray-400">
-        {placeholder}
-      </option>
+      {showPlaceholderOption && (
+        <option value="" disabled className="text-gray-700 dark:bg-gray-900 dark:text-gray-400">
+          {placeholder}
+        </option>
+      )}
       {options.map((option) => (
         <option
           key={option.value}
