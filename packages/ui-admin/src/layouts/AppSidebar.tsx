@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -100,8 +100,9 @@ export function AppSidebar({ menu }: AppSidebarProps) {
   const otherItems = menu?.others ?? defaultOtherItems;
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [showHoverLabels, setShowHoverLabels] = useState(false);
+
+  const canShowMenuContent = isExpanded || isMobileOpen || showHoverLabels;
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
@@ -131,9 +132,9 @@ export function AppSidebar({ menu }: AppSidebarProps) {
                 {nav.icon}
               </span>
 
-                    {(isExpanded || isHovered || isMobileOpen) && <span className="menu-item-text">{nav.name}</span>}
+                    {canShowMenuContent && <span className="menu-item-text">{nav.name}</span>}
 
-                    {(isExpanded || isHovered || isMobileOpen) && (
+                    {canShowMenuContent && (
                         <ChevronDown
                             className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                                 openSubmenu?.type === menuType && openSubmenu?.index === index ? "rotate-180 text-brand-500" : ""
@@ -145,25 +146,20 @@ export function AppSidebar({ menu }: AppSidebarProps) {
                   nav.path && (
                       <Link href={nav.path} className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}>
                         <span className={`${isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}>{nav.icon}</span>
-                        {(isExpanded || isHovered || isMobileOpen) && <span className="menu-item-text">{nav.name}</span>}
+                        {canShowMenuContent && <span className="menu-item-text">{nav.name}</span>}
                       </Link>
                   )
               )}
 
-              {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
+              {nav.subItems && canShowMenuContent && (
                   <div
-                      ref={(el) => {
-                        subMenuRefs.current[`${menuType}-${index}`] = el;
-                      }}
-                      className="overflow-hidden transition-all duration-300"
-                      style={{
-                        height:
-                            openSubmenu?.type === menuType && openSubmenu?.index === index
-                                ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                                : "0px",
-                      }}
+                      className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                          openSubmenu?.type === menuType && openSubmenu?.index === index
+                              ? "mt-2 grid-rows-[1fr] opacity-100"
+                              : "mt-0 grid-rows-[0fr] opacity-0"
+                      }`}
                   >
-                    <ul className="mt-2 space-y-1 ml-9">
+                    <ul className="space-y-1 ml-9 min-h-0">
                       {nav.subItems.map((subItem) => (
                           <li key={subItem.name}>
                             <Link
@@ -183,6 +179,20 @@ export function AppSidebar({ menu }: AppSidebarProps) {
   );
 
   useEffect(() => {
+    if (isExpanded || isMobileOpen) {
+      setShowHoverLabels(true);
+      return;
+    }
+
+    if (isHovered) {
+      const timerId = window.setTimeout(() => setShowHoverLabels(true), 220);
+      return () => window.clearTimeout(timerId);
+    }
+
+    setShowHoverLabels(false);
+  }, [isExpanded, isHovered, isMobileOpen]);
+
+  useEffect(() => {
     let submenuMatched = false;
 
     (["main", "others"] as const).forEach((menuType) => {
@@ -200,14 +210,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
     if (!submenuMatched) setOpenSubmenu(null);
   }, [pathname, isActive, mainItems, otherItems]);
 
-  useEffect(() => {
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      const el = subMenuRefs.current[key];
-      if (el) setSubMenuHeight((prev) => ({ ...prev, [key]: el.scrollHeight || 0 }));
-    }
-  }, [openSubmenu]);
-
   return (
       <aside
           className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
@@ -217,9 +219,9 @@ export function AppSidebar({ menu }: AppSidebarProps) {
           onMouseEnter={() => !isExpanded && setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
       >
-        <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
+        <div className={`py-8 flex ${!isExpanded && !showHoverLabels ? "lg:justify-center" : "justify-start"}`}>
           <Link href="/">
-            {isExpanded || isHovered || isMobileOpen ? (
+            {canShowMenuContent ? (
                 <>
                   <Image className="dark:hidden" src="/images/logo/logo.svg" alt="Logo" width={150} height={40} />
                   <Image className="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width={150} height={40} />
@@ -236,10 +238,10 @@ export function AppSidebar({ menu }: AppSidebarProps) {
               <div>
                 <h2
                     className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                        !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                        !isExpanded && !showHoverLabels ? "lg:justify-center" : "justify-start"
                     }`}
                 >
-                  {isExpanded || isHovered || isMobileOpen ? "Menu" : <MoreHorizontal className="w-5 h-5" />}
+                  {canShowMenuContent ? "Menu" : <MoreHorizontal className="w-5 h-5" />}
                 </h2>
                 {renderMenuItems(mainItems, "main")}
               </div>
@@ -247,10 +249,10 @@ export function AppSidebar({ menu }: AppSidebarProps) {
               <div>
                 <h2
                     className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                        !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+                        !isExpanded && !showHoverLabels ? "lg:justify-center" : "justify-start"
                     }`}
                 >
-                  {isExpanded || isHovered || isMobileOpen ? "Others" : <MoreHorizontal className="w-5 h-5" />}
+                  {canShowMenuContent ? "Others" : <MoreHorizontal className="w-5 h-5" />}
                 </h2>
                 {renderMenuItems(otherItems, "others")}
               </div>
