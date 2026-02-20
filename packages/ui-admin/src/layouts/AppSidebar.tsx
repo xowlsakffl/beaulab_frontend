@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -100,8 +100,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
   const otherItems = menu?.others ?? defaultOtherItems;
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
@@ -111,19 +109,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
       return { type: menuType, index };
     });
   };
-
-  const updateSubMenuHeights = useCallback(() => {
-    const nextHeights: Record<string, number> = {};
-
-    Object.entries(subMenuRefs.current).forEach(([key, el]) => {
-      if (!el) return;
-      nextHeights[key] = el.scrollHeight || 0;
-    });
-
-    if (Object.keys(nextHeights).length > 0) {
-      setSubMenuHeight((prev) => ({ ...prev, ...nextHeights }));
-    }
-  }, []);
 
   const renderMenuItems = (items: SidebarNavItem[], menuType: "main" | "others") => (
       <ul className="flex flex-col gap-4">
@@ -165,18 +150,13 @@ export function AppSidebar({ menu }: AppSidebarProps) {
 
               {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
                   <div
-                      ref={(el) => {
-                        subMenuRefs.current[`${menuType}-${index}`] = el;
-                      }}
-                      className="overflow-hidden transition-all duration-300"
-                      style={{
-                        height:
-                            openSubmenu?.type === menuType && openSubmenu?.index === index
-                                ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                                : "0px",
-                      }}
+                      className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                          openSubmenu?.type === menuType && openSubmenu?.index === index
+                              ? "mt-2 grid-rows-[1fr] opacity-100"
+                              : "mt-0 grid-rows-[0fr] opacity-0"
+                      }`}
                   >
-                    <ul className="mt-2 space-y-1 ml-9">
+                    <ul className="space-y-1 ml-9 min-h-0">
                       {nav.subItems.map((subItem) => (
                           <li key={subItem.name}>
                             <Link
@@ -213,24 +193,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
     if (!submenuMatched) setOpenSubmenu(null);
   }, [pathname, isActive, mainItems, otherItems]);
 
-  useEffect(() => {
-    updateSubMenuHeights();
-  }, [openSubmenu, isExpanded, isHovered, isMobileOpen, updateSubMenuHeights]);
-
-  useEffect(() => {
-    if (!isExpanded && !isHovered && !isMobileOpen) return;
-
-    updateSubMenuHeights();
-
-    const rafId = window.requestAnimationFrame(updateSubMenuHeights);
-    const timeoutId = window.setTimeout(updateSubMenuHeights, 350);
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.clearTimeout(timeoutId);
-    };
-  }, [isExpanded, isHovered, isMobileOpen, updateSubMenuHeights]);
-
   return (
       <aside
           className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
@@ -239,9 +201,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
         lg:translate-x-0`}
           onMouseEnter={() => !isExpanded && setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onTransitionEnd={(event) => {
-            if (event.propertyName === "width") updateSubMenuHeights();
-          }}
       >
         <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
           <Link href="/">
