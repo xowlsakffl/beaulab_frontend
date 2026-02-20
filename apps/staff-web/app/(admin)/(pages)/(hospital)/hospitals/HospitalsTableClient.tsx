@@ -138,6 +138,12 @@ function nextSortState(prev: SortState, field: SortField): SortState {
   return { field, direction: "desc", enabled: true };
 }
 
+function formatDateRange(fromDate: string, toDate: string) {
+  if (!fromDate && !toDate) return "";
+  if (fromDate && toDate) return `${fromDate} ~ ${toDate}`;
+  return fromDate || toDate;
+}
+
 export default function HospitalsTableClient() {
   const [searchInput, setSearchInput] = React.useState("");
   const [searchKeyword, setSearchKeyword] = React.useState("");
@@ -145,11 +151,15 @@ export default function HospitalsTableClient() {
   const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isReviewDropdownOpen, setIsReviewDropdownOpen] = React.useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
+  const [draftStartDate, setDraftStartDate] = React.useState("");
+  const [draftEndDate, setDraftEndDate] = React.useState("");
   const [draftFilters, setDraftFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [resetKey, setResetKey] = React.useState(0);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const reviewDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const datePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(DEFAULT_SORT);
   const [perPage, setPerPage] = React.useState(15);
@@ -232,6 +242,9 @@ export default function HospitalsTableClient() {
       if (!reviewDropdownRef.current?.contains(event.target as Node)) {
         setIsReviewDropdownOpen(false);
       }
+      if (!datePickerRef.current?.contains(event.target as Node)) {
+        setIsDatePickerOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -245,6 +258,8 @@ export default function HospitalsTableClient() {
 
   const resetFilters = (applyNow = true) => {
     setDraftFilters(DEFAULT_FILTERS);
+    setDraftStartDate("");
+    setDraftEndDate("");
     setResetKey((prev) => prev + 1);
     if (applyNow) {
       setPage(1);
@@ -525,15 +540,49 @@ export default function HospitalsTableClient() {
                   </div>
                 </div>
                 <div className="w-full">
-                  <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
-                  <InputField
-                      key={`range-${resetKey}`}
-                      defaultValue={draftFilters.dateRange}
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                          setDraftFilters((prev) => ({ ...prev, dateRange: event.target.value }))
-                      }
-                      placeholder="예: 2026-01-01 ~ 2026-01-31"
-                  />
+                  <p className="mb-1 text-xs font-medium text-gray-500">기간</p>
+                  <div ref={datePickerRef} className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="default"
+                      onClick={() => setIsDatePickerOpen((prev) => !prev)}
+                      className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                    >
+                      <span>{draftFilters.dateRange || "기간 선택"}</span>
+                      <ChevronDown className="size-4" />
+                    </Button>
+                    {isDatePickerOpen && (
+                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <div className="space-y-2">
+                          <InputField
+                            type="date"
+                            value={draftStartDate}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                              const nextStart = event.target.value;
+                              setDraftStartDate(nextStart);
+                              setDraftFilters((prev) => ({
+                                ...prev,
+                                dateRange: formatDateRange(nextStart, draftEndDate),
+                              }));
+                            }}
+                          />
+                          <InputField
+                            type="date"
+                            value={draftEndDate}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                              const nextEnd = event.target.value;
+                              setDraftEndDate(nextEnd);
+                              setDraftFilters((prev) => ({
+                                ...prev,
+                                dateRange: formatDateRange(draftStartDate, nextEnd),
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center justify-end gap-2 px-3 pb-3">
