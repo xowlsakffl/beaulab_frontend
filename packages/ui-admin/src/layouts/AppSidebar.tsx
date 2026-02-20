@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { useSidebar } from "../context";
-import { SidebarWidget } from "./SidebarWidget";
 
 import {
   Box,
@@ -25,8 +24,6 @@ import {
 export type SidebarNavSubItem = {
   name: string;
   path: string;
-  pro?: boolean;
-  new?: boolean;
 };
 
 export type SidebarNavItem = {
@@ -42,18 +39,18 @@ const defaultMainItems: SidebarNavItem[] = [
   {
     icon: <LayoutGrid className={iconClass} />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    subItems: [{ name: "Ecommerce", path: "/" }],
   },
   { icon: <CalendarDays className={iconClass} />, name: "Calendar", path: "/calendar" },
   { icon: <UserRound className={iconClass} />, name: "User Profile", path: "/profile" },
-  { name: "Forms", icon: <List className={iconClass} />, subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }] },
-  { name: "Tables", icon: <Table className={iconClass} />, subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }] },
+  { name: "Forms", icon: <List className={iconClass} />, subItems: [{ name: "Form Elements", path: "/form-elements" }] },
+  { name: "Tables", icon: <Table className={iconClass} />, subItems: [{ name: "Basic Tables", path: "/basic-tables" }] },
   {
     name: "Pages",
     icon: <FileText className={iconClass} />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
+      { name: "Blank Page", path: "/blank" },
+      { name: "404 Error", path: "/error-404" },
     ],
   },
 ];
@@ -63,28 +60,28 @@ const defaultOtherItems: SidebarNavItem[] = [
     icon: <PieChart className={iconClass} />,
     name: "Charts",
     subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
+      { name: "Line Chart", path: "/line-chart" },
+      { name: "Bar Chart", path: "/bar-chart" },
     ],
   },
   {
     icon: <Box className={iconClass} />,
     name: "UI Elements",
     subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
+      { name: "Alerts", path: "/alerts" },
+      { name: "Avatar", path: "/avatars" },
+      { name: "Badge", path: "/badge" },
+      { name: "Buttons", path: "/buttons" },
+      { name: "Images", path: "/images" },
+      { name: "Videos", path: "/videos" },
     ],
   },
   {
     icon: <Plug className={iconClass} />,
     name: "Authentication",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Sign In", path: "/signin" },
+      { name: "Sign Up", path: "/signup" },
     ],
   },
 ];
@@ -174,26 +171,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
                                 className={`menu-dropdown-item ${isActive(subItem.path) ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive"}`}
                             >
                               {subItem.name}
-                              <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                            <span
-                                className={`ml-auto ${
-                                    isActive(subItem.path) ? "menu-dropdown-badge-active" : "menu-dropdown-badge-inactive"
-                                } menu-dropdown-badge`}
-                            >
-                            new
-                          </span>
-                        )}
-                                {subItem.pro && (
-                                    <span
-                                        className={`ml-auto ${
-                                            isActive(subItem.path) ? "menu-dropdown-badge-active" : "menu-dropdown-badge-inactive"
-                                        } menu-dropdown-badge`}
-                                    >
-                            pro
-                          </span>
-                                )}
-                      </span>
                             </Link>
                           </li>
                       ))}
@@ -279,8 +256,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
               </div>
             </div>
           </nav>
-
-          {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
         </div>
       </aside>
   );
