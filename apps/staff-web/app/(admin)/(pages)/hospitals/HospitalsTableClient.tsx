@@ -10,7 +10,9 @@ import {
   StatusBadge,
   Button,
   DataTable,
+  FormCheckbox,
   InputField,
+  Select,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -309,18 +311,18 @@ export default function HospitalsTableClient() {
     {
       key: "id",
       header: (
-        <button type="button" onClick={() => toggleSort("id")} className="inline-flex items-center gap-1">
+        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("id")} className="inline-flex items-center gap-1 px-0">
           ID <span className="text-xs text-gray-400">{sortMark("id")}</span>
-        </button>
+        </Button>
       ),
       render: (row) => row.id,
     },
     {
       key: "name",
       header: (
-        <button type="button" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1">
+        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 px-0">
           병원명 <span className="text-xs text-gray-400">{sortMark("name")}</span>
-        </button>
+        </Button>
       ),
       render: (row) => <span className="font-medium text-gray-800 dark:text-white/90">{row.name}</span>,
     },
@@ -351,26 +353,30 @@ export default function HospitalsTableClient() {
     {
       key: "viewCount",
       header: (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => toggleSort("view_count")}
-          className="inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1 px-0"
         >
           조회수 <span className="text-xs text-gray-400">{sortMark("view_count")}</span>
-        </button>
+        </Button>
       ),
       render: (row) => row.viewCount.toLocaleString(),
     },
     {
       key: "createdAt",
       header: (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => toggleSort("created_at")}
-          className="inline-flex items-center gap-1"
+          className="inline-flex items-center gap-1 px-0"
         >
           등록일 <span className="text-xs text-gray-400">{sortMark("created_at")}</span>
-        </button>
+        </Button>
       ),
       render: (row) => row.createdAt,
     },
@@ -410,14 +416,15 @@ export default function HospitalsTableClient() {
       </div>
       <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="overflow-hidden rounded-xl">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={toggleFilters}
-            className="flex h-11 w-full items-center justify-between bg-white px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
+            className="flex h-11 w-full items-center justify-between rounded-none bg-white px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
           >
             <span>필터</span>
             <span className={["text-xs transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")}>▾</span>
-          </button>
+          </Button>
 
           <div
             className={[
@@ -430,21 +437,25 @@ export default function HospitalsTableClient() {
                 <Button type="button" onClick={applyFilters} size="sm" className="h-10 px-4">
                   필터 적용
                 </Button>
-                <button
+                <Button
                   type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => resetFilters(true)}
                   className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
                 >
                   필터 초기화
-                </button>
+                </Button>
               </div>
 
               <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-3">
                 <div>
                   <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
                   <div className="relative" ref={statusDropdownRef}>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="default"
                       onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
                       className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
                     >
@@ -452,27 +463,25 @@ export default function HospitalsTableClient() {
                         ? `${draftFilters.approvalStatuses.length}개 선택`
                         : "전체"}
                       <span className="text-xs">▾</span>
-                    </button>
+                    </Button>
 
                     {isStatusDropdownOpen && (
                       <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <label className="flex items-center gap-2 px-1 py-1 text-sm">
-                          <input
-                            type="checkbox"
+                        <div className="px-1 py-1 text-sm">
+                          <FormCheckbox
+                            label="전체"
                             checked={draftFilters.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length}
-                            onChange={toggleAllApprovalStatus}
+                            onChange={() => toggleAllApprovalStatus()}
                           />
-                          전체
-                        </label>
+                        </div>
                         {APPROVAL_STATUS_OPTIONS.map((item) => (
-                          <label key={item.value} className="flex items-center gap-2 px-1 py-1 text-sm">
-                            <input
-                              type="checkbox"
+                          <div key={item.value} className="px-1 py-1 text-sm">
+                            <FormCheckbox
+                              label={item.label}
                               checked={draftFilters.approvalStatuses.includes(item.value)}
                               onChange={() => toggleApprovalStatus(item.value)}
                             />
-                            {item.label}
-                          </label>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -494,8 +503,10 @@ export default function HospitalsTableClient() {
                 <div>
                   <p className="mb-1 text-xs font-medium text-gray-500">병원 검수 상태</p>
                   <div className="relative" ref={reviewDropdownRef}>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="default"
                       onClick={() => setIsReviewDropdownOpen((prev) => !prev)}
                       className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
                     >
@@ -503,27 +514,25 @@ export default function HospitalsTableClient() {
                         ? `${draftFilters.reviewStatuses.length}개 선택`
                         : "전체"}
                       <span className="text-xs">▾</span>
-                    </button>
+                    </Button>
 
                     {isReviewDropdownOpen && (
                       <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <label className="flex items-center gap-2 px-1 py-1 text-sm">
-                          <input
-                            type="checkbox"
+                        <div className="px-1 py-1 text-sm">
+                          <FormCheckbox
+                            label="전체"
                             checked={draftFilters.reviewStatuses.length === REVIEW_STATUS_OPTIONS.length}
-                            onChange={toggleAllReviewStatus}
+                            onChange={() => toggleAllReviewStatus()}
                           />
-                          전체
-                        </label>
+                        </div>
                         {REVIEW_STATUS_OPTIONS.map((item) => (
-                          <label key={item.value} className="flex items-center gap-2 px-1 py-1 text-sm">
-                            <input
-                              type="checkbox"
+                          <div key={item.value} className="px-1 py-1 text-sm">
+                            <FormCheckbox
+                              label={item.label}
                               checked={draftFilters.reviewStatuses.includes(item.value)}
                               onChange={() => toggleReviewStatus(item.value)}
                             />
-                            {item.label}
-                          </label>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -550,20 +559,15 @@ export default function HospitalsTableClient() {
         rightActions={
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">페이지당</span>
-            <select
-              value={perPage}
-              onChange={(event) => {
+            <Select
+              defaultValue={String(perPage)}
+              options={PER_PAGE_OPTIONS}
+              onChange={(value) => {
                 setPage(1);
-                setPerPage(Number(event.target.value));
+                setPerPage(Number(value));
               }}
-              className="h-9 w-[88px] rounded-lg border border-gray-300 px-2 text-xs dark:border-gray-700 dark:bg-gray-800"
-            >
-              {PER_PAGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              className="h-9 w-[88px] px-2 text-xs"
+            />
           </div>
         }
         emptyText="조건에 맞는 병원이 없습니다."
