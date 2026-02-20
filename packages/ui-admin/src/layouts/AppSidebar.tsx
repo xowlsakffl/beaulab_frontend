@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -100,8 +100,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
   const otherItems = menu?.others ?? defaultOtherItems;
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
@@ -152,18 +150,13 @@ export function AppSidebar({ menu }: AppSidebarProps) {
 
               {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
                   <div
-                      ref={(el) => {
-                        subMenuRefs.current[`${menuType}-${index}`] = el;
-                      }}
-                      className="overflow-hidden transition-all duration-300"
-                      style={{
-                        height:
-                            openSubmenu?.type === menuType && openSubmenu?.index === index
-                                ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                                : "0px",
-                      }}
+                      className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                          openSubmenu?.type === menuType && openSubmenu?.index === index
+                              ? "mt-2 grid-rows-[1fr] opacity-100"
+                              : "mt-0 grid-rows-[0fr] opacity-0"
+                      }`}
                   >
-                    <ul className="mt-2 space-y-1 ml-9">
+                    <ul className="space-y-1 ml-9 min-h-0">
                       {nav.subItems.map((subItem) => (
                           <li key={subItem.name}>
                             <Link
@@ -199,14 +192,6 @@ export function AppSidebar({ menu }: AppSidebarProps) {
 
     if (!submenuMatched) setOpenSubmenu(null);
   }, [pathname, isActive, mainItems, otherItems]);
-
-  useEffect(() => {
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      const el = subMenuRefs.current[key];
-      if (el) setSubMenuHeight((prev) => ({ ...prev, [key]: el.scrollHeight || 0 }));
-    }
-  }, [openSubmenu]);
 
   return (
       <aside
