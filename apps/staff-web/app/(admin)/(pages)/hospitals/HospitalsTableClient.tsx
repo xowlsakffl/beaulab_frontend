@@ -577,7 +577,7 @@ export default function HospitalsTableClient() {
                 setPerPage(Number(value));
               }}
               placeholder="갯수를 선택하세요."
-              className="h-2 w-[50px] px-2 text-xs"
+              className="w-[70px] px-2 text-xs"
             />
           </div>
         }
