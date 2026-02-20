@@ -112,6 +112,19 @@ export function AppSidebar({ menu }: AppSidebarProps) {
     });
   };
 
+  const updateSubMenuHeights = useCallback(() => {
+    const nextHeights: Record<string, number> = {};
+
+    Object.entries(subMenuRefs.current).forEach(([key, el]) => {
+      if (!el) return;
+      nextHeights[key] = el.scrollHeight || 0;
+    });
+
+    if (Object.keys(nextHeights).length > 0) {
+      setSubMenuHeight((prev) => ({ ...prev, ...nextHeights }));
+    }
+  }, []);
+
   const renderMenuItems = (items: SidebarNavItem[], menuType: "main" | "others") => (
       <ul className="flex flex-col gap-4">
         {items.map((nav, index) => (
@@ -201,12 +214,8 @@ export function AppSidebar({ menu }: AppSidebarProps) {
   }, [pathname, isActive, mainItems, otherItems]);
 
   useEffect(() => {
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      const el = subMenuRefs.current[key];
-      if (el) setSubMenuHeight((prev) => ({ ...prev, [key]: el.scrollHeight || 0 }));
-    }
-  }, [openSubmenu]);
+    updateSubMenuHeights();
+  }, [openSubmenu, isExpanded, isHovered, isMobileOpen, updateSubMenuHeights]);
 
   return (
       <aside
