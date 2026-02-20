@@ -76,25 +76,25 @@ export function DataTable<T>({
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {(title || description || rightActions || onRefresh) && (
-        <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-4">
-          <div>
+        <div className="lg:flex lg:items-center lg:justify-between gap-3 px-4 py-4 sm:px-4">
+          <div className="mb-3 lg:mb-0">
             {title ? <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3> : null}
             {description ? <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{description}</p> : null}
           </div>
 
           <div className="flex items-center gap-3">
-            {rightActions}
             {onRefresh ? (
-              <button
-                type="button"
-                onClick={onRefresh}
-                disabled={refreshing}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]"
-                title="새로고침"
-              >
-                {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
-              </button>
+                <button
+                    type="button"
+                    onClick={onRefresh}
+                    disabled={refreshing}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]"
+                    title="새로고침"
+                >
+                  {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
+                </button>
             ) : null}
+            {rightActions}
           </div>
         </div>
       )}
