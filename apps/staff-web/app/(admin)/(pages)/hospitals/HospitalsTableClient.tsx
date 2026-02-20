@@ -4,6 +4,9 @@ import { Can } from "@/components/guard";
 import { api } from "@/lib/api";
 import { isApiSuccess } from "@beaulab/types";
 import {
+  SquarePlus,
+  Download,
+  SlidersHorizontal,
   StatusBadge,
   Button,
   DataTable,
@@ -375,36 +378,38 @@ export default function HospitalsTableClient() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="w-full lg:max-w-[680px]">
-            <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-white/90">종합 검색</p>
-            <InputField
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="w-full">
+          <InputField
               key={`search-${resetKey}`}
               defaultValue={searchInput}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-              placeholder="종합검색 (병원명, 주소, 연락처)"
-            />
-          </div>
-
-          <div className="flex shrink-0 items-center justify-end gap-2">
-            <Button type="button" variant="outline" onClick={toggleFilters} size="sm" className="h-11 px-4">
-              {isFilterOpen ? "필터 닫기" : "필터"}
-            </Button>
-            <Button type="button" variant="outline" size="sm" className="h-11 px-4">
-              Export
-            </Button>
-            <Can permission="beaulab.hostpital.create">
-              <Link href="/hospitals/create">
-                <Button type="button" size="sm" className="h-11 px-4">
-                  병원 등록
-                </Button>
-              </Link>
-            </Can>
-          </div>
+              placeholder="병원명, 연락처, 주소 검색"
+              className="bg-white dark:bg-gray-800"
+          />
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 dark:border-white/[0.05]">
+        <div className="flex shrink-0 items-center justify-end gap-2">
+          <Button type="button" variant="outline" onClick={toggleFilters} size="sm" className="h-11 px-4">
+            <SlidersHorizontal className="size-5" />
+            <span>필터</span>
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="h-11 px-4">
+            <Download className="size-5" />
+            <span>다운로드</span>
+          </Button>
+          <Can permission="beaulab.hostpital.create">
+            <Link href="/hospitals/create">
+              <Button type="button" size="sm" className="h-11 px-4">
+                <SquarePlus className="size-5" />
+                <span>병원 등록</span>
+              </Button>
+            </Link>
+          </Can>
+        </div>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="overflow-hidden rounded-xl">
           <button
             type="button"
             onClick={toggleFilters}
@@ -420,7 +425,7 @@ export default function HospitalsTableClient() {
               isFilterOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-100",
             ].join(" ")}
           >
-            <div className="overflow-hidden border-t border-gray-200 dark:border-white/[0.05]">
+            <div className="overflow-hidden">
               <div className="flex items-center justify-end gap-2 px-3 pt-3">
                 <Button type="button" onClick={applyFilters} size="sm" className="h-10 px-4">
                   필터 적용
