@@ -136,10 +136,12 @@ export default function HospitalsTableClient() {
 
   const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
+  const [isReviewDropdownOpen, setIsReviewDropdownOpen] = React.useState(false);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(DEFAULT_FILTERS);
   const [resetKey, setResetKey] = React.useState(0);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const reviewDropdownRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(DEFAULT_SORT);
   const [perPage, setPerPage] = React.useState(15);
@@ -219,6 +221,9 @@ export default function HospitalsTableClient() {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
       }
+      if (!reviewDropdownRef.current?.contains(event.target as Node)) {
+        setIsReviewDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -240,12 +245,7 @@ export default function HospitalsTableClient() {
   };
 
   const toggleFilters = () => {
-    if (isFilterOpen) {
-      resetFilters(true);
-      setIsFilterOpen(false);
-      return;
-    }
-    setIsFilterOpen(true);
+    setIsFilterOpen((prev) => !prev);
   };
 
   const toggleReviewStatus = (value: string) => {
@@ -279,6 +279,16 @@ export default function HospitalsTableClient() {
         prev.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length
           ? []
           : APPROVAL_STATUS_OPTIONS.map((item) => item.value),
+    }));
+  };
+
+  const toggleAllReviewStatus = () => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      reviewStatuses:
+        prev.reviewStatuses.length === REVIEW_STATUS_OPTIONS.length
+          ? []
+          : REVIEW_STATUS_OPTIONS.map((item) => item.value),
     }));
   };
 
@@ -365,125 +375,154 @@ export default function HospitalsTableClient() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
-      >
-        <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-white/90">종합 검색</p>
-        <InputField
-          key={`search-${resetKey}`}
-          defaultValue={searchInput}
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-          placeholder="종합검색 (병원명, 주소, 연락처)"
-        />
-      </div>
+      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="w-full lg:max-w-[680px]">
+            <p className="mb-2 text-sm font-semibold text-gray-700 dark:text-white/90">종합 검색</p>
+            <InputField
+              key={`search-${resetKey}`}
+              defaultValue={searchInput}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
+              placeholder="종합검색 (병원명, 주소, 연락처)"
+            />
+          </div>
 
-      <div
-        className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/[0.05] dark:bg-white/[0.03]"
-      >
-        <div className="mb-3 flex shrink-0 items-center justify-end gap-2">
-          <Button type="button" onClick={applyFilters} size="sm" className="h-11 px-4">
-            필터 적용
-          </Button>
-          <Button type="button" variant="outline" size="sm" className="h-11 px-4">
-            Export
-          </Button>
-          <Can permission="beaulab.hostpital.create">
-            <Link href="/hospitals/create">
-              <Button type="button" size="sm" className="h-11 px-4">
-                병원 등록
-              </Button>
-            </Link>
-          </Can>
+          <div className="flex shrink-0 items-center justify-end gap-2">
+            <Button type="button" variant="outline" onClick={toggleFilters} size="sm" className="h-11 px-4">
+              {isFilterOpen ? "필터 닫기" : "필터"}
+            </Button>
+            <Button type="button" variant="outline" size="sm" className="h-11 px-4">
+              Export
+            </Button>
+            <Can permission="beaulab.hostpital.create">
+              <Link href="/hospitals/create">
+                <Button type="button" size="sm" className="h-11 px-4">
+                  병원 등록
+                </Button>
+              </Link>
+            </Can>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 dark:border-white/[0.05]">
           <button
             type="button"
             onClick={toggleFilters}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 dark:border-white/[0.05] dark:text-white/90"
+            className="flex h-11 w-full items-center justify-between bg-white px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
           >
-            {isFilterOpen ? "필터 닫기" : "필터 열기"}
+            <span>필터</span>
+            <span className={["text-xs transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")}>▾</span>
           </button>
-          <button
-            type="button"
-            onClick={() => resetFilters(true)}
-            className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
+
+          <div
+            className={[
+              "grid transition-all duration-300",
+              isFilterOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-100",
+            ].join(" ")}
           >
-            필터 초기화
-          </button>
-        </div>
+            <div className="overflow-hidden border-t border-gray-200 dark:border-white/[0.05]">
+              <div className="flex items-center justify-end gap-2 px-3 pt-3">
+                <Button type="button" onClick={applyFilters} size="sm" className="h-10 px-4">
+                  필터 적용
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => resetFilters(true)}
+                  className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                >
+                  필터 초기화
+                </button>
+              </div>
 
-        <div
-          className={[
-            "grid transition-all duration-300",
-            isFilterOpen ? "mt-3 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-          ].join(" ")}
-        >
-          <div className="overflow-hidden">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div>
-                <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
-                <div className="relative" ref={statusDropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
-                    className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
-                  >
-                    {draftFilters.approvalStatuses.length > 0
-                      ? `${draftFilters.approvalStatuses.length}개 선택`
-                      : "전체"}
-                    <span className="text-xs">▾</span>
-                  </button>
+              <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-3">
+                <div>
+                  <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
+                  <div className="relative" ref={statusDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
+                      className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                    >
+                      {draftFilters.approvalStatuses.length > 0
+                        ? `${draftFilters.approvalStatuses.length}개 선택`
+                        : "전체"}
+                      <span className="text-xs">▾</span>
+                    </button>
 
-                  {isStatusDropdownOpen && (
-                    <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                      <label className="flex items-center gap-2 px-1 py-1 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={draftFilters.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length}
-                          onChange={toggleAllApprovalStatus}
-                        />
-                        전체
-                      </label>
-                      {APPROVAL_STATUS_OPTIONS.map((item) => (
-                        <label key={item.value} className="flex items-center gap-2 px-1 py-1 text-sm">
+                    {isStatusDropdownOpen && (
+                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <label className="flex items-center gap-2 px-1 py-1 text-sm">
                           <input
                             type="checkbox"
-                            checked={draftFilters.approvalStatuses.includes(item.value)}
-                            onChange={() => toggleApprovalStatus(item.value)}
+                            checked={draftFilters.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length}
+                            onChange={toggleAllApprovalStatus}
                           />
-                          {item.label}
+                          전체
                         </label>
-                      ))}
-                    </div>
-                  )}
+                        {APPROVAL_STATUS_OPTIONS.map((item) => (
+                          <label key={item.value} className="flex items-center gap-2 px-1 py-1 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={draftFilters.approvalStatuses.includes(item.value)}
+                              onChange={() => toggleApprovalStatus(item.value)}
+                            />
+                            {item.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
-                <InputField
-                  key={`range-${resetKey}`}
-                  defaultValue={draftFilters.dateRange}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                    setDraftFilters((prev) => ({ ...prev, dateRange: event.target.value }))
-                  }
-                  placeholder="예: 2026-01-01 ~ 2026-01-31"
-                />
-              </div>
+                <div>
+                  <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
+                  <InputField
+                    key={`range-${resetKey}`}
+                    defaultValue={draftFilters.dateRange}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setDraftFilters((prev) => ({ ...prev, dateRange: event.target.value }))
+                    }
+                    placeholder="예: 2026-01-01 ~ 2026-01-31"
+                  />
+                </div>
 
-              <div>
-                <p className="mb-1 text-xs font-medium text-gray-500">병원 검수 상태</p>
-                <div className="flex h-11 items-center gap-4 rounded-lg border border-gray-300 px-3 dark:border-gray-700">
-                  {REVIEW_STATUS_OPTIONS.map((item) => (
-                    <label key={item.value} className="inline-flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
-                      <input
-                        type="checkbox"
-                        checked={draftFilters.reviewStatuses.includes(item.value)}
-                        onChange={() => toggleReviewStatus(item.value)}
-                      />
-                      {item.label}
-                    </label>
-                  ))}
+                <div>
+                  <p className="mb-1 text-xs font-medium text-gray-500">병원 검수 상태</p>
+                  <div className="relative" ref={reviewDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsReviewDropdownOpen((prev) => !prev)}
+                      className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                    >
+                      {draftFilters.reviewStatuses.length > 0
+                        ? `${draftFilters.reviewStatuses.length}개 선택`
+                        : "전체"}
+                      <span className="text-xs">▾</span>
+                    </button>
+
+                    {isReviewDropdownOpen && (
+                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <label className="flex items-center gap-2 px-1 py-1 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={draftFilters.reviewStatuses.length === REVIEW_STATUS_OPTIONS.length}
+                            onChange={toggleAllReviewStatus}
+                          />
+                          전체
+                        </label>
+                        {REVIEW_STATUS_OPTIONS.map((item) => (
+                          <label key={item.value} className="flex items-center gap-2 px-1 py-1 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={draftFilters.reviewStatuses.includes(item.value)}
+                              onChange={() => toggleReviewStatus(item.value)}
+                            />
+                            {item.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
