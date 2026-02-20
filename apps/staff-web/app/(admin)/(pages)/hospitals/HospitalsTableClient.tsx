@@ -446,22 +446,17 @@ export default function HospitalsTableClient() {
               isFilterOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-100",
             ].join(" ")}
           >
-            <div
-              className={[
-                "overflow-x-hidden",
-                isStatusDropdownOpen || isReviewDropdownOpen ? "overflow-y-visible" : "overflow-y-hidden",
-              ].join(" ")}
-            >
-              <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-3">
-                <div>
+            <div className="overflow-hidden">
+              <div className="gap-3 p-3 gap-3 p-3 lg:flex">
+                <div className="flex-1">
                   <p className="mb-1 text-xs font-medium text-gray-500">승인상태</p>
-                  <div className="relative" ref={statusDropdownRef}>
+                  <div ref={statusDropdownRef}>
                     <Button
                       type="button"
                       variant="outline"
                       size="default"
                       onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
-                      className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                      className="flex h-11 items-center w-full max-w-[300px] justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
                     >
                       {draftFilters.approvalStatuses.length > 0
                         ? `${draftFilters.approvalStatuses.length}개 선택`
@@ -470,7 +465,7 @@ export default function HospitalsTableClient() {
                     </Button>
 
                     {isStatusDropdownOpen && (
-                        <div className="absolute z-20 mt-1 w-full min-w-[220px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <div className="absolute z-20 mt-1 w-full max-w-[300px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-1 py-1 text-sm">
                           <FormCheckbox
                             label="전체"
@@ -491,15 +486,15 @@ export default function HospitalsTableClient() {
                     )}
                   </div>
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="mb-1 text-xs font-medium text-gray-500">검수 상태</p>
-                  <div className="relative" ref={reviewDropdownRef}>
+                  <div ref={reviewDropdownRef}>
                     <Button
                       type="button"
                       variant="outline"
                       size="default"
                       onClick={() => setIsReviewDropdownOpen((prev) => !prev)}
-                      className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                      className="flex h-11 w-full max-w-[300px] items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
                     >
                       {draftFilters.reviewStatuses.length > 0
                         ? `${draftFilters.reviewStatuses.length}개 선택`
@@ -508,7 +503,7 @@ export default function HospitalsTableClient() {
                     </Button>
 
                     {isReviewDropdownOpen && (
-                        <div className="absolute z-20 mt-1 w-full min-w-[220px] rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                        <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-1 py-1 text-sm">
                           <FormCheckbox
                             label="전체"
@@ -529,7 +524,7 @@ export default function HospitalsTableClient() {
                     )}
                   </div>
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="mb-1 text-xs font-medium text-gray-500">기간(react-day-picker 예정)</p>
                   <InputField
                       key={`range-${resetKey}`}
