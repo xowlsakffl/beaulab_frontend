@@ -1,255 +1,208 @@
 # Frontend Architecture
 
-이 문서는 Beaulab 프론트엔드 모노레포의 전체 구조, 계층 분리 원칙,  
-Actor 기반 설계, 인증 및 권한 처리 전략을 정의합니다.
+이 문서는 현재 Beaulab 프론트엔드 모노레포의 실제 구조와 운영 규칙을 정의합니다.
 
-본 프론트엔드는 **Laravel API-only 서버 구조**를 전제로 설계되었습니다.
+작성 기준: 2026-03-17
 
-작성 기준: 2026-02-12
-작성자: 안민성
----
+## 1. 현재 상태
 
-# 1. 전체 구조
+현재 레포에 구현된 앱은 `apps/staff-web`입니다.  
+`packages/*`는 공통 레이어이며, 실제 업무 모듈은 앱 내부에 둡니다.
 
+```text
 apps/
-    staff-web/
-    partner-web/
-    user-web/
-    mobile/
+  staff-web/
 
 packages/
-    api-client/
-    auth/
-    types/
-    ui-admin/
+  api-client/
+  auth/
+  types/
+  ui-admin/
+```
 
-doc/
-    architecture.md
+미래에 다른 actor 앱을 추가할 수는 있지만, 문서에는 구현된 구조만 사실로 적습니다.
 
----
+## 2. 설계 원칙
 
-# 2. 설계 철학
+### 2.1 계층
 
-## 2.1 API-Only 전제
+```text
+apps/*            -> 실제 제품, 실제 actor, 실제 feature
+packages/*        -> 공통 UI/타입/인증/HTTP 기반
+Laravel API       -> 도메인 데이터와 보안 정책의 원천
+```
 
-- Laravel은 상태 없는 JSON API 서버입니다.
-- 모든 응답은 ApiResponse<T> 포맷을 따릅니다.
-- 프론트는 서버 세션을 신뢰하지 않습니다.
-- 인증은 토큰 기반(stateless)입니다.
-- HTTP status 코드가 아닌 success 필드로 성공/실패를 판단합니다.
+### 2.2 핵심 규칙
 
----
+- 앱은 공통 패키지를 조합하지만, 공통 패키지가 앱을 알면 안 됩니다.
+- 도메인 규칙, 메뉴 구성, 라우트 권한, actor별 흐름은 `apps/*`에 둡니다.
+- 공통 패키지에는 앱 전용 경로, 더미 사용자, 고정 알림 데이터, 하드코딩된 logo 계약을 넣지 않습니다.
+- 패키지 간 참조는 `@beaulab/*` workspace 의존성으로만 연결합니다.
 
-## 2.2 Actor 기반 분리
+## 3. Packages 책임
 
-프론트도 백엔드와 동일하게 Actor 기준으로 분리합니다.
-
-- staff-web → /api/v1/staff/*
-- partner-web → /api/v1/partner/*
-- user-web → /api/v1/user/*
-
-각 앱은 다른 Actor API를 호출하지 않습니다.
-
-Actor는 다음을 모두 결정합니다:
-- baseURL
-- token 저장 키
-- session 저장 키
-- profile 타입
-
----
-
-# 3. 계층 구조
-
-UI Layer (apps/*)
-↓
-Shared Layer (packages/*)
-↓
-Laravel API Server
-
-원칙
-- UI는 직접 fetch 하지 않습니다.
-- API는 api-client를 통해서만 호출합니다.
-- 토큰/세션은 auth 패키지를 통해서만 접근합니다.
-- 권한 제어는 permission helper를 통해 수행합니다.
----
-
-# 4. Packages 책임 분리
-
-## 4.1 types
+### 3.1 `@beaulab/types`
 
 역할:
-- ApiResponse<T>
-- ErrorCode
-- ActorType
-- ActorSession<TProfile>
-- StaffSession / PartnerSession / UserSession
-- Domain DTO 타입
+
+- `ApiResponse<T>`
+- actor/session/profile 타입
+- 공통 DTO 타입
 
 규칙:
-- Runtime 로직 금지
-- fetch 금지
-- localStorage 금지
-- React import 금지
-- 상태 관리 금지
 
----
+- 런타임 상태 금지
+- `fetch` 금지
+- `localStorage` 금지
+- React 의존 금지
 
-## 4.2 auth
+### 3.2 `@beaulab/auth`
 
 역할:
-- tokenStorage
-- sessionStorage
-- hasPermission()
-- hasAnyPermission()
-- hasAllPermissions()
-- 세션 타입 기반 UX 제어
+
+- token storage
+- session storage
+- `hasPermission`
+- `hasAnyPermission`
+- `hasAllPermissions`
 
 규칙:
+
 - API 호출 금지
 - 라우팅 금지
 - UI 의존 금지
-- fetch 금지
 
----
-
-## 4.3 api-client
+### 3.3 `@beaulab/api-client`
 
 역할:
-- fetch 래퍼
-- Authorization 헤더 자동 첨부
-- query 직렬화(buildUrl)
-- JSON body 자동 처리
-- ApiResponse<T> 반환
 
-내부 핵심 파일:
-- client.ts
-- url.ts
+- `fetch` 래퍼
+- Authorization 헤더 주입
+- query 직렬화
+- JSON/FormData 처리
+- `ApiResponse<T>` 반환
 
 규칙:
-- next/router 사용 금지
-- localStorage 직접 접근 금지 (auth 통해서만)
-- UI 로직 포함 금지
-- React import 금지
 
----
+- `next/navigation` 금지
+- UI 로직 금지
+- storage 직접 접근 금지
+  - token 조회는 `@beaulab/auth`를 통해서만 수행
 
-## 4.4 ui-admin
+### 3.4 `@beaulab/ui-admin`
 
 역할:
-- TailAdmin 기반 Layout
-- Sidebar
-- UI 컴포넌트
-- 디자인 시스템
+
+- 공용 관리자 레이아웃
+- 공용 UI 컴포넌트
+- 입력, 테이블, 드롭다운 등 재사용 UI
 
 규칙:
+
 - API 로직 금지
 - auth 로직 금지
-- 토큰 처리 금지
-- 권한 로직 포함 금지
+- permission 로직 금지
+- 앱 전용 라우트 하드코딩 금지
+- 앱 전용 asset 경로 강제 금지
+- fake user / fake notification 데이터 포함 금지
 
----
-# 5. 각 앱 내부 구조 표준
-``` text
-staff-web/
-  app/                ← 화면 (App Router)
-  components/         ← UI 컴포넌트
-  hooks/
+`ui-admin`은 shell과 presentational UI만 제공합니다.  
+실제 메뉴, 사용자 메뉴, 브랜드 로고, 라우트 이동은 앱이 주입합니다.
+
+## 4. `apps/staff-web` 책임
+
+`staff-web`는 실제 스태프 관리자 제품입니다.
+
+소유 범위:
+
+- App Router 페이지
+- feature module
+- route-permission 규칙
+- actor 세션 복구
+- staff API 조합
+- `ui-admin`에 주입할 브랜드/메뉴/사용자 정보
+
+권장 구조:
+
+```text
+apps/staff-web/
+  app/                    # 페이지와 레이아웃
+  components/             # 앱 전용 UI와 adapter
   lib/
-    api.ts            ← actor client 싱글톤
-    session.ts        ← login/restore/logout
-    services/
-      *.service.ts    ← 도메인별 API 로직
+    api.ts                # staff client
+    session.ts            # login/restore/logout
+    route-permissions.ts  # route별 permission 규칙
 ```
-# 6. 로그인 및 세션 흐름
 
-1. POST /api/v1/{actor}/auth/login
+## 5. 로그인과 세션
+
+흐름:
+
+1. `POST /api/v1/staff/auth/login`
 2. token 저장
-3. GET /api/v1/{actor}/profile
-4. profile + roles + permissions 저장
-5. 보호 영역 진입
+3. `GET /api/v1/staff/profile`
+4. profile, roles, permissions 저장
+5. 보호 라우트 진입
 
-## 6.1 세션 구조
+세션 예시:
+
 ```text
 {
   actor: "staff",
-  profile: {...},
+  profile: {
+    id: 1,
+    name: "홍길동",
+    nickname: "admin"
+  },
   auth: {
-    roles: [],
-    permissions: [],
-    scope?: string
+    roles: ["staff.admin"],
+    permissions: ["beaulab.hospital.show"]
   }
 }
 ```
----
 
-# 7. 보호 전략
+## 6. 권한 처리
 
-## 7.1 프론트 보호 (UX)
+- 서버 보안은 서버가 책임집니다.
+- 프론트 권한 처리는 UX 제어 목적입니다.
+- 메뉴 노출과 화면 접근은 permission 기준으로 처리합니다.
+- role 직접 분기는 지양합니다.
 
-- (admin) layout에서 token 검사
-- token 없으면 login 이동
-- profile API 실패 시 logout
+현재 staff 앱은 다음 두 축으로 권한을 다룹니다.
 
-## 7.2 서버 보호 (보안)
+- 메뉴 노출: `components/admin/sidebar-menu.tsx`
+- 라우트 접근: `lib/route-permissions.ts`
 
-- Sanctum 인증
-- Permission 기반 접근 제어
-- Scope 기반 데이터 범위 제한
+둘은 같은 permission 모델을 공유해야 하며, 서로 다른 의미를 가지면 안 됩니다.
 
-프론트는 보안을 담당하지 않습니다.
-프론트의 권한 제어는 UX 목적입니다.
+## 7. Shared Package 이동 기준
 
----
+다음 조건을 만족할 때만 `apps/*` 코드를 `packages/*`로 이동합니다.
 
-# 8. 권한 모델
+- 두 개 이상 앱에서 실제로 재사용된다.
+- actor나 도메인 이름 없이 설명 가능하다.
+- 앱별 메뉴/라우트/세션 없이 props만으로 제어 가능하다.
+- 이동 후에도 API/auth/business rule이 섞이지 않는다.
 
-- 기능 접근 제어는 Permission 기준
-- Role 직접 분기 금지
-- Scope는 서버 정책에서 강제
-- 메뉴 노출은 requiredPermissions 기준
+위 조건을 만족하지 않으면 앱에 둡니다.
 
-예:
+## 8. 금지 사항
 
-hasPermission("beaulab.hospital.delete")
+- `packages/*`에서 sibling 폴더 상대경로 import
+- `ui-admin`에서 `/profile`, `/signin` 같은 앱 전용 경로 하드코딩
+- `ui-admin`에서 더미 사용자나 알림 데이터를 기본값으로 제공
+- 앱에서 직접 `fetch` 호출
+- `ApiResponse` success 체크 없는 사용
+- route permission과 sidebar permission 불일치
 
----
+## 9. 검증 기준
 
-# 9. 에러 처리 전략
+루트 기준으로 아래 명령이 모두 통과해야 합니다.
 
-- 모든 API는 ApiResponse 포맷
-- success: true | false
-- 실패 시 error.code, error.message
-- traceId는 UI에 표시 가능
-- 운영 이슈는 traceId 기준 추적
+```bash
+pnpm typecheck
+pnpm lint
+pnpm build
+```
 
----
-
-# 10. 확장 전략
-
-- 새로운 Actor 추가 시 apps에 앱 추가
-- packages는 그대로 재사용
-- mobile 앱도 동일 API 계약 사용
-- 권한 확장은 Permission 문자열 추가 방식으로 확장
-- Scope 추가는 서버 정책에서 확장
-
----
-
-# 11. 유지보수 원칙
-
-- 비즈니스 로직은 apps 내부 feature 단위로 구성
-- 공통 로직은 packages로 이동
-- 순환 의존 금지
-- Actor 간 API 혼용 금지
-- fetch 직접 사용 금지
-- localStorage 직접 사용 금지
-- success 체크 없는 API 사용 금지
-
----
-
-# 12. 핵심 원칙 요약
-12. 핵심 원칙 요약
-- 프론트는 다음 4가지를 절대 위반하지 않습니다:
-- API는 api-client를 통해서만 호출한다.
-- 토큰/세션은 auth를 통해서만 접근한다.
-- 권한은 permission helper를 통해서만 검사한다.
-- 모든 응답은 ApiResponse 계약을 따른다.
+이 세 가지가 깨지면 구조 문서는 신뢰할 수 없습니다.

@@ -4,8 +4,7 @@ import {
     LayoutGrid,
     UserRound,
     Hospital,
-    List,
-    FileText,
+    SquarePlus,
 } from "@beaulab/ui-admin";
 
 type VisibilityRule = { requiredPermissions?: string[] };
@@ -29,12 +28,18 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
         },
         {
             icon: <Hospital className={iconClass} />,
-            name: "병원 관리",
+            name: "병의원 관리",
             requiredPermissions: ["beaulab.hospital.show"],
             subItems: [
-                { name: "병원 리스트", path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
-                { name: "병원 생성", path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
+                { name: "병의원 목록", path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
+                { name: "병의원 등록", path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
             ],
+        },
+        {
+            icon: <SquarePlus className={iconClass} />,
+            name: "병의원 등록",
+            path: "/hospitals/new",
+            requiredPermissions: ["beaulab.hospital.create"],
         },
         {
             icon: <UserRound className={iconClass} />,
@@ -42,27 +47,8 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             path: "/profile",
             requiredPermissions: ["common.profile.show"],
         },
-        {
-            name: "운영",
-            icon: <List className={iconClass} />,
-            requiredPermissions: ["common.access"],
-            subItems: [
-                { name: "Form Elements", path: "/form-elements", requiredPermissions: ["beaulab.hospital.create"] },
-                { name: "Basic Tables", path: "/basic-tables", requiredPermissions: ["beaulab.hospital.show"] },
-            ],
-        },
     ],
-    others: [
-        {
-            icon: <FileText className={iconClass} />,
-            name: "페이지",
-            requiredPermissions: ["common.access"],
-            subItems: [
-                { name: "Blank Page", path: "/blank", requiredPermissions: ["common.profile.update"] },
-                { name: "404 Error", path: "/error-404" },
-            ],
-        },
-    ],
+    others: [],
 };
 
 function hasAnyPermission(requiredPermissions: string[] | undefined, permissions: string[]) {
@@ -72,25 +58,28 @@ function hasAnyPermission(requiredPermissions: string[] | undefined, permissions
 
 function toSidebarMenu(menu: { main: AppNavItem[]; others: AppNavItem[] }, permissions: string[]): SidebarMenu {
     const mapItems = (items: AppNavItem[]): SidebarNavItem[] => {
-        return items
-            .map((item) => {
-                if (!hasAnyPermission(item.requiredPermissions, permissions)) return null;
+        const mappedItems: SidebarNavItem[] = [];
 
-                if (!item.subItems) {
-                    const { name, icon, path } = item;
-                    return { name, icon, path };
-                }
+        items.forEach((item) => {
+            if (!hasAnyPermission(item.requiredPermissions, permissions)) return;
 
-                const subItems = item.subItems
-                    .filter((subItem) => hasAnyPermission(subItem.requiredPermissions, permissions))
-                    .map(({ name, path, pro, new: isNew }) => ({ name, path, pro, new: isNew }));
-
-                if (subItems.length === 0) return null;
-
+            if (!item.subItems) {
                 const { name, icon, path } = item;
-                return { name, icon, path, subItems };
-            })
-            .filter((item): item is SidebarNavItem => item !== null);
+                mappedItems.push({ name, icon, path });
+                return;
+            }
+
+            const subItems = item.subItems
+                .filter((subItem) => hasAnyPermission(subItem.requiredPermissions, permissions))
+                .map(({ name, path, pro, new: isNew }) => ({ name, path, pro, new: isNew }));
+
+            if (subItems.length === 0) return;
+
+            const { name, icon, path } = item;
+            mappedItems.push({ name, icon, path, subItems });
+        });
+
+        return mappedItems;
     };
 
     return {

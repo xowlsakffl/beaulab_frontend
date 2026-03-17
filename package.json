@@ -2,7 +2,7 @@
   "name": "beaulab-web",
   "private": true,
   "packageManager": "pnpm@10.29.2",
-  "workspaces": ["apps/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -13,5 +13,4 @@
     "turbo": "^2.8.3",
     "typescript": "^5"
   }
-
 }

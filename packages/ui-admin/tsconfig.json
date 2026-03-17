@@ -1,11 +1,10 @@
 {
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
-  },
-  "include": ["src", "src/types"]
+  "extends": "../../tsconfig.base.json",
+  "include": [
+    "src/index.ts",
+    "src/components/auth/index.ts",
+    "src/context/index.ts",
+    "src/hooks/index.ts",
+    "src/layouts/index.ts"
+  ]
 }

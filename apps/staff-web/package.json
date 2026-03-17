@@ -6,14 +6,14 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@beaulab/ui-admin": "workspace:*",
     "@beaulab/auth": "workspace:*",
     "@beaulab/api-client": "workspace:*",
     "@beaulab/types": "workspace:*",
-    "flatpickr": "^4.6.13",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

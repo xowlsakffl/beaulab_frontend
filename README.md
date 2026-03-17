@@ -1,153 +1,86 @@
 # Beaulab Frontend Monorepo
 
-Beaulab 프로젝트의 프론트엔드 모노레포입니다.
+Beaulab 프론트엔드 모노레포입니다.
 
-본 레포는 **Laravel API 서버(API-only)** 구조를 전제로 하며,  
-Actor(Staff / Partner / User) 기반으로 앱을 분리하고  
-공통 로직은 `packages/`에서 관리합니다.
+현재 레포의 실제 운영 대상 앱은 `apps/staff-web` 하나입니다.  
+`packages/*`는 공통 레이어이고, 실제 업무 모듈과 actor 조합은 각 `apps/*`가 소유합니다.
 
----
+## 기술 스택
 
-# 1. 기술 스택
+- `pnpm workspace`
+- `Turborepo`
+- `Next.js App Router`
+- `TypeScript`
+- `Tailwind CSS`
 
-- pnpm (workspace)
-- Next.js (App Router)
-- TypeScript
-- Tailwind CSS
-- TailAdmin (UI)
-- Fetch 기반 API Client
+## 현재 구조
 
----
-
-# 2. 모노레포 구조
-
-``` text
-frontend/
+```text
+beaulab_frontend/
 ├─ apps/
-│ ├─ user-web/ # 사용자 서비스 (Custom UI)
-│ ├─ partner-web/ # 파트너 어드민 (TailAdmin 기반)
-│ └─ staff-web/ # 내부 직원 어드민 (TailAdmin 공유)
-│
+│  └─ staff-web/            # 실제 관리자 앱
 ├─ packages/
-│ ├─ ui-admin/ # Admin 공용 Layout / Sidebar / Header
-│ ├─ api-client/ # API 통신 래퍼
-│ ├─ auth/ # 인증 / 권한 헬퍼
-│ └─ types/ # DTO / 공통 타입
-├─ doc/ 문서
+│  ├─ api-client/           # fetch 래퍼, actor별 HTTP 클라이언트 기반
+│  ├─ auth/                 # token/session storage, permission helper
+│  ├─ types/                # ApiResponse, session/profile 타입
+│  └─ ui-admin/             # 공용 관리자 UI, 레이아웃, 입력/테이블 컴포넌트
+└─ doc/
+   └─ architecture.md
 ```
----
 
-## 3. pnpm Workspace 설정
+## 책임 분리
 
-### 3.1 pnpm 설치
+- `apps/staff-web`
+  - 실제 화면, 라우팅, feature module, actor 세션 흐름을 관리합니다.
+  - `packages/*`를 조합해서 staff 관리자 앱을 완성합니다.
+- `packages/ui-admin`
+  - 순수 UI와 레이아웃만 담당합니다.
+  - 앱 전용 라우트, asset 경로, 사용자 데이터, 인증 로직을 가지면 안 됩니다.
+- `packages/api-client`
+  - HTTP 요청과 공통 응답 처리만 담당합니다.
+- `packages/auth`
+  - token/session 저장과 permission helper만 담당합니다.
+- `packages/types`
+  - 런타임 없는 공통 타입만 담당합니다.
 
-Node 18 이상을 권장합니다.
+## 워크스페이스 규칙
 
-전역에 pnpm이 없다면 다음 명령으로 설치합니다.
+- `apps/*`는 `packages/*`를 의존할 수 있습니다.
+- `packages/*`는 서로 의존할 수 있지만 순환 의존은 금지합니다.
+- 패키지 간 참조는 상대경로 대신 `@beaulab/*` workspace 의존성을 사용합니다.
+- `packages/*`는 특정 actor나 특정 앱의 업무 규칙을 가지면 안 됩니다.
+- 실제 도메인 정책, 메뉴 조합, route-permission 매핑은 앱에서 정의합니다.
 
-npm install -g pnpm
+## 실행
 
----
+의존성 설치:
 
-### 3.2 의존성 설치
-
-루트 디렉토리에서 실행합니다.
-
+```bash
 pnpm install
+```
 
-이 명령은 다음을 모두 설치합니다:
+개발 서버:
 
-- apps/*
-- packages/*
-
-모든 workspace 의존성을 한 번에 설치합니다.
-
----
-
-### 3.3 특정 앱 실행
-
-예: staff-web 실행
-
+```bash
 pnpm --filter staff-web dev
+```
 
-다른 앱 실행 예시:
+전체 검증:
 
-pnpm --filter partner-web dev  
-pnpm --filter user-web dev
-
----
-
-### 3.4 전체 빌드
-
-루트에서 실행:
-
+```bash
+pnpm typecheck
+pnpm lint
 pnpm build
+```
 
-또는 특정 앱만:
+## 인증 흐름
 
-pnpm --filter staff-web build
-
----
-
-### 3.5 특정 패키지만 빌드
-
-예: types 패키지만 빌드
-
-pnpm --filter @beaulab/types build
-
----
-
-## 4. Workspace 규칙
-
-- apps/* → packages/* 의존 가능
-- packages/* 간 순환 의존 금지
-- types 패키지는 runtime 로직 금지
-- ui-admin 패키지는 API / auth 로직 포함 금지
-- api-client는 라우팅 로직 포함 금지
-- auth는 HTTP 호출 금지
-
----
-
-## 5. Actor 기반 분리
-
-각 앱은 특정 Actor 전용입니다.
-
-| App | API Prefix |
-|------|------------|
-| staff-web | /api/v1/staff/* |
-| partner-web | /api/v1/partner/* |
-| user-web | /api/v1/user/* |
-
-각 앱은 다른 Actor API를 호출하지 않습니다.
-
----
-
-## 6. 로그인 흐름
-
-1. POST /api/v1/{actor}/auth/login
+1. `POST /api/v1/staff/auth/login`
 2. token 저장
-3. GET /api/v1/{actor}/profile
-4. profile + roles + permissions 저장
+3. `GET /api/v1/staff/profile`
+4. profile, roles, permissions를 세션으로 복구
 5. 보호 영역 진입
 
----
+## 문서
 
-## 7. 권한 처리 원칙
-
-- 메뉴 노출은 Permission 기준
-- Role 직접 분기 금지
-- 실제 보안은 서버에서 강제
-
----
-
-## 8. 에러 처리
-
-- 모든 API는 ApiResponse 포맷
-- 실패 시 error.code 사용
-- traceId는 UI에서 표시 가능
-- 운영 이슈는 traceId 기준 추적
-
----
-
-## 9. 문서
-- [아키텍처 & 흐름](./doc/architecture.md)
+- [아키텍처 문서](/root/beaulab_frontend/doc/architecture.md)

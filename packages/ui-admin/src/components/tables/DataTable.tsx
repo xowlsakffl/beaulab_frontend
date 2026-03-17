@@ -74,6 +74,7 @@ export function DataTable<T>({
   const colCount = Math.max(1, columns.length);
   const totalPages = Number(meta?.last_page ?? 0);
   const shouldShowPagination = Boolean(meta && onGoPage && Number.isFinite(totalPages) && totalPages > 1);
+  const handlePageChange = onGoPage ?? (() => undefined);
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -167,7 +168,7 @@ export function DataTable<T>({
           <Pagination
             currentPage={meta.current_page}
             totalPages={totalPages}
-            onPageChange={onGoPage}
+            onPageChange={handlePageChange}
             disabled={refreshing}
           />
         </div>

@@ -2,6 +2,10 @@
   "name": "@beaulab/ui-admin",
   "private": true,
   "version": "0.0.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -9,11 +13,22 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./context/*": "./src/context/*",
-    "./components/*": "./src/components/*",
-    "./layouts/*": "./src/layouts/*",
-    "./hooks/*": "./src/hooks/*",
-    "./types/*": "./src/types/*"
+    "./components/auth": {
+      "types": "./src/components/auth/index.ts",
+      "default": "./src/components/auth/index.ts"
+    },
+    "./context": {
+      "types": "./src/context/index.ts",
+      "default": "./src/context/index.ts"
+    },
+    "./layouts": {
+      "types": "./src/layouts/index.ts",
+      "default": "./src/layouts/index.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
+    }
   },
   "peerDependencies": {
     "next": "^16",

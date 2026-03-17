@@ -6,32 +6,38 @@ import { createContext, useContext, useEffect, useState } from "react";
 type Theme = "light" | "dark";
 type ThemeContextType = { theme: Theme; toggleTheme: () => void };
 
+type ThemeProviderProps = {
+  children: ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+};
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+export function ThemeProvider({
+  children,
+  defaultTheme = "light",
+  storageKey = "beaulab.theme",
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-    setTheme(savedTheme || "light");
+    const savedTheme = localStorage.getItem(storageKey) as Theme | null;
+    setTheme(savedTheme || defaultTheme);
     setIsInitialized(true);
-  }, []);
+  }, [defaultTheme, storageKey]);
 
   useEffect(() => {
     if (!isInitialized) return;
 
-    localStorage.setItem("theme", theme);
+    localStorage.setItem(storageKey, theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme, isInitialized]);
+  }, [isInitialized, storageKey, theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+  const toggleTheme = () => setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
 
-  return (
-      <ThemeContext.Provider value={{ theme, toggleTheme }}>
-        {children}
-      </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

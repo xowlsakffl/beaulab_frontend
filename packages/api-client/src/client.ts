@@ -1,9 +1,9 @@
-import type { ApiResponse, ActorType } from "../../types";
-import { tokenStorage } from "../../auth";
+import type { ActorType, ApiResponse } from "@beaulab/types";
+import { tokenStorage } from "@beaulab/auth";
 import { buildUrl, type Query } from "./url";
 
 /**
- * staff/partner/user 각각 다른 baseURL + 다른 토큰을 자동으로 붙여서 fetch 하는 래퍼.
+ * staff/hospital/beauty/user 각각 다른 baseURL + 다른 토큰을 자동으로 붙여서 fetch 하는 래퍼.
  *
  * 사용법 예)
  * import { createClient } from "@beaulab/api-client"; // client.ts가 export된 패키지 경로

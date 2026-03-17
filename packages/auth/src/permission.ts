@@ -1,4 +1,4 @@
-import type { ActorAuthorization } from "../../types";
+import type { ActorAuthorization } from "@beaulab/types";
 
 type AuthorizationLike = Partial<ActorAuthorization> | undefined;
 
@@ -20,8 +20,9 @@ export function hasPermission(
     auth: AuthorizationLike,
     permission: string
 ): boolean {
-    if (!auth?.permissions) return false;
-    return auth.permissions.includes(permission);
+    const grantedPermissions = auth?.permissions;
+    if (!grantedPermissions) return false;
+    return grantedPermissions.includes(permission);
 }
 
 /**
@@ -31,8 +32,9 @@ export function hasAnyPermission(
     auth: AuthorizationLike,
     permissions: string[]
 ): boolean {
-    if (!auth?.permissions) return false;
-    return permissions.some((p) => auth.permissions.includes(p));
+    const grantedPermissions = auth?.permissions;
+    if (!grantedPermissions) return false;
+    return permissions.some((permission) => grantedPermissions.includes(permission));
 }
 
 /**
@@ -42,6 +44,7 @@ export function hasAllPermissions(
     auth: AuthorizationLike,
     permissions: string[]
 ): boolean {
-    if (!auth?.permissions) return false;
-    return permissions.every((p) => auth.permissions.includes(p));
+    const grantedPermissions = auth?.permissions;
+    if (!grantedPermissions) return false;
+    return permissions.every((permission) => grantedPermissions.includes(permission));
 }

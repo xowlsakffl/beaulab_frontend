@@ -183,7 +183,7 @@ export function SignInForm({
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" disabled={isSubmitting}>
+                  <Button variant="brand" className="w-full" size="sm" disabled={isSubmitting}>
                     {isSubmitting ? "로그인 중..." : submitText}
                   </Button>
                 </div>

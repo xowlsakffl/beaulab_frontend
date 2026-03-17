@@ -13,7 +13,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
-      <ThemeProvider>
+      <ThemeProvider storageKey="beaulab.staff.theme">
         <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col  dark:bg-gray-900 sm:p-0">
           {children}
           <div className="lg:w-1/2 w-full h-full bg-brand-950 dark:bg-white/5 lg:grid items-center hidden">
@@ -21,16 +21,16 @@ export default function AuthLayout({
               {/* <!-- ===== Common Grid Shape Start ===== --> */}
               <GridShape />
               <div className="flex flex-col items-center max-w-xs">
-                <Link href="/" className="block mb-4">
+                <Link href="/login" className="block mb-4">
                   <Image
                     width={231}
                     height={48}
-                    src="./images/logo/auth-logo.svg"
-                    alt="Logo"
+                    src="/images/logo/auth-logo.svg"
+                    alt="뷰랩 관리자"
                   />
                 </Link>
                 <p className="text-center text-gray-400 dark:text-white/60">
-                  Free and Open-Source Tailwind CSS Admin Dashboard Template
+                  병의원 운영과 계정 관리를 위한 뷰랩 관리자 콘솔입니다.
                 </p>
               </div>
             </div>
