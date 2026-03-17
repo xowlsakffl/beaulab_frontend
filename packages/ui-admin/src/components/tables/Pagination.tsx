@@ -31,9 +31,8 @@ function buildPages(currentPage: number, totalPages: number) {
 }
 
 const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange, disabled = false }) => {
-  if (totalPages <= 1) return null;
-
-  const pages = React.useMemo(() => buildPages(currentPage, totalPages), [currentPage, totalPages]);
+  const safeTotalPages = Math.max(1, totalPages);
+  const pages = React.useMemo(() => buildPages(currentPage, safeTotalPages), [currentPage, safeTotalPages]);
 
   return (
     <div className="flex items-center gap-2">
@@ -80,7 +79,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         );
       })}
 
-      {currentPage < totalPages ? (
+      {currentPage < safeTotalPages ? (
         <Button
           variant="outline"
           size="sm"

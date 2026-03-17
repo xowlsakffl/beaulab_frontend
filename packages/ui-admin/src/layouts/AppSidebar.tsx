@@ -55,7 +55,13 @@ export function AppSidebar({
 
   const canShowMenuContent = isExpanded || isMobileOpen || showHoverLabels;
 
-  const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const isActive = useCallback(
+    (path: string) => {
+      if (path === "/") return pathname === "/";
+      return pathname === path || pathname?.startsWith(`${path}/`) === true;
+    },
+    [pathname],
+  );
 
   const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
     setOpenSubmenu((previous) => {
@@ -68,18 +74,21 @@ export function AppSidebar({
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => (
         <li key={nav.name}>
+          {(() => {
+            const hasActiveSubItem = nav.subItems?.some((subItem) => isActive(subItem.path)) ?? false;
+            const isOpen = openSubmenu?.type === menuType && openSubmenu?.index === index;
+            const isParentActive = isOpen || hasActiveSubItem;
+
+            return (
+              <>
           {nav.subItems ? (
             <button
               onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index ? "menu-item-active" : "menu-item-inactive"
-              } cursor-pointer ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+              className={`menu-item group ${isParentActive ? "menu-item-active" : "menu-item-inactive"} cursor-pointer`}
               aria-label={nav.name}
             >
               <span
-                className={`${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index ? "menu-item-icon-active" : "menu-item-icon-inactive"
-                }`}
+                className={`${isParentActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}
               >
                 {nav.icon ?? <span className="h-5 w-5" />}
               </span>
@@ -89,7 +98,7 @@ export function AppSidebar({
               {canShowMenuContent ? (
                 <ChevronDown
                   className={`ml-auto h-5 w-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType && openSubmenu?.index === index ? "rotate-180 text-brand-500" : ""
+                    isOpen ? "rotate-180 text-brand-500" : ""
                   }`}
                 />
               ) : null}
@@ -106,7 +115,7 @@ export function AppSidebar({
           {nav.subItems && canShowMenuContent ? (
             <div
               className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
+                isOpen
                   ? "mt-2 grid-rows-[1fr] opacity-100"
                   : "mt-0 grid-rows-[0fr] opacity-0"
               }`}
@@ -125,6 +134,9 @@ export function AppSidebar({
               </ul>
             </div>
           ) : null}
+              </>
+            );
+          })()}
         </li>
       ))}
     </ul>

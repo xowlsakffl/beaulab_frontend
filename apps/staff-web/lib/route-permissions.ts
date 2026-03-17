@@ -1,3 +1,5 @@
+import { ADMIN_PAGE_ROUTE_PERMISSIONS } from "@/lib/admin-pages";
+
 export type RoutePermissionRule = {
   path: string;
   requiredPermissions: string[];
@@ -8,6 +10,7 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/profile", requiredPermissions: ["common.profile.show"] },
   { path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
   { path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
+  ...ADMIN_PAGE_ROUTE_PERMISSIONS,
 ];
 
 export function resolveRoutePermissions(pathname: string | null, rules: RoutePermissionRule[]): string[] {

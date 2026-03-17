@@ -12,7 +12,10 @@ export default function HospitalDetailPage() {
       <PageBreadcrumb
         pageTitle="병의원 상세"
         homeLabel="관리자"
-        items={[{ label: "병의원", href: "/hospitals" }]}
+        items={[
+          { label: "병의원 관리" },
+          { label: "병의원", href: "/hospitals" },
+        ]}
       />
       <section className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 dark:border-gray-700 dark:bg-white/[0.03]">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">상세 화면 준비 중</h3>

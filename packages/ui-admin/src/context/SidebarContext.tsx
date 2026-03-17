@@ -51,7 +51,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   return (
       <SidebarContext.Provider
           value={{
-            isExpanded: isMobile ? false : isExpanded, // 그대로 유지 (네 의도)
+            isExpanded: isMobile ? false : isExpanded,
             isMobileOpen,
             isHovered,
             activeItem,

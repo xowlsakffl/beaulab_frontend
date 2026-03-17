@@ -24,6 +24,7 @@ type DataTableProps<T> = {
   title?: React.ReactNode;
   description?: React.ReactNode;
   rightActions?: React.ReactNode;
+  tableClassName?: string;
   columns: DataTableColumn<T>[];
   rows: T[];
   getRowKey: (row: T) => string | number;
@@ -58,6 +59,7 @@ export function DataTable<T>({
   title,
   description,
   rightActions,
+  tableClassName,
   columns,
   rows,
   getRowKey,
@@ -73,11 +75,45 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const colCount = Math.max(1, columns.length);
   const totalPages = Number(meta?.last_page ?? 0);
-  const shouldShowPagination = Boolean(meta && onGoPage && Number.isFinite(totalPages) && totalPages > 1);
+  const shouldShowFooter = Boolean(meta);
   const handlePageChange = onGoPage ?? (() => undefined);
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
+
+  React.useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const updateScrollHint = () => {
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      setShowRightScrollHint(maxScrollLeft > 8 && container.scrollLeft < maxScrollLeft - 8);
+    };
+
+    const frameId = window.requestAnimationFrame(updateScrollHint);
+    container.addEventListener("scroll", updateScrollHint, { passive: true });
+    window.addEventListener("resize", updateScrollHint);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(updateScrollHint);
+      resizeObserver.observe(container);
+
+      const tableElement = container.querySelector("table");
+      if (tableElement instanceof HTMLElement) {
+        resizeObserver.observe(tableElement);
+      }
+    }
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      container.removeEventListener("scroll", updateScrollHint);
+      window.removeEventListener("resize", updateScrollHint);
+      resizeObserver?.disconnect();
+    };
+  }, [columns.length, error, loading, rows.length]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {(title || description || rightActions || onRefresh) && (
         <div className="lg:flex lg:items-center lg:justify-between gap-3 px-4 py-4 sm:px-4">
           <div className="mb-3 lg:mb-0">
@@ -102,76 +138,88 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-        <Table className="w-max min-w-full">
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell key={column.key} isHeader className={column.headerClassName ?? DEFAULT_HEADER_CELL}>
-                  {column.header}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHeader>
-
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {!loading && error ? (
+      <div className="relative">
+        <div ref={scrollContainerRef} className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+          <Table className={tableClassName ?? "w-max min-w-full"}>
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                <TableCell className="px-5 py-6 text-center text-theme-sm text-rose-600" colSpan={colCount}>
-                  {error}
-                </TableCell>
+                {columns.map((column) => (
+                  <TableCell key={column.key} isHeader className={column.headerClassName ?? DEFAULT_HEADER_CELL}>
+                    {column.header}
+                  </TableCell>
+                ))}
               </TableRow>
-            ) : null}
+            </TableHeader>
 
-            {loading
-              ? Array.from({ length: skeletonRows }).map((_, rowIndex) => (
-                  <TableRow key={`sk-${rowIndex}`}>
-                    {columns.map((column, cellIndex) => (
-                      <TableCell key={`${column.key}-${cellIndex}`} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
-                        <Skeleton className="h-4 w-[70%]" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : null}
+            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {!loading && error ? (
+                <TableRow>
+                  <TableCell className="px-5 py-6 text-center text-theme-sm text-rose-600" colSpan={colCount}>
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : null}
 
-            {!loading && !error && rows.length === 0 ? (
-              <TableRow>
-                <TableCell className="px-5 py-10 text-center text-theme-sm text-gray-500 dark:text-gray-400" colSpan={colCount}>
-                  {emptyText}
-                </TableCell>
-              </TableRow>
-            ) : null}
+              {loading
+                ? Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                    <TableRow key={`sk-${rowIndex}`}>
+                      {columns.map((column, cellIndex) => (
+                        <TableCell key={`${column.key}-${cellIndex}`} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
+                          <Skeleton className="h-4 w-[70%]" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : null}
 
-            {!loading && !error
-              ? rows.map((row) => (
-                  <TableRow
-                    key={getRowKey(row)}
-                    className={onRowClick ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03]" : undefined}
-                    onClick={() => onRowClick?.(row)}
-                  >
-                    {columns.map((column) => (
-                      <TableCell key={column.key} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6 dark:text-gray-200"}>
-                        {column.render(row)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : null}
-          </TableBody>
-        </Table>
+              {!loading && !error && rows.length === 0 ? (
+                <TableRow>
+                  <TableCell className="px-5 py-10 text-center text-theme-sm text-gray-500 dark:text-gray-400" colSpan={colCount}>
+                    {emptyText}
+                  </TableCell>
+                </TableRow>
+              ) : null}
+
+              {!loading && !error
+                ? rows.map((row) => (
+                    <TableRow
+                      key={getRowKey(row)}
+                      className={onRowClick ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03]" : undefined}
+                      onClick={() => onRowClick?.(row)}
+                    >
+                      {columns.map((column) => (
+                        <TableCell key={column.key} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6 dark:text-gray-200"}>
+                          {column.render(row)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : null}
+            </TableBody>
+          </Table>
+        </div>
+
       </div>
 
-      {shouldShowPagination && meta ? (
+      {shouldShowFooter && meta ? (
         <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="text-sm text-gray-500 dark:text-gray-400">총 {meta.total.toLocaleString()}개</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            총 {meta.total.toLocaleString()}개 · {meta.current_page} / {Math.max(1, totalPages)} 페이지
+          </div>
           <Pagination
             currentPage={meta.current_page}
-            totalPages={totalPages}
+            totalPages={Math.max(1, totalPages)}
             onPageChange={handlePageChange}
-            disabled={refreshing}
+            disabled={refreshing || !onGoPage}
           />
         </div>
+      ) : null}
+
+      {showRightScrollHint ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-2 border-r border-slate-900/12 bg-gradient-to-l from-slate-900/14 via-slate-900/6 to-transparent dark:border-black/30 dark:from-black/36 dark:via-black/14"
+        />
       ) : null}
     </div>
   );
