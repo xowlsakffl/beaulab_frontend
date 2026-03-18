@@ -3,6 +3,7 @@
 import React from "react";
 import { RotateCw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
+import { Spinner } from "../ui/spinner/Spinner";
 import Pagination from "./Pagination";
 
 export type DataTableColumn<T> = {
@@ -41,15 +42,6 @@ type DataTableProps<T> = {
 
 const DEFAULT_HEADER_CELL =
   "px-5 py-3 font-semibold text-gray-600 text-left text-theme-xs dark:text-gray-300";
-
-function Spinner({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="4" />
-      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" />
-    </svg>
-  );
-}
 
 function Skeleton({ className = "h-4 w-[70%]" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-gray-200/80 dark:bg-gray-700/70 ${className}`} />;

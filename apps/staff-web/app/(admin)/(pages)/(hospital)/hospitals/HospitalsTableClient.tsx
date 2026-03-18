@@ -4,26 +4,28 @@ import { Can } from "@/components/guard";
 import { api } from "@/lib/api";
 import { isApiSuccess } from "@beaulab/types";
 import {
-  ChevronsUpDown,
-  ChevronUp,
+  Card,
+  CheckboxFilterDropdown,
   ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
   SquarePlus,
   Download,
   SlidersHorizontal,
-  StatusBadge,
   Button,
   DataTable,
-  FormCheckbox,
+  DateRangeFilterDropdown,
   InputField,
   Select,
+  StatusBadge,
+  type CheckboxFilterOption,
   type DataTableColumn,
   type DataTableMeta,
+  type DatePresetOption,
 } from "@beaulab/ui-admin";
 import Link from "next/link";
 import React from "react";
-import { DayPicker, type DateRange } from "react-day-picker";
-import { ko } from "react-day-picker/locale";
-import "react-day-picker/style.css";
+import type { DateRange } from "react-day-picker";
 
 type HospitalApiItem = {
   id: number;
@@ -108,10 +110,16 @@ const DEFAULT_FILTERS: Filters = {
 
 const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: true };
 
-const APPROVAL_STATUS_OPTIONS = [
+const APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "ACTIVE", label: "정상" },
   { value: "SUSPENDED", label: "정지" },
   { value: "WITHDRAWN", label: "탈퇴" },
+];
+
+const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = [
+  { value: "PENDING", label: "검수신청" },
+  { value: "APPROVED", label: "검수완료" },
+  { value: "REJECTED", label: "검수반려" },
 ];
 
 const PER_PAGE_OPTIONS = [
@@ -120,18 +128,12 @@ const PER_PAGE_OPTIONS = [
   { value: "50", label: "50개" },
 ];
 
-const REVIEW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "검수신청" },
-  { value: "APPROVED", label: "검수완료" },
-  { value: "REJECTED", label: "검수반려" },
-];
-
 const DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
   { key: "yesterday", label: "어제" },
   { key: "recent7", label: "최근 7일" },
   { key: "recent30", label: "최근 30일" },
-] as const;
+] as const satisfies readonly DatePresetOption[];
 
 type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
 type DateFilterKey = "created" | "updated";
@@ -153,54 +155,6 @@ function resolveMediaUrl(media?: HospitalApiItem["logo"]): string | null {
   return `${API_BASE_URL}/storage/${rawPath}`;
 }
 
-function normalizeHospital(item: HospitalApiItem): HospitalRow {
-  const createdRaw = item.createdAt ?? item.created_at ?? "";
-  const updatedRaw = item.updatedAt ?? item.updated_at ?? "";
-  const createdDate = createdRaw ? new Date(createdRaw) : null;
-  const updatedDate = updatedRaw ? new Date(updatedRaw) : null;
-
-  return {
-    id: item.id,
-    name: item.name,
-    address: item.address,
-    addressDetail: item.addressDetail ?? item.address_detail ?? "",
-    tel: item.tel,
-    viewCount: item.viewCount ?? item.view_count ?? 0,
-    reviewStatus: item.allowStatus ?? item.allow_status ?? "UNKNOWN",
-    approvalStatus: item.status,
-    createdAt:
-      createdDate && !Number.isNaN(createdDate.getTime())
-        ? formatLocalDate(createdDate)
-        : "-",
-    updatedAt:
-      updatedDate && !Number.isNaN(updatedDate.getTime())
-        ? formatLocalDate(updatedDate)
-        : "-",
-    logoUrl: resolveMediaUrl(item.logo),
-  };
-}
-
-function labelApprovalStatus(status: string) {
-  if (status === "ACTIVE") return "정상";
-  if (status === "SUSPENDED") return "정지";
-  if (status === "WITHDRAWN") return "탈퇴";
-  return status;
-}
-
-function labelReviewStatus(status: string) {
-  if (status === "PENDING") return "검수신청";
-  if (status === "APPROVED") return "검수완료";
-  if (status === "REJECTED") return "검수반려";
-  return status;
-}
-
-function nextSortState(prev: SortState, field: SortField): SortState {
-  if (prev.field !== field) return { field, direction: "desc", enabled: true };
-  if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
-  if (prev.enabled && prev.direction === "asc") return { field: "id", direction: "desc", enabled: false };
-  return { field, direction: "desc", enabled: true };
-}
-
 function formatLocalDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -208,6 +162,7 @@ function formatLocalDate(date: Date) {
 
   return `${year}-${month}-${day}`;
 }
+
 function formatDateRange(range?: DateRange) {
   if (!range?.from) return "";
 
@@ -249,6 +204,221 @@ function mapDateRangeToFilter(range?: DateRange) {
   };
 }
 
+function nextSortState(prev: SortState, field: SortField): SortState {
+  if (prev.field !== field) return { field, direction: "desc", enabled: true };
+  if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
+  if (prev.enabled && prev.direction === "asc") return { field: "id", direction: "desc", enabled: false };
+  return { field, direction: "desc", enabled: true };
+}
+
+function buildHospitalsQuery({
+  searchKeyword,
+  appliedFilters,
+  sortState,
+  perPage,
+  page,
+}: {
+  searchKeyword: string;
+  appliedFilters: Filters;
+  sortState: SortState;
+  perPage: number;
+  page: number;
+}): HospitalsQuery {
+  const query: HospitalsQuery = {
+    sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
+    direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
+    per_page: perPage,
+    page,
+  };
+
+  const trimmedSearch = searchKeyword.trim();
+  if (trimmedSearch) query.q = trimmedSearch;
+  if (appliedFilters.approvalStatuses.length > 0) query.status = appliedFilters.approvalStatuses.join(",");
+  if (appliedFilters.reviewStatuses.length > 0) query.allow_status = appliedFilters.reviewStatuses.join(",");
+  if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
+  if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
+  if (appliedFilters.updatedStartDate) query.updated_start_date = appliedFilters.updatedStartDate;
+  if (appliedFilters.updatedEndDate) query.updated_end_date = appliedFilters.updatedEndDate;
+
+  return query;
+}
+
+function normalizeHospital(item: HospitalApiItem): HospitalRow {
+  const createdRaw = item.createdAt ?? item.created_at ?? "";
+  const updatedRaw = item.updatedAt ?? item.updated_at ?? "";
+  const createdDate = createdRaw ? new Date(createdRaw) : null;
+  const updatedDate = updatedRaw ? new Date(updatedRaw) : null;
+
+  return {
+    id: item.id,
+    name: item.name,
+    address: item.address,
+    addressDetail: item.addressDetail ?? item.address_detail ?? "",
+    tel: item.tel,
+    viewCount: item.viewCount ?? item.view_count ?? 0,
+    reviewStatus: item.allowStatus ?? item.allow_status ?? "UNKNOWN",
+    approvalStatus: item.status,
+    createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
+    updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
+    logoUrl: resolveMediaUrl(item.logo),
+  };
+}
+
+function labelApprovalStatus(status: string) {
+  if (status === "ACTIVE") return "정상";
+  if (status === "SUSPENDED") return "정지";
+  if (status === "WITHDRAWN") return "탈퇴";
+  return status;
+}
+
+function labelReviewStatus(status: string) {
+  if (status === "PENDING") return "검수신청";
+  if (status === "APPROVED") return "검수완료";
+  if (status === "REJECTED") return "검수반려";
+  return status;
+}
+
+function renderSortMark(field: SortField, sortState: SortState) {
+  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
+}
+
+function buildHospitalColumns({
+  sortState,
+  onToggleSort,
+}: {
+  sortState: SortState;
+  onToggleSort: (field: SortField) => void;
+}): DataTableColumn<HospitalRow>[] {
+  const headerBaseClass = "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
+  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+  const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
+  const spacedHeaderClass = `${headerBaseClass} lg:pl-3`;
+  const spacedCellClass = `${cellBaseClass} lg:pl-3`;
+  const spacedNowrapCellClass = `${nowrapCellClass} lg:pl-3`;
+
+  return [
+    {
+      key: "id",
+      headerClassName: `${headerBaseClass} lg:w-[40px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[40px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("id")} className="inline-flex items-center gap-1 px-0 text-xs">
+          ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => row.id,
+    },
+    {
+      key: "name",
+      headerClassName: `${headerBaseClass} lg:w-[150px]`,
+      cellClassName: `${cellBaseClass} lg:w-[150px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("name")} className="inline-flex items-center gap-1 px-0 text-xs">
+          병의원명 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          {row.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- logo domains come from runtime API/storage configuration
+            <img
+              src={row.logoUrl}
+              alt=""
+              className="h-6 w-6 shrink-0 rounded-md border border-gray-200 object-cover dark:border-white/[0.08]"
+            />
+          ) : null}
+          <span className="block truncate font-medium text-gray-800 dark:text-white/90" title={row.name}>
+            {row.name}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "tel",
+      headerClassName: `${spacedHeaderClass} lg:w-[116px]`,
+      cellClassName: `${spacedNowrapCellClass} lg:w-[116px]`,
+      header: "대표 연락처",
+      render: (row) => row.tel,
+    },
+    {
+      key: "address",
+      headerClassName: `${spacedHeaderClass} lg:w-[200px]`,
+      cellClassName: `${spacedCellClass} lg:w-[200px]`,
+      header: "주소",
+      render: (row) => (
+        <div className="whitespace-pre-line">
+          <div>{row.address || "-"}</div>
+          {row.addressDetail ? <div className="text-gray-500 dark:text-gray-400">{row.addressDetail}</div> : null}
+        </div>
+      ),
+    },
+    {
+      key: "approvalStatus",
+      headerClassName: `${spacedHeaderClass} lg:w-[72px]`,
+      cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
+          승인상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => (
+        <StatusBadge size="sm" color={row.approvalStatus === "ACTIVE" ? "success" : row.approvalStatus === "SUSPENDED" ? "warning" : "error"}>
+          {labelApprovalStatus(row.approvalStatus)}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: "reviewStatus",
+      headerClassName: `${spacedHeaderClass} lg:w-[72px]`,
+      cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allow_status")} className="inline-flex items-center gap-1 px-0 text-xs">
+          검수 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => (
+        <StatusBadge size="sm" color={row.reviewStatus === "APPROVED" ? "success" : row.reviewStatus === "PENDING" ? "warning" : "error"}>
+          {labelReviewStatus(row.reviewStatus)}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: "viewCount",
+      headerClassName: `${spacedHeaderClass} lg:w-[60px]`,
+      cellClassName: `${spacedNowrapCellClass} lg:w-[60px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("view_count")} className="inline-flex items-center gap-1 px-0 text-xs">
+          조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => row.viewCount.toLocaleString(),
+    },
+    {
+      key: "updatedAt",
+      headerClassName: `${spacedHeaderClass} lg:w-[82px]`,
+      cellClassName: `${spacedNowrapCellClass} lg:w-[82px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("updated_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+          수정일 <span className="text-xs text-gray-400">{renderSortMark("updated_at", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => row.updatedAt,
+    },
+    {
+      key: "createdAt",
+      headerClassName: `${spacedHeaderClass} lg:w-[82px]`,
+      cellClassName: `${spacedNowrapCellClass} lg:w-[82px]`,
+      header: (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("created_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+          등록일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => row.createdAt,
+    },
+  ];
+}
+
 export default function HospitalsTableClient() {
   const [searchInput, setSearchInput] = React.useState("");
   const [searchKeyword, setSearchKeyword] = React.useState("");
@@ -286,35 +456,17 @@ export default function HospitalsTableClient() {
   const requestKeyRef = React.useRef("");
   const hasFetchedRef = React.useRef(false);
 
-  const query = React.useMemo(() => {
-    const q: HospitalsQuery = {
-      sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
-      direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
-      per_page: perPage,
-      page,
-    };
-
-    if (searchKeyword.trim()) q.q = searchKeyword.trim();
-    if (appliedFilters.approvalStatuses.length > 0) q.status = appliedFilters.approvalStatuses.join(",");
-    if (appliedFilters.reviewStatuses.length > 0) q.allow_status = appliedFilters.reviewStatuses.join(",");
-    if (appliedFilters.startDate) q.start_date = appliedFilters.startDate;
-    if (appliedFilters.endDate) q.end_date = appliedFilters.endDate;
-    if (appliedFilters.updatedStartDate) q.updated_start_date = appliedFilters.updatedStartDate;
-    if (appliedFilters.updatedEndDate) q.updated_end_date = appliedFilters.updatedEndDate;
-
-    return q;
-  }, [
-    appliedFilters.approvalStatuses,
-    appliedFilters.reviewStatuses,
-    appliedFilters.startDate,
-    appliedFilters.endDate,
-    appliedFilters.updatedStartDate,
-    appliedFilters.updatedEndDate,
-    page,
-    perPage,
-    searchKeyword,
-    sortState,
-  ]);
+  const query = React.useMemo(
+    () =>
+      buildHospitalsQuery({
+        searchKeyword,
+        appliedFilters,
+        sortState,
+        perPage,
+        page,
+      }),
+    [appliedFilters, page, perPage, searchKeyword, sortState],
+  );
 
   const fetchHospitals = React.useCallback(
     async (manualRefresh = false) => {
@@ -331,7 +483,7 @@ export default function HospitalsTableClient() {
       try {
         const response = await api.get<HospitalApiItem[]>("/hospitals", query);
         if (!isApiSuccess(response)) {
-          setError(response.error.message || "병원 목록 조회에 실패했습니다.");
+          setError(response.error.message || "병의원 목록 조회에 실패했습니다.");
           return;
         }
 
@@ -339,7 +491,7 @@ export default function HospitalsTableClient() {
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch {
-        setError("병원 목록 조회 중 오류가 발생했습니다.");
+        setError("병의원 목록 조회 중 오류가 발생했습니다.");
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -501,9 +653,9 @@ export default function HospitalsTableClient() {
     setDraftFilters((prev) => ({
       ...prev,
       reviewStatuses:
-        prev.reviewStatuses.length === REVIEW_STATUS_OPTIONS.length
+        prev.reviewStatuses.length === ALLOW_STATUS_OPTIONS.length
           ? []
-          : REVIEW_STATUS_OPTIONS.map((item) => item.value),
+          : ALLOW_STATUS_OPTIONS.map((item) => item.value),
     }));
   };
 
@@ -556,180 +708,18 @@ export default function HospitalsTableClient() {
     applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
   };
 
-  const toggleSort = (field: SortField) => {
+  const toggleSort = React.useCallback((field: SortField) => {
     setPage(1);
     setSortState((prev) => nextSortState(prev, field));
-  };
+  }, []);
 
-  const sortMark = (field: SortField) => {
-    if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-    return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-  };
+  const shouldAllowFilterOverflow =
+    isFilterOverflowVisible || isStatusDropdownOpen || isReviewDropdownOpen || isDatePickerOpen || isUpdatedDatePickerOpen;
 
-  const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
-  const filterTriggerClass =
-    "flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300";
-  const datePickerPopoverClass =
-    "absolute left-0 z-20 mt-1 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:left-auto sm:right-0";
-
-  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
-  const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
-  const spacedHeaderClass = `${headerBaseClass} lg:pl-3`;
-  const spacedCellClass = `${cellBaseClass} lg:pl-3`;
-  const spacedNowrapCellClass = `${nowrapCellClass} lg:pl-3`;
-
-  const columns: DataTableColumn<HospitalRow>[] = [
-    {
-      key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[40px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[40px]`,
-      header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("id")} className="text-xs inline-flex items-center gap-1 px-0">
-          ID <span className="text-xs text-gray-400">{sortMark("id")}</span>
-        </Button>
-      ),
-      render: (row) => row.id,
-    },
-    {
-      key: "name",
-      headerClassName: `${headerBaseClass} lg:w-[150px]`,
-      cellClassName: `${cellBaseClass} lg:w-[150px]`,
-      header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => toggleSort("name")} className="text-xs inline-flex items-center gap-1 px-0">
-          병의원명 <span className="text-xs text-gray-400">{sortMark("name")}</span>
-        </Button>
-      ),
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          {row.logoUrl ? (
-            <img
-              src={row.logoUrl}
-              alt=""
-              className="h-6 w-6 shrink-0 rounded-md border border-gray-200 object-cover dark:border-white/[0.08]"
-            />
-          ) : null}
-          <span className="block truncate font-medium text-gray-800 dark:text-white/90" title={row.name}>
-            {row.name}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: "tel",
-      headerClassName: `${spacedHeaderClass} lg:w-[116px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[116px]`,
-      header: "대표 연락처",
-      render: (row) => row.tel,
-    },
-    {
-      key: "address",
-      headerClassName: `${spacedHeaderClass} lg:w-[200px]`,
-      cellClassName: `${spacedCellClass} lg:w-[200px]`,
-      header: "주소",
-      render: (row) => (
-        <div className="whitespace-pre-line">
-          <div>{row.address || "-"}</div>
-          {row.addressDetail ? (
-            <div className="text-gray-500 dark:text-gray-400">{row.addressDetail}</div>
-          ) : null}
-        </div>
-      ),
-    },
-    {
-      key: "approvalStatus",
-      headerClassName: `${spacedHeaderClass} lg:w-[72px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
-      header: (
-          <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleSort("status")}
-              className="text-xs inline-flex items-center gap-1 px-0"
-          >
-            승인상태 <span className="text-xs text-gray-400">{sortMark("status")}</span>
-          </Button>
-      ),
-      render: (row) => (
-        <StatusBadge size="sm" color={row.approvalStatus === "ACTIVE" ? "success" : row.approvalStatus === "SUSPENDED" ? "warning" : "error"}>
-          {labelApprovalStatus(row.approvalStatus)}
-        </StatusBadge>
-      ),
-    },
-    {
-      key: "reviewStatus",
-      headerClassName: `${spacedHeaderClass} lg:w-[72px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
-      header: (
-          <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleSort("allow_status")}
-              className="text-xs inline-flex items-center gap-1 px-0"
-          >
-            검수 상태 <span className="text-xs text-gray-400">{sortMark("allow_status")}</span>
-          </Button>
-      ),
-      render: (row) => (
-        <StatusBadge size="sm" color={row.reviewStatus === "APPROVED" ? "success" : row.reviewStatus === "PENDING" ? "warning" : "error"}>
-          {labelReviewStatus(row.reviewStatus)}
-        </StatusBadge>
-      ),
-    },
-    {
-      key: "viewCount",
-      headerClassName: `${spacedHeaderClass} lg:w-[60px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[60px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => toggleSort("view_count")}
-          className="text-xs inline-flex items-center gap-1 px-0"
-        >
-          조회수 <span className="text-xs text-gray-400">{sortMark("view_count")}</span>
-        </Button>
-      ),
-      render: (row) => row.viewCount.toLocaleString(),
-    },
-    {
-      key: "updatedAt",
-      headerClassName: `${spacedHeaderClass} lg:w-[82px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[82px]`,
-      header: (
-          <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleSort("updated_at")}
-              className="text-xs inline-flex items-center gap-1 px-0"
-          >
-            수정일 <span className="text-xs text-gray-400">{sortMark("updated_at")}</span>
-          </Button>
-      ),
-      render: (row) => row.updatedAt,
-    },
-    {
-      key: "createdAt",
-      headerClassName: `${spacedHeaderClass} lg:w-[82px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[82px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => toggleSort("created_at")}
-          className="text-xs inline-flex items-center gap-1 px-0"
-        >
-          등록일 <span className="text-xs text-gray-400">{sortMark("created_at")}</span>
-        </Button>
-      ),
-      render: (row) => row.createdAt,
-    },
-  ];
+  const columns = React.useMemo(
+    () => buildHospitalColumns({ sortState, onToggleSort: toggleSort }),
+    [sortState, toggleSort],
+  );
 
   return (
     <div className="space-y-4">
@@ -739,7 +729,7 @@ export default function HospitalsTableClient() {
               key={`search-${resetKey}`}
               defaultValue={searchInput}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchInput(event.target.value)}
-              placeholder="ID, 병원명, 연락처, 주소 검색"
+              placeholder="ID, 병의원명, 연락처, 주소 검색"
               className="bg-white dark:bg-gray-800"
           />
         </div>
@@ -768,259 +758,109 @@ export default function HospitalsTableClient() {
             <Link href="/hospitals/new">
               <Button type="button" variant="brand" size="sm" className="h-11 px-5">
                 <SquarePlus className="size-5" />
-                <span>병원 등록</span>
+                <span>병의원 등록</span>
               </Button>
             </Link>
           </Can>
         </div>
       </div>
-      <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={toggleFilters}
-            className="flex h-11 w-full items-center justify-between rounded-none px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
-          >
-            <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">필터</h3>
-            <ChevronDown className={["size-4 transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")} />
-          </Button>
+      <Card className="rounded-xl p-0 dark:border-white/[0.05]">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={toggleFilters}
+          className="flex h-11 w-full items-center justify-between rounded-none px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
+        >
+          <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">필터</h3>
+          <ChevronDown className={["size-4 transition-transform", isFilterOpen ? "rotate-180" : "rotate-0"].join(" ")} />
+        </Button>
 
-          <div
-            onTransitionEnd={handleFilterPanelTransitionEnd}
-            className={[
-              "transition-[height,opacity] duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-              isFilterOpen ? "opacity-100" : "opacity-0",
-              isFilterOverflowVisible ? "overflow-visible" : "overflow-hidden",
-            ].join(" ")}
-            style={{ height: filterPanelHeight }}
-          >
-            <div ref={filterPanelContentRef}>
-              <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="w-full">
-                  <p className={filterFieldLabelClass}>승인상태</p>
-                  <div ref={statusDropdownRef} className="relative">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() => setIsStatusDropdownOpen((prev) => !prev)}
-                      className={filterTriggerClass}
-                    >
-                      {draftFilters.approvalStatuses.length > 0
-                        ? `${draftFilters.approvalStatuses.length}개 선택`
-                        : "전체"}
-                      <ChevronDown className="size-4" />
-                    </Button>
-
-                    {isStatusDropdownOpen && (
-                      <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <div className="px-1 py-1 text-sm">
-                          <FormCheckbox
-                            label="전체"
-                            checked={draftFilters.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length}
-                            onChange={() => toggleAllApprovalStatus()}
-                          />
-                        </div>
-                        {APPROVAL_STATUS_OPTIONS.map((item) => (
-                          <div key={item.value} className="px-1 py-1 text-sm">
-                            <FormCheckbox
-                              label={item.label}
-                              checked={draftFilters.approvalStatuses.includes(item.value)}
-                              onChange={() => toggleApprovalStatus(item.value)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="w-full">
-                  <p className={filterFieldLabelClass}>검수 상태</p>
-                  <div ref={reviewDropdownRef} className="relative">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() => setIsReviewDropdownOpen((prev) => !prev)}
-                      className={filterTriggerClass}
-                    >
-                      {draftFilters.reviewStatuses.length > 0
-                        ? `${draftFilters.reviewStatuses.length}개 선택`
-                        : "전체"}
-                      <ChevronDown className="size-4" />
-                    </Button>
-
-                    {isReviewDropdownOpen && (
-                        <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                        <div className="px-1 py-1 text-sm">
-                          <FormCheckbox
-                            label="전체"
-                            checked={draftFilters.reviewStatuses.length === REVIEW_STATUS_OPTIONS.length}
-                            onChange={() => toggleAllReviewStatus()}
-                          />
-                        </div>
-                        {REVIEW_STATUS_OPTIONS.map((item) => (
-                          <div key={item.value} className="px-1 py-1 text-sm">
-                            <FormCheckbox
-                              label={item.label}
-                              checked={draftFilters.reviewStatuses.includes(item.value)}
-                              onChange={() => toggleReviewStatus(item.value)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="w-full">
-                  <p className={filterFieldLabelClass}>등록일</p>
-                  <div ref={datePickerRef} className="relative">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="default"
-                        onClick={() => {
-                          setIsUpdatedDatePickerOpen(false);
-                          setIsDatePickerOpen((prev) => !prev);
-                        }}
-                        className={filterTriggerClass}
-                    >
-                      <span>{draftFilters.dateRange || "등록일 기간 선택"}</span>
-                      <ChevronDown className="size-4" />
-                    </Button>
-                    {isDatePickerOpen && (
-                      <div className={datePickerPopoverClass}>
-                        <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
-                          {DATE_PRESET_OPTIONS.map((preset) => (
-                            <Button
-                              key={preset.key}
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => applyDatePreset("created", preset.key)}
-                              className="h-8 px-3 text-xs"
-                            >
-                              {preset.label}
-                            </Button>
-                          ))}
-                        </div>
-                        <DayPicker
-                          mode="range"
-                          selected={draftDateRange}
-                          locale={ko}
-                          onSelect={(nextRange) => applyDateRange("created", nextRange)}
-                        />
-                        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-white/[0.06]">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => applyDateRange("created", undefined, { closePicker: true })}
-                            disabled={!draftDateRange?.from && !draftDateRange?.to}
-                            className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-300"
-                          >
-                            초기화
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="brand"
-                            size="sm"
-                            onClick={() => setIsDatePickerOpen(false)}
-                            className="h-8 px-3 text-xs"
-                          >
-                            확인
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="w-full">
-                  <p className={filterFieldLabelClass}>수정일</p>
-                  <div ref={updatedDatePickerRef} className="relative">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="default"
-                      onClick={() => {
-                        setIsDatePickerOpen(false);
-                        setIsUpdatedDatePickerOpen((prev) => !prev);
-                      }}
-                      className={filterTriggerClass}
-                    >
-                      <span>{draftFilters.updatedDateRange || "수정일 기간 선택"}</span>
-                      <ChevronDown className="size-4" />
-                    </Button>
-                    {isUpdatedDatePickerOpen && (
-                      <div className={datePickerPopoverClass}>
-                        <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
-                          {DATE_PRESET_OPTIONS.map((preset) => (
-                            <Button
-                              key={preset.key}
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => applyDatePreset("updated", preset.key)}
-                              className="h-8 px-3 text-xs"
-                            >
-                              {preset.label}
-                            </Button>
-                          ))}
-                        </div>
-                        <DayPicker
-                          mode="range"
-                          selected={draftUpdatedDateRange}
-                          locale={ko}
-                          onSelect={(nextRange) => applyDateRange("updated", nextRange)}
-                        />
-                        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-white/[0.06]">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => applyDateRange("updated", undefined, { closePicker: true })}
-                            disabled={!draftUpdatedDateRange?.from && !draftUpdatedDateRange?.to}
-                            className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-300"
-                          >
-                            초기화
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="brand"
-                            size="sm"
-                            onClick={() => setIsUpdatedDatePickerOpen(false)}
-                            className="h-8 px-3 text-xs"
-                          >
-                            확인
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-2 px-3 pb-3">
-                <Button type="button" variant="brand" onClick={applyFilters} size="sm" className="h-10 px-5">
-                  필터 적용
-                </Button>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetFilters(true)}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
-                >
-                  필터 초기화
-                </Button>
-              </div>
+        <div
+          onTransitionEnd={handleFilterPanelTransitionEnd}
+          className={[
+            "transition-[height,opacity] duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+            isFilterOpen ? "opacity-100" : "opacity-0",
+            shouldAllowFilterOverflow ? "overflow-visible" : "overflow-hidden",
+          ].join(" ")}
+          style={{ height: filterPanelHeight }}
+        >
+          <div ref={filterPanelContentRef}>
+            <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-4">
+              <CheckboxFilterDropdown
+                label="승인상태"
+                containerRef={statusDropdownRef}
+                selectedValues={draftFilters.approvalStatuses}
+                options={APPROVAL_STATUS_OPTIONS}
+                isOpen={isStatusDropdownOpen}
+                onToggleOpen={() => setIsStatusDropdownOpen((prev) => !prev)}
+                onToggleValue={toggleApprovalStatus}
+                onToggleAll={toggleAllApprovalStatus}
+              />
+              <CheckboxFilterDropdown
+                label="검수 상태"
+                containerRef={reviewDropdownRef}
+                selectedValues={draftFilters.reviewStatuses}
+                options={ALLOW_STATUS_OPTIONS}
+                isOpen={isReviewDropdownOpen}
+                onToggleOpen={() => setIsReviewDropdownOpen((prev) => !prev)}
+                onToggleValue={toggleReviewStatus}
+                onToggleAll={toggleAllReviewStatus}
+              />
+              <DateRangeFilterDropdown
+                label="등록일"
+                containerRef={datePickerRef}
+                value={draftFilters.dateRange}
+                placeholder="등록일 기간 선택"
+                selected={draftDateRange}
+                isOpen={isDatePickerOpen}
+                presetOptions={DATE_PRESET_OPTIONS}
+                onToggleOpen={() => {
+                  setIsUpdatedDatePickerOpen(false);
+                  setIsDatePickerOpen((prev) => !prev);
+                }}
+                onSelect={(nextRange) => applyDateRange("created", nextRange)}
+                onPresetSelect={(presetKey) => applyDatePreset("created", presetKey as DatePresetKey)}
+                onReset={() => applyDateRange("created", undefined, { closePicker: true })}
+                onConfirm={() => setIsDatePickerOpen(false)}
+              />
+              <DateRangeFilterDropdown
+                label="수정일"
+                containerRef={updatedDatePickerRef}
+                value={draftFilters.updatedDateRange}
+                placeholder="수정일 기간 선택"
+                selected={draftUpdatedDateRange}
+                isOpen={isUpdatedDatePickerOpen}
+                presetOptions={DATE_PRESET_OPTIONS}
+                onToggleOpen={() => {
+                  setIsDatePickerOpen(false);
+                  setIsUpdatedDatePickerOpen((prev) => !prev);
+                }}
+                onSelect={(nextRange) => applyDateRange("updated", nextRange)}
+                onPresetSelect={(presetKey) => applyDatePreset("updated", presetKey as DatePresetKey)}
+                onReset={() => applyDateRange("updated", undefined, { closePicker: true })}
+                onConfirm={() => setIsUpdatedDatePickerOpen(false)}
+              />
             </div>
-      </div>
+            <div className="flex items-center justify-end gap-2 px-3 pb-3">
+              <Button type="button" variant="brand" onClick={applyFilters} size="sm" className="h-10 px-5">
+                필터 적용
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => resetFilters(true)}
+                className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
+              >
+                필터 초기화
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+      </Card>
 
       <DataTable
-        title="병원 목록"
+        title="병의원 목록"
         description="종합검색은 입력 시 자동 반영되며, 필터는 '필터 적용' 버튼으로 적용됩니다."
         tableClassName="min-w-[860px] w-full lg:min-w-0 lg:table-fixed"
         columns={columns}
@@ -1047,7 +887,7 @@ export default function HospitalsTableClient() {
             />
           </div>
         }
-        emptyText="조건에 맞는 병원이 없습니다."
+        emptyText="조건에 맞는 병의원이 없습니다."
       />
     </div>
   );

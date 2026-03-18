@@ -1,6 +1,9 @@
 export { Button, buttonVariants } from "./button/Button";
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card/Card";
+export * from "./spinner/Spinner";
 export * from "./dropdown/Dropdown";
 export * from "./dropdown/DropdownItem";
+export * from "./tabs/SegmentedTabs";
 export * from "./alert/Alert";
 export * from "./avatar/Avatar";
 export * from "./avatar/AvatarText";

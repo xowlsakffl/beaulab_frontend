@@ -45,6 +45,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "react-day-picker": "^9.13.2",
     "lucide-react": "^0.563.0",
     "tailwind-merge": "^2.2.0"
   }

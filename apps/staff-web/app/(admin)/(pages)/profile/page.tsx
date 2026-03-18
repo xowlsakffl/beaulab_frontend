@@ -1,4 +1,4 @@
-import { PageBreadcrumb } from "@beaulab/ui-admin";
+import { Card, CardTitle, PageBreadcrumb } from "@beaulab/ui-admin";
 import type { Metadata } from "next";
 import React from "react";
 import ProfilePageClient from "./ProfilePageClient";
@@ -10,14 +10,12 @@ export const metadata: Metadata = {
 
 export default function ProfilePage() {
   return (
-    <div className="space-y-6">
+      <div className="space-y-6">
       <PageBreadcrumb pageTitle="내 프로필" homeLabel="관리자" />
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
-          계정 정보
-        </h3>
+      <Card className="p-5 lg:p-6">
+        <CardTitle className="mb-5 text-lg lg:mb-7">계정 정보</CardTitle>
         <ProfilePageClient />
-      </div>
+      </Card>
     </div>
   );
 }
