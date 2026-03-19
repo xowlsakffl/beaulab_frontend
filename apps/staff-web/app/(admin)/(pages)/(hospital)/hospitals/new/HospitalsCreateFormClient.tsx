@@ -336,7 +336,7 @@ export default function HospitalsCreateFormClient() {
     const nextErrors: Partial<Record<FieldName, string>> = {};
 
     if (!form.name.trim()) {
-      nextErrors.name = "병의원명은 필수입니다.";
+      nextErrors.name = "병의원명은 필수 항목입니다.";
     }
 
     if (form.tel && !/^[0-9+\-().\s]{6,50}$/.test(form.tel)) {
@@ -348,23 +348,23 @@ export default function HospitalsCreateFormClient() {
     }
 
     if (!form.business_number.trim()) {
-      nextErrors.business_number = "사업자 등록번호는 필수입니다.";
+      nextErrors.business_number = "사업자 등록번호는 필수 항목입니다.";
     }
 
     if (!form.company_name.trim()) {
-      nextErrors.company_name = "상호명은 필수입니다.";
+      nextErrors.company_name = "상호명은 필수 항목입니다.";
     }
 
     if (!form.ceo_name.trim()) {
-      nextErrors.ceo_name = "대표자는 필수입니다.";
+      nextErrors.ceo_name = "대표자는 필수 항목입니다.";
     }
 
     if (!form.business_type.trim()) {
-      nextErrors.business_type = "업태는 필수입니다.";
+      nextErrors.business_type = "업태는 필수 항목입니다.";
     }
 
     if (!form.business_item.trim()) {
-      nextErrors.business_item = "종목은 필수입니다.";
+      nextErrors.business_item = "종목은 필수 항목입니다.";
     }
 
     if (form.issued_at && Number.isNaN(new Date(form.issued_at).getTime())) {
@@ -372,7 +372,7 @@ export default function HospitalsCreateFormClient() {
     }
 
     if (!logo) {
-      nextErrors.logo = "로고는 필수입니다.";
+      nextErrors.logo = "로고는 필수 항목입니다.";
     }
 
     if (gallery.length === 0) {
@@ -380,7 +380,7 @@ export default function HospitalsCreateFormClient() {
     }
 
     if (!businessRegistrationFile) {
-      nextErrors.business_registration_file = "사업자등록증 파일은 필수입니다.";
+      nextErrors.business_registration_file = "사업자등록증 파일은 필수 항목입니다.";
     }
 
     setErrors(nextErrors);
@@ -801,7 +801,6 @@ export default function HospitalsCreateFormClient() {
       <MediaUploader
         title="파일 업로드"
         collections={MEDIA_COLLECTIONS}
-        initialCollectionKey="logo"
         filesByCollection={{
           logo: logo ? [logo] : [],
           gallery,
