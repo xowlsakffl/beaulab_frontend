@@ -109,7 +109,7 @@ export function HospitalBasicSection({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="status">{isCreate ? "운영상태 *" : "상태 *"}</Label>
+          <Label htmlFor="status">{isCreate ? "운영 상태 *" : "상태 *"}</Label>
           <Select
             id="status"
             name="status"

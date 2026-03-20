@@ -102,7 +102,7 @@ function buildHospitalColumns({
       cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
-          운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
+          운영 상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
@@ -117,7 +117,7 @@ function buildHospitalColumns({
       cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allow_status")} className="inline-flex items-center gap-1 px-0 text-xs">
-          승인상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
+          승인 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
