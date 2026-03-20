@@ -17,7 +17,7 @@ export type {
   CategoryTreeNode,
 } from "./category-selector/HierarchicalCategorySelector";
 export { MediaUploader } from "./media/MediaUploader";
-export type { MediaCollectionConfig } from "./media/MediaUploader";
+export type { ExistingMediaItem, MediaCollectionConfig } from "./media/MediaUploader";
 export { SingleDatePickerField } from "./pickers/SingleDatePickerField";
 export { Select } from "./Select";
 export { Label } from "./Label";

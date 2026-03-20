@@ -32,7 +32,7 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     main: [
         {
             icon: <LayoutGrid className={iconClass} />,
-            name: "대시보드",
+            name: "병의원 대시보드",
             path: "/",
             requiredPermissions: ["common.dashboard.show"],
         },

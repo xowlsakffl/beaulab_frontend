@@ -45,8 +45,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     const mainContentMargin = isMobileOpen
         ? "ml-0"
         : isExpanded || isHovered
-            ? "lg:ml-[290px]"
-            : "lg:ml-[90px]";
+            ? "xl:ml-[290px]"
+            : "xl:ml-[90px]";
 
     const handleSignOut = () => {
         logout();

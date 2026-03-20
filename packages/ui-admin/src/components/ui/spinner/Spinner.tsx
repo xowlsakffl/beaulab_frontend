@@ -8,6 +8,12 @@ type SpinnerProps = {
   label?: string;
 };
 
+type SpinnerBlockProps = {
+  className?: string;
+  spinnerClassName?: string;
+  label?: string;
+};
+
 export function Spinner({ className, label = "로딩 중" }: SpinnerProps) {
   return (
     <span className="inline-flex items-center justify-center" role="status" aria-live="polite">
@@ -22,6 +28,14 @@ export function Spinner({ className, label = "로딩 중" }: SpinnerProps) {
       </svg>
       <span className="sr-only">{label}</span>
     </span>
+  );
+}
+
+export function SpinnerBlock({ className, spinnerClassName, label = "로딩 중" }: SpinnerBlockProps) {
+  return (
+    <div className={cn("flex items-center justify-center", className)}>
+      <Spinner className={cn("size-6 text-brand-500 dark:text-brand-400", spinnerClassName)} label={label} />
+    </div>
   );
 }
 

@@ -1,5 +1,7 @@
+import { X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
+import { twMerge } from "tailwind-merge";
 
 interface AlertProps {
   variant: "success" | "error" | "warning" | "info"; // Alert type
@@ -8,6 +10,9 @@ interface AlertProps {
   showLink?: boolean; // Whether to show the "Learn More" link
   linkHref?: string; // Link URL
   linkText?: string; // Link text
+  className?: string;
+  onDismiss?: () => void;
+  dismissLabel?: string;
 }
 
 const Alert: React.FC<AlertProps> = ({
@@ -17,6 +22,9 @@ const Alert: React.FC<AlertProps> = ({
   showLink = false,
   linkHref = "#",
   linkText = "Learn more",
+  className,
+  onDismiss,
+  dismissLabel = "닫기",
 }) => {
   // Tailwind classes for each variant
   const variantClasses = {
@@ -114,14 +122,14 @@ const Alert: React.FC<AlertProps> = ({
 
   return (
     <div
-      className={`rounded-xl border p-4 ${variantClasses[variant].container}`}
+      className={twMerge("rounded-xl border p-4", variantClasses[variant].container, className)}
     >
       <div className="flex items-start gap-3">
         <div className={`-mt-0.5 ${variantClasses[variant].icon}`}>
           {icons[variant]}
         </div>
 
-        <div>
+        <div className="min-w-0 flex-1">
           <h4 className="mb-1 text-sm font-semibold text-gray-800 dark:text-white/90">
             {title}
           </h4>
@@ -137,6 +145,17 @@ const Alert: React.FC<AlertProps> = ({
             </Link>
           )}
         </div>
+
+        {onDismiss ? (
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label={dismissLabel}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white/70 hover:text-gray-600 dark:hover:bg-white/[0.08] dark:hover:text-white/80"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
     </div>
   );

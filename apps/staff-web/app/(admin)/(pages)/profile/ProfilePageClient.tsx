@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { UserAddressCard, UserInfoCard, UserMetaCard } from "@beaulab/ui-admin";
+import { SpinnerBlock, UserAddressCard, UserInfoCard, UserMetaCard } from "@beaulab/ui-admin";
 import type { StaffSession } from "@beaulab/types";
 import { getSession } from "@/lib/session";
 
@@ -25,11 +25,7 @@ export default function ProfilePageClient() {
   }, []);
 
   if (!session) {
-    return (
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        세션 정보를 불러오는 중입니다.
-      </p>
-    );
+    return <SpinnerBlock className="min-h-[40vh]" spinnerClassName="size-10" label="세션 정보 불러오는 중" />;
   }
 
   const { profile, auth } = session;

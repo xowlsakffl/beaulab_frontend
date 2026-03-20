@@ -17,6 +17,7 @@ type SidebarContextType = {
 };
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+const DESKTOP_LAYOUT_BREAKPOINT = 1300;
 
 export function useSidebar() {
   const context = useContext(SidebarContext);
@@ -36,7 +37,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (!mobile) setIsMobileOpen(false);
+      if (window.innerWidth >= DESKTOP_LAYOUT_BREAKPOINT) setIsMobileOpen(false);
     };
 
     handleResize();

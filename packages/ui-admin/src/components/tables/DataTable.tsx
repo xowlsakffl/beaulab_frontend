@@ -30,6 +30,8 @@ type DataTableProps<T> = {
   rows: T[];
   getRowKey: (row: T) => string | number;
   loading?: boolean;
+  loadingVariant?: "skeleton" | "spinner";
+  loadingLabel?: string;
   error?: string | null;
   emptyText?: string;
   skeletonRows?: number;
@@ -38,6 +40,7 @@ type DataTableProps<T> = {
   onRefresh?: () => void;
   refreshing?: boolean;
   onRowClick?: (row: T) => void;
+  getRowClassName?: (row: T) => string | undefined;
 };
 
 const DEFAULT_HEADER_CELL =
@@ -56,6 +59,8 @@ export function DataTable<T>({
   rows,
   getRowKey,
   loading = false,
+  loadingVariant = "skeleton",
+  loadingLabel = "로딩 중",
   error = null,
   emptyText = "데이터가 없습니다.",
   skeletonRows = 6,
@@ -64,6 +69,7 @@ export function DataTable<T>({
   onRefresh,
   refreshing = false,
   onRowClick,
+  getRowClassName,
 }: DataTableProps<T>) {
   const colCount = Math.max(1, columns.length);
   const totalPages = Number(meta?.last_page ?? 0);
@@ -153,15 +159,25 @@ export function DataTable<T>({
               ) : null}
 
               {loading
-                ? Array.from({ length: skeletonRows }).map((_, rowIndex) => (
-                    <TableRow key={`sk-${rowIndex}`}>
-                      {columns.map((column, cellIndex) => (
-                        <TableCell key={`${column.key}-${cellIndex}`} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
-                          <Skeleton className="h-4 w-[70%]" />
-                        </TableCell>
-                      ))}
+                ? loadingVariant === "spinner"
+                  ? (
+                    <TableRow>
+                      <TableCell className="px-5 py-16" colSpan={colCount}>
+                        <div className="flex items-center justify-center">
+                          <Spinner className="size-8 text-brand-500 dark:text-brand-400" label={loadingLabel} />
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  ))
+                  )
+                  : Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                      <TableRow key={`sk-${rowIndex}`}>
+                        {columns.map((column, cellIndex) => (
+                          <TableCell key={`${column.key}-${cellIndex}`} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
+                            <Skeleton className="h-4 w-[70%]" />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
                 : null}
 
               {!loading && !error && rows.length === 0 ? (
@@ -173,10 +189,19 @@ export function DataTable<T>({
               ) : null}
 
               {!loading && !error
-                ? rows.map((row) => (
+                ? rows.map((row) => {
+                    const rowClassName =
+                      [
+                        onRowClick ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03]" : "",
+                        getRowClassName?.(row) ?? "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || undefined;
+
+                    return (
                     <TableRow
                       key={getRowKey(row)}
-                      className={onRowClick ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03]" : undefined}
+                      className={rowClassName}
                       onClick={() => onRowClick?.(row)}
                     >
                       {columns.map((column) => (
@@ -185,7 +210,8 @@ export function DataTable<T>({
                         </TableCell>
                       ))}
                     </TableRow>
-                  ))
+                    );
+                  })
                 : null}
             </TableBody>
           </Table>

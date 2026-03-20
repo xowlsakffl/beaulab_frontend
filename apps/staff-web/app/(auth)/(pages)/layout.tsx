@@ -25,12 +25,12 @@ export default function AuthLayout({
                   <Image
                     width={231}
                     height={48}
-                    src="/images/logo/auth-logo.svg"
+                    src="/images/logo/board_logo_dark.png"
                     alt="뷰랩 관리자"
                   />
                 </Link>
                 <p className="text-center text-gray-400 dark:text-white/60">
-                  병의원 운영과 계정 관리를 위한 뷰랩 관리자 콘솔입니다.
+                  병의원 운영 뷰랩 관리자입니다.
                 </p>
               </div>
             </div>

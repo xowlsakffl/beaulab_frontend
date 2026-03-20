@@ -3,7 +3,7 @@
 import React from "react";
 import { Check, ChevronRight, Search, X } from "../../../icons";
 import { Card } from "../../ui/card/Card";
-import { Spinner } from "../../ui/spinner/Spinner";
+import { SpinnerBlock } from "../../ui/spinner/Spinner";
 import { SegmentedTabs } from "../../ui/tabs/SegmentedTabs";
 import { InputField } from "../input/InputField";
 
@@ -123,14 +123,6 @@ function getErrorMessage(error: unknown) {
   return "카테고리를 불러오지 못했습니다.";
 }
 
-function LoadingState({ label }: { label: string }) {
-  return (
-    <div className="flex min-h-0 flex-1 items-center justify-center">
-      <Spinner className="size-5" label={label} />
-    </div>
-  );
-}
-
 const CategoryColumn = React.memo(function CategoryColumn({
   title,
   items,
@@ -147,7 +139,7 @@ const CategoryColumn = React.memo(function CategoryColumn({
       <p className="mb-3 text-xs font-semibold text-gray-500 dark:text-gray-400">{title}</p>
 
       {isLoading ? (
-        <LoadingState label={loadingText} />
+        <SpinnerBlock className="min-h-0 flex-1" spinnerClassName="size-5" label={loadingText} />
       ) : items.length > 0 ? (
         <div className="flex-1 space-y-1 overflow-y-auto pr-1">
           {items.map((item) => {
@@ -571,9 +563,7 @@ export function HierarchicalCategorySelector({
         {normalizedSearchQuery ? (
           <Card className="p-3">
             {isSearchLoading ? (
-              <div className="flex justify-center py-2">
-                <Spinner className="size-5" label={mergedText.loadingText} />
-              </div>
+              <SpinnerBlock className="py-2" spinnerClassName="size-5" label={mergedText.loadingText} />
             ) : searchError ? (
               <p className="text-sm text-error-500">{searchError}</p>
             ) : searchResults.length > 0 ? (

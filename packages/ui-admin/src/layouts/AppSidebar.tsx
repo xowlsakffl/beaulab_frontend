@@ -176,13 +176,13 @@ export function AppSidebar({
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-50 mt-16 flex h-screen flex-col border-r border-gray-200 bg-white px-5 text-gray-900 transition-all duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 lg:mt-0 ${
+      className={`fixed left-0 top-0 z-50 mt-16 flex h-screen flex-col border-r border-gray-200 bg-white px-5 text-gray-900 transition-all duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 xl:mt-0 ${
         isExpanded || isMobileOpen ? "w-[290px]" : isHovered ? "w-[290px]" : "w-[90px]"
-      } ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
+      } ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} xl:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`flex py-8 ${!isExpanded && !showHoverLabels ? "lg:justify-center" : "justify-start"}`}>
+      <div className={`flex py-8 ${!isExpanded && !showHoverLabels ? "xl:justify-center" : "justify-start"}`}>
         {brand ? (
           <Link href={brand.href ?? "/"}>{canShowMenuContent ? brand.expandedLogo : brand.collapsedLogo ?? brand.expandedLogo}</Link>
         ) : null}
@@ -194,7 +194,7 @@ export function AppSidebar({
             <div>
               <h2
                 className={`mb-4 flex text-xs uppercase leading-[20px] text-gray-400 ${
-                  !isExpanded && !showHoverLabels ? "lg:justify-center" : "justify-start"
+                  !isExpanded && !showHoverLabels ? "xl:justify-center" : "justify-start"
                 }`}
               >
                 {canShowMenuContent ? sectionLabels.main : <MoreHorizontal className="h-5 w-5" />}
@@ -206,7 +206,7 @@ export function AppSidebar({
               <div>
                 <h2
                   className={`mb-4 flex text-xs uppercase leading-[20px] text-gray-400 ${
-                    !isExpanded && !showHoverLabels ? "lg:justify-center" : "justify-start"
+                    !isExpanded && !showHoverLabels ? "xl:justify-center" : "justify-start"
                   }`}
                 >
                   {canShowMenuContent ? sectionLabels.others : <MoreHorizontal className="h-5 w-5" />}

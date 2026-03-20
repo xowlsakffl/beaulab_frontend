@@ -11,6 +11,7 @@ interface InputProps {
   value?: string | number;
   defaultValue?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   readOnly?: boolean;
@@ -32,6 +33,7 @@ export const InputField: FC<InputProps> = ({
   value,
   defaultValue,
   onChange,
+  onBlur,
   onClick,
   onKeyDown,
   readOnly = false,
@@ -67,6 +69,7 @@ export const InputField: FC<InputProps> = ({
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
+        onBlur={onBlur}
         onClick={onClick}
         onKeyDown={onKeyDown}
         readOnly={readOnly}

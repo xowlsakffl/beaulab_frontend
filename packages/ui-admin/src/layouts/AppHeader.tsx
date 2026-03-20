@@ -24,6 +24,8 @@ type AppHeaderProps = {
   userMenu?: UserDropdownProps | null;
 };
 
+const DESKTOP_LAYOUT_BREAKPOINT = 1300;
+
 export function AppHeader({
   mobileHomeHref = "/",
   mobileLogo,
@@ -39,7 +41,7 @@ export function AppHeader({
   const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
   const handleToggle = () => {
-    if (window.innerWidth >= 1024) toggleSidebar();
+    if (window.innerWidth >= DESKTOP_LAYOUT_BREAKPOINT) toggleSidebar();
     else toggleMobileSidebar();
   };
 
@@ -62,14 +64,14 @@ export function AppHeader({
   }, []);
 
   return (
-    <header className="sticky top-0 z-99999 flex w-full border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 lg:border-b">
-      <div className="grow lg:px-6">
-        <div className="flex flex-col items-center justify-between lg:flex-row">
-          <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+    <header className="sticky top-0 z-99999 flex w-full border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 xl:border-b">
+      <div className="grow xl:px-6">
+        <div className="flex flex-col items-center justify-between xl:flex-row">
+          <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 dark:border-gray-800 sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 xl:py-4">
             <button
-              className={`z-99999 flex h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400 lg:h-11 lg:w-11 lg:border ${
+              className={`z-99999 flex h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400 xl:h-11 xl:w-11 xl:border ${
                 !isExpanded
-                  ? "lg:border-brand-500 lg:bg-brand-500 lg:text-white dark:lg:border-brand-500 dark:lg:bg-brand-500 dark:lg:text-white"
+                  ? "xl:border-brand-500 xl:bg-brand-500 xl:text-white dark:xl:border-brand-500 dark:xl:bg-brand-500 dark:xl:text-white"
                   : ""
               }`}
               onClick={handleToggle}
@@ -97,14 +99,14 @@ export function AppHeader({
             </button>
 
             {mobileLogo ? (
-              <Link href={mobileHomeHref} className="lg:hidden">
+              <Link href={mobileHomeHref} className="xl:hidden">
                 {mobileLogo}
               </Link>
             ) : null}
 
             <button
               onClick={toggleApplicationMenu}
-              className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+              className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 xl:hidden"
               aria-label="Toggle Header Menu"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -118,7 +120,7 @@ export function AppHeader({
             </button>
 
             {showSearch ? (
-              <div className="hidden lg:block">
+              <div className="hidden xl:block">
                 <form>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
@@ -146,12 +148,12 @@ export function AppHeader({
                 </form>
               </div>
             ) : (
-              <div className="hidden lg:block" />
+              <div className="hidden xl:block" />
             )}
           </div>
 
           <div
-            className={`${isApplicationMenuOpen ? "flex" : "hidden"} w-full items-center justify-between gap-4 px-5 py-4 shadow-theme-md lg:flex lg:justify-end lg:px-0 lg:shadow-none`}
+            className={`${isApplicationMenuOpen ? "flex" : "hidden"} w-full items-center justify-between gap-4 px-5 py-4 shadow-theme-md xl:flex xl:justify-end xl:px-0 xl:shadow-none`}
           >
             <div className="flex items-center gap-2 2xsm:gap-3">
               {showThemeToggle ? <ThemeToggleButton /> : null}
