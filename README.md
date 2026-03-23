@@ -18,14 +18,15 @@ Beaulab 프론트엔드 모노레포입니다.
 ```text
 beaulab_frontend/
 ├─ apps/
-│  └─ staff-web/            # 실제 관리자 앱
+│  └─ staff-web/            # 직원 관리자 앱
 ├─ packages/
 │  ├─ api-client/           # fetch 래퍼, actor별 HTTP 클라이언트 기반
 │  ├─ auth/                 # token/session storage, permission helper
 │  ├─ types/                # ApiResponse, session/profile 타입
 │  └─ ui-admin/             # 공용 관리자 UI, 레이아웃, 입력/테이블 컴포넌트
 └─ doc/
-   └─ architecture.md
+   ├─ architecture.md
+   └─ staff-web-rules.md
 ```
 
 ## 책임 분리
@@ -84,3 +85,8 @@ pnpm build
 ## 문서
 
 - [아키텍처 문서](/root/beaulab_frontend/doc/architecture.md)
+- [Staff Web 규칙 문서](/root/beaulab_frontend/doc/staff-web-rules.md)
+- [레포 AGENTS 규칙](/root/beaulab_frontend/AGENTS.md)
+
+`README.md`는 사람 기준 진입 문서이고, `AGENTS.md`는 에이전트가 자동으로 읽는 규칙 진입 파일입니다.  
+중복 규칙은 `doc/architecture.md`, `doc/staff-web-rules.md`에만 유지합니다.

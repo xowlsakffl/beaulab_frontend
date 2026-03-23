@@ -3,9 +3,9 @@
 import Image from "next/image";
 import React, { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Guard } from "@/components/guard";
-import { getSession, logout } from "@/lib/session";
-import { buildStaffSidebarMenu } from "@/components/admin/sidebar-menu";
+import { Guard } from "@/components/common/guard";
+import { getSession, logout } from "@/lib/common/auth/session";
+import { buildStaffSidebarMenu } from "@/components/common/sidebar-menu";
 import {
     AppHeader,
     AppSidebar,

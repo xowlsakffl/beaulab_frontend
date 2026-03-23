@@ -1,4 +1,4 @@
-import type { ExistingMediaItem, CategorySelectorItem, CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
+import type { ExistingMediaItem, CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 export type HospitalFormValues = {
   name: string;
@@ -22,6 +22,7 @@ export type HospitalFormValues = {
   business_address_detail: string;
   issued_at: string;
   category_ids: number[];
+  feature_ids: number[];
 };
 
 export type HospitalFieldName = keyof HospitalFormValues | "logo" | "gallery" | "business_registration_file";
@@ -40,17 +41,6 @@ export type DuplicateCheckResponse = {
   exists: boolean;
   available: boolean;
   business_number?: string;
-};
-
-export type CategoryApiItem = {
-  id: number;
-  name: string;
-  full_path?: string | null;
-  parent_id?: number | null;
-  depth: number;
-  domain: string;
-  status: string;
-  has_children?: boolean;
 };
 
 export type MediaAsset = {
@@ -83,6 +73,14 @@ export type HospitalCategoryItem = {
   is_primary?: boolean;
 };
 
+export type HospitalFeatureItem = {
+  id: number;
+  code: string;
+  name: string;
+  sort_order?: number;
+  status?: string;
+};
+
 export type HospitalDetailResponse = {
   id: number;
   name: string;
@@ -100,6 +98,7 @@ export type HospitalDetailResponse = {
   logo?: MediaAsset | null;
   gallery?: MediaAsset[] | null;
   categories?: HospitalCategoryItem[] | null;
+  features?: HospitalFeatureItem[] | null;
   business_registration?: BusinessRegistrationAsset | null;
 };
 
@@ -124,6 +123,7 @@ export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "business_address_detail",
   "issued_at",
   "category_ids",
+  "feature_ids",
   "company_name",
   "logo",
   "gallery",
@@ -152,6 +152,7 @@ export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
   business_address_detail: "",
   issued_at: "",
   category_ids: [],
+  feature_ids: [],
 };
 
 export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
@@ -188,7 +189,7 @@ export const MEDIA_COLLECTIONS: readonly MediaCollectionConfig<HospitalMediaFiel
     maxFiles: 5,
     emptyText: "업로드한 이미지가 없습니다.",
     helperText: "첫 번째 이미지가 대표 이미지로 사용됩니다. 드래그로 순서를 바꿀 수 있습니다.",
-    maxFilesText: "최대 5장까지 업로드할 수 있습니다.",
+    maxFilesText: "(최대 5장)",
   },
 ];
 
@@ -211,6 +212,7 @@ export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "tel",
   "email",
   "category_ids",
+  "feature_ids",
   "address",
   "address_detail",
   "description",
@@ -243,6 +245,7 @@ export function isFieldName(value: string): value is HospitalFieldName {
 export function normalizeErrorField(key: string): HospitalFieldName | null {
   if (key.startsWith("gallery")) return "gallery";
   if (key.startsWith("category_ids")) return "category_ids";
+  if (key.startsWith("feature_ids")) return "feature_ids";
   if (isFieldName(key)) return key;
   return null;
 }
@@ -275,17 +278,6 @@ export function extractFieldErrors(details: unknown): HospitalFormErrors {
   }
 
   return nextErrors;
-}
-
-export function normalizeCategoryItem(item: CategoryApiItem): CategorySelectorItem {
-  return {
-    id: item.id,
-    name: item.name,
-    full_path: item.full_path,
-    depth: item.depth,
-    parent_id: item.parent_id,
-    has_children: item.has_children,
-  };
 }
 
 export function normalizeBusinessNumber(value: string): string {
@@ -333,6 +325,7 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     business_address_detail: businessRegistration?.business_address_detail ?? "",
     issued_at: businessRegistration?.issued_at ?? "",
     category_ids: data.categories?.map((category) => category.id) ?? [],
+    feature_ids: data.features?.map((feature) => feature.id) ?? [],
   };
 }
 

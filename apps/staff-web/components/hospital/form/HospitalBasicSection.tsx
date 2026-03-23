@@ -5,6 +5,7 @@ import {
   InputField,
   Label,
   Select,
+  SpinnerBlock,
   type CategorySelectorItem,
   type CategorySelectorLoadParams,
 } from "@beaulab/ui-admin";
@@ -15,6 +16,7 @@ import {
   HOSPITAL_STATUS_OPTIONS,
   type HospitalAddressDetailField,
   type HospitalAddressField,
+  type HospitalFeatureItem,
   type HospitalFormErrors,
   type HospitalFormValues,
 } from "@/lib/hospital/form";
@@ -24,8 +26,12 @@ type HospitalBasicSectionProps = {
   form: HospitalFormValues;
   errors: HospitalFormErrors;
   daumPostcodeError: string | null;
+  hospitalFeatures: HospitalFeatureItem[];
+  isHospitalFeaturesLoading: boolean;
+  hospitalFeaturesError: string | null;
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
   onToggleCategory: (categoryId: number, checked: boolean) => void;
+  onToggleFeature: (featureId: number, checked: boolean) => void;
   onOpenAddressSearch: (field: HospitalAddressField, detailFieldId: HospitalAddressDetailField) => Promise<void>;
   onFieldChange: (key: keyof HospitalFormValues, value: HospitalFormValues[keyof HospitalFormValues]) => void;
   onNameChange?: (value: string) => void;
@@ -37,8 +43,12 @@ export function HospitalBasicSection({
   form,
   errors,
   daumPostcodeError,
+  hospitalFeatures,
+  isHospitalFeaturesLoading,
+  hospitalFeaturesError,
   loadCategories,
   onToggleCategory,
+  onToggleFeature,
   onOpenAddressSearch,
   onFieldChange,
   onNameChange,
@@ -54,7 +64,7 @@ export function HospitalBasicSection({
       <div className="space-y-1">
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          {isCreate ? "병의원 기본 정보를 입력해주세요." : "병의원 기본 정보를 수정합니다."}
+          {isCreate ? "병의원의 기본 정보를 입력해 주세요." : "병의원의 기본 정보를 수정합니다."}
         </p>
       </div>
 
@@ -63,7 +73,7 @@ export function HospitalBasicSection({
         <InputField
           id="name"
           name="name"
-          placeholder="병의원명을 입력하세요."
+          placeholder="병의원명을 입력해 주세요."
           value={form.name}
           onChange={(event) => {
             if (!isCreate) return;
@@ -84,7 +94,7 @@ export function HospitalBasicSection({
           <InputField
             id="tel"
             name="tel"
-            placeholder="예) 02-1234-5678"
+            placeholder="예: 02-1234-5678"
             value={form.tel}
             onChange={(event) => onFieldChange("tel", event.target.value)}
             error={Boolean(errors.tel)}
@@ -98,7 +108,7 @@ export function HospitalBasicSection({
             id="email"
             name="email"
             type="email"
-            placeholder="예) hello@beaulab.co.kr"
+            placeholder="예: hello@beaulab.co.kr"
             value={form.email}
             onChange={(event) => onFieldChange("email", event.target.value)}
             error={Boolean(errors.email)}
@@ -115,7 +125,7 @@ export function HospitalBasicSection({
             name="status"
             value={form.status}
             options={[...HOSPITAL_STATUS_OPTIONS]}
-            placeholder="상태를 선택하세요."
+            placeholder="상태를 선택해 주세요."
             onChange={(value: string) => onFieldChange("status", value)}
             className="h-11 w-full px-4"
           />
@@ -129,7 +139,7 @@ export function HospitalBasicSection({
             name="allow_status"
             value={form.allow_status}
             options={[...HOSPITAL_ALLOW_STATUS_OPTIONS]}
-            placeholder="검수상태를 선택하세요."
+            placeholder="검수상태를 선택해 주세요."
             onChange={(value: string) => onFieldChange("allow_status", value)}
             className="h-11 w-full px-4"
           />
@@ -140,7 +150,9 @@ export function HospitalBasicSection({
       <div className="space-y-2">
         <div className="space-y-1">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">카테고리</h4>
-          <p className="text-xs text-gray-500 dark:text-gray-400">카테고리를 선택해 주세요. (복수 선택 및 상위 분류 지정 가능)</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            카테고리를 선택해 주세요. 복수 선택과 하위 분류 지정이 가능합니다.
+          </p>
         </div>
         <div data-field-target="category_ids" tabIndex={-1}>
           <HierarchicalCategorySelector
@@ -154,6 +166,15 @@ export function HospitalBasicSection({
         </div>
       </div>
 
+      <HospitalFeatureSelector
+        features={hospitalFeatures}
+        selectedIds={form.feature_ids}
+        error={errors.feature_ids}
+        isLoading={isHospitalFeaturesLoading}
+        loadError={hospitalFeaturesError}
+        onToggleFeature={onToggleFeature}
+      />
+
       <div className="space-y-2">
         <Label>병의원 주소</Label>
         <div className="flex gap-2">
@@ -161,7 +182,7 @@ export function HospitalBasicSection({
             <InputField
               id="address"
               name="address"
-              placeholder="주소 검색 버튼으로 주소를 선택하세요."
+              placeholder="주소 검색 버튼으로 주소를 선택해 주세요."
               value={form.address}
               readOnly
               onClick={() => void onOpenAddressSearch("address", "address_detail")}
@@ -185,7 +206,7 @@ export function HospitalBasicSection({
           </Button>
         </div>
         {daumPostcodeError ? (
-          <p className="text-xs text-error-500">카카오 주소 검색을 불러오지 못했습니다. 새로고침 후 다시 시도하세요.</p>
+          <p className="text-xs text-error-500">카카오 주소 검색을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>
         ) : null}
         <InputField
           id="address_detail"
@@ -203,7 +224,7 @@ export function HospitalBasicSection({
         <FormTextArea
           id="description"
           name="description"
-          placeholder="간단 소개를 입력하세요."
+          placeholder="간단한 소개를 입력해 주세요."
           rows={4}
           value={form.description}
           onChange={(value) => onFieldChange("description", value)}
@@ -217,7 +238,7 @@ export function HospitalBasicSection({
         <FormTextArea
           id="consulting_hours"
           name="consulting_hours"
-          placeholder="예) 평일 10:00~19:00 / 토 10:00~15:00"
+          placeholder="예: 평일 10:00~19:00 / 토 10:00~15:00"
           rows={3}
           value={form.consulting_hours}
           onChange={(value) => onFieldChange("consulting_hours", value)}
@@ -227,11 +248,11 @@ export function HospitalBasicSection({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="direction">오시는 길</Label>
+        <Label htmlFor="direction">찾아오는 길</Label>
         <FormTextArea
           id="direction"
           name="direction"
-          placeholder="예) 2호선 홍대입구역 3번 출구 도보 5분"
+          placeholder="예: 2호선 강남역 3번 출구에서 도보 5분"
           rows={3}
           value={form.direction}
           onChange={(value) => onFieldChange("direction", value)}
@@ -240,5 +261,66 @@ export function HospitalBasicSection({
         />
       </div>
     </section>
+  );
+}
+
+function HospitalFeatureSelector({
+  features,
+  selectedIds,
+  error,
+  isLoading = false,
+  loadError,
+  onToggleFeature,
+}: {
+  features: HospitalFeatureItem[];
+  selectedIds: number[];
+  error?: string;
+  isLoading?: boolean;
+  loadError?: string | null;
+  onToggleFeature: (featureId: number, checked: boolean) => void;
+}) {
+  return (
+    <div className="space-y-2" data-field-target="feature_ids" tabIndex={-1}>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+          병원정보 <span className="text-error-500">*</span>
+        </p>
+      </div>
+
+      <div className="outline-none">
+        {isLoading ? (
+          <SpinnerBlock className="min-h-24" spinnerClassName="size-7" label="병원 특징 불러오는 중" />
+        ) : loadError ? (
+          <p className="text-sm text-error-500">{loadError}</p>
+        ) : features.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">등록된 병원 특징이 없습니다.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+            {features.map((feature) => {
+              const isSelected = selectedIds.includes(feature.id);
+
+              return (
+                <button
+                  key={feature.id}
+                  type="button"
+                  onClick={() => onToggleFeature(feature.id, !isSelected)}
+                  aria-pressed={isSelected}
+                  className={[
+                    "h-11 rounded-xl border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                    isSelected
+                      ? "border-[#f58bb6] bg-[#f58bb6] text-white focus-visible:ring-[#f58bb6]"
+                      : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700",
+                  ].join(" ")}
+                >
+                  {feature.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {error ? <p className="text-xs text-error-500">{error}</p> : null}
+    </div>
   );
 }

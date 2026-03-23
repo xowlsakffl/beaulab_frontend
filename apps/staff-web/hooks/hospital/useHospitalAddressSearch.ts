@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { formatDaumAddress } from "@/hooks/useDaumPostcode";
+import { formatDaumAddress } from "@/hooks/common/useDaumPostcode";
 import type {
   HospitalAddressDetailField,
   HospitalAddressField,

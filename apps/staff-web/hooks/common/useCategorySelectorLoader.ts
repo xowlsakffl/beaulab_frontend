@@ -2,12 +2,12 @@
 
 import React from "react";
 
-import { api } from "@/lib/api";
-import { normalizeCategoryItem, type CategoryApiItem } from "@/lib/hospital/form";
+import { api } from "@/lib/common/api";
+import { normalizeCategorySelectorItem, type CategoryApiItem } from "@/lib/common/category";
 import { isApiSuccess } from "@beaulab/types";
 import type { CategorySelectorItem, CategorySelectorLoadParams } from "@beaulab/ui-admin";
 
-export function useHospitalCategoryLoader() {
+export function useCategorySelectorLoader() {
   return React.useCallback(
     async ({ section, parentId, query, perPage }: CategorySelectorLoadParams): Promise<CategorySelectorItem[]> => {
       try {
@@ -29,7 +29,7 @@ export function useHospitalCategoryLoader() {
 
         return response.data
           .filter((item) => item.status === "ACTIVE")
-          .map(normalizeCategoryItem);
+          .map(normalizeCategorySelectorItem);
       } catch (error) {
         if (error instanceof Error && error.message) {
           throw error;

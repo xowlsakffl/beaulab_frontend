@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from "@/lib/common/api";
 import { tokenStorage, sessionStorage } from "@beaulab/auth";
 import type { ActorAuthorization, StaffProfile, StaffSession } from "@beaulab/types";
 import { isApiSuccess } from "@beaulab/types";

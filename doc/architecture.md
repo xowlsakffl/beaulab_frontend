@@ -1,208 +1,306 @@
 # Frontend Architecture
 
-이 문서는 현재 Beaulab 프론트엔드 모노레포의 실제 구조와 운영 규칙을 정의합니다.
+이 문서는 현재 `beaulab_frontend`의 실제 구조를 기준으로 정리한 운영 문서입니다.
 
-작성 기준: 2026-03-17
+작성 기준: 2026-03-23
 
-## 1. 현재 상태
+## 1. 범위
 
-현재 레포에 구현된 앱은 `apps/staff-web`입니다.  
-`packages/*`는 공통 레이어이며, 실제 업무 모듈은 앱 내부에 둡니다.
+현재 실제 운영 기준 앱은 `apps/staff-web`입니다.
 
-```text
-apps/
-  staff-web/
-
-packages/
-  api-client/
-  auth/
-  types/
-  ui-admin/
-```
-
-미래에 다른 actor 앱을 추가할 수는 있지만, 문서에는 구현된 구조만 사실로 적습니다.
-
-## 2. 설계 원칙
-
-### 2.1 계층
+모노레포 전체 구조는 아래처럼 봅니다.
 
 ```text
-apps/*            -> 실제 제품, 실제 actor, 실제 feature
-packages/*        -> 공통 UI/타입/인증/HTTP 기반
-Laravel API       -> 도메인 데이터와 보안 정책의 원천
+beaulab_frontend/
+├─ apps/
+│  └─ staff-web/
+├─ packages/
+│  ├─ api-client/
+│  ├─ auth/
+│  ├─ types/
+│  └─ ui-admin/
+└─ doc/
 ```
 
-### 2.2 핵심 규칙
+핵심 전제:
 
-- 앱은 공통 패키지를 조합하지만, 공통 패키지가 앱을 알면 안 됩니다.
-- 도메인 규칙, 메뉴 구성, 라우트 권한, actor별 흐름은 `apps/*`에 둡니다.
-- 공통 패키지에는 앱 전용 경로, 더미 사용자, 고정 알림 데이터, 하드코딩된 logo 계약을 넣지 않습니다.
-- 패키지 간 참조는 `@beaulab/*` workspace 의존성으로만 연결합니다.
+- `packages/*`는 범용 레이어입니다.
+- 실제 관리자 제품 로직은 `apps/staff-web`가 소유합니다.
+- 이 문서는 “미래에 이렇게 될 예정”이 아니라 “지금 이렇게 되어 있음”만 적습니다.
 
-## 3. Packages 책임
+## 2. 계층
 
-### 3.1 `@beaulab/types`
+```text
+Laravel API
+  -> 도메인 데이터, 저장 규칙, 최종 권한 검증
 
-역할:
+packages/*
+  -> 범용 UI / auth / types / HTTP 기반
 
-- `ApiResponse<T>`
-- actor/session/profile 타입
-- 공통 DTO 타입
-
-규칙:
-
-- 런타임 상태 금지
-- `fetch` 금지
-- `localStorage` 금지
-- React 의존 금지
-
-### 3.2 `@beaulab/auth`
-
-역할:
-
-- token storage
-- session storage
-- `hasPermission`
-- `hasAnyPermission`
-- `hasAllPermissions`
+apps/staff-web
+  -> 관리자 앱 화면, 라우트, 메뉴, 권한 매핑, feature 흐름
+```
 
 규칙:
 
-- API 호출 금지
-- 라우팅 금지
-- UI 의존 금지
+- 앱은 `packages/*`를 조합합니다.
+- `packages/*`는 앱 도메인이나 라우트를 알면 안 됩니다.
+- 메뉴, 보호 라우트, actor 세션, 병의원/의료진 업무 흐름은 `apps/staff-web`에 둡니다.
 
-### 3.3 `@beaulab/api-client`
+## 3. `apps/staff-web` 현재 구조
 
-역할:
-
-- `fetch` 래퍼
-- Authorization 헤더 주입
-- query 직렬화
-- JSON/FormData 처리
-- `ApiResponse<T>` 반환
-
-규칙:
-
-- `next/navigation` 금지
-- UI 로직 금지
-- storage 직접 접근 금지
-  - token 조회는 `@beaulab/auth`를 통해서만 수행
-
-### 3.4 `@beaulab/ui-admin`
-
-역할:
-
-- 공용 관리자 레이아웃
-- 공용 UI 컴포넌트
-- 입력, 테이블, 드롭다운 등 재사용 UI
-
-규칙:
-
-- API 로직 금지
-- auth 로직 금지
-- permission 로직 금지
-- 앱 전용 라우트 하드코딩 금지
-- 앱 전용 asset 경로 강제 금지
-- fake user / fake notification 데이터 포함 금지
-
-`ui-admin`은 shell과 presentational UI만 제공합니다.  
-실제 메뉴, 사용자 메뉴, 브랜드 로고, 라우트 이동은 앱이 주입합니다.
-
-## 4. `apps/staff-web` 책임
-
-`staff-web`는 실제 스태프 관리자 제품입니다.
-
-소유 범위:
-
-- App Router 페이지
-- feature module
-- route-permission 규칙
-- actor 세션 복구
-- staff API 조합
-- `ui-admin`에 주입할 브랜드/메뉴/사용자 정보
-
-권장 구조:
+현재 기준 권장 구조이자 실제 구조는 아래와 같습니다.
 
 ```text
 apps/staff-web/
-  app/                    # 페이지와 레이아웃
-  components/             # 앱 전용 UI와 adapter
-  lib/
-    api.ts                # staff client
-    session.ts            # login/restore/logout
-    route-permissions.ts  # route별 permission 규칙
+├─ app/
+│  ├─ (admin)/
+│  └─ (auth)/
+├─ components/
+│  ├─ common/
+│  ├─ hospital/
+│  │  ├─ form/
+│  │  └─ list/
+│  └─ doctor/
+│     ├─ form/
+│     └─ list/
+├─ hooks/
+│  ├─ common/
+│  ├─ hospital/
+│  └─ doctor/
+└─ lib/
+   ├─ common/
+   │  ├─ api.ts
+   │  ├─ category.ts
+   │  ├─ auth/
+   │  │  └─ session.ts
+   │  ├─ navigation/
+   │  │  └─ buildReturnToPath.ts
+   │  └─ routing/
+   │     ├─ admin-pages.tsx
+   │     └─ route-permissions.ts
+   ├─ hospital/
+   │  ├─ form.ts
+   │  └─ list.ts
+   └─ doctor/
+      ├─ form.ts
+      └─ list.ts
 ```
 
-## 5. 로그인과 세션
+## 4. 디렉토리 책임
 
-흐름:
+### 4.1 `app/`
 
-1. `POST /api/v1/staff/auth/login`
-2. token 저장
-3. `GET /api/v1/staff/profile`
-4. profile, roles, permissions 저장
-5. 보호 라우트 진입
+페이지 엔트리와 레이아웃을 둡니다.
 
-세션 예시:
+역할:
 
-```text
-{
-  actor: "staff",
-  profile: {
-    id: 1,
-    name: "홍길동",
-    nickname: "admin"
-  },
-  auth: {
-    roles: ["staff.admin"],
-    permissions: ["beaulab.hospital.show"]
-  }
-}
-```
+- 라우트 단위 page/layout 정의
+- 페이지 클라이언트 컴포넌트 연결
+- 권한 보호 shell 진입
 
-## 6. 권한 처리
+원칙:
 
-- 서버 보안은 서버가 책임집니다.
-- 프론트 권한 처리는 UX 제어 목적입니다.
-- 메뉴 노출과 화면 접근은 permission 기준으로 처리합니다.
-- role 직접 분기는 지양합니다.
+- `page.tsx`는 얇게 유지합니다.
+- 무거운 폼/목록 로직은 `*Client.tsx`로 분리합니다.
 
-현재 staff 앱은 다음 두 축으로 권한을 다룹니다.
+### 4.2 `components/common/`
 
-- 메뉴 노출: `components/admin/sidebar-menu.tsx`
-- 라우트 접근: `lib/route-permissions.ts`
+`staff-web` 관리자 앱 전체에서 공통으로 쓰는 앱 전용 컴포넌트를 둡니다.
 
-둘은 같은 permission 모델을 공유해야 하며, 서로 다른 의미를 가지면 안 됩니다.
+현재 예:
 
-## 7. Shared Package 이동 기준
+- [guard.tsx](/root/beaulab_frontend/apps/staff-web/components/common/guard.tsx)
+- [sidebar-menu.tsx](/root/beaulab_frontend/apps/staff-web/components/common/sidebar-menu.tsx)
 
-다음 조건을 만족할 때만 `apps/*` 코드를 `packages/*`로 이동합니다.
+여기는 `packages/ui-admin`와 다릅니다.
 
-- 두 개 이상 앱에서 실제로 재사용된다.
-- actor나 도메인 이름 없이 설명 가능하다.
-- 앱별 메뉴/라우트/세션 없이 props만으로 제어 가능하다.
-- 이동 후에도 API/auth/business rule이 섞이지 않는다.
+- `ui-admin`은 제품 비의존 UI
+- `components/common`은 staff 관리자 앱 전용 adapter
 
-위 조건을 만족하지 않으면 앱에 둡니다.
+### 4.3 `components/hospital`, `components/doctor`
 
-## 8. 금지 사항
+도메인 전용 UI를 둡니다.
 
-- `packages/*`에서 sibling 폴더 상대경로 import
-- `ui-admin`에서 `/profile`, `/signin` 같은 앱 전용 경로 하드코딩
-- `ui-admin`에서 더미 사용자나 알림 데이터를 기본값으로 제공
-- 앱에서 직접 `fetch` 호출
-- `ApiResponse` success 체크 없는 사용
-- route permission과 sidebar permission 불일치
+현재 원칙:
 
-## 9. 검증 기준
+- 폼은 섹션 단위까지만 분리합니다.
+- 목록도 toolbar / filter / table 정도까지만 분리합니다.
 
-루트 기준으로 아래 명령이 모두 통과해야 합니다.
+예:
 
-```bash
-pnpm typecheck
-pnpm lint
-pnpm build
-```
+- 병의원 폼: `Basic / Business / Media`
+- 의료진 폼: `Basic / Category / Medical`
 
-이 세 가지가 깨지면 구조 문서는 신뢰할 수 없습니다.
+### 4.4 `hooks/common/`
+
+도메인 이름 없이 설명 가능한 훅만 둡니다.
+
+현재 예:
+
+- [useCategorySelectorLoader.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useCategorySelectorLoader.ts)
+- [useDaumPostcode.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useDaumPostcode.ts)
+- [useFormFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useFormFieldFocus.ts)
+- [useGoBack.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useGoBack.ts)
+
+### 4.5 `hooks/hospital`, `hooks/doctor`
+
+도메인 필드명, DOM target, API endpoint에 직접 묶인 훅을 둡니다.
+
+현재 예:
+
+- [useHospitalAddressSearch.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalAddressSearch.ts)
+- [useHospitalFeatureList.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFeatureList.ts)
+- [useHospitalFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFieldFocus.ts)
+- [useDoctorHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorHospitalOptions.ts)
+- [useDoctorFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorFieldFocus.ts)
+
+### 4.6 `lib/common/`
+
+`staff-web` 전체에서 공통으로 쓰는 순수 함수, 설정, 세션, 라우팅 규칙을 둡니다.
+
+현재 세부 구조:
+
+- `api.ts`
+  - staff API client
+- `category.ts`
+  - 카테고리 selector 정규화 타입/함수
+- `auth/session.ts`
+  - login / restoreSession / ensureSession / logout
+- `routing/admin-pages.tsx`
+  - 관리자 기본 페이지 정의와 metadata/breadcrumb helper
+- `routing/route-permissions.ts`
+  - 경로별 permission 규칙
+- `navigation/buildReturnToPath.ts`
+  - list -> detail -> list 복귀 경로 조립
+
+### 4.7 `lib/hospital`, `lib/doctor`
+
+도메인별 상수, validation, mapper, query helper를 둡니다.
+
+현재 역할:
+
+- `form.ts`
+  - form 기본값
+  - option 상수
+  - 응답 타입
+  - field error 정규화
+  - detail -> form 매핑
+  - submit 전 검증
+- `list.ts`
+  - 목록 filter/sort/query builder
+  - URL state parse/build
+  - row normalize
+  - returnTo helper
+
+## 5. 현재 CRUD 패턴
+
+### 5.1 목록
+
+병의원과 의료진 목록은 같은 운영 패턴을 따릅니다.
+
+핵심 흐름:
+
+1. URL query를 파싱해 초기 목록 상태를 만듭니다.
+2. 검색/필터/정렬/페이지를 상태로 관리합니다.
+3. 상태가 바뀌면 query string도 다시 맞춥니다.
+4. API 응답은 도메인 `list.ts`에서 row 형태로 정규화합니다.
+5. 행 클릭 시 detail URL로 이동하면서 `returnTo` 문맥을 유지합니다.
+6. 등록/수정 후 목록으로 복귀하면 `highlight` query로 행 강조를 처리합니다.
+
+현재 관련 파일:
+
+- 병의원 목록
+  - [HospitalsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/HospitalsTableClient.tsx)
+  - [HospitalsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital/list/HospitalsDataTable.tsx)
+  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/list.ts)
+- 의료진 목록
+  - [DoctorsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/DoctorsTableClient.tsx)
+  - [DoctorsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/doctor/list/DoctorsDataTable.tsx)
+  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/list.ts)
+
+### 5.2 등록/수정 폼
+
+병의원과 의료진 폼은 같은 큰 흐름을 따릅니다.
+
+핵심 흐름:
+
+1. `*Client.tsx`가 실제 상태/submit/fetch를 소유합니다.
+2. 화면은 섹션 컴포넌트에 분리합니다.
+3. form 상수와 검증은 도메인 `form.ts`에 둡니다.
+4. 에러가 나면 첫 번째 필드로 스크롤 + 포커스를 보냅니다.
+5. 성공 알림은 전역 하단 alert를 사용합니다.
+6. 성공 후에는 목록으로 복귀하고 `highlight`를 남깁니다.
+
+현재 관련 파일:
+
+- 병의원 생성/수정
+  - [HospitalsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx)
+  - [HospitalDetailFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailFormClient.tsx)
+  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/form.ts)
+- 의료진 생성/수정
+  - [DoctorsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/new/DoctorsCreateFormClient.tsx)
+  - [DoctorDetailFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailFormClient.tsx)
+  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/form.ts)
+
+## 6. 권한/메뉴/세션
+
+현재 기준 보호 흐름은 아래 조합으로 동작합니다.
+
+- 세션 관리
+  - [session.ts](/root/beaulab_frontend/apps/staff-web/lib/common/auth/session.ts)
+- 라우트 권한
+  - [route-permissions.ts](/root/beaulab_frontend/apps/staff-web/lib/common/routing/route-permissions.ts)
+- guard
+  - [guard.tsx](/root/beaulab_frontend/apps/staff-web/components/common/guard.tsx)
+- 사이드바 메뉴
+  - [sidebar-menu.tsx](/root/beaulab_frontend/apps/staff-web/components/common/sidebar-menu.tsx)
+- 관리자 기본 페이지 정의
+  - [admin-pages.tsx](/root/beaulab_frontend/apps/staff-web/lib/common/routing/admin-pages.tsx)
+
+규칙:
+
+- 메뉴 권한과 라우트 권한은 같은 permission 모델을 공유해야 합니다.
+- 서버 검증을 대체하지 않습니다.
+- 프론트 권한은 UX 제어 목적으로만 사용합니다.
+
+## 7. UI 정책
+
+현재 관리자 UI 정책은 아래를 따릅니다.
+
+- 브라우저 `alert()` 금지
+- 성공/실패 피드백은 하단 전역 alert 사용
+- 페이지/섹션 로딩은 spinner 사용
+- status/approval 같은 선택은 기존 `Select` 재사용 우선
+- create/edit 미디어 UX는 같은 컴포넌트를 재사용
+
+## 8. 무엇을 어디에 둘 것인가
+
+### `components/common`으로 갈 수 있는 것
+
+- staff 관리자 전체에서 재사용되는 앱 전용 adapter
+- guard, sidebar menu, admin shell helper
+
+### `hooks/common`으로 갈 수 있는 것
+
+- 도메인 이름 없이 설명 가능한 훅
+- 병의원/의료진 둘 다 같은 방식으로 쓰는 훅
+
+### `lib/common`으로 갈 수 있는 것
+
+- 순수 함수
+- 세션 복구/로그인
+- 라우트 권한 매핑
+- query path 조립
+
+### 도메인 폴더에 남겨야 하는 것
+
+- 병의원/의료진 필드명에 직접 묶인 코드
+- 특정 API endpoint에만 의미가 있는 코드
+- 특정 DOM selector를 아는 포커스 로직
+- 도메인 상수, option, validation, mapper
+
+## 9. 같이 봐야 할 문서
+
+- [리팩토링 규칙 문서](/root/beaulab_frontend/doc/staff-web-rules.md)
+- [루트 README](/root/beaulab_frontend/README.md)

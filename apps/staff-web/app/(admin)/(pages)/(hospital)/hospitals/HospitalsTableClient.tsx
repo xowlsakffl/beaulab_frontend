@@ -3,12 +3,13 @@
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
 import { HospitalsToolbar } from "@/components/hospital/list/HospitalsToolbar";
-import { api } from "@/lib/api";
+import { api } from "@/lib/common/api";
 import {
   ALLOW_STATUS_OPTIONS,
   APPROVAL_STATUS_OPTIONS,
   DEFAULT_FILTERS,
   buildHospitalsQuery,
+  buildHospitalsQueryString,
   buildHospitalsReturnToPath,
   buildPresetDateRange,
   mapDateRangeToFilter,
@@ -54,7 +55,6 @@ export default function HospitalsTableClient() {
   const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(initialTableState.draftUpdatedDateRange);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
-  const [resetKey, setResetKey] = React.useState(0);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const reviewDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
@@ -86,9 +86,18 @@ export default function HospitalsTableClient() {
     [appliedFilters, page, perPage, searchKeyword, sortState],
   );
 
+  const queryString = React.useMemo(() => buildHospitalsQueryString(query), [query]);
+
   const buildReturnToPath = React.useCallback(() => {
     return buildHospitalsReturnToPath(pathname, query);
   }, [pathname, query]);
+
+  React.useEffect(() => {
+    const currentQueryString = searchParams.toString();
+    if (queryString === currentQueryString) return;
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }, [pathname, queryString, router, searchParams]);
 
   const fetchHospitals = React.useCallback(
     async (manualRefresh = false) => {
@@ -199,7 +208,6 @@ export default function HospitalsTableClient() {
     setDraftUpdatedDateRange(undefined);
     setIsDatePickerOpen(false);
     setIsUpdatedDatePickerOpen(false);
-    setResetKey((prev) => prev + 1);
     if (applyNow) {
       setPage(1);
       setAppliedFilters(DEFAULT_FILTERS);
@@ -311,7 +319,6 @@ export default function HospitalsTableClient() {
   return (
     <div className="space-y-4">
       <HospitalsToolbar
-        resetKey={resetKey}
         searchInput={searchInput}
         isFilterOpen={isFilterOpen}
         onSearchChange={setSearchInput}

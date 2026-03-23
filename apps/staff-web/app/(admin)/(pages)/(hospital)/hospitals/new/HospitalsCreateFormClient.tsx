@@ -3,11 +3,12 @@
 import { HospitalBasicSection } from "@/components/hospital/form/HospitalBasicSection";
 import { HospitalBusinessSection } from "@/components/hospital/form/HospitalBusinessSection";
 import { HospitalMediaPanel } from "@/components/hospital/form/HospitalMediaPanel";
+import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
+import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
 import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSearch";
-import { useHospitalCategoryLoader } from "@/hooks/hospital/useHospitalCategoryLoader";
 import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
-import { useDaumPostcode } from "@/hooks/useDaumPostcode";
-import { api } from "@/lib/api";
+import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
+import { api } from "@/lib/common/api";
 import {
   DUPLICATE_ERROR_MESSAGES,
   extractFieldErrors,
@@ -31,7 +32,12 @@ export default function HospitalsCreateFormClient() {
   const { showAlert } = useGlobalAlert();
   const { error: daumPostcodeError, openPostcode, geocodeAddress } = useDaumPostcode();
   const { focusField, focusFirstErrorField } = useHospitalFieldFocus();
-  const loadCategories = useHospitalCategoryLoader();
+  const loadCategories = useCategorySelectorLoader();
+  const {
+    features: hospitalFeatures,
+    isLoading: isHospitalFeaturesLoading,
+    error: hospitalFeaturesError,
+  } = useHospitalFeatureList();
 
   const [form, setForm] = React.useState<HospitalFormValues>(INITIAL_HOSPITAL_FORM);
   const [logo, setLogo] = React.useState<File | null>(null);
@@ -216,6 +222,18 @@ export default function HospitalsCreateFormClient() {
     clearError("category_ids");
   };
 
+  const toggleFeature = (featureId: number, checked: boolean) => {
+    setForm((prev) => ({
+      ...prev,
+      feature_ids: checked
+        ? prev.feature_ids.includes(featureId)
+          ? prev.feature_ids
+          : [...prev.feature_ids, featureId]
+        : prev.feature_ids.filter((item) => item !== featureId),
+    }));
+    clearError("feature_ids");
+  };
+
   React.useEffect(() => {
     if (!isBusinessAddressSameAsHospital) return;
 
@@ -310,6 +328,9 @@ export default function HospitalsCreateFormClient() {
     form.category_ids.forEach((categoryId) => {
       formData.append("category_ids[]", String(categoryId));
     });
+    form.feature_ids.forEach((featureId) => {
+      formData.append("feature_ids[]", String(featureId));
+    });
 
     if (logo) {
       formData.append("logo", logo);
@@ -370,8 +391,12 @@ export default function HospitalsCreateFormClient() {
             form={form}
             errors={errors}
             daumPostcodeError={daumPostcodeError}
+            hospitalFeatures={hospitalFeatures}
+            isHospitalFeaturesLoading={isHospitalFeaturesLoading}
+            hospitalFeaturesError={hospitalFeaturesError}
             loadCategories={loadCategories}
             onToggleCategory={toggleCategory}
+            onToggleFeature={toggleFeature}
             onOpenAddressSearch={openAddressSearch}
             onFieldChange={setField}
             onNameChange={(value) => {

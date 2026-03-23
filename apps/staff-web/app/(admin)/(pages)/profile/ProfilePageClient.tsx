@@ -3,7 +3,7 @@
 import React from "react";
 import { SpinnerBlock, UserAddressCard, UserInfoCard, UserMetaCard } from "@beaulab/ui-admin";
 import type { StaffSession } from "@beaulab/types";
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/common/auth/session";
 
 function formatLastLogin(lastLoginAt?: string | null) {
   if (!lastLoginAt) return "기록 없음";

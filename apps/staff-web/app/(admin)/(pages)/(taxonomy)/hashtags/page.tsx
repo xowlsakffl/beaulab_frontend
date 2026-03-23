@@ -1,4 +1,4 @@
-import { buildAdminPageMetadata, renderAdminPage } from "@/lib/admin-pages";
+import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/admin-pages";
 
 export const metadata = buildAdminPageMetadata("/hashtags");
 

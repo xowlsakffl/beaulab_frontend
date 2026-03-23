@@ -1,11 +1,10 @@
 import type { ChangeEvent } from "react";
 import Link from "next/link";
 
-import { Can } from "@/components/guard";
+import { Can } from "@/components/common/guard";
 import { Button, Download, InputField, SlidersHorizontal, SquarePlus } from "@beaulab/ui-admin";
 
 type HospitalsToolbarProps = {
-  resetKey: number;
   searchInput: string;
   isFilterOpen: boolean;
   onSearchChange: (value: string) => void;
@@ -13,7 +12,6 @@ type HospitalsToolbarProps = {
 };
 
 export function HospitalsToolbar({
-  resetKey,
   searchInput,
   isFilterOpen,
   onSearchChange,
@@ -23,8 +21,7 @@ export function HospitalsToolbar({
     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="w-full">
         <InputField
-          key={`search-${resetKey}`}
-          defaultValue={searchInput}
+          value={searchInput}
           onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
           placeholder="ID, 병의원명, 연락처, 주소 검색"
           className="bg-white dark:bg-gray-800"

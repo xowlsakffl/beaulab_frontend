@@ -3,12 +3,12 @@
 import { HospitalBasicSection } from "@/components/hospital/form/HospitalBasicSection";
 import { HospitalBusinessSection } from "@/components/hospital/form/HospitalBusinessSection";
 import { HospitalMediaPanel } from "@/components/hospital/form/HospitalMediaPanel";
+import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
+import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
 import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSearch";
-import { useHospitalCategoryLoader } from "@/hooks/hospital/useHospitalCategoryLoader";
 import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
-import { useHospitalReturnTo } from "@/hooks/hospital/useHospitalReturnTo";
-import { useDaumPostcode } from "@/hooks/useDaumPostcode";
-import { api } from "@/lib/api";
+import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
+import { api } from "@/lib/common/api";
 import {
   buildHospitalExistingMediaItems,
   extractFieldErrors,
@@ -24,6 +24,7 @@ import {
   type HospitalFormValues,
   type MediaAsset,
 } from "@/lib/hospital/form";
+import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
@@ -45,8 +46,22 @@ export default function HospitalDetailFormClient() {
   const { showAlert } = useGlobalAlert();
   const { error: daumPostcodeError, openPostcode, geocodeAddress } = useDaumPostcode();
   const { focusField, focusFirstErrorField } = useHospitalFieldFocus();
-  const loadCategories = useHospitalCategoryLoader();
-  const buildReturnToPath = useHospitalReturnTo(searchParams);
+  const loadCategories = useCategorySelectorLoader();
+  const {
+    features: hospitalFeatures,
+    isLoading: isHospitalFeaturesLoading,
+    error: hospitalFeaturesError,
+  } = useHospitalFeatureList();
+  const getReturnToPath = React.useCallback(
+    (highlightId?: number) =>
+      buildReturnToPath({
+        searchParams,
+        fallbackPath: "/hospitals",
+        allowedPrefix: "/hospitals",
+        highlightId,
+      }),
+    [searchParams],
+  );
 
   const rawHospitalId = Array.isArray(params.id) ? params.id[0] : params.id;
   const hospitalId = Number(rawHospitalId);
@@ -97,6 +112,18 @@ export default function HospitalDetailFormClient() {
         : prev.category_ids.filter((item) => item !== categoryId),
     }));
     clearError("category_ids");
+  };
+
+  const toggleFeature = (featureId: number, checked: boolean) => {
+    setForm((prev) => ({
+      ...prev,
+      feature_ids: checked
+        ? prev.feature_ids.includes(featureId)
+          ? prev.feature_ids
+          : [...prev.feature_ids, featureId]
+        : prev.feature_ids.filter((item) => item !== featureId),
+    }));
+    clearError("feature_ids");
   };
 
   React.useEffect(() => {
@@ -154,7 +181,7 @@ export default function HospitalDetailFormClient() {
 
     try {
       const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}`, {
-        include: "business_registration,categories",
+        include: "business_registration,categories,features",
       });
 
       if (!isApiSuccess(response)) {
@@ -246,6 +273,14 @@ export default function HospitalDetailFormClient() {
       formData.append("category_ids[]", "");
     }
 
+    if (form.feature_ids.length > 0) {
+      form.feature_ids.forEach((featureId) => {
+        formData.append("feature_ids[]", String(featureId));
+      });
+    } else {
+      formData.append("feature_ids[]", "");
+    }
+
     if (logo) {
       formData.append("logo", logo);
     }
@@ -288,7 +323,7 @@ export default function HospitalDetailFormClient() {
         title: "병의원 수정 완료",
         message: "수정된 병의원을 목록에서 확인할 수 있습니다.",
       });
-      router.push(buildReturnToPath(hospitalId));
+      router.push(getReturnToPath(hospitalId));
     } catch {
       showAlert({
         variant: "error",
@@ -324,7 +359,7 @@ export default function HospitalDetailFormClient() {
           <Button type="button" variant="brand" onClick={() => void fetchHospital()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(buildReturnToPath())}>
+          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
             목록으로
           </Button>
         </CardContent>
@@ -345,8 +380,12 @@ export default function HospitalDetailFormClient() {
             form={form}
             errors={errors}
             daumPostcodeError={daumPostcodeError}
+            hospitalFeatures={hospitalFeatures}
+            isHospitalFeaturesLoading={isHospitalFeaturesLoading}
+            hospitalFeaturesError={hospitalFeaturesError}
             loadCategories={loadCategories}
             onToggleCategory={toggleCategory}
+            onToggleFeature={toggleFeature}
             onOpenAddressSearch={openAddressSearch}
             onFieldChange={setField}
           />
@@ -372,7 +411,7 @@ export default function HospitalDetailFormClient() {
         </div>
 
         <div className="mt-8 flex gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(buildReturnToPath())}>
+          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
             목록으로
           </Button>
           <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>

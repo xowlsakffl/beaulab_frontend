@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { SignInForm, type SignInFormValues } from "@beaulab/ui-admin/components/auth";
-import { login } from "@/lib/session";
+import { login } from "@/lib/common/auth/session";
 
 type LoginPageClientProps = {
   nextPath: string;

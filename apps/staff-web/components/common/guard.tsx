@@ -2,10 +2,10 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import { hasPermission, hasAnyPermission } from "@beaulab/auth";
-import { ensureSession, getSession } from "@/lib/session";
+import { ensureSession, getSession } from "@/lib/common/auth/session";
 import { usePathname, useRouter } from "next/navigation";
 import { StaffSession } from "@beaulab/types";
-import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissions } from "@/lib/route-permissions";
+import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissions } from "@/lib/common/routing/route-permissions";
 
 type GuardProps = {
   children: ReactNode;

@@ -323,13 +323,24 @@ export function labelReviewStatus(status: string) {
 }
 
 export function buildHospitalsReturnToPath(pathname: string, query: HospitalsQuery) {
-  const returnParams = new URLSearchParams();
-
-  Object.entries(query).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "") return;
-    returnParams.set(key, String(value));
-  });
-
-  const returnQuery = returnParams.toString();
+  const returnQuery = buildHospitalsQueryString(query);
   return returnQuery ? `${pathname}?${returnQuery}` : pathname;
+}
+
+export function buildHospitalsQueryString(query: HospitalsQuery) {
+  const params = new URLSearchParams();
+
+  if (query.q) params.set("q", query.q);
+  if (query.status) params.set("status", query.status);
+  if (query.allow_status) params.set("allow_status", query.allow_status);
+  if (query.start_date) params.set("start_date", query.start_date);
+  if (query.end_date) params.set("end_date", query.end_date);
+  if (query.updated_start_date) params.set("updated_start_date", query.updated_start_date);
+  if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
+  if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
+  if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
+  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
+  if (query.page !== 1) params.set("page", String(query.page));
+
+  return params.toString();
 }

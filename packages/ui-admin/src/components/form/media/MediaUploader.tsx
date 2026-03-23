@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 export type MediaCollectionConfig<T extends string = string> = {
   key: T;
   label: string;
+  showLabel?: boolean;
   accept: string;
   multiple?: boolean;
   maxFiles?: number;
@@ -220,8 +221,9 @@ function Dropzone({
   multiple,
   disabled,
   error = false,
-  primaryText = "파일을 끌어오거나 클릭해서 선택",
+  primaryText = "파일 드래그 또는 클릭",
   secondaryText,
+  footerText,
   onPickFiles,
 }: {
   accept: string;
@@ -230,6 +232,7 @@ function Dropzone({
   error?: boolean;
   primaryText?: string;
   secondaryText?: string;
+  footerText?: string;
   onPickFiles: (files: File[]) => void;
 }) {
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -308,6 +311,12 @@ function Dropzone({
           </div>
         </div>
       </div>
+
+      {footerText ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 px-6 pb-5">
+          <p className="text-center text-xs text-gray-500 dark:text-gray-400">{footerText}</p>
+        </div>
+      ) : null}
     </label>
   );
 }
@@ -938,6 +947,7 @@ export function MediaUploader<T extends string = string>({
           const hasSelectedFiles = files.length > 0;
           const hasExistingItems = existingItems.length > 0;
           const canEditExistingItems = Boolean(onExistingItemsChange);
+          const shouldShowLabel = collection.showLabel ?? true;
 
           return (
             <section
@@ -946,17 +956,13 @@ export function MediaUploader<T extends string = string>({
               tabIndex={-1}
               className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8 dark:border-gray-800"}`}
             >
-              <div className="space-y-1.5">
-                <h4 className={`text-sm font-semibold ${error ? "text-error-600 dark:text-error-400" : "text-gray-800 dark:text-white/90"}`}>
-                  {collection.label}
-                </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{collection.helperText}</p>
-                {isMultiple ? (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드할 수 있습니다.`}
-                  </p>
-                ) : null}
-              </div>
+              {shouldShowLabel ? (
+                <div className="space-y-1.5">
+                  <h4 className={`text-sm font-semibold ${error ? "text-error-600 dark:text-error-400" : "text-gray-800 dark:text-white/90"}`}>
+                    {collection.label}
+                  </h4>
+                </div>
+              ) : null}
 
               <Dropzone
                 accept={collection.accept}
@@ -976,6 +982,11 @@ export function MediaUploader<T extends string = string>({
                         ? "새 이미지를 업로드하면 기존 이미지 전체를 대체합니다."
                         : "새 파일을 선택하면 기존 파일을 대체합니다."
                       : collection.emptyText
+                }
+                footerText={
+                  [collection.helperText, isMultiple ? collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드할 수 있습니다.` : null]
+                    .filter(Boolean)
+                    .join(" · ")
                 }
                 onPickFiles={(incoming) => addFiles(collection, incoming)}
               />
