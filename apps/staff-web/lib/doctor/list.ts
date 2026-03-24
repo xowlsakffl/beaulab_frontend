@@ -113,9 +113,9 @@ export const DOCTOR_STATUS_OPTIONS: CheckboxFilterOption[] = [
 ];
 
 export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "PENDING", label: "승인대기" },
-  { value: "APPROVED", label: "승인완료" },
-  { value: "REJECTED", label: "승인반려" },
+  { value: "PENDING", label: "검수 대기" },
+  { value: "APPROVED", label: "검수 완료" },
+  { value: "REJECTED", label: "검수 반려" },
 ];
 
 export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
@@ -295,9 +295,9 @@ export function labelDoctorGender(gender?: string | null) {
 }
 
 export function labelDoctorApprovalStatus(status?: string | null) {
-  if (status === "PENDING") return "승인대기";
-  if (status === "APPROVED") return "승인완료";
-  if (status === "REJECTED") return "승인반려";
+  if (status === "PENDING") return "검수 대기";
+  if (status === "APPROVED") return "검수 완료";
+  if (status === "REJECTED") return "검수 반려";
   return status || "-";
 }
 

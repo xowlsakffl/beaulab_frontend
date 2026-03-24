@@ -143,11 +143,11 @@ export default function DoctorDetailPageClient() {
           <section className="space-y-6 pb-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">소속 병원과 의료진 기본 정보를 확인합니다.</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">소속 병의원과 의료진 기본 정보를 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <DetailField label="소속 병원" value={detail.hospital_name} />
+              <DetailField label="소속 병의원" value={detail.hospital_name} />
               <DetailField label="사업자등록번호" value={detail.hospital_business_number} />
               <DetailField label="의료진명" value={detail.name} />
               <DetailField label="성별" value={labelDoctorGender(detail.gender)} />
@@ -157,8 +157,8 @@ export default function DoctorDetailPageClient() {
               <DetailField label="경력기간" value={formatCareerPeriod(detail.career_started_at)} />
               <DetailField label="의사면허증 번호" value={detail.license_number} />
               <DetailField label="조회수" value={formatNumber(detail.view_count)} />
-              <StatusField label="운영상태" value={detail.status} kind="status" />
-              <StatusField label="검수상태" value={detail.allow_status} kind="allow_status" />
+              <StatusField label="운영 상태" value={detail.status} kind="status" />
+              <StatusField label="검수 상태" value={detail.allow_status} kind="allow_status" />
               <TagField
                 label="카테고리"
                 items={detail.categories?.map((item) => formatCategoryPath(item.full_path, item.name)) ?? []}

@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 import HospitalsTableClient from "./HospitalsTableClient";
 
 export const metadata: Metadata = {
-  title: "병의원 목록 | 뷰랩 관리자",
-  description: "뷰랩 관리자 병의원 목록 페이지입니다.",
+  title: "병의원 | 뷰랩 관리자",
+  description: "뷰랩 관리자 병의원 페이지입니다.",
 };
 
 export default function HospitalsPage() {
   return (
     <div className="space-y-6">
       <PageBreadcrumb
-        pageTitle="병의원 목록"
+        pageTitle="병의원"
         homeLabel="관리자"
         items={[{ label: "병의원 관리" }]}
       />

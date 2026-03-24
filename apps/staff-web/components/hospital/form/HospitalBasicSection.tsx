@@ -140,13 +140,13 @@ export function HospitalBasicSection({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="allow_status">검수상태 *</Label>
+          <Label htmlFor="allow_status">검수 상태 *</Label>
           <Select
             id="allow_status"
             name="allow_status"
             value={form.allow_status}
             options={[...HOSPITAL_ALLOW_STATUS_OPTIONS]}
-            placeholder="검수상태를 선택해 주세요."
+            placeholder="검수 상태를 선택해 주세요."
             onChange={(value: string) => onFieldChange("allow_status", value)}
             className="h-11 w-full px-4"
           />
@@ -300,17 +300,17 @@ function HospitalFeatureSelector({
     <div className="space-y-2" data-field-target="feature_ids" tabIndex={-1}>
       <div className="space-y-1">
         <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-          병원정보 <span className="text-error-500">*</span>
+          병의원정보 <span className="text-error-500">*</span>
         </p>
       </div>
 
       <div className="outline-none">
         {isLoading ? (
-          <SpinnerBlock className="min-h-24" spinnerClassName="size-7" label="병원 특징 불러오는 중" />
+          <SpinnerBlock className="min-h-24" spinnerClassName="size-7" label="병의원 특징 불러오는 중" />
         ) : loadError ? (
           <p className="text-sm text-error-500">{loadError}</p>
         ) : features.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">등록된 병원 특징이 없습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">등록된 병의원 특징이 없습니다.</p>
         ) : (
           <TogglePillGroup
             options={featureOptions}

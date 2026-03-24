@@ -149,8 +149,8 @@ export default function HospitalDetailPageClient() {
               <DetailField label="병의원명" value={detail.name} className="md:col-span-2" />
               <DetailField label="대표 번호" value={detail.tel} />
               <DetailField label="대표 이메일" value={detail.email} />
-              <StatusField label="운영상태" value={detail.status} kind="status" />
-              <StatusField label="검수상태" value={detail.allow_status} kind="allow_status" />
+              <StatusField label="운영 상태" value={detail.status} kind="status" />
+              <StatusField label="검수 상태" value={detail.allow_status} kind="allow_status" />
               <DetailField label="조회수" value={formatNumber(detail.view_count)} className="md:col-span-2" />
               <TagField
                 label="카테고리"
@@ -158,7 +158,7 @@ export default function HospitalDetailPageClient() {
                 className="md:col-span-2"
               />
               <TagField
-                label="병원정보"
+                label="병의원정보"
                 items={detail.features?.map((item) => item.name) ?? []}
                 className="md:col-span-2"
               />

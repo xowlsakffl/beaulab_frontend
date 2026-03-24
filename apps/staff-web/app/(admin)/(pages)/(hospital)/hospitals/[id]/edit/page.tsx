@@ -16,7 +16,7 @@ export default function HospitalEditPage() {
         homeLabel="관리자"
         items={[
           { label: "병의원 관리" },
-          { label: "병의원 목록", href: "/hospitals" },
+          { label: "병의원", href: "/hospitals" },
         ]}
       />
       <HospitalEditFormClient />

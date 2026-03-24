@@ -80,7 +80,7 @@ export function HospitalsFilterPanel({
           onToggleAll={onToggleAllApprovalStatus}
         />
         <CheckboxFilterDropdown
-          label="승인 상태"
+          label="검수 상태"
           containerRef={reviewDropdownRef}
           selectedValues={draftFilters.reviewStatuses}
           options={ALLOW_STATUS_OPTIONS}

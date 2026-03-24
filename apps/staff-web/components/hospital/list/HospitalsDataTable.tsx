@@ -62,7 +62,7 @@ function buildHospitalColumns({
         </Button>
       ),
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           {row.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- logo domains come from runtime API/storage configuration
             <img
@@ -71,7 +71,7 @@ function buildHospitalColumns({
               className="h-10 w-10 shrink-0 rounded-md border border-gray-200 object-cover dark:border-white/[0.08]"
             />
           ) : null}
-          <span className="block truncate font-medium text-gray-800 dark:text-white/90" title={row.name}>
+          <span className="block min-w-0 truncate font-medium text-gray-800 dark:text-white/90" title={row.name}>
             {row.name}
           </span>
         </div>
@@ -117,7 +117,7 @@ function buildHospitalColumns({
       cellClassName: `${spacedNowrapCellClass} lg:w-[72px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allow_status")} className="inline-flex items-center gap-1 px-0 text-xs">
-          승인 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
+          검수 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
         </Button>
       ),
       render: (row) => (

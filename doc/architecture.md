@@ -65,13 +65,17 @@ apps/staff-web/
 │  ├─ hospital/
 │  │  ├─ form/
 │  │  └─ list/
-│  └─ doctor/
+│  ├─ doctor/
+│  │  ├─ form/
+│  │  └─ list/
+│  └─ video/
 │     ├─ form/
 │     └─ list/
 ├─ hooks/
 │  ├─ common/
 │  ├─ hospital/
-│  └─ doctor/
+│  ├─ doctor/
+│  └─ video/
 └─ lib/
    ├─ common/
    │  ├─ api.ts
@@ -86,7 +90,10 @@ apps/staff-web/
    ├─ hospital/
    │  ├─ form.ts
    │  └─ list.ts
-   └─ doctor/
+   ├─ doctor/
+   │  ├─ form.ts
+   │  └─ list.ts
+   └─ video/
       ├─ form.ts
       └─ list.ts
 ```
@@ -125,13 +132,14 @@ apps/staff-web/
 
 현재 사이드바 메뉴는 아래 기준으로 조합합니다.
 
-- `sidebar-menu.tsx`가 병원/뷰티 도메인 메뉴와 공통 메뉴를 따로 정의합니다.
+- `sidebar-menu.tsx`가 병의원/뷰티 도메인 메뉴와 공통 메뉴를 따로 정의합니다.
 - `app/(admin)/layout.tsx`가 현재 domain toggle 상태를 들고 최종 메뉴를 합칩니다.
 - `packages/ui-admin`의 `AppSidebar`는 전달받은 `topContent`와 메뉴를 렌더링만 합니다.
 - 최종 렌더링에서도 `main=도메인 메뉴`, `others=공통 메뉴`를 유지해서 섹션 라벨을 분리합니다.
-- 뷰티 도메인 전용 placeholder 페이지는 병원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
+- 대시보드도 도메인별로 분리합니다. 현재 기준 병의원은 `/`, 뷰티는 `/beauty-dashboard`를 사용합니다.
+- 뷰티 도메인 전용 placeholder 페이지는 병의원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
 
-### 4.3 `components/hospital`, `components/doctor`
+### 4.3 `components/hospital`, `components/doctor`, `components/video`
 
 도메인 전용 UI를 둡니다.
 
@@ -144,6 +152,14 @@ apps/staff-web/
 
 - 병의원 폼: `Basic / Business / Media`
 - 의료진 폼: `Basic / Category / Medical`
+- 동영상 폼: `Basic / Category / Publish / Media`
+
+동영상처럼 병의원/의료진과 다른 독립 CRUD 기능은 별도 도메인 폴더를 둘 수 있습니다.
+
+예:
+
+- `components/video/form`
+- `components/video/list`
 
 ### 4.4 `hooks/common/`
 
@@ -156,7 +172,7 @@ apps/staff-web/
 - [useFormFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useFormFieldFocus.ts)
 - [useGoBack.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useGoBack.ts)
 
-### 4.5 `hooks/hospital`, `hooks/doctor`
+### 4.5 `hooks/hospital`, `hooks/doctor`, `hooks/video`
 
 도메인 필드명, DOM target, API endpoint에 직접 묶인 훅을 둡니다.
 
@@ -167,6 +183,9 @@ apps/staff-web/
 - [useHospitalFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFieldFocus.ts)
 - [useDoctorHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorHospitalOptions.ts)
 - [useDoctorFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorFieldFocus.ts)
+- [useVideoHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoHospitalOptions.ts)
+- [useVideoDoctorOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoDoctorOptions.ts)
+- [useVideoFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoFieldFocus.ts)
 
 ### 4.6 `lib/common/`
 
@@ -187,7 +206,7 @@ apps/staff-web/
 - `navigation/buildReturnToPath.ts`
   - list -> detail -> list 복귀 경로 조립
 
-### 4.7 `lib/hospital`, `lib/doctor`
+### 4.7 `lib/hospital`, `lib/doctor`, `lib/video`
 
 도메인별 상수, validation, mapper, query helper를 둡니다.
 
@@ -206,11 +225,13 @@ apps/staff-web/
   - row normalize
   - returnTo helper
 
+동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
+
 ## 5. 현재 CRUD 패턴
 
 ### 5.1 목록
 
-병의원과 의료진 목록은 같은 운영 패턴을 따릅니다.
+병의원, 의료진, 동영상 목록은 같은 운영 패턴을 따릅니다.
 
 핵심 흐름:
 
@@ -231,10 +252,14 @@ apps/staff-web/
   - [DoctorsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/DoctorsTableClient.tsx)
   - [DoctorsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/doctor/list/DoctorsDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/list.ts)
+- 동영상 목록
+  - [VideosTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/VideosTableClient.tsx)
+  - [VideosDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/video/list/VideosDataTable.tsx)
+  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/video/list.ts)
 
 ### 5.2 등록/수정 폼
 
-병의원과 의료진 폼은 같은 큰 흐름을 따릅니다.
+병의원, 의료진, 동영상 폼은 같은 큰 흐름을 따릅니다.
 
 핵심 흐름:
 
@@ -262,6 +287,11 @@ apps/staff-web/
   - [DoctorDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailPageClient.tsx)
   - [DoctorEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/edit/DoctorEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/form.ts)
+- 동영상 생성/수정
+  - [VideosCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/new/VideosCreateFormClient.tsx)
+  - [VideoDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/VideoDetailPageClient.tsx)
+  - [VideoEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/edit/VideoEditFormClient.tsx)
+  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/video/form.ts)
 
 ## 6. 권한/메뉴/세션
 

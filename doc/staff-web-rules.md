@@ -51,8 +51,10 @@
 아래는 도메인 폴더에 둡니다.
 
 - 병의원 주소/특징/사업자정보 전용 로직
-- 의료진 병원 검색/프로필/증빙 로직
+- 의료진 병의원 검색/프로필/증빙 로직
+- 동영상 목록/등록/상세/수정 전용 로직
 - 병의원/의료진 `form.ts`, `list.ts`
+- 동영상 `form.ts`, `list.ts`
 - 도메인 field name을 아는 validation / error mapping / focus mapping
 
 ## 3. 컴포넌트 분리 규칙
@@ -71,6 +73,20 @@
   - 기본정보
   - 시술분야
   - 의사정보
+
+폼이 아닌 독립 목록 기능은 `toolbar / filter / table` 정도까지만 분리합니다.
+
+예:
+
+- 동영상 목록
+  - toolbar
+  - filter
+  - table
+- 동영상 폼
+  - 기본정보
+  - 카테고리
+  - 배포정보
+  - 파일업로드
 
 ### 3.2 아래 경우에만 추가 분리
 
@@ -116,6 +132,9 @@
 - `useDoctorHospitalOptions`
 - `useHospitalFieldFocus`
 - `useDoctorFieldFocus`
+- `useVideoHospitalOptions`
+- `useVideoDoctorOptions`
+- `useVideoFieldFocus`
 
 ### 4.3 훅이 아닌 것은 `lib`
 
@@ -142,7 +161,7 @@
 - navigation helper
 - 공통 normalize/helper
 
-### 5.2 `lib/hospital`, `lib/doctor`
+### 5.2 `lib/hospital`, `lib/doctor`, `lib/video`
 
 다음만 둡니다.
 
@@ -158,7 +177,7 @@
 
 ## 6. 목록 페이지 규칙
 
-병의원/의료진 목록은 같은 패턴을 지킵니다.
+병의원/의료진/동영상 목록은 같은 패턴을 지킵니다.
 
 - 검색/필터/정렬/페이지/per_page는 URL과 동기화합니다.
 - 새로고침 후에도 현재 목록 문맥이 복원되어야 합니다.
@@ -173,6 +192,8 @@
 - 첫 번째 유효성 에러 필드로 스크롤 + 포커스를 보냅니다.
 - 성공 후에는 목록으로 복귀하고 문맥을 유지합니다.
 - create와 edit의 UI/업로더 경험은 가능한 한 같게 맞춥니다.
+- 동영상 폼도 섹션 단위만 분리합니다.
+- 현재 기준 섹션은 `기본정보 / 카테고리 / 배포정보 / 파일업로드`입니다.
 - `show`와 `update` 권한이 분리된 리소스는 상세와 수정을 같은 route에 섞지 않습니다.
 - 이 경우 상세는 `/[id]`, 수정은 `/[id]/edit`로 분리합니다.
 - 수정 폼에서 계층형 카테고리의 기존 선택값이 있으면, selector에 `selectedItems`를 함께 넘겨서 선택 chip과 체크 상태를 복원합니다.
@@ -181,12 +202,13 @@
 
 ### 8.0 관리자 shell / 사이드바
 
-- 사이드바의 병원/뷰티 토글 상태와 메뉴 조합은 `apps/staff-web`가 소유합니다.
+- 사이드바의 병의원/뷰티 토글 상태와 메뉴 조합은 `apps/staff-web`가 소유합니다.
 - `packages/ui-admin` 사이드바에는 app 전용 도메인 개념을 넣지 않습니다.
 - 사이드바 메뉴는 `도메인 전용 영역`과 `공통 영역`을 분리합니다.
 - 최종 sidebar 렌더링에서도 `main`은 도메인 메뉴, `others`는 공통 메뉴로 유지합니다.
+- 대시보드도 단일 공용으로 두지 않고 도메인별로 분리합니다.
 - 현재 기준으로 `공지사항` 아래는 공통 메뉴로 유지합니다.
-- 뷰티 전용 placeholder/menu route는 병원/공통 메뉴와 경로 의미가 섞이지 않도록 `/beauty-*` prefix namespace를 사용합니다.
+- 뷰티 전용 placeholder/menu route는 병의원/공통 메뉴와 경로 의미가 섞이지 않도록 `/beauty-*` prefix namespace를 사용합니다.
 
 ### 8.1 알림
 

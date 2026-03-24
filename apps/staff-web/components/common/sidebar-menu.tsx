@@ -34,7 +34,7 @@ export type StaffSidebarMenuBundle = {
 };
 
 export const STAFF_SIDEBAR_DOMAIN_OPTIONS: { key: StaffSidebarDomain; label: string }[] = [
-    { key: "hospital", label: "병원" },
+    { key: "hospital", label: "병의원" },
     { key: "beauty", label: "뷰티" },
 ];
 
@@ -85,14 +85,14 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
         {
             icon: <Video className={iconClass} />,
             name: "동영상 관리",
-            subItems: [{ name: "동영상 관리", path: "/videos", requiredPermissions: ["common.access"] }],
+            subItems: [{ name: "동영상", path: "/videos", requiredPermissions: ["beaulab.video.show"] }],
         },
         {
             icon: <MessageSquareText className={iconClass} />,
             name: "게시물 관리",
             subItems: [
                 { name: "성형후기", path: "/posts/surgery-reviews", requiredPermissions: ["common.access"] },
-                { name: "병원리뷰", path: "/posts/hospital-reviews", requiredPermissions: ["common.access"] },
+                { name: "병의원 리뷰", path: "/posts/hospital-reviews", requiredPermissions: ["common.access"] },
                 { name: "토크", path: "/posts/talks", requiredPermissions: ["common.access"] },
             ],
         },
@@ -101,7 +101,7 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             name: "신고컨텐츠 관리",
             subItems: [
                 { name: "성형후기", path: "/reported-content/surgery-reviews", requiredPermissions: ["common.access"] },
-                { name: "병원리뷰", path: "/reported-content/hospital-reviews", requiredPermissions: ["common.access"] },
+                { name: "병의원 리뷰", path: "/reported-content/hospital-reviews", requiredPermissions: ["common.access"] },
                 { name: "토크", path: "/reported-content/talks", requiredPermissions: ["common.access"] },
             ],
         },
@@ -111,6 +111,12 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
 
 const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     main: [
+        {
+            icon: <LayoutGrid className={iconClass} />,
+            name: "뷰티 대시보드",
+            path: "/beauty-dashboard",
+            requiredPermissions: ["common.dashboard.show"],
+        },
         {
             icon: <Hospital className={iconClass} />,
             name: "뷰티샵 관리",
@@ -285,6 +291,7 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
 
     if (
         pathname.startsWith("/beauties")
+        || pathname.startsWith("/beauty-dashboard")
         || pathname.startsWith("/experts")
         || pathname.startsWith("/beauty-")
     ) {
@@ -294,7 +301,8 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
     if (
         pathname === "/" ||
         pathname.startsWith("/hospitals") ||
-        pathname.startsWith("/doctors")
+        pathname.startsWith("/doctors") ||
+        pathname.startsWith("/videos")
     ) {
         return "hospital";
     }

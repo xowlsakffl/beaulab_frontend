@@ -7,7 +7,7 @@ type AuthorizationLike = Partial<ActorAuthorization> | undefined;
  * const session = sessionStorage.get("staff");
  *
  * {hasPermission(session?.auth, "hospital.create") && (
- *   <button>병원 등록</button>
+ *   <button>병의원 등록</button>
  * )}
  * 또는
  * const menus = allMenus.filter(m => hasAnyPermission(session.auth, m.permissions));

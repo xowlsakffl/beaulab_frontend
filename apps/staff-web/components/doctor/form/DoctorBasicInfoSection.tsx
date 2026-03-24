@@ -61,8 +61,8 @@ export function DoctorBasicInfoSection({
   return (
     <Card as="section">
       <CardHeader className="pb-6">
-        <CardTitle>병원 정보</CardTitle>
-        <CardDescription>소속 병원과 의료진 기본 정보를 입력해 주세요.</CardDescription>
+        <CardTitle>병의원 정보</CardTitle>
+        <CardDescription>소속 병의원과 의료진 기본 정보를 입력해 주세요.</CardDescription>
       </CardHeader>
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
@@ -133,13 +133,13 @@ export function DoctorBasicInfoSection({
             {showStatusFields ? (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="status">운영상태 *</Label>
+                  <Label htmlFor="status">운영 상태 *</Label>
                   <Select
                     id="status"
                     name="status"
                     value={form.status}
                     options={[...DOCTOR_STATUS_OPTIONS]}
-                    placeholder="운영상태를 선택해 주세요."
+                    placeholder="운영 상태를 선택해 주세요."
                     onChange={(value: string) => onFieldChange("status", value)}
                     className="h-11 w-full px-4"
                   />
@@ -147,13 +147,13 @@ export function DoctorBasicInfoSection({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="allow_status">검수상태 *</Label>
+                  <Label htmlFor="allow_status">검수 상태 *</Label>
                   <Select
                     id="allow_status"
                     name="allow_status"
                     value={form.allow_status}
                     options={[...DOCTOR_ALLOW_STATUS_OPTIONS]}
-                    placeholder="검수상태를 선택해 주세요."
+                    placeholder="검수 상태를 선택해 주세요."
                     onChange={(value: string) => onFieldChange("allow_status", value)}
                     className="h-11 w-full px-4"
                   />
@@ -202,7 +202,7 @@ function DoctorHospitalPicker({
 
   return (
     <div className="space-y-2" data-field-target="hospital_id" tabIndex={-1}>
-      <Label htmlFor="selected-hospital">소속 병원 *</Label>
+      <Label htmlFor="selected-hospital">소속 병의원 *</Label>
 
       <div ref={containerRef} className="relative space-y-2">
         {mode === "search" ? (
@@ -211,7 +211,7 @@ function DoctorHospitalPicker({
               <InputField
                 id="selected-hospital"
                 value={selectedHospital?.name ?? ""}
-                placeholder="병원을 선택해 주세요."
+                placeholder="병의원을 선택해 주세요."
                 readOnly
                 error={Boolean(error)}
                 hint={error}
@@ -226,14 +226,14 @@ function DoctorHospitalPicker({
               className="w-full shrink-0 sm:w-auto"
             >
               <Search className="size-4" />
-              <span>병원 검색</span>
+              <span>병의원 검색</span>
             </Button>
           </div>
         ) : (
           <InputField
             id="selected-hospital"
             value={selectedHospital?.name ?? ""}
-            placeholder="소속 병원 정보가 없습니다."
+            placeholder="소속 병의원 정보가 없습니다."
             readOnly
             error={Boolean(error)}
             hint={error}
@@ -244,7 +244,7 @@ function DoctorHospitalPicker({
         <InputField
           id="selected-hospital-business-number"
           value={selectedHospital?.business_number ?? ""}
-          placeholder="선택한 병원의 사업자번호가 표시됩니다."
+          placeholder="선택한 병의원의 사업자번호가 표시됩니다."
           readOnly
           className="bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
         />
@@ -259,7 +259,7 @@ function DoctorHospitalPicker({
             />
 
             {isLoading ? (
-              <SpinnerBlock className="min-h-32" spinnerClassName="size-6" label="병원 검색 중" />
+              <SpinnerBlock className="min-h-32" spinnerClassName="size-6" label="병의원 검색 중" />
             ) : loadError ? (
               <p className="text-sm text-error-500">{loadError}</p>
             ) : options.length === 0 ? (

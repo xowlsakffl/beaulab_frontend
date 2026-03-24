@@ -328,7 +328,7 @@ function validateDoctorBaseForm(form: DoctorFormValues): DoctorFormErrors {
   const nextErrors: DoctorFormErrors = {};
 
   if (!form.hospital_id) {
-    nextErrors.hospital_id = "소속 병원을 선택해 주세요.";
+    nextErrors.hospital_id = "소속 병의원을 선택해 주세요.";
   }
 
   if (!form.name.trim()) {
@@ -358,11 +358,11 @@ export function validateCreateDoctorForm({
   const nextErrors = validateDoctorBaseForm(form);
 
   if (!form.status) {
-    nextErrors.status = "운영상태를 선택해 주세요.";
+    nextErrors.status = "운영 상태를 선택해 주세요.";
   }
 
   if (!form.allow_status) {
-    nextErrors.allow_status = "검수상태를 선택해 주세요.";
+    nextErrors.allow_status = "검수 상태를 선택해 주세요.";
   }
 
   return nextErrors;
@@ -376,11 +376,11 @@ export function validateUpdateDoctorForm({
   const nextErrors = validateDoctorBaseForm(form);
 
   if (!form.status) {
-    nextErrors.status = "운영상태를 선택해 주세요.";
+    nextErrors.status = "운영 상태를 선택해 주세요.";
   }
 
   if (!form.allow_status) {
-    nextErrors.allow_status = "승인상태를 선택해 주세요.";
+    nextErrors.allow_status = "검수 상태를 선택해 주세요.";
   }
 
   return nextErrors;

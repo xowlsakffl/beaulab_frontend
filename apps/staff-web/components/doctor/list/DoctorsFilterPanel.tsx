@@ -94,7 +94,7 @@ export function DoctorsFilterPanel({
         <div>
           <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-5">
             <CheckboxFilterDropdown
-              label="운영상태"
+              label="운영 상태"
               containerRef={operatingStatusDropdownRef}
               selectedValues={draftFilters.operatingStatuses}
               options={operatingStatusOptions}
@@ -104,7 +104,7 @@ export function DoctorsFilterPanel({
               onToggleAll={onToggleAllOperatingStatus}
             />
             <CheckboxFilterDropdown
-              label="승인상태"
+              label="검수 상태"
               containerRef={approvalStatusDropdownRef}
               selectedValues={draftFilters.approvalStatuses}
               options={approvalStatusOptions}

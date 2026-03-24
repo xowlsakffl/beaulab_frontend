@@ -418,7 +418,7 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
   }
 
   if (!form.allow_status) {
-    nextErrors.allow_status = "검수상태는 필수 항목입니다.";
+    nextErrors.allow_status = "검수 상태는 필수 항목입니다.";
   }
 
   if (form.address.trim() && (!form.latitude.trim() || !form.longitude.trim())) {

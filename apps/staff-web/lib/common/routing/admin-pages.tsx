@@ -18,6 +18,12 @@ export type AdminPageDefinition = {
 
 export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     {
+        slug: ["beauty-dashboard"],
+        title: "뷰티 대시보드",
+        description: "뷰티 운영 현황을 확인하는 기본 대시보드 페이지입니다.",
+        requiredPermissions: ["common.dashboard.show"],
+    },
+    {
         slug: ["beauties"],
         title: "뷰티샵",
         group: "뷰티샵 관리",
@@ -162,6 +168,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         slug: ["videos"],
         title: "동영상 관리",
         description: "동영상 등록, 상태, 검수 흐름을 관리하는 기본 페이지입니다.",
+        requiredPermissions: ["beaulab.video.show"],
     },
     {
         slug: ["posts", "surgery-reviews"],
@@ -171,9 +178,9 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     },
     {
         slug: ["posts", "hospital-reviews"],
-        title: "병원리뷰",
+        title: "병의원 리뷰",
         group: "게시물 관리",
-        description: "병원리뷰 게시물을 조회하고 관리하는 기본 페이지입니다.",
+        description: "병의원 리뷰 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
         slug: ["posts", "talks"],
@@ -189,9 +196,9 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     },
     {
         slug: ["reported-content", "hospital-reviews"],
-        title: "병원리뷰",
+        title: "병의원 리뷰",
         group: "신고컨텐츠 관리",
-        description: "신고된 병원리뷰 컨텐츠를 검토하는 기본 페이지입니다.",
+        description: "신고된 병의원 리뷰 컨텐츠를 검토하는 기본 페이지입니다.",
     },
     {
         slug: ["reported-content", "talks"],

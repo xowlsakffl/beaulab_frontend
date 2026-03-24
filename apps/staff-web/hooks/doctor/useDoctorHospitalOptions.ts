@@ -33,7 +33,7 @@ export function useDoctorHospitalOptions(enabled: boolean, query: string) {
         }
 
         if (!isApiSuccess(response)) {
-          setError(response.error.message || "병원 검색에 실패했습니다.");
+          setError(response.error.message || "병의원 검색에 실패했습니다.");
           setOptions([]);
           return;
         }
@@ -44,7 +44,7 @@ export function useDoctorHospitalOptions(enabled: boolean, query: string) {
           return;
         }
 
-        setError("병원 검색 중 오류가 발생했습니다.");
+        setError("병의원 검색 중 오류가 발생했습니다.");
         setOptions([]);
       } finally {
         if (requestId === requestIdRef.current) {

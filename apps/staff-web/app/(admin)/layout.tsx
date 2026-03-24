@@ -134,7 +134,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                 menu={menuByActor}
                 topContent={sidebarTopContent}
                 sectionLabels={{
-                    main: activeDomain === "hospital" ? "병원메뉴" : "뷰티메뉴",
+                    main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
                     others: "공통메뉴",
                 }}
                 brand={{

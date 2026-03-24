@@ -15,6 +15,9 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/doctors/[id]", requiredPermissions: ["beaulab.doctor.show"] },
   { path: "/doctors/[id]/edit", requiredPermissions: ["beaulab.doctor.update"] },
   { path: "/doctors/new", requiredPermissions: ["beaulab.doctor.create"] },
+  { path: "/videos/[id]", requiredPermissions: ["beaulab.video.show"] },
+  { path: "/videos/[id]/edit", requiredPermissions: ["beaulab.video.update"] },
+  { path: "/videos/new", requiredPermissions: ["beaulab.video.create"] },
   ...ADMIN_PAGE_ROUTE_PERMISSIONS,
 ];
 

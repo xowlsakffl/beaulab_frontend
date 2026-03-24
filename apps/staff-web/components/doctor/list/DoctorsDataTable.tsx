@@ -67,7 +67,7 @@ function buildDoctorColumns({
       key: "hospitalName",
       headerClassName: `${headerBaseClass} lg:w-[180px]`,
       cellClassName: `${cellBaseClass} lg:w-[180px]`,
-      header: "소속 병원",
+      header: "소속 병의원",
       render: (row) => (
         <span
           className="block truncate font-medium text-gray-800 dark:text-white/90"
@@ -93,7 +93,7 @@ function buildDoctorColumns({
         </Button>
       ),
       render: (row) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           {row.profileImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration
             <img
@@ -107,7 +107,7 @@ function buildDoctorColumns({
             </div>
           )}
           <span
-            className="block truncate font-medium text-gray-800 dark:text-white/90"
+            className="block min-w-0 truncate font-medium text-gray-800 dark:text-white/90"
             title={row.name}
           >
             {row.name}
@@ -169,7 +169,9 @@ function buildDoctorColumns({
           size="sm"
           color={row.isSpecialist ? "success" : "error"}
           startIcon={row.isSpecialist ? <Check className="size-3.5" /> : <X className="size-3.5" />}
-        />
+        >
+          {row.isSpecialist ? "O" : "X"}
+        </StatusBadge>
       ),
     },
     {
@@ -191,7 +193,7 @@ function buildDoctorColumns({
           onClick={() => onToggleSort("allow_status")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          승인상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
+          검수 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
@@ -221,7 +223,7 @@ function buildDoctorColumns({
           onClick={() => onToggleSort("status")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
+          운영 상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
@@ -332,7 +334,7 @@ export function DoctorsDataTable({
   return (
     <DataTable
       title="의료진 목록"
-      description="소속 병원, 승인 상태, 운영 상태와 기본 프로필 정보를 확인할 수 있습니다."
+      description="소속 병의원, 검수 상태, 운영 상태와 기본 프로필 정보를 확인할 수 있습니다."
       tableClassName="min-w-[1440px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
