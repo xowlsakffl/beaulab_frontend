@@ -66,7 +66,7 @@ export function DoctorBasicInfoSection({
       </CardHeader>
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <div>
+        <div className="min-w-0">
           <MediaUploader
             title="프로필 사진"
             collections={DOCTOR_PROFILE_COLLECTIONS}
@@ -87,7 +87,7 @@ export function DoctorBasicInfoSection({
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <DoctorHospitalPicker
             mode={hospitalSelectionMode}
             selectedHospital={selectedHospital}
@@ -131,21 +131,7 @@ export function DoctorBasicInfoSection({
             />
 
             {showStatusFields ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="allow_status">검수상태 *</Label>
-                  <Select
-                    id="allow_status"
-                    name="allow_status"
-                    value={form.allow_status}
-                    options={[...DOCTOR_ALLOW_STATUS_OPTIONS]}
-                    placeholder="검수상태를 선택해 주세요."
-                    onChange={(value: string) => onFieldChange("allow_status", value)}
-                    className="h-11 w-full px-4"
-                  />
-                  {errors.allow_status ? <p className="text-xs text-error-500">{errors.allow_status}</p> : null}
-                </div>
-
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">운영상태 *</Label>
                   <Select
@@ -158,6 +144,20 @@ export function DoctorBasicInfoSection({
                     className="h-11 w-full px-4"
                   />
                   {errors.status ? <p className="text-xs text-error-500">{errors.status}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="allow_status">검수상태 *</Label>
+                  <Select
+                    id="allow_status"
+                    name="allow_status"
+                    value={form.allow_status}
+                    options={[...DOCTOR_ALLOW_STATUS_OPTIONS]}
+                    placeholder="검수상태를 선택해 주세요."
+                    onChange={(value: string) => onFieldChange("allow_status", value)}
+                    className="h-11 w-full px-4"
+                  />
+                  {errors.allow_status ? <p className="text-xs text-error-500">{errors.allow_status}</p> : null}
                 </div>
               </div>
             ) : null}
@@ -206,8 +206,8 @@ function DoctorHospitalPicker({
 
       <div ref={containerRef} className="relative space-y-2">
         {mode === "search" ? (
-          <div className="flex gap-2">
-            <div className="flex-1">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="min-w-0 flex-1">
               <InputField
                 id="selected-hospital"
                 value={selectedHospital?.name ?? ""}
@@ -223,7 +223,7 @@ function DoctorHospitalPicker({
               variant="brand"
               size="auth"
               onClick={() => setIsOpen((prev) => !prev)}
-              className="shrink-0"
+              className="w-full shrink-0 sm:w-auto"
             >
               <Search className="size-4" />
               <span>병원 검색</span>
@@ -266,7 +266,7 @@ function DoctorHospitalPicker({
               <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">검색 결과가 없습니다.</p>
             ) : (
               <div className="space-y-2">
-                <div className="grid grid-cols-[56px_minmax(0,2fr)_minmax(128px,1fr)_auto] gap-2 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+                <div className="hidden grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] gap-2 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-300 sm:grid">
                   <span>ID</span>
                   <span>병의원명</span>
                   <span>사업자등록번호</span>
@@ -292,13 +292,13 @@ function DoctorHospitalPicker({
                           : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800",
                       ].join(" ")}
                     >
-                      <div className="grid grid-cols-[56px_minmax(0,2fr)_minmax(128px,1fr)_auto] items-center gap-2">
+                      <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-1 sm:grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] sm:items-center sm:gap-2">
                         <span className="truncate text-sm font-medium text-gray-900 dark:text-white/90">{hospital.id}</span>
-                        <span className="truncate text-sm font-medium text-gray-900 dark:text-white/90">{hospital.name}</span>
-                        <span className="truncate text-sm text-gray-500 dark:text-gray-400">
+                        <span className="truncate text-sm font-medium text-gray-900 dark:text-white/90 sm:col-auto">{hospital.name}</span>
+                        <span className="col-span-2 truncate text-xs text-gray-500 dark:text-gray-400 sm:col-auto sm:text-sm">
                           {hospital.business_number || "사업자번호 없음"}
                         </span>
-                        {isSelected ? <span className="shrink-0 text-xs font-semibold text-brand-500">선택됨</span> : null}
+                        {isSelected ? <span className="hidden shrink-0 text-xs font-semibold text-brand-500 sm:block">선택됨</span> : null}
                       </div>
                     </button>
                   );

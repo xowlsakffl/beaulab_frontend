@@ -380,7 +380,7 @@ export default function HospitalsCreateFormClient() {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1fr)_360px]">
-      <Card as="section">
+      <Card as="section" className="min-w-0">
         <CardHeader className="pb-6">
           <CardTitle>병의원 정보 입력</CardTitle>
         </CardHeader>
@@ -429,33 +429,39 @@ export default function HospitalsCreateFormClient() {
           />
         </div>
 
-        <div className="mt-8">
+      </Card>
+
+      <div className="min-w-0 space-y-6">
+        <HospitalMediaPanel
+          filesByCollection={{
+            logo: logo ? [logo] : [],
+            gallery,
+          }}
+          errors={{
+            logo: errors.logo,
+            gallery: errors.gallery,
+          }}
+          onChange={(key, files) => {
+            if (key === "logo") {
+              setLogo(files[0] ?? null);
+              clearError("logo");
+              return;
+            }
+
+            setGallery(files);
+            clearError("gallery");
+          }}
+        />
+
+        <div className="flex flex-col gap-3">
+          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push("/hospitals")}>
+            목록으로
+          </Button>
           <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "등록 중..." : "병의원 등록"}
           </Button>
         </div>
-      </Card>
-
-      <HospitalMediaPanel
-        filesByCollection={{
-          logo: logo ? [logo] : [],
-          gallery,
-        }}
-        errors={{
-          logo: errors.logo,
-          gallery: errors.gallery,
-        }}
-        onChange={(key, files) => {
-          if (key === "logo") {
-            setLogo(files[0] ?? null);
-            clearError("logo");
-            return;
-          }
-
-          setGallery(files);
-          clearError("gallery");
-        }}
-      />
+      </div>
     </form>
   );
 }

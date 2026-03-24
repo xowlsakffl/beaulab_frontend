@@ -9,8 +9,11 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/", requiredPermissions: ["common.dashboard.show"] },
   { path: "/profile", requiredPermissions: ["common.profile.show"] },
   { path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
+  { path: "/hospitals/[id]", requiredPermissions: ["beaulab.hospital.show"] },
+  { path: "/hospitals/[id]/edit", requiredPermissions: ["beaulab.hospital.update"] },
   { path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
-  { path: "/doctors/[id]", requiredPermissions: ["beaulab.doctor.update"] },
+  { path: "/doctors/[id]", requiredPermissions: ["beaulab.doctor.show"] },
+  { path: "/doctors/[id]/edit", requiredPermissions: ["beaulab.doctor.update"] },
   { path: "/doctors/new", requiredPermissions: ["beaulab.doctor.create"] },
   ...ADMIN_PAGE_ROUTE_PERMISSIONS,
 ];

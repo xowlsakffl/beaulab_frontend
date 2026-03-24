@@ -17,6 +17,9 @@ export type CategorySelectorItem = {
 };
 
 export type CategoryTreeNode = CategorySelectorItem;
+export type SelectedCategoryDisplayItem = Pick<CategorySelectorItem, "id" | "name" | "full_path"> & {
+  domain?: string | null;
+};
 
 export type CategorySelectorSection = {
   key: string;
@@ -49,6 +52,7 @@ type SelectorText = {
 type HierarchicalCategorySelectorProps = {
   sections: CategorySelectorSection[];
   selectedIds: number[];
+  selectedItems?: SelectedCategoryDisplayItem[];
   onToggleCategory: (categoryId: number, checked: boolean) => void;
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
   error?: string;
@@ -111,7 +115,7 @@ function createSectionState(): SectionState {
   };
 }
 
-function getNodeLabel(node: CategorySelectorItem) {
+function getNodeLabel(node: CategorySelectorItem | SelectedCategoryDisplayItem) {
   return node.full_path?.trim() || node.name;
 }
 
@@ -206,6 +210,7 @@ const CategoryColumn = React.memo(function CategoryColumn({
 export function HierarchicalCategorySelector({
   sections,
   selectedIds,
+  selectedItems,
   onToggleCategory,
   loadCategories,
   error,
@@ -286,13 +291,29 @@ export function HierarchicalCategorySelector({
   const smallCategories = activeMiddleId ? activeSectionState.smallItemsByParent[activeMiddleId] ?? [] : [];
   const normalizedSearchQuery = searchQuery.trim();
   const selectedIdSet = React.useMemo(() => new Set(selectedIds), [selectedIds]);
-  const selectedNodes = React.useMemo(
-    () =>
-      selectedIds
-        .map((categoryId) => nodeCache[categoryId])
-        .filter((node): node is CategorySelectorItem => Boolean(node)),
-    [nodeCache, selectedIds],
-  );
+  const selectedNodes = React.useMemo(() => {
+    const selectedItemMap = new Map<number, SelectedCategoryDisplayItem>();
+    const nextSelectedNodes: SelectedCategoryDisplayItem[] = [];
+
+    selectedItems?.forEach((item) => {
+      selectedItemMap.set(item.id, item);
+    });
+
+    selectedIds.forEach((categoryId) => {
+      const node = nodeCache[categoryId] ?? selectedItemMap.get(categoryId);
+      const selectedItem = selectedItemMap.get(categoryId);
+      if (!node) return;
+
+      nextSelectedNodes.push({
+        id: node.id,
+        name: node.name,
+        full_path: node.full_path,
+        domain: selectedItem?.domain,
+      });
+    });
+
+    return nextSelectedNodes;
+  }, [nodeCache, selectedIds, selectedItems]);
   const sectionTabItems = React.useMemo(
     () => sections.map((section) => ({ value: section.key, label: section.label })),
     [sections],

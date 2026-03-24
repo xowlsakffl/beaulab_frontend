@@ -17,6 +17,7 @@ import {
   mapDoctorDetailToForm,
   sanitizeDoctorList,
   validateUpdateDoctorForm,
+  type DoctorCategoryItem,
   type DoctorDetailResponse,
   type DoctorFieldName,
   type DoctorFormErrors,
@@ -36,7 +37,7 @@ import {
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
-export default function DoctorDetailFormClient() {
+export default function DoctorEditFormClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,6 +55,7 @@ export default function DoctorDetailFormClient() {
   const [educationCertificateImages, setEducationCertificateImages] = React.useState<File[]>([]);
   const [etcCertificateImages, setEtcCertificateImages] = React.useState<File[]>([]);
   const [existingProfileImage, setExistingProfileImage] = React.useState<ExistingMediaItem | null>(null);
+  const [selectedCategoryItems, setSelectedCategoryItems] = React.useState<DoctorCategoryItem[]>([]);
   const [existingLicenseImage, setExistingLicenseImage] = React.useState<ReturnType<typeof buildDoctorExistingFileItem>>(null);
   const [existingSpecialistCertificateImage, setExistingSpecialistCertificateImage] =
     React.useState<ReturnType<typeof buildDoctorExistingFileItem>>(null);
@@ -124,7 +126,7 @@ export default function DoctorDetailFormClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<DoctorDetailResponse>(`/doctors/${doctorId}`);
+      const response = await api.get<DoctorDetailResponse>(`/doctors/${doctorId}/edit`);
 
       if (!isApiSuccess(response)) {
         setLoadError(response.error.message || "의료진 정보를 불러오지 못했습니다.");
@@ -133,6 +135,7 @@ export default function DoctorDetailFormClient() {
 
       const detail = response.data;
       setForm(mapDoctorDetailToForm(detail));
+      setSelectedCategoryItems(detail.categories ?? []);
       setExistingProfileImage(buildDoctorExistingFileItem(detail.profile_image));
       setExistingLicenseImage(buildDoctorExistingFileItem(detail.license_image));
       setExistingSpecialistCertificateImage(buildDoctorExistingFileItem(detail.specialist_certificate_image));
@@ -274,8 +277,8 @@ export default function DoctorDetailFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-stretch xl:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.68fr)]">
-      <div className="flex h-full flex-col gap-6">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.68fr)]">
+      <div className="min-w-0 flex flex-col gap-6">
         <DoctorBasicInfoSection
           form={form}
           errors={errors}
@@ -293,46 +296,53 @@ export default function DoctorDetailFormClient() {
 
         <DoctorCategorySection
           selectedIds={form.category_ids}
+          selectedItems={selectedCategoryItems}
           errors={errors}
           loadCategories={loadCategories}
           onToggleCategory={toggleCategory}
         />
       </div>
 
-      <DoctorMedicalInfoSection
-        form={form}
-        errors={errors}
-        licenseImage={licenseImage}
-        specialistCertificateImage={specialistCertificateImage}
-        educationCertificateImages={educationCertificateImages}
-        etcCertificateImages={etcCertificateImages}
-        existingLicenseImage={licenseImage ? null : existingLicenseImage}
-        existingSpecialistCertificateImage={specialistCertificateImage ? null : existingSpecialistCertificateImage}
-        existingEducationCertificateImages={educationCertificateImages.length > 0 ? [] : existingEducationCertificateImages}
-        existingEtcCertificateImages={etcCertificateImages.length > 0 ? [] : existingEtcCertificateImages}
-        isSubmitting={isSubmitting}
-        submitLabel="수정 저장"
-        submittingLabel="수정 중..."
-        secondaryActionLabel="목록으로"
-        onSecondaryAction={() => router.push(getReturnToPath())}
-        onFieldChange={setField}
-        onLicenseImageChange={(file) => {
-          setLicenseImage(file);
-          clearError("license_image");
-        }}
-        onSpecialistCertificateImageChange={(file) => {
-          setSpecialistCertificateImage(file);
-          clearError("specialist_certificate_image");
-        }}
-        onEducationCertificateImagesChange={(files) => {
-          setEducationCertificateImages(files);
-          clearError("education_certificate_image");
-        }}
-        onEtcCertificateImagesChange={(files) => {
-          setEtcCertificateImages(files);
-          clearError("etc_certificate_image");
-        }}
-      />
+      <div className="min-w-0 space-y-6">
+        <DoctorMedicalInfoSection
+          form={form}
+          errors={errors}
+          licenseImage={licenseImage}
+          specialistCertificateImage={specialistCertificateImage}
+          educationCertificateImages={educationCertificateImages}
+          etcCertificateImages={etcCertificateImages}
+          existingLicenseImage={licenseImage ? null : existingLicenseImage}
+          existingSpecialistCertificateImage={specialistCertificateImage ? null : existingSpecialistCertificateImage}
+          existingEducationCertificateImages={educationCertificateImages.length > 0 ? [] : existingEducationCertificateImages}
+          existingEtcCertificateImages={etcCertificateImages.length > 0 ? [] : existingEtcCertificateImages}
+          onFieldChange={setField}
+          onLicenseImageChange={(file) => {
+            setLicenseImage(file);
+            clearError("license_image");
+          }}
+          onSpecialistCertificateImageChange={(file) => {
+            setSpecialistCertificateImage(file);
+            clearError("specialist_certificate_image");
+          }}
+          onEducationCertificateImagesChange={(files) => {
+            setEducationCertificateImages(files);
+            clearError("education_certificate_image");
+          }}
+          onEtcCertificateImagesChange={(files) => {
+            setEtcCertificateImages(files);
+            clearError("etc_certificate_image");
+          }}
+        />
+
+        <div className="flex flex-col gap-3">
+          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
+            목록으로
+          </Button>
+          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "수정 중..." : "수정 저장"}
+          </Button>
+        </div>
+      </div>
     </form>
   );
 }

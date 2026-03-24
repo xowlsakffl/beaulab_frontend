@@ -2,7 +2,7 @@
 
 이 문서는 현재 `beaulab_frontend`의 실제 구조를 기준으로 정리한 운영 문서입니다.
 
-작성 기준: 2026-03-23
+작성 기준: 2026-03-24
 
 ## 1. 범위
 
@@ -55,6 +55,10 @@ apps/staff-web
 apps/staff-web/
 ├─ app/
 │  ├─ (admin)/
+│  │  └─ (pages)/
+│  │     ├─ (common)/
+│  │     ├─ (hospital)/
+│  │     └─ (beauty)/
 │  └─ (auth)/
 ├─ components/
 │  ├─ common/
@@ -98,6 +102,7 @@ apps/staff-web/
 - 라우트 단위 page/layout 정의
 - 페이지 클라이언트 컴포넌트 연결
 - 권한 보호 shell 진입
+- `(admin)/(pages)` 아래 route group과 공통 페이지는 `common / hospital / beauty` 기준으로만 나눕니다.
 
 원칙:
 
@@ -117,6 +122,14 @@ apps/staff-web/
 
 - `ui-admin`은 제품 비의존 UI
 - `components/common`은 staff 관리자 앱 전용 adapter
+
+현재 사이드바 메뉴는 아래 기준으로 조합합니다.
+
+- `sidebar-menu.tsx`가 병원/뷰티 도메인 메뉴와 공통 메뉴를 따로 정의합니다.
+- `app/(admin)/layout.tsx`가 현재 domain toggle 상태를 들고 최종 메뉴를 합칩니다.
+- `packages/ui-admin`의 `AppSidebar`는 전달받은 `topContent`와 메뉴를 렌더링만 합니다.
+- 최종 렌더링에서도 `main=도메인 메뉴`, `others=공통 메뉴`를 유지해서 섹션 라벨을 분리합니다.
+- 뷰티 도메인 전용 placeholder 페이지는 병원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
 
 ### 4.3 `components/hospital`, `components/doctor`
 
@@ -232,15 +245,22 @@ apps/staff-web/
 5. 성공 알림은 전역 하단 alert를 사용합니다.
 6. 성공 후에는 목록으로 복귀하고 `highlight`를 남깁니다.
 
+권한이 분리된 리소스는 상세와 수정을 같은 route에 섞지 않습니다.
+
+- 상세: `/resource/[id]`
+- 수정: `/resource/[id]/edit`
+
 현재 관련 파일:
 
 - 병의원 생성/수정
   - [HospitalsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx)
-  - [HospitalDetailFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailFormClient.tsx)
+  - [HospitalDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailPageClient.tsx)
+  - [HospitalEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/edit/HospitalEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/form.ts)
 - 의료진 생성/수정
   - [DoctorsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/new/DoctorsCreateFormClient.tsx)
-  - [DoctorDetailFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailFormClient.tsx)
+  - [DoctorDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailPageClient.tsx)
+  - [DoctorEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/edit/DoctorEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/form.ts)
 
 ## 6. 권한/메뉴/세션

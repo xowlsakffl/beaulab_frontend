@@ -11,6 +11,7 @@ type SidebarContextType = {
   openSubmenu: string | null;
   toggleSidebar: () => void;
   toggleMobileSidebar: () => void;
+  closeMobileSidebar: () => void;
   setIsHovered: (isHovered: boolean) => void;
   setActiveItem: (item: string | null) => void;
   toggleSubmenu: (item: string) => void;
@@ -47,6 +48,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   const toggleSidebar = () => setIsExpanded((prev) => !prev);
   const toggleMobileSidebar = () => setIsMobileOpen((prev) => !prev);
+  const closeMobileSidebar = () => setIsMobileOpen(false);
   const toggleSubmenu = (item: string) => setOpenSubmenu((prev) => (prev === item ? null : item));
 
   return (
@@ -59,6 +61,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
             openSubmenu,
             toggleSidebar,
             toggleMobileSidebar,
+            closeMobileSidebar,
             setIsHovered,
             setActiveItem,
             toggleSubmenu,

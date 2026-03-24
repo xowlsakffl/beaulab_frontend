@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   Button,
   FormTextArea,
@@ -6,8 +8,10 @@ import {
   Label,
   Select,
   SpinnerBlock,
+  TogglePillGroup,
   type CategorySelectorItem,
   type CategorySelectorLoadParams,
+  type TogglePillOption,
 } from "@beaulab/ui-admin";
 
 import {
@@ -16,6 +20,7 @@ import {
   HOSPITAL_STATUS_OPTIONS,
   type HospitalAddressDetailField,
   type HospitalAddressField,
+  type HospitalCategoryItem,
   type HospitalFeatureItem,
   type HospitalFormErrors,
   type HospitalFormValues,
@@ -27,6 +32,7 @@ type HospitalBasicSectionProps = {
   errors: HospitalFormErrors;
   daumPostcodeError: string | null;
   hospitalFeatures: HospitalFeatureItem[];
+  selectedCategoryItems?: HospitalCategoryItem[];
   isHospitalFeaturesLoading: boolean;
   hospitalFeaturesError: string | null;
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
@@ -44,6 +50,7 @@ export function HospitalBasicSection({
   errors,
   daumPostcodeError,
   hospitalFeatures,
+  selectedCategoryItems,
   isHospitalFeaturesLoading,
   hospitalFeaturesError,
   loadCategories,
@@ -158,6 +165,7 @@ export function HospitalBasicSection({
           <HierarchicalCategorySelector
             sections={CATEGORY_SECTIONS}
             selectedIds={form.category_ids}
+            selectedItems={selectedCategoryItems}
             onToggleCategory={onToggleCategory}
             loadCategories={loadCategories}
             error={errors.category_ids}
@@ -177,8 +185,8 @@ export function HospitalBasicSection({
 
       <div className="space-y-2">
         <Label>병의원 주소</Label>
-        <div className="flex gap-2">
-          <div className="flex-1">
+        <div className="grid grid-cols-[minmax(0,1fr)_104px] gap-2">
+          <div className="min-w-0">
             <InputField
               id="address"
               name="address"
@@ -200,7 +208,7 @@ export function HospitalBasicSection({
             type="button"
             variant="outline"
             onClick={() => void onOpenAddressSearch("address", "address_detail")}
-            className="h-11 shrink-0 border-brand-500 px-4 text-brand-500 hover:bg-gray-100"
+            className="h-11 w-full shrink-0 border-brand-500 px-4 text-brand-500 hover:bg-gray-100"
           >
             주소 검색
           </Button>
@@ -279,6 +287,15 @@ function HospitalFeatureSelector({
   loadError?: string | null;
   onToggleFeature: (featureId: number, checked: boolean) => void;
 }) {
+  const featureOptions = React.useMemo<readonly TogglePillOption[]>(
+    () =>
+      features.map((feature) => ({
+        value: feature.id,
+        label: feature.name,
+      })),
+    [features],
+  );
+
   return (
     <div className="space-y-2" data-field-target="feature_ids" tabIndex={-1}>
       <div className="space-y-1">
@@ -295,28 +312,12 @@ function HospitalFeatureSelector({
         ) : features.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">등록된 병원 특징이 없습니다.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-            {features.map((feature) => {
-              const isSelected = selectedIds.includes(feature.id);
-
-              return (
-                <button
-                  key={feature.id}
-                  type="button"
-                  onClick={() => onToggleFeature(feature.id, !isSelected)}
-                  aria-pressed={isSelected}
-                  className={[
-                    "h-11 rounded-xl border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                    isSelected
-                      ? "border-[#f58bb6] bg-[#f58bb6] text-white focus-visible:ring-[#f58bb6]"
-                      : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700",
-                  ].join(" ")}
-                >
-                  {feature.name}
-                </button>
-              );
-            })}
-          </div>
+          <TogglePillGroup
+            options={featureOptions}
+            selectedValues={selectedIds}
+            size="sm"
+            onToggle={(value, checked) => onToggleFeature(Number(value), checked)}
+          />
         )}
       </div>
 

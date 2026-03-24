@@ -44,7 +44,9 @@ export type DoctorMediaAsset = {
 
 export type DoctorCategoryItem = {
   id: number;
+  domain?: string | null;
   name: string;
+  full_path?: string | null;
   is_primary?: boolean;
 };
 
@@ -70,6 +72,9 @@ export type DoctorDetailResponse = {
   specialist_certificate_image?: DoctorMediaAsset | null;
   education_certificate_image?: DoctorMediaAsset[] | null;
   etc_certificate_image?: DoctorMediaAsset[] | null;
+  view_count?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export const INITIAL_DOCTOR_FORM: DoctorFormValues = {

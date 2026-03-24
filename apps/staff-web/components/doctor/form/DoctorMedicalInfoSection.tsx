@@ -32,11 +32,6 @@ type DoctorMedicalInfoSectionProps = {
   specialistCertificateImage: File | null;
   educationCertificateImages: File[];
   etcCertificateImages: File[];
-  isSubmitting: boolean;
-  submitLabel?: string;
-  submittingLabel?: string;
-  secondaryActionLabel?: string;
-  onSecondaryAction?: () => void;
   existingLicenseImage?: ExistingDoctorFile | null;
   existingSpecialistCertificateImage?: ExistingDoctorFile | null;
   existingEducationCertificateImages?: ExistingDoctorFile[];
@@ -55,11 +50,6 @@ export function DoctorMedicalInfoSection({
   specialistCertificateImage,
   educationCertificateImages,
   etcCertificateImages,
-  isSubmitting,
-  submitLabel = "의료진 등록",
-  submittingLabel = "등록 중...",
-  secondaryActionLabel,
-  onSecondaryAction,
   existingLicenseImage,
   existingSpecialistCertificateImage,
   existingEducationCertificateImages = [],
@@ -71,7 +61,7 @@ export function DoctorMedicalInfoSection({
   onEtcCertificateImagesChange,
 }: DoctorMedicalInfoSectionProps) {
   return (
-    <Card as="aside" className="h-full">
+    <Card as="aside">
       <CardHeader className="pb-6">
         <CardTitle>의사 정보</CardTitle>
         <CardDescription>면허, 경력, 증빙 파일을 등록해 주세요.</CardDescription>
@@ -79,7 +69,7 @@ export function DoctorMedicalInfoSection({
 
       <div className="space-y-6">
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_140px]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_140px]">
           <SingleDatePickerField
             id="career_started_at"
             label="경력 시작일"
@@ -207,17 +197,6 @@ export function DoctorMedicalInfoSection({
           maxFiles={5}
           onChange={onEtcCertificateImagesChange}
         />
-
-        <div className="flex gap-3">
-          {secondaryActionLabel && onSecondaryAction ? (
-            <Button type="button" variant="outline" size="auth" className="w-full" onClick={onSecondaryAction}>
-              {secondaryActionLabel}
-            </Button>
-          ) : null}
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? submittingLabel : submitLabel}
-          </Button>
-        </div>
       </div>
     </Card>
   );
@@ -320,8 +299,8 @@ function DoctorRepeaterField({
       <Label htmlFor={`${id}-0`}>{label}</Label>
       <div className="space-y-2">
         {rows.map((value, index) => (
-          <div key={`${id}-${index}`} className="flex gap-2">
-            <div className="flex-1">
+          <div key={`${id}-${index}`} className="flex items-stretch gap-2">
+            <div className="min-w-0 flex-1">
               <InputField
                 id={`${id}-${index}`}
                 value={value}
@@ -332,7 +311,14 @@ function DoctorRepeaterField({
             </div>
 
             {index === 0 ? (
-              <Button type="button" variant="brand" size="auth" className="min-w-[88px]" onClick={addRow} disabled={!canAddMore}>
+              <Button
+                type="button"
+                variant="brand"
+                size="auth"
+                className="w-[88px] shrink-0 px-2"
+                onClick={addRow}
+                disabled={!canAddMore}
+              >
                 {addLabel}
               </Button>
             ) : (
@@ -340,7 +326,7 @@ function DoctorRepeaterField({
                 type="button"
                 variant="outline"
                 size="auth"
-                className="min-w-[88px] border-red-500 text-red-500 hover:bg-red-50"
+                className="w-[88px] shrink-0 border-red-500 px-2 text-red-500 hover:bg-red-50"
                 onClick={() => removeRow(index)}
               >
                 {removeLabel}
@@ -406,7 +392,7 @@ function DoctorFileCollectionField({
           {existingFiles.map((file) => (
             <div
               key={String(file.id)}
-              className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{file.name}</p>
@@ -432,7 +418,7 @@ function DoctorFileCollectionField({
           {files.map((file, index) => (
             <div
               key={`${file.name}-${file.size}-${index}`}
-              className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{file.name}</p>

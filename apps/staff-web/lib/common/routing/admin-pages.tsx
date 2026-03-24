@@ -18,6 +18,92 @@ export type AdminPageDefinition = {
 
 export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     {
+        slug: ["beauties"],
+        title: "뷰티샵",
+        group: "뷰티샵 관리",
+        description: "뷰티샵 목록, 상태, 검수 흐름을 관리하는 기본 페이지입니다.",
+        requiredPermissions: ["beaulab.beauty.show"],
+    },
+    {
+        slug: ["experts"],
+        title: "뷰티전문가",
+        group: "뷰티샵 관리",
+        description: "뷰티전문가 목록과 운영 상태를 관리하는 기본 페이지입니다.",
+        requiredPermissions: ["beaulab.expert.show"],
+    },
+    {
+        slug: ["beauty-wallet", "beauties"],
+        title: "뷰티샵 목록",
+        group: "충전금",
+        description: "뷰티샵별 충전금 현황과 사용 흐름을 확인하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-wallet", "usages"],
+        title: "충전금 사용 목록",
+        group: "충전금",
+        description: "뷰티샵 충전금 사용 내역을 조회하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-customer-db", "remote-consultations"],
+        title: "비대면상담 DB",
+        group: "고객 DB 관리",
+        description: "뷰티 비대면 상담 DB를 조회하고 관리하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-customer-db", "real-models"],
+        title: "리얼모델 DB",
+        group: "고객 DB 관리",
+        description: "뷰티 리얼모델 지원 DB를 조회하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-ads", "events"],
+        title: "이벤트 관리",
+        group: "광고 관리",
+        description: "뷰티 이벤트 등록과 운영을 위한 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-ads", "products"],
+        title: "상품 등록 관리",
+        group: "광고 관리",
+        description: "뷰티 상품 등록과 승인 흐름을 위한 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-ads", "calendar"],
+        title: "상품 캘린더",
+        group: "광고 관리",
+        description: "뷰티 상품 일정과 노출 캘린더를 확인하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-posts", "beauty-posts"],
+        title: "뷰티 후기",
+        group: "게시물 관리",
+        description: "뷰티 후기 게시물을 조회하고 관리하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-posts", "beauty-reviews"],
+        title: "뷰티 리뷰",
+        group: "게시물 관리",
+        description: "뷰티 리뷰 게시물을 조회하고 관리하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-posts", "talks"],
+        title: "토크(커뮤니티)",
+        group: "게시물 관리",
+        description: "뷰티 토크 게시물을 조회하고 관리하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-reported-content", "posts"],
+        title: "게시물",
+        group: "신고컨텐츠 관리",
+        description: "신고된 뷰티 게시물을 검토하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["beauty-reported-content", "comments"],
+        title: "댓글",
+        group: "신고컨텐츠 관리",
+        description: "신고된 뷰티 댓글을 검토하는 기본 페이지입니다.",
+    },
+    {
         slug: ["doctors"],
         title: "의료진",
         group: "병의원 관리",

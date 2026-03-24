@@ -69,7 +69,9 @@ export type BusinessRegistrationAsset = {
 
 export type HospitalCategoryItem = {
   id: number;
+  domain?: string | null;
   name: string;
+  full_path?: string | null;
   is_primary?: boolean;
 };
 
@@ -100,6 +102,9 @@ export type HospitalDetailResponse = {
   categories?: HospitalCategoryItem[] | null;
   features?: HospitalFeatureItem[] | null;
   business_registration?: BusinessRegistrationAsset | null;
+  view_count?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export const FIELD_NAMES: readonly HospitalFieldName[] = [

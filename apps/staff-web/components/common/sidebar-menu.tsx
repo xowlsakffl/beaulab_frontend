@@ -26,9 +26,21 @@ type SidebarMenu = {
     others: SidebarNavItem[];
 };
 
+export type StaffSidebarDomain = "hospital" | "beauty";
+
+export type StaffSidebarMenuBundle = {
+    domainMenus: Record<StaffSidebarDomain, SidebarMenu>;
+    commonMenu: SidebarMenu;
+};
+
+export const STAFF_SIDEBAR_DOMAIN_OPTIONS: { key: StaffSidebarDomain; label: string }[] = [
+    { key: "hospital", label: "병원" },
+    { key: "beauty", label: "뷰티" },
+];
+
 const iconClass = "w-5 h-5";
 
-const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
+const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     main: [
         {
             icon: <LayoutGrid className={iconClass} />,
@@ -46,7 +58,7 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
         },
         {
             icon: <Wallet className={iconClass} />,
-            name: "충전금",
+            name: "충전금 관리",
             subItems: [
                 { name: "입금/충전 관리", path: "/wallet/deposits", requiredPermissions: ["common.access"] },
                 { name: "충전금 전체내역", path: "/wallet/history", requiredPermissions: ["common.access"] },
@@ -93,9 +105,71 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
                 { name: "토크", path: "/reported-content/talks", requiredPermissions: ["common.access"] },
             ],
         },
+    ],
+    others: [],
+};
+
+const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
+    main: [
+        {
+            icon: <Hospital className={iconClass} />,
+            name: "뷰티샵 관리",
+            subItems: [
+                { name: "뷰티샵", path: "/beauties", requiredPermissions: ["beaulab.beauty.show"] },
+                { name: "뷰티전문가", path: "/experts", requiredPermissions: ["beaulab.expert.show"] },
+            ],
+        },
+        {
+            icon: <Wallet className={iconClass} />,
+            name: "충전금 관리",
+            subItems: [
+                { name: "뷰티샵 목록", path: "/beauty-wallet/beauties", requiredPermissions: ["common.access"] },
+                { name: "충전금 사용 목록", path: "/beauty-wallet/usages", requiredPermissions: ["common.access"] },
+            ],
+        },
+        {
+            icon: <Database className={iconClass} />,
+            name: "고객 DB 관리",
+            subItems: [
+                { name: "비대면상담 DB", path: "/beauty-customer-db/remote-consultations", requiredPermissions: ["common.access"] },
+                { name: "리얼모델 DB", path: "/beauty-customer-db/real-models", requiredPermissions: ["common.access"] },
+            ],
+        },
+        {
+            icon: <Megaphone className={iconClass} />,
+            name: "광고 관리",
+            subItems: [
+                { name: "이벤트 관리", path: "/beauty-ads/events", requiredPermissions: ["common.access"] },
+                { name: "상품 등록 관리", path: "/beauty-ads/products", requiredPermissions: ["common.access"] },
+                { name: "상품 캘린더", path: "/beauty-ads/calendar", requiredPermissions: ["common.access"] },
+            ],
+        },
+        {
+            icon: <MessageSquareText className={iconClass} />,
+            name: "게시물 관리",
+            subItems: [
+                { name: "뷰티 후기", path: "/beauty-posts/beauty-posts", requiredPermissions: ["common.access"] },
+                { name: "뷰티 리뷰", path: "/beauty-posts/beauty-reviews", requiredPermissions: ["common.access"] },
+                { name: "토크(커뮤니티)", path: "/beauty-posts/talks", requiredPermissions: ["common.access"] },
+            ],
+        },
+        {
+            icon: <ShieldAlert className={iconClass} />,
+            name: "신고컨텐츠 관리",
+            subItems: [
+                { name: "게시물", path: "/beauty-reported-content/posts", requiredPermissions: ["common.access"] },
+                { name: "댓글", path: "/beauty-reported-content/comments", requiredPermissions: ["common.access"] },
+            ],
+        },
+    ],
+    others: [],
+};
+
+const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
+    main: [
         {
             icon: <Bell className={iconClass} />,
-            name: "공지사항",
+            name: "공지사항 관리",
             subItems: [
                 { name: "공지사항", path: "/notices", requiredPermissions: ["common.access"] },
                 { name: "자주하는 질문", path: "/faqs", requiredPermissions: ["common.access"] },
@@ -120,16 +194,16 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
         },
         {
             icon: <Images className={iconClass} />,
-            name: "컨텐츠",
+            name: "컨텐츠 관리",
             subItems: [
                 { name: "배너", path: "/content/banners", requiredPermissions: ["common.access"] },
                 { name: "팝업", path: "/content/popups", requiredPermissions: ["common.access"] },
-                { name: "상단타이틀 관리", path: "/content/top-titles", requiredPermissions: ["common.access"] },
+                { name: "상단타이틀", path: "/content/top-titles", requiredPermissions: ["common.access"] },
             ],
         },
         {
             icon: <ChartColumn className={iconClass} />,
-            name: "통계",
+            name: "통계 관리",
             path: "/statistics",
             requiredPermissions: ["common.access"],
         },
@@ -141,7 +215,7 @@ const staffMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
                 { name: "닉네임 관리", path: "/settings/nicknames", requiredPermissions: ["common.access"] },
                 { name: "직원 관리", path: "/settings/staff", requiredPermissions: ["common.access"] },
             ],
-        }
+        },
     ],
     others: [],
 };
@@ -183,6 +257,47 @@ function toSidebarMenu(menu: { main: AppNavItem[]; others: AppNavItem[] }, permi
     };
 }
 
-export function buildStaffSidebarMenu(permissions: string[]): SidebarMenu {
-    return toSidebarMenu(staffMenu, permissions);
+export function buildStaffSidebarMenus(permissions: string[]): StaffSidebarMenuBundle {
+    return {
+        domainMenus: {
+            hospital: toSidebarMenu(hospitalDomainMenu, permissions),
+            beauty: toSidebarMenu(beautyDomainMenu, permissions),
+        },
+        commonMenu: toSidebarMenu(commonMenu, permissions),
+    };
+}
+
+export function mergeStaffSidebarMenu(bundle: StaffSidebarMenuBundle, domain: StaffSidebarDomain): SidebarMenu {
+    return {
+        main: bundle.domainMenus[domain].main,
+        others: [
+            ...bundle.domainMenus[domain].others,
+            ...bundle.commonMenu.main,
+            ...bundle.commonMenu.others,
+        ],
+    };
+}
+
+export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebarDomain | null {
+    if (!pathname) {
+        return null;
+    }
+
+    if (
+        pathname.startsWith("/beauties")
+        || pathname.startsWith("/experts")
+        || pathname.startsWith("/beauty-")
+    ) {
+        return "beauty";
+    }
+
+    if (
+        pathname === "/" ||
+        pathname.startsWith("/hospitals") ||
+        pathname.startsWith("/doctors")
+    ) {
+        return "hospital";
+    }
+
+    return null;
 }

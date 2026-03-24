@@ -23,7 +23,7 @@ export function DoctorsToolbar({
         <InputField
           value={searchInput}
           onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
-          placeholder="소속 병원, 의료진명, 직책, 면허번호 검색"
+          placeholder="소속 병원, 의료진명, 직책 검색"
           className="bg-white dark:bg-gray-800"
         />
       </div>

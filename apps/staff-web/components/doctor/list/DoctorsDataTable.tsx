@@ -2,12 +2,14 @@ import React from "react";
 
 import {
   Button,
+  Check,
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
   DataTable,
   Select,
   StatusBadge,
+  X,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -149,8 +151,8 @@ function buildDoctorColumns({
     },
     {
       key: "isSpecialist",
-      headerClassName: `${headerBaseClass} lg:w-[96px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[96px]`,
+      headerClassName: `${headerBaseClass} lg:w-[110px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
         <Button
           type="button"
@@ -162,7 +164,13 @@ function buildDoctorColumns({
           전문의 여부 <span className="text-xs text-gray-400">{renderSortMark("is_specialist", sortState)}</span>
         </Button>
       ),
-      render: (row) => (row.isSpecialist ? "O" : "X"),
+      render: (row) => (
+        <StatusBadge
+          size="sm"
+          color={row.isSpecialist ? "success" : "error"}
+          startIcon={row.isSpecialist ? <Check className="size-3.5" /> : <X className="size-3.5" />}
+        />
+      ),
     },
     {
       key: "careerPeriod",

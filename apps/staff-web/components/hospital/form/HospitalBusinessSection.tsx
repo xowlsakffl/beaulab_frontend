@@ -181,8 +181,8 @@ export function HospitalBusinessSection({
           />
         </div>
 
-        <div className="flex gap-2">
-          <div className="flex-1">
+        <div className="grid grid-cols-[minmax(0,1fr)_104px] gap-2">
+          <div className="min-w-0">
             <InputField
               id="business_address"
               name="business_address"
@@ -214,7 +214,7 @@ export function HospitalBusinessSection({
             variant="outline"
             onClick={() => void onOpenAddressSearch("business_address", "business_address_detail")}
             disabled={isBusinessAddressSameAsHospital}
-            className="h-11 shrink-0 border-brand-500 px-4 text-brand-500 hover:bg-gray-100 disabled:border-gray-200 disabled:text-gray-400"
+            className="h-11 w-full shrink-0 border-brand-500 px-4 text-brand-500 hover:bg-gray-100 disabled:border-gray-200 disabled:text-gray-400"
           >
             주소 검색
           </Button>

@@ -18,6 +18,7 @@ import {
   normalizeBusinessNumber,
   resolveMediaUrl,
   validateUpdateHospitalForm,
+  type HospitalCategoryItem,
   type HospitalDetailResponse,
   type HospitalFieldName,
   type HospitalFormErrors,
@@ -39,7 +40,7 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 
-export default function HospitalDetailFormClient() {
+export default function HospitalEditFormClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -73,7 +74,8 @@ export default function HospitalDetailFormClient() {
   const [existingLogo, setExistingLogo] = React.useState<MediaAsset | null>(null);
   const [existingGallery, setExistingGallery] = React.useState<MediaAsset[]>([]);
   const [existingCertificate, setExistingCertificate] = React.useState<MediaAsset | null>(null);
-  const [pageTitle, setPageTitle] = React.useState("병의원 상세 수정");
+  const [selectedCategoryItems, setSelectedCategoryItems] = React.useState<HospitalCategoryItem[]>([]);
+  const [pageTitle, setPageTitle] = React.useState("병의원 수정");
   const [isBusinessAddressSameAsHospital, setIsBusinessAddressSameAsHospital] = React.useState(false);
   const [errors, setErrors] = React.useState<HospitalFormErrors>({});
   const [isLoading, setIsLoading] = React.useState(true);
@@ -180,7 +182,7 @@ export default function HospitalDetailFormClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}`, {
+      const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}/edit`, {
         include: "business_registration,categories,features",
       });
 
@@ -193,6 +195,7 @@ export default function HospitalDetailFormClient() {
       const nextForm = mapHospitalDetailToForm(data);
 
       setForm(nextForm);
+      setSelectedCategoryItems(data.categories ?? []);
       setExistingLogo(data.logo ?? null);
       setExistingGallery(data.gallery ?? []);
       setExistingCertificate(data.business_registration?.certificate_media ?? null);
@@ -369,7 +372,7 @@ export default function HospitalDetailFormClient() {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1fr)_360px]">
-      <Card as="section">
+      <Card as="section" className="min-w-0">
         <CardHeader className="pb-6">
           <CardTitle>{pageTitle}</CardTitle>
         </CardHeader>
@@ -379,11 +382,12 @@ export default function HospitalDetailFormClient() {
             mode="edit"
             form={form}
             errors={errors}
-            daumPostcodeError={daumPostcodeError}
-            hospitalFeatures={hospitalFeatures}
-            isHospitalFeaturesLoading={isHospitalFeaturesLoading}
-            hospitalFeaturesError={hospitalFeaturesError}
-            loadCategories={loadCategories}
+              daumPostcodeError={daumPostcodeError}
+              hospitalFeatures={hospitalFeatures}
+              selectedCategoryItems={selectedCategoryItems}
+              isHospitalFeaturesLoading={isHospitalFeaturesLoading}
+              hospitalFeaturesError={hospitalFeaturesError}
+              loadCategories={loadCategories}
             onToggleCategory={toggleCategory}
             onToggleFeature={toggleFeature}
             onOpenAddressSearch={openAddressSearch}
@@ -410,17 +414,9 @@ export default function HospitalDetailFormClient() {
           />
         </div>
 
-        <div className="mt-8 flex gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "저장 중..." : "수정 저장"}
-          </Button>
-        </div>
       </Card>
 
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <HospitalMediaPanel
           filesByCollection={{
             logo: logo ? [logo] : [],
@@ -459,6 +455,15 @@ export default function HospitalDetailFormClient() {
             clearError("gallery");
           }}
         />
+
+        <div className="flex flex-col gap-3">
+          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
+            목록으로
+          </Button>
+          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "저장 중..." : "수정 저장"}
+          </Button>
+        </div>
       </div>
     </form>
   );

@@ -19,7 +19,7 @@ import {
   type DoctorHospitalOption,
 } from "@/lib/doctor/form";
 import { isApiSuccess } from "@beaulab/types";
-import { useGlobalAlert } from "@beaulab/ui-admin";
+import { Button, useGlobalAlert } from "@beaulab/ui-admin";
 import { useRouter } from "next/navigation";
 
 export default function DoctorsCreateFormClient() {
@@ -189,8 +189,8 @@ export default function DoctorsCreateFormClient() {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-stretch xl:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.68fr)]">
-      <div className="flex h-full flex-col gap-6">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.68fr)]">
+      <div className="min-w-0 flex flex-col gap-6">
         <DoctorBasicInfoSection
           form={form}
           errors={errors}
@@ -212,32 +212,42 @@ export default function DoctorsCreateFormClient() {
         />
       </div>
 
-      <DoctorMedicalInfoSection
-        form={form}
-        errors={errors}
-        licenseImage={licenseImage}
-        specialistCertificateImage={specialistCertificateImage}
-        educationCertificateImages={educationCertificateImages}
-        etcCertificateImages={etcCertificateImages}
-        isSubmitting={isSubmitting}
-        onFieldChange={setField}
-        onLicenseImageChange={(file) => {
-          setLicenseImage(file);
-          clearError("license_image");
-        }}
-        onSpecialistCertificateImageChange={(file) => {
-          setSpecialistCertificateImage(file);
-          clearError("specialist_certificate_image");
-        }}
-        onEducationCertificateImagesChange={(files) => {
-          setEducationCertificateImages(files);
-          clearError("education_certificate_image");
-        }}
-        onEtcCertificateImagesChange={(files) => {
-          setEtcCertificateImages(files);
-          clearError("etc_certificate_image");
-        }}
-      />
+      <div className="min-w-0 space-y-6">
+        <DoctorMedicalInfoSection
+          form={form}
+          errors={errors}
+          licenseImage={licenseImage}
+          specialistCertificateImage={specialistCertificateImage}
+          educationCertificateImages={educationCertificateImages}
+          etcCertificateImages={etcCertificateImages}
+          onFieldChange={setField}
+          onLicenseImageChange={(file) => {
+            setLicenseImage(file);
+            clearError("license_image");
+          }}
+          onSpecialistCertificateImageChange={(file) => {
+            setSpecialistCertificateImage(file);
+            clearError("specialist_certificate_image");
+          }}
+          onEducationCertificateImagesChange={(files) => {
+            setEducationCertificateImages(files);
+            clearError("education_certificate_image");
+          }}
+          onEtcCertificateImagesChange={(files) => {
+            setEtcCertificateImages(files);
+            clearError("etc_certificate_image");
+          }}
+        />
+
+        <div className="flex flex-col gap-3">
+          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push("/doctors")}>
+            목록으로
+          </Button>
+          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "등록 중..." : "의료진 등록"}
+          </Button>
+        </div>
+      </div>
     </form>
   );
 }

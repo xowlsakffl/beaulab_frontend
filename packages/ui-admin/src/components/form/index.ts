@@ -20,5 +20,7 @@ export { MediaUploader } from "./media/MediaUploader";
 export type { ExistingMediaItem, MediaCollectionConfig } from "./media/MediaUploader";
 export { SingleDatePickerField } from "./pickers/SingleDatePickerField";
 export { Select } from "./Select";
+export { TogglePillGroup } from "./TogglePillGroup";
+export type { TogglePillOption } from "./TogglePillGroup";
 export { Label } from "./Label";
 export type { LabelProps } from "./Label";

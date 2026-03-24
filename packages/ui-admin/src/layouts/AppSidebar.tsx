@@ -34,6 +34,7 @@ type AppSidebarProps = {
     others?: SidebarNavItem[];
   };
   brand?: SidebarBrand;
+  topContent?: ReactNode;
   sectionLabels?: {
     main?: string;
     others?: string;
@@ -43,9 +44,10 @@ type AppSidebarProps = {
 export function AppSidebar({
   menu,
   brand,
+  topContent,
   sectionLabels = { main: "Menu", others: "Other" },
 }: AppSidebarProps) {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, closeMobileSidebar } = useSidebar();
   const pathname = usePathname();
   const mainItems = menu.main;
   const otherItems = menu.others ?? [];
@@ -104,7 +106,15 @@ export function AppSidebar({
               ) : null}
             </button>
           ) : nav.path ? (
-            <Link href={nav.path} className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}>
+            <Link
+              href={nav.path}
+              onClick={() => {
+                if (isMobileOpen) {
+                  closeMobileSidebar();
+                }
+              }}
+              className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}
+            >
               <span className={`${isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}>
                 {nav.icon ?? <span className="h-5 w-5" />}
               </span>
@@ -125,6 +135,11 @@ export function AppSidebar({
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
+                      onClick={() => {
+                        if (isMobileOpen) {
+                          closeMobileSidebar();
+                        }
+                      }}
                       className={`menu-dropdown-item ${isActive(subItem.path) ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive"}`}
                     >
                       {subItem.name}
@@ -187,6 +202,8 @@ export function AppSidebar({
           <Link href={brand.href ?? "/"}>{canShowMenuContent ? brand.expandedLogo : brand.collapsedLogo ?? brand.expandedLogo}</Link>
         ) : null}
       </div>
+
+      {topContent && canShowMenuContent ? <div className="pb-6">{topContent}</div> : null}
 
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         <nav className="mb-6">
