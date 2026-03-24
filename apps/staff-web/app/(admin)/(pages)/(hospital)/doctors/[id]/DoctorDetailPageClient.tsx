@@ -3,6 +3,11 @@
 import React from "react";
 
 import { Can } from "@/components/common/guard";
+import {
+  DetailCompactMediaCard,
+  DetailEmptyState,
+  DetailImageMediaCard,
+} from "@/components/common/DetailMediaCard";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
@@ -345,9 +350,7 @@ function ProfileMediaSection({
       {media ? (
         <ProfileMediaCard media={media} />
       ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
-          {emptyText}
-        </div>
+        <DetailEmptyState>{emptyText}</DetailEmptyState>
       )}
     </section>
   );
@@ -373,9 +376,7 @@ function DocumentSection({
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
-          {emptyText}
-        </div>
+        <DetailEmptyState>{emptyText}</DetailEmptyState>
       )}
     </section>
   );
@@ -386,39 +387,12 @@ function ProfileMediaCard({ media }: { media: DoctorMediaAsset }) {
   const isImage = media.mime_type?.startsWith("image/") ?? false;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {mediaUrl && isImage ? (
-          // eslint-disable-next-line @next/next/no-img-element -- media URLs come from runtime API/storage configuration
-          <img src={mediaUrl} alt="" className="h-full w-full object-contain" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-            미리보기를 지원하지 않는 파일입니다.
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 dark:border-gray-800">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100" title={getDoctorMediaFilename(media)}>
-            {getDoctorMediaFilename(media)}
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {media.size ? <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(media.size)}</p> : null}
-            {mediaUrl ? (
-              <a
-                href={mediaUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
-              >
-                파일 보기
-              </a>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
+    <DetailImageMediaCard
+      fileName={getDoctorMediaFilename(media)}
+      fileUrl={mediaUrl}
+      imageUrl={mediaUrl && isImage ? mediaUrl : null}
+      sizeText={media.size ? formatBytes(media.size) : null}
+    />
   );
 }
 
@@ -426,28 +400,12 @@ function DocumentCard({ media }: { media: DoctorMediaAsset }) {
   const mediaUrl = resolveDoctorMediaUrl(media);
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-        파일
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{getDoctorMediaFilename(media)}</p>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-          {media.size ? <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(media.size)}</p> : null}
-          {mediaUrl ? (
-            <a
-              href={mediaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
-            >
-              파일 보기
-            </a>
-          ) : null}
-        </div>
-      </div>
-    </div>
+    <DetailCompactMediaCard
+      fileName={getDoctorMediaFilename(media)}
+      fileUrl={mediaUrl}
+      sizeText={media.size ? formatBytes(media.size) : null}
+      previewSizeClassName="h-14 w-14"
+    />
   );
 }
 

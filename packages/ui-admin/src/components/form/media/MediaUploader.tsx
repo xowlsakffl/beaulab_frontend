@@ -30,6 +30,7 @@ export type ExistingMediaItem = {
 
 type MediaUploaderProps<T extends string = string> = {
   title?: string;
+  embedded?: boolean;
   collections: readonly MediaCollectionConfig<T>[];
   filesByCollection: Partial<Record<T, File[]>>;
   existingItemsByCollection?: Partial<Record<T, ExistingMediaItem[]>>;
@@ -887,6 +888,7 @@ function AnimatedMediaFileList({
 
 export function MediaUploader<T extends string = string>({
   title = "파일 업로드",
+  embedded = false,
   collections,
   filesByCollection,
   existingItemsByCollection,
@@ -927,15 +929,7 @@ export function MediaUploader<T extends string = string>({
     [filesByCollection, setFiles],
   );
 
-  return (
-    <Card as="aside">
-      <CardHeader className="p-0 pb-5">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>이미지 항목별로 파일을 업로드해 주세요.</CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-0 p-0">
-        {collections.map((collection, index) => {
+  const content = collections.map((collection, index) => {
           const files = filesByCollection[collection.key] ?? [];
           const existingItems = existingItemsByCollection?.[collection.key] ?? [];
           const error = errors?.[collection.key];
@@ -949,20 +943,20 @@ export function MediaUploader<T extends string = string>({
           const canEditExistingItems = Boolean(onExistingItemsChange);
           const shouldShowLabel = collection.showLabel ?? true;
 
-          return (
-            <section
-              key={String(collection.key)}
-              data-media-collection={String(collection.key)}
-              tabIndex={-1}
-              className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8 dark:border-gray-800"}`}
-            >
-              {shouldShowLabel ? (
-                <div className="space-y-1.5">
-                  <h4 className={`text-sm font-semibold ${error ? "text-error-600 dark:text-error-400" : "text-gray-800 dark:text-white/90"}`}>
-                    {collection.label}
-                  </h4>
-                </div>
-              ) : null}
+    return (
+      <section
+        key={String(collection.key)}
+        data-media-collection={String(collection.key)}
+        tabIndex={-1}
+        className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8 dark:border-gray-800"}`}
+      >
+        {shouldShowLabel ? (
+          <div className="space-y-1.5">
+            <h4 className={`text-sm font-semibold ${error ? "text-error-600 dark:text-error-400" : "text-gray-800 dark:text-white/90"}`}>
+              {collection.label}
+            </h4>
+          </div>
+        ) : null}
 
               <Dropzone
                 accept={collection.accept}
@@ -1085,13 +1079,25 @@ export function MediaUploader<T extends string = string>({
                 )
               ) : null}
 
-              {error ? (
-                <p className="text-xs text-error-500">{error}</p>
-              ) : null}
-            </section>
-          );
-        })}
-      </CardContent>
+        {error ? (
+          <p className="text-xs text-error-500">{error}</p>
+        ) : null}
+      </section>
+    );
+  });
+
+  if (embedded) {
+    return <div className="space-y-0">{content}</div>;
+  }
+
+  return (
+    <Card as="aside">
+      <CardHeader className="p-0 pb-5">
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>이미지 항목별로 파일을 업로드해 주세요.</CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-0 p-0">{content}</CardContent>
     </Card>
   );
 }

@@ -57,8 +57,8 @@ function buildVideoColumns({
     },
     {
       key: "hospitalName",
-      headerClassName: `${headerBaseClass} lg:w-[180px]`,
-      cellClassName: `${cellBaseClass} lg:w-[180px]`,
+      headerClassName: `${headerBaseClass} lg:w-[160px]`,
+      cellClassName: `${cellBaseClass} lg:w-[160px]`,
       header: "병의원명",
       render: (row) => (
         <span className="block truncate font-medium text-gray-800 dark:text-white/90" title={row.hospitalName}>
@@ -68,8 +68,8 @@ function buildVideoColumns({
     },
     {
       key: "doctorName",
-      headerClassName: `${headerBaseClass} lg:w-[140px]`,
-      cellClassName: `${cellBaseClass} lg:w-[140px]`,
+      headerClassName: `${headerBaseClass} lg:w-[128px]`,
+      cellClassName: `${cellBaseClass} lg:w-[128px]`,
       header: "의료진이름",
       render: (row) => (
         <span className="block truncate" title={row.doctorName}>
@@ -79,8 +79,8 @@ function buildVideoColumns({
     },
     {
       key: "title",
-      headerClassName: `${headerBaseClass} lg:w-[260px]`,
-      cellClassName: `${cellBaseClass} lg:w-[260px]`,
+      headerClassName: `${headerBaseClass} lg:w-[220px]`,
+      cellClassName: `${cellBaseClass} lg:w-[220px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("title")} className="inline-flex items-center gap-1 px-0 text-xs">
           제목 <span className="text-xs text-gray-400">{renderSortMark("title", sortState)}</span>
@@ -108,8 +108,8 @@ function buildVideoColumns({
     },
     {
       key: "distributionChannel",
-      headerClassName: `${headerBaseClass} lg:w-[120px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[120px]`,
+      headerClassName: `${headerBaseClass} lg:w-[110px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("distribution_channel")} className="inline-flex items-center gap-1 px-0 text-xs">
           배포채널 <span className="text-xs text-gray-400">{renderSortMark("distribution_channel", sortState)}</span>
@@ -119,8 +119,8 @@ function buildVideoColumns({
     },
     {
       key: "viewCount",
-      headerClassName: `${headerBaseClass} lg:w-[100px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[100px]`,
+      headerClassName: `${headerBaseClass} lg:w-[90px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[90px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("view_count")} className="inline-flex items-center gap-1 px-0 text-xs">
           조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
@@ -130,8 +130,8 @@ function buildVideoColumns({
     },
     {
       key: "likeCount",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
+      headerClassName: `${headerBaseClass} lg:w-[100px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[100px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("like_count")} className="inline-flex items-center gap-1 px-0 text-xs">
           좋아요 수 <span className="text-xs text-gray-400">{renderSortMark("like_count", sortState)}</span>
@@ -141,8 +141,8 @@ function buildVideoColumns({
     },
     {
       key: "operatingStatus",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
+      headerClassName: `${headerBaseClass} lg:w-[100px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[100px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
           운영 상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
@@ -156,8 +156,8 @@ function buildVideoColumns({
     },
     {
       key: "approvalStatus",
-      headerClassName: `${headerBaseClass} lg:w-[120px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[120px]`,
+      headerClassName: `${headerBaseClass} lg:w-[110px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allow_status")} className="inline-flex items-center gap-1 px-0 text-xs">
           검수 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
@@ -180,8 +180,8 @@ function buildVideoColumns({
     },
     {
       key: "requestedAt",
-      headerClassName: `${headerBaseClass} lg:w-[150px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[150px]`,
+      headerClassName: `${headerBaseClass} lg:w-[136px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[136px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("created_at")} className="inline-flex items-center gap-1 px-0 text-xs">
           등록신청일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
@@ -191,8 +191,8 @@ function buildVideoColumns({
     },
     {
       key: "completedAt",
-      headerClassName: `${headerBaseClass} lg:w-[150px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[150px]`,
+      headerClassName: `${headerBaseClass} lg:w-[136px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[136px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allowed_at")} className="inline-flex items-center gap-1 px-0 text-xs">
           등록완료일 <span className="text-xs text-gray-400">{renderSortMark("allowed_at", sortState)}</span>
@@ -243,7 +243,7 @@ export function VideosDataTable({
     <DataTable
       title="동영상 목록"
       description="병의원 파트너가 신청한 동영상의 검수 상태와 배포 정보를 확인할 수 있습니다."
-      tableClassName="min-w-[1760px] w-full lg:min-w-0 lg:table-fixed"
+      tableClassName="min-w-[1280px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

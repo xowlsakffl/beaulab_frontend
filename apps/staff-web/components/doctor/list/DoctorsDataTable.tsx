@@ -170,7 +170,7 @@ function buildDoctorColumns({
           color={row.isSpecialist ? "success" : "error"}
           startIcon={row.isSpecialist ? <Check className="size-3.5" /> : <X className="size-3.5" />}
         >
-          {row.isSpecialist ? "O" : "X"}
+          <span className="sr-only">{row.isSpecialist ? "전문의" : "비전문의"}</span>
         </StatusBadge>
       ),
     },

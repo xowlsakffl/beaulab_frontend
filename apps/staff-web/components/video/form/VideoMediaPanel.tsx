@@ -42,7 +42,7 @@ export function VideoMediaPanel({
 
       <div className="space-y-6">
         <MediaUploader
-          title="썸네일"
+          embedded
           collections={VIDEO_THUMBNAIL_COLLECTIONS}
           filesByCollection={{
             thumbnail_file: thumbnailFile ? [thumbnailFile] : [],
@@ -63,7 +63,7 @@ export function VideoMediaPanel({
         <div className="space-y-2">
           <p className="text-sm font-semibold text-gray-800 dark:text-white/90">원본 동영상 파일</p>
           {currentVideoFile ? (
-            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
               <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
                 {getVideoMediaFilename(currentVideoFile)}
               </p>
@@ -84,7 +84,7 @@ export function VideoMediaPanel({
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
+            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-5 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
               제출된 원본 동영상 파일이 없습니다.
             </div>
           )}

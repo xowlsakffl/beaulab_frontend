@@ -263,7 +263,7 @@ export default function VideoEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1fr)_360px]">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1fr)_420px]">
       <div className="min-w-0 space-y-6">
         <VideoBasicSection
           form={form}

@@ -30,7 +30,7 @@ type DateRangeFilterDropdownProps = {
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
 const filterTriggerClass =
-  "flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300";
+  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300";
 
 export function DateRangeFilterDropdown({
   label,
@@ -48,7 +48,7 @@ export function DateRangeFilterDropdown({
   locale = ko,
 }: DateRangeFilterDropdownProps) {
   return (
-    <div className="w-full">
+    <div className="min-w-0 w-full">
       <p className={filterFieldLabelClass}>{label}</p>
       <div ref={containerRef} className="relative">
         <Button
@@ -58,7 +58,7 @@ export function DateRangeFilterDropdown({
           onClick={onToggleOpen}
           className={filterTriggerClass}
         >
-          <span>{value || placeholder}</span>
+          <span className="min-w-0 flex-1 truncate text-left">{value || placeholder}</span>
           <ChevronDown className="size-4" />
         </Button>
         {isOpen ? (

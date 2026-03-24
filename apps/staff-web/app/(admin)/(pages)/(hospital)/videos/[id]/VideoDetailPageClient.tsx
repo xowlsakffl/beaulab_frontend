@@ -15,6 +15,11 @@ import {
 } from "@beaulab/ui-admin";
 
 import { Can } from "@/components/common/guard";
+import {
+  DetailCompactMediaCard,
+  DetailEmptyState,
+  DetailImageMediaCard,
+} from "@/components/common/DetailMediaCard";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
@@ -327,28 +332,15 @@ function ThumbnailSection({ media }: { media: VideoMediaAsset | null }) {
     <div className="space-y-2">
       <p className="text-sm font-semibold text-gray-800 dark:text-white/90">썸네일</p>
       {thumbnailUrl ? (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
-          <img src={thumbnailUrl} alt="동영상 썸네일" className="aspect-video w-full object-cover" />
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-800">
-            <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{getVideoMediaFilename(media)}</p>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              {media?.size ? <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(media.size)}</p> : null}
-              <a
-                href={thumbnailUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
-              >
-                파일 보기
-              </a>
-            </div>
-          </div>
-        </div>
+        <DetailImageMediaCard
+          fileName={getVideoMediaFilename(media)}
+          fileUrl={thumbnailUrl}
+          imageUrl={thumbnailUrl}
+          sizeText={media?.size ? formatBytes(media.size) : null}
+          previewAlt="동영상 썸네일"
+        />
       ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
-          업로드한 썸네일 파일이 없습니다.
-        </div>
+        <DetailEmptyState>업로드한 썸네일 파일이 없습니다.</DetailEmptyState>
       )}
     </div>
   );
@@ -369,26 +361,14 @@ function FileSummaryField({
     <div className="space-y-2">
       <p className="text-sm font-semibold text-gray-800 dark:text-white/90">{label}</p>
       {media ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{getVideoMediaFilename(media)}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {media.size ? <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(media.size)}</p> : null}
-            {fileUrl ? (
-              <a
-                href={fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
-              >
-                파일 보기
-              </a>
-            ) : null}
-          </div>
-        </div>
+        <DetailCompactMediaCard
+          fileName={getVideoMediaFilename(media)}
+          fileUrl={fileUrl}
+          sizeText={media.size ? formatBytes(media.size) : null}
+          previewSizeClassName="h-14 w-14"
+        />
       ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
-          {emptyText}
-        </div>
+        <DetailEmptyState>{emptyText}</DetailEmptyState>
       )}
     </div>
   );
