@@ -317,7 +317,7 @@ export default function HospitalsTableClient() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <HospitalsToolbar
         searchInput={searchInput}
         isFilterOpen={isFilterOpen}

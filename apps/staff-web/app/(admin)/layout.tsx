@@ -173,7 +173,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
             />
             <Backdrop />
 
-            <div className={`flex flex-1 flex-col transition-all duration-300 ease-in-out ${mainContentMargin}`}>
+            <div className={`min-w-0 flex flex-1 flex-col transition-all duration-300 ease-in-out ${mainContentMargin}`}>
                 <AppHeader
                     mobileHomeHref="/"
                     mobileLogo={
@@ -197,7 +197,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                         signOutItem: { label: "로그아웃", onClick: handleSignOut },
                     }}
                 />
-                <main className="flex-1 p-4 mx-auto w-full max-w-screen-2xl md:p-6">{children}</main>
+                <main className="mx-auto min-w-0 w-full max-w-screen-2xl flex-1 p-4 md:p-6">{children}</main>
             </div>
         </div>
     );
