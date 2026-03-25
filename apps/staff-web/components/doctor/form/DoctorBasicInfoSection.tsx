@@ -37,6 +37,7 @@ type DoctorBasicInfoSectionProps = {
   onFieldChange: (key: keyof DoctorFormValues, value: DoctorFormValues[keyof DoctorFormValues]) => void;
   onSelectHospital: (hospital: DoctorHospitalOption) => void;
   onProfileImageChange: (file: File | null) => void;
+  onExistingProfileImageChange?: (item: ExistingMediaItem | null) => void;
 };
 
 export function DoctorBasicInfoSection({
@@ -49,6 +50,7 @@ export function DoctorBasicInfoSection({
   onFieldChange,
   onSelectHospital,
   onProfileImageChange,
+  onExistingProfileImageChange,
 }: DoctorBasicInfoSectionProps) {
   const selectedHospital = form.hospital_id
     ? {
@@ -73,19 +75,24 @@ export function DoctorBasicInfoSection({
             filesByCollection={{
               profile_image: profileImage ? [profileImage] : [],
             }}
-            existingItemsByCollection={
-              existingProfileImage && !profileImage
-                ? {
-                    profile_image: [existingProfileImage],
-                  }
-                : undefined
-            }
+          existingItemsByCollection={
+            existingProfileImage && !profileImage
+              ? {
+                  profile_image: [existingProfileImage],
+                }
+              : undefined
+          }
             errors={{
               profile_image: errors.profile_image,
-            }}
-            onChange={(_, files) => onProfileImageChange(files[0] ?? null)}
-          />
-        </div>
+          }}
+          onExistingItemsChange={
+            onExistingProfileImageChange
+              ? (_, items) => onExistingProfileImageChange(items[0] ?? null)
+              : undefined
+          }
+          onChange={(_, files) => onProfileImageChange(files[0] ?? null)}
+        />
+      </div>
 
         <div className="min-w-0 space-y-6">
           <DoctorHospitalPicker

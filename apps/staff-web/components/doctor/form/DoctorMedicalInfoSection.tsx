@@ -41,6 +41,10 @@ type DoctorMedicalInfoSectionProps = {
   onSpecialistCertificateImageChange: (file: File | null) => void;
   onEducationCertificateImagesChange: (files: File[]) => void;
   onEtcCertificateImagesChange: (files: File[]) => void;
+  onExistingLicenseImageChange?: (file: ExistingDoctorFile | null) => void;
+  onExistingSpecialistCertificateImageChange?: (file: ExistingDoctorFile | null) => void;
+  onExistingEducationCertificateImagesChange?: (files: ExistingDoctorFile[]) => void;
+  onExistingEtcCertificateImagesChange?: (files: ExistingDoctorFile[]) => void;
 };
 
 export function DoctorMedicalInfoSection({
@@ -59,6 +63,10 @@ export function DoctorMedicalInfoSection({
   onSpecialistCertificateImageChange,
   onEducationCertificateImagesChange,
   onEtcCertificateImagesChange,
+  onExistingLicenseImageChange,
+  onExistingSpecialistCertificateImageChange,
+  onExistingEducationCertificateImagesChange,
+  onExistingEtcCertificateImagesChange,
 }: DoctorMedicalInfoSectionProps) {
   return (
     <Card as="aside">
@@ -120,6 +128,7 @@ export function DoctorMedicalInfoSection({
           error={errors.license_image}
           description={existingLicenseImage ? "새 파일 선택 시 기존 파일이 교체됩니다. jpg, png, webp, pdf / 최대 10MB" : "jpg, png, webp, pdf / 최대 10MB"}
           onChange={(files) => onLicenseImageChange(files[0] ?? null)}
+          onExistingFilesChange={onExistingLicenseImageChange ? (files) => onExistingLicenseImageChange(files[0] ?? null) : undefined}
         />
 
         <DoctorFileCollectionField
@@ -135,6 +144,11 @@ export function DoctorMedicalInfoSection({
               : "전문의인 경우 관련 증명서를 첨부해 주세요. 1개 파일만 업로드할 수 있습니다."
           }
           onChange={(files) => onSpecialistCertificateImageChange(files[0] ?? null)}
+          onExistingFilesChange={
+            onExistingSpecialistCertificateImageChange
+              ? (files) => onExistingSpecialistCertificateImageChange(files[0] ?? null)
+              : undefined
+          }
         />
 
         <DoctorRepeaterField
@@ -155,12 +169,13 @@ export function DoctorMedicalInfoSection({
           error={errors.education_certificate_image}
           description={
             existingEducationCertificateImages.length > 0
-              ? "새 파일 선택 시 기존 파일 전체가 교체됩니다. 최대 5개"
+              ? "기존 파일을 유지하거나 삭제하고 새 파일을 추가할 수 있습니다. 최대 5개"
               : "학력 관련 증빙 파일을 첨부해 주세요. 최대 5개"
           }
           multiple
           maxFiles={5}
           onChange={onEducationCertificateImagesChange}
+          onExistingFilesChange={onExistingEducationCertificateImagesChange}
         />
 
         <DoctorRepeaterField
@@ -190,12 +205,13 @@ export function DoctorMedicalInfoSection({
           error={errors.etc_certificate_image}
           description={
             existingEtcCertificateImages.length > 0
-              ? "새 파일 선택 시 기존 파일 전체가 교체됩니다. 최대 5개"
+              ? "기존 파일을 유지하거나 삭제하고 새 파일을 추가할 수 있습니다. 최대 5개"
               : "활동 사항 또는 기타 증빙 파일을 첨부해 주세요. 최대 5개"
           }
           multiple
           maxFiles={5}
           onChange={onEtcCertificateImagesChange}
+          onExistingFilesChange={onExistingEtcCertificateImagesChange}
         />
       </div>
     </Card>
@@ -352,6 +368,7 @@ function DoctorFileCollectionField({
   multiple = false,
   maxFiles,
   onChange,
+  onExistingFilesChange,
 }: {
   id: string;
   label: string;
@@ -363,8 +380,10 @@ function DoctorFileCollectionField({
   multiple?: boolean;
   maxFiles?: number;
   onChange: (files: File[]) => void;
+  onExistingFilesChange?: (files: ExistingDoctorFile[]) => void;
 }) {
-  const reachedLimit = typeof maxFiles === "number" && files.length >= maxFiles;
+  const totalFileCount = existingFiles.length + files.length;
+  const reachedLimit = Boolean(multiple && typeof maxFiles === "number" && totalFileCount >= maxFiles);
 
   return (
     <div className="space-y-2" data-field-target={id} tabIndex={-1}>
@@ -382,32 +401,57 @@ function DoctorFileCollectionField({
             return;
           }
 
-          onChange(multiple ? [...files, ...incomingFiles].slice(0, maxFiles ?? Number.POSITIVE_INFINITY) : [incomingFiles[0]]);
+          if (multiple) {
+            const remainingSlots = typeof maxFiles === "number" ? Math.max(maxFiles - totalFileCount, 0) : incomingFiles.length;
+
+            if (remainingSlots === 0) {
+              return;
+            }
+
+            onChange([...files, ...incomingFiles.slice(0, remainingSlots)]);
+            return;
+          }
+
+          onChange([incomingFiles[0]]);
         }}
       />
       <p className={`text-xs ${error ? "text-error-500" : "text-gray-500 dark:text-gray-400"}`}>{error || description}</p>
 
-      {existingFiles.length > 0 && files.length === 0 ? (
+      {existingFiles.length > 0 && (!files.length || multiple) ? (
         <div className="space-y-2">
-          {existingFiles.map((file) => (
+          {existingFiles.map((file, index) => (
             <div
               key={String(file.id)}
-              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60 sm:flex-row sm:items-center sm:justify-between"
+              className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{file.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {[file.size ? formatBytes(file.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {[file.size ? formatBytes(file.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
+                  </p>
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-medium text-brand-500 underline underline-offset-2"
+                  >
+                    파일 보기
+                  </a>
+                </div>
               </div>
-              <a
-                href={file.url}
-                target="_blank"
-                rel="noreferrer"
-                className="shrink-0 text-sm font-medium text-brand-500 underline underline-offset-2"
-              >
-                파일 보기
-              </a>
+              {onExistingFilesChange ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 text-gray-500 hover:text-red-600"
+                  onClick={() => onExistingFilesChange(existingFiles.filter((_, fileIndex) => fileIndex !== index))}
+                  title="파일 제거"
+                >
+                  <X className="size-4" />
+                </Button>
+              ) : null}
             </div>
           ))}
         </div>

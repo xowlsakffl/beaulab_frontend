@@ -229,6 +229,13 @@
 
 - 업로드는 가능한 한 `MediaUploader`를 재사용합니다.
 - create/edit에서 동작 차이를 최소화합니다.
+- 수정 폼 미디어 payload는 최종 상태 기준으로 보냅니다.
+- 단일 파일은 `existing_*_id + new file`, 다중 파일은 `existing_*_ids[] + new files[]`를 기본 규칙으로 씁니다.
+- `remove_*` 플래그보다 기존 id sync semantics를 우선합니다.
+- 기존/신규 다중 파일을 한 리스트에서 섞어 정렬하거나 대표를 바꿔야 하는 컬렉션은 `gallery_order[]` 같은 명시적 순서 payload를 씁니다.
+- 현재 병의원 갤러리는 `existing:{id}` / `new:{index}` 토큰 기반 `gallery_order[]`를 사용합니다.
+- 예외: 동영상 원본 파일(`video_file`)은 staff가 교체하지 않으므로 `remove_video_file`만 허용합니다.
+- 다중 파일 수정 UI는 기존 파일 목록과 새 파일 목록을 동시에 보여주고, 최대 개수는 둘을 합산해서 계산합니다.
 
 ## 9. 권한 규칙
 

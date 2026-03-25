@@ -36,6 +36,8 @@ import {
   labelVideoOperatingStatus,
 } from "@/lib/video/list";
 
+type VideoViewResponse = Omit<VideoDetailResponse, "hospital_business_number">;
+
 export default function VideoDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -44,7 +46,7 @@ export default function VideoDetailPageClient() {
   const rawVideoId = Array.isArray(params.id) ? params.id[0] : params.id;
   const videoId = Number(rawVideoId);
 
-  const [detail, setDetail] = React.useState<VideoDetailResponse | null>(null);
+  const [detail, setDetail] = React.useState<VideoViewResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
 
@@ -81,7 +83,7 @@ export default function VideoDetailPageClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<VideoDetailResponse>(`/videos/${videoId}`);
+      const response = await api.get<VideoViewResponse>(`/videos/${videoId}`);
 
       if (!isApiSuccess(response)) {
         setLoadError(response.error.message || "동영상 정보를 불러오지 못했습니다.");
@@ -124,7 +126,7 @@ export default function VideoDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -154,21 +156,21 @@ export default function VideoDetailPageClient() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <DetailField label="병의원명" value={detail.hospital_name} />
-              <DetailField label="사업자등록번호" value={detail.hospital_business_number} />
               <DetailField label="의료진이름" value={detail.doctor_name} />
-              <DetailField label="제목" value={detail.title} />
-              <StatusField label="운영 상태" value={detail.status} kind="status" />
-              <StatusField label="검수 상태" value={detail.allow_status} kind="allow_status" />
+              <DetailField label="제목" value={detail.title} multiline className="md:col-span-2" />
+              <DetailField label="설명" value={detail.description} multiline className="md:col-span-2" />
+
               <DetailField label="조회수" value={formatCount(detail.view_count)} />
               <DetailField label="좋아요 수" value={formatCount(detail.like_count)} />
-              <DetailField label="등록신청일" value={formatLocalDateTime(detail.created_at)} />
-              <DetailField label="등록완료일" value={formatLocalDateTime(detail.allowed_at)} />
+              <StatusField label="운영 상태" value={detail.status} kind="status" />
+              <StatusField label="검수 상태" value={detail.allow_status} kind="allow_status" />
               <TagField
                 label="카테고리"
                 items={detail.categories?.map((item) => item.full_path?.trim() || item.name) ?? []}
                 className="md:col-span-2"
               />
-              <DetailField label="설명" value={detail.description} multiline className="md:col-span-2" />
+              <DetailField label="등록신청일" value={formatLocalDateTime(detail.created_at)} />
+              <DetailField label="등록완료일" value={formatLocalDateTime(detail.allowed_at)} />
             </div>
           </section>
 
@@ -199,7 +201,12 @@ export default function VideoDetailPageClient() {
 
         <div className="space-y-6">
           <ThumbnailSection media={detail.thumbnail_file ?? null} />
-          <FileSummaryField label="원본 동영상 파일" media={detail.video_file ?? null} emptyText="제출된 원본 동영상 파일이 없습니다." />
+          <FileSummaryField
+            label="원본 동영상 파일"
+            media={detail.video_file ?? null}
+            downloadUrl={`/videos/${detail.id}/download-video-file`}
+            emptyText="제출된 원본 동영상 파일이 없습니다."
+          />
         </div>
       </Card>
     </div>
@@ -337,6 +344,7 @@ function ThumbnailSection({ media }: { media: VideoMediaAsset | null }) {
           fileUrl={thumbnailUrl}
           imageUrl={thumbnailUrl}
           sizeText={media?.size ? formatBytes(media.size) : null}
+          className="w-full"
           previewAlt="동영상 썸네일"
         />
       ) : (
@@ -349,10 +357,12 @@ function ThumbnailSection({ media }: { media: VideoMediaAsset | null }) {
 function FileSummaryField({
   label,
   media,
+  downloadUrl,
   emptyText,
 }: {
   label: string;
   media: VideoMediaAsset | null;
+  downloadUrl?: string | null;
   emptyText: string;
 }) {
   const fileUrl = resolveVideoMediaUrl(media);
@@ -364,8 +374,10 @@ function FileSummaryField({
         <DetailCompactMediaCard
           fileName={getVideoMediaFilename(media)}
           fileUrl={fileUrl}
+          downloadUrl={downloadUrl}
           sizeText={media.size ? formatBytes(media.size) : null}
           previewSizeClassName="h-14 w-14"
+          showDownload
         />
       ) : (
         <DetailEmptyState>{emptyText}</DetailEmptyState>
@@ -380,7 +392,24 @@ function formatCount(value?: number | null) {
 
 function formatDuration(value?: number | null) {
   if (!Number.isFinite(value)) return "-";
-  return `${Number(value).toLocaleString()}초`;
+
+  const totalSeconds = Math.max(0, Math.floor(Number(value)));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return [
+      String(hours).padStart(2, "0"),
+      String(minutes).padStart(2, "0"),
+      String(seconds).padStart(2, "0"),
+    ].join(":");
+  }
+
+  return [
+    String(minutes).padStart(2, "0"),
+    String(seconds).padStart(2, "0"),
+  ].join(":");
 }
 
 function formatPublishPeriod(detail: VideoDetailResponse) {

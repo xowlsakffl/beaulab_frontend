@@ -189,7 +189,7 @@ export default function DoctorsCreateFormClient() {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.68fr)]">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.38fr)_minmax(240px,0.62fr)]">
       <div className="min-w-0 flex flex-col gap-6">
         <DoctorBasicInfoSection
           form={form}

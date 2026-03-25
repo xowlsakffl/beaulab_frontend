@@ -379,7 +379,7 @@ export default function HospitalsCreateFormClient() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1fr)_360px]">
+    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-6">
           <CardTitle>병의원 정보 입력</CardTitle>

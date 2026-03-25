@@ -116,7 +116,7 @@ export const VIDEO_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "IN_REVIEW", label: "검수중" },
   { value: "APPROVED", label: "검수완료" },
   { value: "REJECTED", label: "검수반려" },
-  { value: "EXCLUDED", label: "게시제외" },
+  { value: "EXCLUDED", label: "검수제외" },
   { value: "PARTNER_CANCELED", label: "신청취소" },
 ];
 
@@ -245,7 +245,7 @@ export function labelVideoApprovalStatus(status?: string | null) {
   if (status === "IN_REVIEW") return "검수중";
   if (status === "APPROVED") return "검수완료";
   if (status === "REJECTED") return "검수반려";
-  if (status === "EXCLUDED") return "게시제외";
+  if (status === "EXCLUDED") return "검수제외";
   if (status === "PARTNER_CANCELED") return "신청취소";
   return status || "-";
 }

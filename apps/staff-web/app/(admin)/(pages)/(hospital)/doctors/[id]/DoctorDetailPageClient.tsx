@@ -123,7 +123,7 @@ export default function DoctorDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.38fr)_minmax(240px,0.62fr)]">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -392,6 +392,7 @@ function ProfileMediaCard({ media }: { media: DoctorMediaAsset }) {
       fileUrl={mediaUrl}
       imageUrl={mediaUrl && isImage ? mediaUrl : null}
       sizeText={media.size ? formatBytes(media.size) : null}
+      className="w-full"
     />
   );
 }

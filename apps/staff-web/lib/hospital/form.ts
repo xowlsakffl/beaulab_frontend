@@ -193,7 +193,7 @@ export const MEDIA_COLLECTIONS: readonly MediaCollectionConfig<HospitalMediaFiel
     multiple: true,
     maxFiles: 5,
     emptyText: "업로드한 이미지가 없습니다.",
-    helperText: "첫 번째 이미지가 대표 이미지로 사용됩니다. 드래그로 순서를 바꿀 수 있습니다.",
+    helperText: "대표 이미지(첫번째). 드래그로 순서 변경",
     maxFilesText: "(최대 5장)",
   },
 ];

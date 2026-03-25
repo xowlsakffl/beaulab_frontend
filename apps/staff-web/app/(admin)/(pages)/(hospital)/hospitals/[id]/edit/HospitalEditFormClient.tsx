@@ -12,6 +12,7 @@ import { api } from "@/lib/common/api";
 import {
   buildHospitalExistingMediaItems,
   extractFieldErrors,
+  formatBytes,
   getMediaFilename,
   INITIAL_HOSPITAL_FORM,
   mapHospitalDetailToForm,
@@ -73,6 +74,7 @@ export default function HospitalEditFormClient() {
   const [businessRegistrationFile, setBusinessRegistrationFile] = React.useState<File | null>(null);
   const [existingLogo, setExistingLogo] = React.useState<MediaAsset | null>(null);
   const [existingGallery, setExistingGallery] = React.useState<MediaAsset[]>([]);
+  const [galleryOrder, setGalleryOrder] = React.useState<string[]>([]);
   const [existingCertificate, setExistingCertificate] = React.useState<MediaAsset | null>(null);
   const [selectedCategoryItems, setSelectedCategoryItems] = React.useState<HospitalCategoryItem[]>([]);
   const [pageTitle, setPageTitle] = React.useState("병의원 수정");
@@ -198,6 +200,11 @@ export default function HospitalEditFormClient() {
       setSelectedCategoryItems(data.categories ?? []);
       setExistingLogo(data.logo ?? null);
       setExistingGallery(data.gallery ?? []);
+      setGalleryOrder(
+        (data.gallery ?? [])
+          .map((media) => (media.id !== null && media.id !== undefined ? `existing:${String(media.id)}` : null))
+          .filter((token): token is string => Boolean(token)),
+      );
       setExistingCertificate(data.business_registration?.certificate_media ?? null);
       setPageTitle(data.name ? `${data.name} 수정` : "병의원 수정");
       setIsBusinessAddressSameAsHospital(
@@ -286,19 +293,36 @@ export default function HospitalEditFormClient() {
 
     if (logo) {
       formData.append("logo", logo);
+    } else {
+      formData.append("existing_logo_id", existingLogo?.id ? String(existingLogo.id) : "");
+    }
+
+    let nextGalleryFileIndex = 0;
+    if (galleryOrder.length > 0) {
+      galleryOrder.forEach((token) => {
+        if (token.startsWith("existing:")) {
+          formData.append("gallery_order[]", token);
+          return;
+        }
+
+        if (token.startsWith("new:")) {
+          formData.append("gallery_order[]", `new:${nextGalleryFileIndex}`);
+          nextGalleryFileIndex += 1;
+        }
+      });
     }
 
     if (gallery.length > 0) {
       gallery.forEach((file) => formData.append("gallery[]", file));
-    } else {
-      existingGallery.forEach((media) => {
-        if (media.id === null || media.id === undefined) return;
-        formData.append("existing_gallery_ids[]", String(media.id));
-      });
     }
 
     if (businessRegistrationFile) {
       formData.append("business_registration_file", businessRegistrationFile);
+    } else {
+      formData.append(
+        "existing_business_registration_file_id",
+        existingCertificate?.id ? String(existingCertificate.id) : "",
+      );
     }
 
     setIsSubmitting(true);
@@ -371,7 +395,7 @@ export default function HospitalEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1fr)_360px]">
+    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-6">
           <CardTitle>{pageTitle}</CardTitle>
@@ -402,10 +426,15 @@ export default function HospitalEditFormClient() {
             businessRegistrationLabel={existingCertificate ? "사업자등록증 파일" : "사업자등록증 파일 *"}
             businessRegistrationDescription={currentCertificateLabel}
             existingCertificateName={!businessRegistrationFile && existingCertificate ? getMediaFilename(existingCertificate) : undefined}
+            existingCertificateSizeText={!businessRegistrationFile && existingCertificate ? formatBytes(existingCertificate.size) : undefined}
             existingCertificateUrl={!businessRegistrationFile ? existingCertificateUrl : undefined}
             onFieldChange={setField}
             onBusinessRegistrationFileChange={(file) => {
               setBusinessRegistrationFile(file);
+              clearError("business_registration_file");
+            }}
+            onExistingCertificateChange={(hasFile) => {
+              setExistingCertificate(hasFile ? existingCertificate : null);
               clearError("business_registration_file");
             }}
             onBusinessAddressSameAsHospitalChange={handleBusinessAddressSameAsHospitalChange}
@@ -423,13 +452,16 @@ export default function HospitalEditFormClient() {
             gallery,
           }}
           existingItemsByCollection={existingMediaByCollection}
+          orderByCollection={{
+            gallery: galleryOrder,
+          }}
           errors={{
             logo: errors.logo,
             gallery: errors.gallery,
           }}
           onExistingItemsChange={(key, items) => {
             if (key === "logo") {
-              setExistingLogo(items[0] ? existingLogo : null);
+              setExistingLogo((prev) => (items[0] && prev ? prev : null));
               clearError("logo");
               return;
             }
@@ -442,6 +474,12 @@ export default function HospitalEditFormClient() {
               .filter((media): media is MediaAsset => Boolean(media));
 
             setExistingGallery(nextGallery);
+            clearError("gallery");
+          }}
+          onOrderChange={(key, order) => {
+            if (key !== "gallery") return;
+
+            setGalleryOrder(order);
             clearError("gallery");
           }}
           onChange={(key, files) => {

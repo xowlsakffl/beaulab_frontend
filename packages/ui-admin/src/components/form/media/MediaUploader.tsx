@@ -34,10 +34,24 @@ type MediaUploaderProps<T extends string = string> = {
   collections: readonly MediaCollectionConfig<T>[];
   filesByCollection: Partial<Record<T, File[]>>;
   existingItemsByCollection?: Partial<Record<T, ExistingMediaItem[]>>;
+  orderByCollection?: Partial<Record<T, string[]>>;
   errors?: Partial<Record<T, string>>;
   onChange: (key: T, files: File[]) => void;
   onExistingItemsChange?: (key: T, items: ExistingMediaItem[]) => void;
+  onOrderChange?: (key: T, order: string[]) => void;
 };
+
+type MergedMediaEntry =
+  | {
+      token: string;
+      kind: "existing";
+      item: ExistingMediaItem;
+    }
+  | {
+      token: string;
+      kind: "new";
+      file: File;
+    };
 
 function formatBytes(bytes: number) {
   if (!Number.isFinite(bytes)) return "";
@@ -56,6 +70,184 @@ function formatBytes(bytes: number) {
 
 function isImageFile(file: File) {
   return file.type.startsWith("image/");
+}
+
+function buildExistingMediaToken(item: ExistingMediaItem) {
+  return `existing:${String(item.id)}`;
+}
+
+function buildNewMediaToken(fileId: string) {
+  return `new:${fileId}`;
+}
+
+type DropPosition = "before" | "after";
+
+function resolveDropPosition(event: React.DragEvent<HTMLElement>): DropPosition {
+  const rect = event.currentTarget.getBoundingClientRect();
+  return event.clientY - rect.top < rect.height / 2 ? "before" : "after";
+}
+
+function resolveInsertionIndex(itemIndex: number, position: DropPosition) {
+  return position === "before" ? itemIndex : itemIndex + 1;
+}
+
+function reorderItemsByInsertionIndex<T>(items: T[], draggedIndex: number, insertionIndex: number) {
+  if (draggedIndex < 0 || draggedIndex >= items.length || insertionIndex < 0 || insertionIndex > items.length) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [movedItem] = nextItems.splice(draggedIndex, 1);
+  let insertIndex = insertionIndex;
+  if (draggedIndex < insertIndex) {
+    insertIndex -= 1;
+  }
+
+  nextItems.splice(insertIndex, 0, movedItem);
+  return nextItems;
+}
+
+function DropIndicator({ position }: { position: DropPosition }) {
+  return (
+    <div
+      className={`pointer-events-none absolute inset-x-3 z-20 ${position === "before" ? "-top-1.5" : "-bottom-1.5"}`}
+      aria-hidden="true"
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="size-2 rounded-full bg-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.18)]" />
+        <span className="h-1 flex-1 rounded-full bg-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.12)]" />
+      </div>
+    </div>
+  );
+}
+
+function getScrollContainer(node: HTMLElement | null): HTMLElement | Window {
+  if (typeof window === "undefined") {
+    return window;
+  }
+
+  let currentNode = node?.parentElement ?? null;
+
+  while (currentNode) {
+    const style = window.getComputedStyle(currentNode);
+    const overflowY = style.overflowY;
+    const canScroll = (overflowY === "auto" || overflowY === "scroll") && currentNode.scrollHeight > currentNode.clientHeight;
+
+    if (canScroll) {
+      return currentNode;
+    }
+
+    currentNode = currentNode.parentElement;
+  }
+
+  return window;
+}
+
+function autoScrollDuringDrag(event: React.DragEvent<HTMLElement>) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const threshold = 96;
+  const maxStep = 26;
+  const scrollContainer = getScrollContainer(event.currentTarget);
+
+  if (scrollContainer === window) {
+    const topDistance = event.clientY;
+    const bottomDistance = window.innerHeight - event.clientY;
+
+    if (topDistance < threshold) {
+      const velocity = Math.ceil(((threshold - topDistance) / threshold) * maxStep);
+      window.scrollBy(0, -velocity);
+      return;
+    }
+
+    if (bottomDistance < threshold) {
+      const velocity = Math.ceil(((threshold - bottomDistance) / threshold) * maxStep);
+      window.scrollBy(0, velocity);
+    }
+
+    return;
+  }
+
+  const scrollElement = scrollContainer as HTMLElement;
+  const rect = scrollElement.getBoundingClientRect();
+  const topDistance = event.clientY - rect.top;
+  const bottomDistance = rect.bottom - event.clientY;
+
+  if (topDistance < threshold) {
+    const velocity = Math.ceil(((threshold - topDistance) / threshold) * maxStep);
+    scrollElement.scrollTop -= velocity;
+    return;
+  }
+
+  if (bottomDistance < threshold) {
+    const velocity = Math.ceil(((threshold - bottomDistance) / threshold) * maxStep);
+    scrollElement.scrollTop += velocity;
+  }
+}
+
+function normalizeMediaOrder(order: string[] | undefined, defaultOrder: string[]) {
+  const validTokenSet = new Set(defaultOrder);
+  const nextOrder: string[] = [];
+  const pushedTokenSet = new Set<string>();
+
+  for (const token of order ?? []) {
+    if (!validTokenSet.has(token) || pushedTokenSet.has(token)) {
+      continue;
+    }
+
+    nextOrder.push(token);
+    pushedTokenSet.add(token);
+  }
+
+  for (const token of defaultOrder) {
+    if (pushedTokenSet.has(token)) {
+      continue;
+    }
+
+    nextOrder.push(token);
+    pushedTokenSet.add(token);
+  }
+
+  return nextOrder;
+}
+
+let activeDragPreview: HTMLDivElement | null = null;
+
+function clearDragPreview() {
+  if (!activeDragPreview) {
+    return;
+  }
+
+  activeDragPreview.remove();
+  activeDragPreview = null;
+}
+
+function createDragPreview(sourceNode: HTMLElement) {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  clearDragPreview();
+
+  const clonedNode = sourceNode.cloneNode(true) as HTMLDivElement;
+  const rect = sourceNode.getBoundingClientRect();
+
+  clonedNode.style.position = "fixed";
+  clonedNode.style.top = "-10000px";
+  clonedNode.style.left = "-10000px";
+  clonedNode.style.width = `${rect.width}px`;
+  clonedNode.style.height = `${rect.height}px`;
+  clonedNode.style.pointerEvents = "none";
+  clonedNode.style.opacity = "0.68";
+  clonedNode.style.transform = "scale(0.985)";
+  clonedNode.style.boxShadow = "0 20px 45px rgba(15, 23, 42, 0.18)";
+  clonedNode.style.zIndex = "9999";
+
+  document.body.appendChild(clonedNode);
+  activeDragPreview = clonedNode;
+  return clonedNode;
 }
 
 function useObjectUrl(file: File | null) {
@@ -155,9 +347,9 @@ function MediaImagePreview({
   alt: string;
   previewBehavior?: "contain" | "natural-center";
 }) {
-  const dimensions = useImageDimensions(previewBehavior === "natural-center" ? url : null);
+  const dimensions = useImageDimensions(url);
 
-  if (previewBehavior === "natural-center" && dimensions) {
+  if (dimensions) {
     return (
       <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900">
         <Image
@@ -187,27 +379,11 @@ function MediaPreview({
   previewBehavior?: "contain" | "natural-center";
 }) {
   const url = useObjectUrl(isImageFile(file) ? file : null);
-  const dimensions = useImageDimensions(previewBehavior === "natural-center" ? url : null);
 
   if (!url) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
         <ImageIcon className="size-10" />
-      </div>
-    );
-  }
-
-  if (previewBehavior === "natural-center" && dimensions) {
-    return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900">
-        <Image
-          src={url}
-          alt={file.name}
-          width={dimensions.width}
-          height={dimensions.height}
-          unoptimized
-          className="h-auto w-auto max-h-full max-w-full object-contain"
-        />
       </div>
     );
   }
@@ -331,8 +507,7 @@ type MediaFileCardProps = {
   previewBehavior?: "contain" | "natural-center";
   onRemove: () => void;
   onMakeRepresentative?: () => void;
-  onDragStart?: (index: number) => void;
-  onDrop?: (index: number) => void;
+  onDragStart?: () => void;
   onDragEnd?: () => void;
 };
 
@@ -347,7 +522,6 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
     onRemove,
     onMakeRepresentative,
     onDragStart,
-    onDrop,
     onDragEnd,
   },
   ref,
@@ -356,7 +530,9 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
     return (
       <div
         ref={ref}
-        className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity,filter] duration-200 dark:border-gray-800 dark:bg-gray-900"
+        className={`flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 lg:max-w-none dark:border-gray-800 dark:bg-gray-900 ${
+          isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""
+        }`}
       >
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           <MediaPreview file={file} previewBehavior={previewBehavior} />
@@ -387,29 +563,30 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
   return (
     <div
       ref={ref}
-      draggable={multiple}
-      onDragStart={(event) => {
-        if (!multiple) return;
-        event.dataTransfer.effectAllowed = "move";
-        onDragStart?.(index);
-      }}
-      onDragOver={(event) => {
-        if (!multiple) return;
-        event.preventDefault();
-      }}
-      onDrop={(event) => {
-        if (!multiple) return;
-        event.preventDefault();
-        onDrop?.(index);
-      }}
-      onDragEnd={onDragEnd}
-      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter] duration-200 dark:border-gray-800 dark:bg-gray-900 ${
-        multiple ? "cursor-pointer" : ""
-      } ${isDragging ? "opacity-70 shadow-lg saturate-75" : ""}`}
+      data-media-card="true"
+      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 dark:border-gray-800 dark:bg-gray-900 ${
+        ""
+      } w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-gray-900">
         {multiple ? (
-          <div className="absolute left-3 top-3 z-10 inline-flex cursor-pointer items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm dark:bg-gray-900/90 dark:text-gray-300">
+          <div
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move";
+              const sourceCard = event.currentTarget.closest("[data-media-card]") as HTMLElement | null;
+              const dragPreview = sourceCard ? createDragPreview(sourceCard) : null;
+              if (dragPreview) {
+                event.dataTransfer.setDragImage(dragPreview, event.currentTarget.clientWidth / 2, event.currentTarget.clientHeight / 2);
+              }
+              onDragStart?.();
+            }}
+            onDragEnd={() => {
+              clearDragPreview();
+              onDragEnd?.();
+            }}
+            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none dark:bg-gray-900/90 dark:text-gray-300"
+          >
             <GripVertical className="size-3.5" />
             순서 이동
           </div>
@@ -476,7 +653,6 @@ function ExistingMediaCard({
   onRemove,
   onMakeRepresentative,
   onDragStart,
-  onDrop,
   onDragEnd,
 }: {
   item: ExistingMediaItem;
@@ -487,13 +663,12 @@ function ExistingMediaCard({
   previewBehavior?: "contain" | "natural-center";
   onRemove?: () => void;
   onMakeRepresentative?: () => void;
-  onDragStart?: (index: number) => void;
-  onDrop?: (index: number) => void;
+  onDragStart?: () => void;
   onDragEnd?: () => void;
 }) {
   if (!multiple && previewBehavior === "natural-center") {
     return (
-      <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none dark:border-gray-800 dark:bg-gray-900">
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           {item.isImage === false ? (
             <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
@@ -532,29 +707,30 @@ function ExistingMediaCard({
 
   return (
     <div
-      draggable={multiple && Boolean(onDragStart)}
-      onDragStart={(event) => {
-        if (!multiple || !onDragStart) return;
-        event.dataTransfer.effectAllowed = "move";
-        onDragStart(index);
-      }}
-      onDragOver={(event) => {
-        if (!multiple || !onDrop) return;
-        event.preventDefault();
-      }}
-      onDrop={(event) => {
-        if (!multiple || !onDrop) return;
-        event.preventDefault();
-        onDrop(index);
-      }}
-      onDragEnd={onDragEnd}
-      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter] duration-200 dark:border-gray-800 dark:bg-gray-900 ${
-        multiple && onDragStart ? "cursor-pointer" : ""
-      } ${isDragging ? "opacity-70 shadow-lg saturate-75" : ""}`}
+      data-media-card="true"
+      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 dark:border-gray-800 dark:bg-gray-900 ${
+        ""
+      } w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-gray-900">
         {multiple && onDragStart ? (
-          <div className="absolute left-3 top-3 z-10 inline-flex cursor-pointer items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm dark:bg-gray-900/90 dark:text-gray-300">
+          <div
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move";
+              const sourceCard = event.currentTarget.closest("[data-media-card]") as HTMLElement | null;
+              const dragPreview = sourceCard ? createDragPreview(sourceCard) : null;
+              if (dragPreview) {
+                event.dataTransfer.setDragImage(dragPreview, event.currentTarget.clientWidth / 2, event.currentTarget.clientHeight / 2);
+              }
+              onDragStart();
+            }}
+            onDragEnd={() => {
+              clearDragPreview();
+              onDragEnd?.();
+            }}
+            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none dark:bg-gray-900/90 dark:text-gray-300"
+          >
             <GripVertical className="size-3.5" />
             순서 이동
           </div>
@@ -654,27 +830,24 @@ function ExistingMediaList({
 
 function AnimatedExistingMediaList({
   items,
-  draggedIndex,
   prefersReducedMotion,
   previewBehavior,
   onRemove,
   onMakeRepresentative,
-  onDragStart,
-  onDrop,
-  onDragEnd,
+  onReorder,
 }: {
   items: ExistingMediaItem[];
-  draggedIndex?: number;
   prefersReducedMotion: boolean;
   previewBehavior?: "contain" | "natural-center";
   onRemove: (index: number) => void;
   onMakeRepresentative: (index: number) => void;
-  onDragStart: (index: number) => void;
-  onDrop: (index: number) => void;
-  onDragEnd: () => void;
+  onReorder: (items: ExistingMediaItem[]) => void;
 }) {
   const itemRefs = React.useRef(new Map<string, HTMLDivElement>());
   const previousRectsRef = React.useRef(new Map<string, DOMRect>());
+  const previousSignatureRef = React.useRef<string>("");
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+  const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
 
   const setItemRef = React.useCallback((id: string, node: HTMLDivElement | null) => {
     if (node) {
@@ -689,6 +862,8 @@ function AnimatedExistingMediaList({
     const nextRects = new Map<string, DOMRect>();
     const frameIds: number[] = [];
     const timeoutIds: number[] = [];
+    const signature = items.map((item) => String(item.id)).join("|");
+    const shouldAnimate = previousSignatureRef.current !== "" && previousSignatureRef.current !== signature;
 
     items.forEach((item) => {
       const itemId = String(item.id);
@@ -698,7 +873,7 @@ function AnimatedExistingMediaList({
       }
     });
 
-    if (!prefersReducedMotion) {
+    if (!prefersReducedMotion && shouldAnimate) {
       nextRects.forEach((nextRect, itemId) => {
         const node = itemRefs.current.get(itemId);
         if (!node) return;
@@ -720,7 +895,7 @@ function AnimatedExistingMediaList({
         }
 
         const frameId = window.requestAnimationFrame(() => {
-          node.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease-out";
+          node.style.transition = "transform 460ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease-out";
           node.style.transform = "";
           node.style.opacity = "";
         });
@@ -730,12 +905,13 @@ function AnimatedExistingMediaList({
           window.setTimeout(() => {
             node.style.transition = "";
             node.style.willChange = "";
-          }, 340),
+          }, 480),
         );
       });
     }
 
     previousRectsRef.current = nextRects;
+    previousSignatureRef.current = signature;
 
     return () => {
       frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
@@ -746,7 +922,32 @@ function AnimatedExistingMediaList({
   return (
     <div className="space-y-3 pt-2">
       {items.map((item, itemIndex) => (
-        <div key={String(item.id)} ref={(node) => setItemRef(String(item.id), node)}>
+        <div
+          key={String(item.id)}
+          ref={(node) => setItemRef(String(item.id), node)}
+          className="relative"
+          onDragOver={(event) => {
+            if (draggedIndex === null) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            autoScrollDuringDrag(event);
+            const insertionIndex = resolveInsertionIndex(itemIndex, resolveDropPosition(event));
+            setDropInsertionIndex((current) =>
+              current === insertionIndex ? current : insertionIndex,
+            );
+          }}
+          onDrop={(event) => {
+            if (draggedIndex === null || draggedIndex === itemIndex) return;
+            event.preventDefault();
+            const insertionIndex = dropInsertionIndex ?? resolveInsertionIndex(itemIndex, resolveDropPosition(event));
+            onReorder(reorderItemsByInsertionIndex(items, draggedIndex, insertionIndex));
+            setDraggedIndex(null);
+            setDropInsertionIndex(null);
+          }}
+        >
+          {dropInsertionIndex === itemIndex && draggedIndex !== null && draggedIndex !== itemIndex ? (
+            <DropIndicator position="before" />
+          ) : null}
           <ExistingMediaCard
             item={item}
             index={itemIndex}
@@ -756,10 +957,15 @@ function AnimatedExistingMediaList({
             previewBehavior={previewBehavior}
             onRemove={() => onRemove(itemIndex)}
             onMakeRepresentative={() => onMakeRepresentative(itemIndex)}
-            onDragStart={onDragStart}
-            onDrop={onDrop}
-            onDragEnd={onDragEnd}
+            onDragStart={() => setDraggedIndex(itemIndex)}
+            onDragEnd={() => {
+              setDraggedIndex(null);
+              setDropInsertionIndex(null);
+            }}
           />
+          {dropInsertionIndex === items.length && itemIndex === items.length - 1 && draggedIndex !== itemIndex ? (
+            <DropIndicator position="after" />
+          ) : null}
         </div>
       ))}
     </div>
@@ -768,29 +974,30 @@ function AnimatedExistingMediaList({
 
 function AnimatedMediaFileList({
   files,
-  draggedIndex,
   getFileId,
   prefersReducedMotion,
   previewBehavior,
+  representativeOffset = 0,
+  allowRepresentative = true,
   onRemove,
   onMakeRepresentative,
-  onDragStart,
-  onDrop,
-  onDragEnd,
+  onReorder,
 }: {
   files: File[];
-  draggedIndex?: number;
   getFileId: (file: File) => string;
   prefersReducedMotion: boolean;
   previewBehavior?: "contain" | "natural-center";
+  representativeOffset?: number;
+  allowRepresentative?: boolean;
   onRemove: (index: number) => void;
   onMakeRepresentative: (index: number) => void;
-  onDragStart: (index: number) => void;
-  onDrop: (index: number) => void;
-  onDragEnd: () => void;
+  onReorder: (files: File[]) => void;
 }) {
   const itemRefs = React.useRef(new Map<string, HTMLDivElement>());
   const previousRectsRef = React.useRef(new Map<string, DOMRect>());
+  const previousSignatureRef = React.useRef<string>("");
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+  const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
 
   const setItemRef = React.useCallback((id: string, node: HTMLDivElement | null) => {
     if (node) {
@@ -805,6 +1012,8 @@ function AnimatedMediaFileList({
     const nextRects = new Map<string, DOMRect>();
     const frameIds: number[] = [];
     const timeoutIds: number[] = [];
+    const signature = files.map((file) => getFileId(file)).join("|");
+    const shouldAnimate = previousSignatureRef.current !== "" && previousSignatureRef.current !== signature;
 
     files.forEach((file) => {
       const fileId = getFileId(file);
@@ -814,7 +1023,7 @@ function AnimatedMediaFileList({
       }
     });
 
-    if (!prefersReducedMotion) {
+    if (!prefersReducedMotion && shouldAnimate) {
       nextRects.forEach((nextRect, fileId) => {
         const node = itemRefs.current.get(fileId);
         if (!node) return;
@@ -836,7 +1045,7 @@ function AnimatedMediaFileList({
         }
 
         const frameId = window.requestAnimationFrame(() => {
-          node.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease-out";
+          node.style.transition = "transform 460ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease-out";
           node.style.transform = "";
           node.style.opacity = "";
         });
@@ -846,12 +1055,13 @@ function AnimatedMediaFileList({
           window.setTimeout(() => {
             node.style.transition = "";
             node.style.willChange = "";
-          }, 340),
+          }, 480),
         );
       });
     }
 
     previousRectsRef.current = nextRects;
+    previousSignatureRef.current = signature;
 
     return () => {
       frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
@@ -865,21 +1075,224 @@ function AnimatedMediaFileList({
         const fileId = getFileId(file);
 
         return (
-          <MediaFileCard
+          <div
             key={fileId}
             ref={(node) => setItemRef(fileId, node)}
-            file={file}
-            index={fileIndex}
-            multiple
-            isRepresentative={fileIndex === 0}
-            isDragging={draggedIndex === fileIndex}
-            previewBehavior={previewBehavior}
-            onRemove={() => onRemove(fileIndex)}
-            onMakeRepresentative={() => onMakeRepresentative(fileIndex)}
-            onDragStart={onDragStart}
-            onDrop={onDrop}
-            onDragEnd={onDragEnd}
-          />
+            className="relative"
+            onDragOver={(event) => {
+              if (draggedIndex === null) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              autoScrollDuringDrag(event);
+              const insertionIndex = resolveInsertionIndex(fileIndex, resolveDropPosition(event));
+              setDropInsertionIndex((current) =>
+                current === insertionIndex ? current : insertionIndex,
+              );
+            }}
+            onDrop={(event) => {
+              if (draggedIndex === null || draggedIndex === fileIndex) return;
+              event.preventDefault();
+              const insertionIndex = dropInsertionIndex ?? resolveInsertionIndex(fileIndex, resolveDropPosition(event));
+              onReorder(reorderItemsByInsertionIndex(files, draggedIndex, insertionIndex));
+              setDraggedIndex(null);
+              setDropInsertionIndex(null);
+            }}
+          >
+            {dropInsertionIndex === fileIndex && draggedIndex !== null && draggedIndex !== fileIndex ? (
+              <DropIndicator position="before" />
+            ) : null}
+            <MediaFileCard
+              file={file}
+              index={fileIndex}
+              multiple
+              isRepresentative={representativeOffset + fileIndex === 0}
+              isDragging={draggedIndex === fileIndex}
+              previewBehavior={previewBehavior}
+              onRemove={() => onRemove(fileIndex)}
+              onMakeRepresentative={allowRepresentative ? () => onMakeRepresentative(fileIndex) : undefined}
+              onDragStart={() => setDraggedIndex(fileIndex)}
+              onDragEnd={() => {
+                setDraggedIndex(null);
+                setDropInsertionIndex(null);
+              }}
+            />
+            {dropInsertionIndex === files.length && fileIndex === files.length - 1 && draggedIndex !== fileIndex ? (
+              <DropIndicator position="after" />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function AnimatedMergedMediaList({
+  items,
+  prefersReducedMotion,
+  previewBehavior,
+  onRemove,
+  onMakeRepresentative,
+  onReorder,
+}: {
+  items: MergedMediaEntry[];
+  prefersReducedMotion: boolean;
+  previewBehavior?: "contain" | "natural-center";
+  onRemove: (token: string) => void;
+  onMakeRepresentative: (token: string) => void;
+  onReorder: (items: MergedMediaEntry[]) => void;
+}) {
+  const itemRefs = React.useRef(new Map<string, HTMLDivElement>());
+  const previousRectsRef = React.useRef(new Map<string, DOMRect>());
+  const previousSignatureRef = React.useRef<string>("");
+  const [draggedToken, setDraggedToken] = React.useState<string | null>(null);
+  const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
+
+  const setItemRef = React.useCallback((id: string, node: HTMLDivElement | null) => {
+    if (node) {
+      itemRefs.current.set(id, node);
+      return;
+    }
+
+    itemRefs.current.delete(id);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const nextRects = new Map<string, DOMRect>();
+    const frameIds: number[] = [];
+    const timeoutIds: number[] = [];
+    const signature = items.map((item) => item.token).join("|");
+    const shouldAnimate = previousSignatureRef.current !== "" && previousSignatureRef.current !== signature;
+
+    items.forEach((item) => {
+      const node = itemRefs.current.get(item.token);
+      if (node) {
+        nextRects.set(item.token, node.getBoundingClientRect());
+      }
+    });
+
+    if (!prefersReducedMotion && shouldAnimate) {
+      nextRects.forEach((nextRect, token) => {
+        const node = itemRefs.current.get(token);
+        if (!node) return;
+
+        const previousRect = previousRectsRef.current.get(token);
+        const deltaX = previousRect ? previousRect.left - nextRect.left : 0;
+        const deltaY = previousRect ? previousRect.top - nextRect.top : 0;
+        const isNewNode = !previousRect;
+
+        if (!isNewNode && Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+          return;
+        }
+
+        node.style.transition = "none";
+        node.style.willChange = "transform, opacity";
+        node.style.transform = isNewNode ? "translateY(14px)" : `translate(${deltaX}px, ${deltaY}px)`;
+        if (isNewNode) {
+          node.style.opacity = "0";
+        }
+
+        const frameId = window.requestAnimationFrame(() => {
+          node.style.transition = "transform 460ms cubic-bezier(0.22, 1, 0.36, 1), opacity 320ms ease-out";
+          node.style.transform = "";
+          node.style.opacity = "";
+        });
+
+        frameIds.push(frameId);
+        timeoutIds.push(
+          window.setTimeout(() => {
+            node.style.transition = "";
+            node.style.willChange = "";
+          }, 480),
+        );
+      });
+    }
+
+    previousRectsRef.current = nextRects;
+    previousSignatureRef.current = signature;
+
+    return () => {
+      frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    };
+  }, [items, prefersReducedMotion]);
+
+  return (
+    <div className="space-y-3 pt-2">
+      {items.map((item, itemIndex) => {
+        const isRepresentative = itemIndex === 0;
+        const draggedIndex = draggedToken ? items.findIndex((entry) => entry.token === draggedToken) : -1;
+
+        return (
+          <div
+            key={item.token}
+            ref={(node) => setItemRef(item.token, node)}
+            className="relative"
+            onDragOver={(event) => {
+              if (!draggedToken) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              autoScrollDuringDrag(event);
+              const insertionIndex = resolveInsertionIndex(itemIndex, resolveDropPosition(event));
+              setDropInsertionIndex((current) =>
+                current === insertionIndex ? current : insertionIndex,
+              );
+            }}
+            onDrop={(event) => {
+              if (!draggedToken || draggedToken === item.token) return;
+              event.preventDefault();
+              const dropIndex = items.findIndex((entry) => entry.token === item.token);
+              if (draggedIndex < 0 || dropIndex < 0) {
+                setDraggedToken(null);
+                setDropInsertionIndex(null);
+                return;
+              }
+
+              const insertionIndex = dropInsertionIndex ?? resolveInsertionIndex(dropIndex, resolveDropPosition(event));
+              onReorder(reorderItemsByInsertionIndex(items, draggedIndex, insertionIndex));
+              setDraggedToken(null);
+              setDropInsertionIndex(null);
+            }}
+          >
+            {dropInsertionIndex === itemIndex && draggedToken !== null && draggedToken !== item.token ? (
+              <DropIndicator position="before" />
+            ) : null}
+            {item.kind === "existing" ? (
+              <ExistingMediaCard
+                item={item.item}
+                index={itemIndex}
+                multiple
+                isRepresentative={isRepresentative}
+                isDragging={draggedToken === item.token}
+                previewBehavior={previewBehavior}
+                onRemove={() => onRemove(item.token)}
+                onMakeRepresentative={() => onMakeRepresentative(item.token)}
+                onDragStart={() => setDraggedToken(item.token)}
+                onDragEnd={() => {
+                  setDraggedToken(null);
+                  setDropInsertionIndex(null);
+                }}
+              />
+            ) : (
+              <MediaFileCard
+                file={item.file}
+                index={itemIndex}
+                multiple
+                isRepresentative={isRepresentative}
+                isDragging={draggedToken === item.token}
+                previewBehavior={previewBehavior}
+                onRemove={() => onRemove(item.token)}
+                onMakeRepresentative={() => onMakeRepresentative(item.token)}
+                onDragStart={() => setDraggedToken(item.token)}
+                onDragEnd={() => {
+                  setDraggedToken(null);
+                  setDropInsertionIndex(null);
+                }}
+              />
+            )}
+            {dropInsertionIndex === items.length && itemIndex === items.length - 1 && draggedToken !== item.token ? (
+              <DropIndicator position="after" />
+            ) : null}
+          </div>
         );
       })}
     </div>
@@ -892,12 +1305,12 @@ export function MediaUploader<T extends string = string>({
   collections,
   filesByCollection,
   existingItemsByCollection,
+  orderByCollection,
   errors,
   onChange,
   onExistingItemsChange,
+  onOrderChange,
 }: MediaUploaderProps<T>) {
-  const [draggedIndexByCollection, setDraggedIndexByCollection] = React.useState<Partial<Record<T, number>>>({});
-  const [draggedExistingIndexByCollection, setDraggedExistingIndexByCollection] = React.useState<Partial<Record<T, number>>>({});
   const prefersReducedMotion = usePrefersReducedMotion();
   const getFileId = useStableFileId();
 
@@ -924,9 +1337,38 @@ export function MediaUploader<T extends string = string>({
 
       const maxCollectionFiles = collection.maxFiles ?? 12;
       const currentFiles = filesByCollection[collection.key] ?? [];
-      setFiles(collection.key, [...currentFiles, ...incoming].slice(0, maxCollectionFiles));
+      const currentExistingItems = existingItemsByCollection?.[collection.key] ?? [];
+      const remainingSlots = Math.max(maxCollectionFiles - currentFiles.length - currentExistingItems.length, 0);
+      const acceptedIncomingFiles = incoming.slice(0, remainingSlots);
+
+      if (remainingSlots === 0) {
+        return;
+      }
+
+      const nextFiles = [...currentFiles, ...acceptedIncomingFiles];
+      setFiles(collection.key, nextFiles);
+
+      if (onOrderChange && onExistingItemsChange) {
+        const defaultOrder = [
+          ...currentExistingItems.map((item) => buildExistingMediaToken(item)),
+          ...currentFiles.map((file) => buildNewMediaToken(getFileId(file))),
+        ];
+        const currentOrder = normalizeMediaOrder(orderByCollection?.[collection.key], defaultOrder);
+        const nextOrder = [
+          ...currentOrder,
+          ...acceptedIncomingFiles.map((file) => buildNewMediaToken(getFileId(file))),
+        ];
+
+        onOrderChange(
+          collection.key,
+          normalizeMediaOrder(nextOrder, [
+            ...currentExistingItems.map((item) => buildExistingMediaToken(item)),
+            ...nextFiles.map((file) => buildNewMediaToken(getFileId(file))),
+          ]),
+        );
+      }
     },
-    [filesByCollection, setFiles],
+    [existingItemsByCollection, filesByCollection, getFileId, onExistingItemsChange, onOrderChange, orderByCollection, setFiles],
   );
 
   const content = collections.map((collection, index) => {
@@ -935,13 +1377,61 @@ export function MediaUploader<T extends string = string>({
           const error = errors?.[collection.key];
           const isMultiple = collection.multiple ?? false;
           const maxFiles = collection.maxFiles ?? (isMultiple ? 12 : 1);
-          const canAddMore = !isMultiple || files.length < maxFiles;
-          const draggedIndex = draggedIndexByCollection[collection.key];
-          const draggedExistingIndex = draggedExistingIndexByCollection[collection.key];
+          const totalItemCount = files.length + existingItems.length;
+          const canAddMore = !isMultiple || totalItemCount < maxFiles;
           const hasSelectedFiles = files.length > 0;
           const hasExistingItems = existingItems.length > 0;
           const canEditExistingItems = Boolean(onExistingItemsChange);
+          const canUseMergedOrdering = isMultiple && canEditExistingItems && Boolean(onOrderChange);
           const shouldShowLabel = collection.showLabel ?? true;
+          const existingTokenMap = new Map(existingItems.map((item) => [buildExistingMediaToken(item), item]));
+          const newTokenMap = new Map(files.map((file) => [buildNewMediaToken(getFileId(file)), file]));
+          const defaultMergedOrder = [
+            ...existingItems.map((item) => buildExistingMediaToken(item)),
+            ...files.map((file) => buildNewMediaToken(getFileId(file))),
+          ];
+          const mergedOrder = canUseMergedOrdering
+            ? normalizeMediaOrder(orderByCollection?.[collection.key], defaultMergedOrder)
+            : defaultMergedOrder;
+          const mergedItems: MergedMediaEntry[] = canUseMergedOrdering
+            ? mergedOrder.reduce<MergedMediaEntry[]>((accumulator, token) => {
+                const existingItem = existingTokenMap.get(token);
+                if (existingItem) {
+                  accumulator.push({ token, kind: "existing", item: existingItem });
+                  return accumulator;
+                }
+
+                const newFile = newTokenMap.get(token);
+                if (newFile) {
+                  accumulator.push({ token, kind: "new", file: newFile });
+                }
+
+                return accumulator;
+              }, [])
+            : [];
+
+          const applyMergedOrder = (nextTokens: string[]) => {
+            if (!canUseMergedOrdering || !onOrderChange) {
+              return;
+            }
+
+            const nextExistingItems = nextTokens
+              .map((token) => existingTokenMap.get(token))
+              .filter((item): item is ExistingMediaItem => Boolean(item));
+            const nextFiles = nextTokens
+              .map((token) => newTokenMap.get(token))
+              .filter((file): file is File => Boolean(file));
+
+            const nextDefaultOrder = [
+              ...nextExistingItems.map((item) => buildExistingMediaToken(item)),
+              ...nextFiles.map((file) => buildNewMediaToken(getFileId(file))),
+            ];
+            const normalizedNextOrder = normalizeMediaOrder(nextTokens, nextDefaultOrder);
+
+            setExistingItems(collection.key, nextExistingItems);
+            setFiles(collection.key, nextFiles);
+            onOrderChange(collection.key, normalizedNextOrder);
+          };
 
     return (
       <section
@@ -968,12 +1458,12 @@ export function MediaUploader<T extends string = string>({
                   files.length > 0
                     ? isMultiple
                       ? canAddMore
-                        ? "추가 이미지를 업로드할 수 있습니다."
+                        ? "기존 파일은 유지되고 새 파일이 추가됩니다."
                         : collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드했습니다.`
                         : "새 파일을 선택하면 기존 파일을 대체합니다."
                     : hasExistingItems
                       ? isMultiple
-                        ? "새 이미지를 업로드하면 기존 이미지 전체를 대체합니다."
+                        ? "기존 파일을 유지하거나 삭제하고 새 파일을 추가할 수 있습니다."
                         : "새 파일을 선택하면 기존 파일을 대체합니다."
                       : collection.emptyText
                 }
@@ -985,81 +1475,84 @@ export function MediaUploader<T extends string = string>({
                 onPickFiles={(incoming) => addFiles(collection, incoming)}
               />
 
-              {hasSelectedFiles ? (
-                isMultiple ? (
-                  <AnimatedMediaFileList
-                    files={files}
-                    draggedIndex={draggedIndex}
-                    getFileId={getFileId}
-                    prefersReducedMotion={prefersReducedMotion}
-                    previewBehavior={collection.previewBehavior}
-                    onRemove={(fileIndex) => setFiles(collection.key, files.filter((_, currentIndex) => currentIndex !== fileIndex))}
-                    onMakeRepresentative={(fileIndex) => {
-                      if (fileIndex === 0) return;
-
-                      const nextFiles = [files[fileIndex], ...files.filter((_, currentIndex) => currentIndex !== fileIndex)];
-                      setFiles(collection.key, nextFiles);
-                    }}
-                    onDragStart={(currentIndex) =>
-                      setDraggedIndexByCollection((prev) => ({ ...prev, [collection.key]: currentIndex }))
-                    }
-                    onDrop={(dropIndex) => {
-                      if (draggedIndex === undefined || draggedIndex === dropIndex) return;
-
-                      const nextFiles = [...files];
-                      const [moved] = nextFiles.splice(draggedIndex, 1);
-                      nextFiles.splice(dropIndex, 0, moved);
-                      setFiles(collection.key, nextFiles);
-                      setDraggedIndexByCollection((prev) => ({ ...prev, [collection.key]: undefined }));
-                    }}
-                    onDragEnd={() => setDraggedIndexByCollection((prev) => ({ ...prev, [collection.key]: undefined }))}
-                  />
-                ) : (
-                  <div className="pt-2">
-                    <MediaFileCard
-                      file={files[0]}
-                      index={0}
-                      multiple={false}
-                      isRepresentative={false}
+              {isMultiple ? (
+                <>
+                  {canUseMergedOrdering && totalItemCount > 0 ? (
+                    <AnimatedMergedMediaList
+                      items={mergedItems}
+                      prefersReducedMotion={prefersReducedMotion}
                       previewBehavior={collection.previewBehavior}
-                      onRemove={() => setFiles(collection.key, [])}
+                      onRemove={(token) => {
+                        applyMergedOrder(mergedOrder.filter((currentToken) => currentToken !== token));
+                      }}
+                      onMakeRepresentative={(token) => {
+                        if (mergedOrder[0] === token) return;
+
+                        applyMergedOrder([token, ...mergedOrder.filter((currentToken) => currentToken !== token)]);
+                      }}
+                      onReorder={(nextItems) => applyMergedOrder(nextItems.map((item) => item.token))}
                     />
-                  </div>
-                )
-              ) : hasExistingItems ? (
-                canEditExistingItems && isMultiple ? (
-                  <AnimatedExistingMediaList
-                    items={existingItems}
-                    draggedIndex={draggedExistingIndex}
-                    prefersReducedMotion={prefersReducedMotion}
+                  ) : hasExistingItems ? (
+                    canEditExistingItems ? (
+                      <AnimatedExistingMediaList
+                        items={existingItems}
+                        prefersReducedMotion={prefersReducedMotion}
+                        previewBehavior={collection.previewBehavior}
+                        onRemove={(itemIndex) =>
+                          setExistingItems(
+                            collection.key,
+                            existingItems.filter((_, currentIndex) => currentIndex !== itemIndex),
+                          )
+                        }
+                        onMakeRepresentative={(itemIndex) => {
+                          if (itemIndex === 0) return;
+
+                          const nextItems = [existingItems[itemIndex], ...existingItems.filter((_, currentIndex) => currentIndex !== itemIndex)];
+                          setExistingItems(collection.key, nextItems);
+                        }}
+                        onReorder={(nextItems) => setExistingItems(collection.key, nextItems)}
+                      />
+                    ) : (
+                      <ExistingMediaList
+                        items={existingItems}
+                        multiple
+                        previewBehavior={collection.previewBehavior}
+                      />
+                    )
+                  ) : null}
+
+                  {!canUseMergedOrdering && hasSelectedFiles ? (
+                    <AnimatedMediaFileList
+                      files={files}
+                      getFileId={getFileId}
+                      prefersReducedMotion={prefersReducedMotion}
+                      previewBehavior={collection.previewBehavior}
+                      representativeOffset={existingItems.length}
+                      allowRepresentative={existingItems.length === 0}
+                      onRemove={(fileIndex) => setFiles(collection.key, files.filter((_, currentIndex) => currentIndex !== fileIndex))}
+                      onMakeRepresentative={(fileIndex) => {
+                        if (fileIndex === 0) return;
+
+                        const nextFiles = [files[fileIndex], ...files.filter((_, currentIndex) => currentIndex !== fileIndex)];
+                        setFiles(collection.key, nextFiles);
+                      }}
+                      onReorder={(nextFiles) => setFiles(collection.key, nextFiles)}
+                    />
+                  ) : null}
+                </>
+              ) : hasSelectedFiles ? (
+                <div className="pt-2">
+                  <MediaFileCard
+                    file={files[0]}
+                    index={0}
+                    multiple={false}
+                    isRepresentative={false}
                     previewBehavior={collection.previewBehavior}
-                    onRemove={(itemIndex) =>
-                      setExistingItems(
-                        collection.key,
-                        existingItems.filter((_, currentIndex) => currentIndex !== itemIndex),
-                      )
-                    }
-                    onMakeRepresentative={(itemIndex) => {
-                      if (itemIndex === 0) return;
-
-                      const nextItems = [existingItems[itemIndex], ...existingItems.filter((_, currentIndex) => currentIndex !== itemIndex)];
-                      setExistingItems(collection.key, nextItems);
-                    }}
-                    onDragStart={(currentIndex) =>
-                      setDraggedExistingIndexByCollection((prev) => ({ ...prev, [collection.key]: currentIndex }))
-                    }
-                    onDrop={(dropIndex) => {
-                      if (draggedExistingIndex === undefined || draggedExistingIndex === dropIndex) return;
-
-                      const nextItems = [...existingItems];
-                      const [moved] = nextItems.splice(draggedExistingIndex, 1);
-                      nextItems.splice(dropIndex, 0, moved);
-                      setExistingItems(collection.key, nextItems);
-                      setDraggedExistingIndexByCollection((prev) => ({ ...prev, [collection.key]: undefined }));
-                    }}
-                    onDragEnd={() => setDraggedExistingIndexByCollection((prev) => ({ ...prev, [collection.key]: undefined }))}
+                    onRemove={() => setFiles(collection.key, [])}
                   />
-                ) : canEditExistingItems ? (
+                </div>
+              ) : hasExistingItems ? (
+                canEditExistingItems ? (
                   <div className="pt-2">
                     <ExistingMediaCard
                       item={existingItems[0]}
@@ -1073,7 +1566,7 @@ export function MediaUploader<T extends string = string>({
                 ) : (
                   <ExistingMediaList
                     items={existingItems}
-                    multiple={isMultiple}
+                    multiple={false}
                     previewBehavior={collection.previewBehavior}
                   />
                 )

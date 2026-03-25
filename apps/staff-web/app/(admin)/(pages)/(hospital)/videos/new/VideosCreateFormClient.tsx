@@ -12,6 +12,7 @@ import { api } from "@/lib/common/api";
 import {
   extractVideoFieldErrors,
   INITIAL_VIDEO_FORM,
+  parseVideoDurationInput,
   validateCreateVideoForm,
   type VideoDoctorOption,
   type VideoFieldName,
@@ -134,8 +135,9 @@ export default function VideosCreateFormClient() {
       formData.append("external_video_id", form.external_video_id.trim());
     }
 
-    if (form.duration_seconds.trim()) {
-      formData.append("duration_seconds", form.duration_seconds.trim());
+    const durationSeconds = parseVideoDurationInput(form.duration_seconds);
+    if (durationSeconds !== null) {
+      formData.append("duration_seconds", String(durationSeconds));
     }
 
     if (!form.is_publish_period_unlimited) {
@@ -194,7 +196,7 @@ export default function VideosCreateFormClient() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1fr)_420px]">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]">
       <div className="min-w-0 space-y-6">
         <VideoBasicSection
           form={form}

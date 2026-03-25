@@ -128,8 +128,7 @@ export const VIDEO_ALLOW_STATUS_OPTIONS = [
   { value: "IN_REVIEW", label: "검수중" },
   { value: "APPROVED", label: "검수완료" },
   { value: "REJECTED", label: "검수반려" },
-  { value: "EXCLUDED", label: "게시제외" },
-  { value: "PARTNER_CANCELED", label: "신청취소" },
+  { value: "EXCLUDED", label: "검수제외" },
 ] as const;
 
 export const VIDEO_DISTRIBUTION_OPTIONS = [
@@ -306,7 +305,7 @@ export function mapVideoDetailToForm(detail: VideoDetailResponse): VideoFormValu
     distribution_channel: detail.distribution_channel ?? INITIAL_VIDEO_FORM.distribution_channel,
     external_video_id: detail.external_video_id ?? "",
     external_video_url: detail.external_video_url ?? "",
-    duration_seconds: detail.duration_seconds ? String(detail.duration_seconds) : "",
+    duration_seconds: formatVideoDurationInput(detail.duration_seconds),
     status: detail.status ?? INITIAL_VIDEO_FORM.status,
     allow_status: detail.allow_status ?? INITIAL_VIDEO_FORM.allow_status,
     category_ids: detail.categories?.map((category) => category.id) ?? [],
@@ -329,6 +328,121 @@ export function formatDateTimeInput(value?: string | null) {
   const minutes = String(parsed.getMinutes()).padStart(2, "0");
 
   return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+export function extractYoutubeVideoId(value?: string | null): string | null {
+  const normalized = value?.trim();
+  if (!normalized) return null;
+
+  if (/^[A-Za-z0-9_-]{11}$/.test(normalized)) {
+    return normalized;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(normalized);
+  } catch {
+    return null;
+  }
+
+  const host = url.hostname.toLowerCase().replace(/^www\./, "");
+  const path = url.pathname.replace(/^\/+|\/+$/g, "");
+
+  if (host === "youtu.be" && path) {
+    return path.split("/")[0] ?? null;
+  }
+
+  if (host === "youtube.com" || host === "m.youtube.com" || host.endsWith(".youtube.com")) {
+    const videoId = url.searchParams.get("v");
+    if (videoId) {
+      return videoId;
+    }
+
+    if (path.startsWith("shorts/")) {
+      return path.slice("shorts/".length).split("/")[0] ?? null;
+    }
+
+    if (path.startsWith("embed/")) {
+      return path.slice("embed/".length).split("/")[0] ?? null;
+    }
+  }
+
+  return null;
+}
+
+export function formatVideoDurationInput(value?: number | null): string {
+  if (!Number.isFinite(value)) return "";
+
+  const totalSeconds = Math.max(0, Math.floor(Number(value)));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+export function formatVideoDurationTypingInput(value?: string | null): string {
+  const digits = (value ?? "").replace(/\D/g, "").slice(0, 6);
+  if (!digits) return "";
+
+  if (digits.length <= 2) {
+    return `0:${digits.padStart(2, "0")}`;
+  }
+
+  if (digits.length <= 4) {
+    const minutes = String(Number(digits.slice(0, -2)));
+    const seconds = digits.slice(-2);
+    return `${minutes}:${seconds}`;
+  }
+
+  const hours = String(Number(digits.slice(0, -4)));
+  const minutes = digits.slice(-4, -2);
+  const seconds = digits.slice(-2);
+
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+export function parseVideoDurationInput(value?: string | null): number | null {
+  const normalized = value?.trim();
+  if (!normalized) return null;
+
+  if (/^\d+$/.test(normalized)) {
+    return Number(normalized);
+  }
+
+  const parts = normalized.split(":");
+  if (parts.length !== 2 && parts.length !== 3) {
+    return null;
+  }
+
+  if (parts.some((part) => !/^\d+$/.test(part))) {
+    return null;
+  }
+
+  if (parts.length === 2) {
+    const minutes = Number(parts[0]);
+    const seconds = Number(parts[1]);
+
+    if (seconds >= 60) {
+      return null;
+    }
+
+    return minutes * 60 + seconds;
+  }
+
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+  const seconds = Number(parts[2]);
+
+  if (minutes >= 60 || seconds >= 60) {
+    return null;
+  }
+
+  return hours * 3600 + minutes * 60 + seconds;
 }
 
 function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boolean): VideoFormErrors {
@@ -359,9 +473,9 @@ function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boo
   }
 
   if (form.duration_seconds.trim()) {
-    const duration = Number(form.duration_seconds);
-    if (!Number.isFinite(duration) || duration < 0 || !Number.isInteger(duration)) {
-      nextErrors.duration_seconds = "재생 시간은 0 이상의 정수만 입력해 주세요.";
+    const duration = parseVideoDurationInput(form.duration_seconds);
+    if (duration === null || duration < 0) {
+      nextErrors.duration_seconds = "재생 시간은 10:50 또는 1:10:50 형식으로 입력해 주세요.";
     }
   }
 

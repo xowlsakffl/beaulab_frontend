@@ -1,4 +1,4 @@
-import { Button, FileUploadField, FormCheckbox, InputField, Label, SingleDatePickerField } from "@beaulab/ui-admin";
+import { Button, FileUploadField, FormCheckbox, InputField, Label, SingleDatePickerField, X } from "@beaulab/ui-admin";
 
 import type {
   HospitalAddressDetailField,
@@ -15,11 +15,13 @@ type HospitalBusinessSectionProps = {
   businessRegistrationLabel: string;
   businessRegistrationDescription: string;
   existingCertificateName?: string;
+  existingCertificateSizeText?: string;
   existingCertificateUrl?: string | null;
   onFieldChange: (key: keyof HospitalFormValues, value: HospitalFormValues[keyof HospitalFormValues]) => void;
   onBusinessNumberChange?: (value: string) => void;
   onBusinessNumberBlur?: (value: string) => void;
   onBusinessRegistrationFileChange: (file: File | null) => void;
+  onExistingCertificateChange?: (hasFile: boolean) => void;
   onBusinessAddressSameAsHospitalChange: (checked: boolean) => void;
   onGuideHospitalAddressSelection: () => void;
   onOpenAddressSearch: (field: HospitalAddressField, detailFieldId: HospitalAddressDetailField) => Promise<void>;
@@ -33,11 +35,13 @@ export function HospitalBusinessSection({
   businessRegistrationLabel,
   businessRegistrationDescription,
   existingCertificateName,
+  existingCertificateSizeText,
   existingCertificateUrl,
   onFieldChange,
   onBusinessNumberChange,
   onBusinessNumberBlur,
   onBusinessRegistrationFileChange,
+  onExistingCertificateChange,
   onBusinessAddressSameAsHospitalChange,
   onGuideHospitalAddressSelection,
   onOpenAddressSearch,
@@ -149,17 +153,34 @@ export function HospitalBusinessSection({
         description={businessRegistrationDescription}
         onChange={(files) => onBusinessRegistrationFileChange(files?.[0] ?? null)}
       />
-      {existingCertificateName && existingCertificateUrl ? (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-          <span className="truncate">현재 파일: {existingCertificateName}</span>
-          <a
-            href={existingCertificateUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 text-brand-600 underline underline-offset-2 dark:text-brand-400"
+      {onExistingCertificateChange && existingCertificateName && existingCertificateUrl ? (
+        <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{existingCertificateName}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {[existingCertificateSizeText, "현재 파일"].filter(Boolean).join(" · ")}
+              </p>
+              <a
+                href={existingCertificateUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
+              >
+                파일 보기
+              </a>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 text-gray-500 hover:text-red-600"
+            onClick={() => onExistingCertificateChange(false)}
+            title="파일 제거"
           >
-            파일 보기
-          </a>
+            <X className="size-4" />
+          </Button>
         </div>
       ) : null}
 

@@ -354,3 +354,20 @@ apps/staff-web/
 
 - [리팩토링 규칙 문서](/root/beaulab_frontend/doc/staff-web-rules.md)
 - [루트 README](/root/beaulab_frontend/README.md)
+
+## 10. 미디어 수정 계약
+
+- 수정 폼의 미디어는 최종 상태 기준으로 전송합니다.
+- 단일 파일 컬렉션은 `existing_*_id`와 선택적인 새 파일 필드를 함께 사용합니다.
+- 다중 파일 컬렉션은 `existing_*_ids[]`와 선택적인 새 파일 배열을 함께 사용합니다.
+- 다중 파일 컬렉션에서 기존/신규를 섞어 순서 변경과 대표 지정이 필요하면 `gallery_order[]` 같은 명시적 순서 계약을 사용합니다.
+- 삭제는 `remove_*` 플래그가 아니라, 명시적으로 보낸 기존 id 목록에서 빠지는 것으로 표현합니다.
+- 백엔드 update action은 이 값을 sync semantics로 처리합니다.
+  - 목록에 남은 기존 파일은 유지
+  - 목록에서 빠진 기존 파일은 삭제
+  - 새 파일은 기존 유지 목록 뒤에 추가
+- 다중 파일 수정 UI는 기존 파일과 새 파일을 같은 화면에 함께 보여주고, 최대 개수 계산도 두 집합을 합산해서 처리합니다.
+- 병의원 갤러리는 현재 `gallery_order[] = existing:{id} | new:{index}` 계약으로 기존/신규 merged reorder를 처리합니다.
+- 예외: 동영상 원본 파일(`video_file`)은 staff가 교체하지 않습니다.
+  - 병원계정이 업로드한 원본을 staff가 삭제만 할 수 있으므로 `remove_video_file` boolean으로 처리합니다.
+  - 즉 이 케이스는 단일 파일 sync semantics보다 도메인 규칙이 우선합니다.

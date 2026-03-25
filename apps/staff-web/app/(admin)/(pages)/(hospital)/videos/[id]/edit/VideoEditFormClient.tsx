@@ -18,6 +18,7 @@ import {
   extractVideoFieldErrors,
   INITIAL_VIDEO_FORM,
   mapVideoDetailToForm,
+  parseVideoDurationInput,
   validateUpdateVideoForm,
   type VideoCategoryItem,
   type VideoDetailResponse,
@@ -49,6 +50,7 @@ export default function VideoEditFormClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const initialVideoFileIdRef = React.useRef<string | number | null>(null);
 
   const getReturnToPath = React.useCallback(
     (highlightId?: number) =>
@@ -145,6 +147,7 @@ export default function VideoEditFormClient() {
       setSelectedCategoryItems(detail.categories ?? []);
       setExistingThumbnail(buildVideoExistingFileItem(detail.thumbnail_file));
       setCurrentVideoFile(detail.video_file ?? null);
+      initialVideoFileIdRef.current = detail.video_file?.id ?? null;
     } catch {
       setLoadError("동영상 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -183,7 +186,8 @@ export default function VideoEditFormClient() {
     formData.append("distribution_channel", form.distribution_channel);
     formData.append("external_video_url", form.external_video_url.trim());
     formData.append("external_video_id", form.external_video_id.trim());
-    formData.append("duration_seconds", form.duration_seconds.trim());
+    const durationSeconds = parseVideoDurationInput(form.duration_seconds);
+    formData.append("duration_seconds", durationSeconds === null ? "" : String(durationSeconds));
     formData.append("status", form.status);
     formData.append("allow_status", form.allow_status);
     formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
@@ -200,6 +204,12 @@ export default function VideoEditFormClient() {
 
     if (thumbnailFile) {
       formData.append("thumbnail_file", thumbnailFile);
+    } else {
+      formData.append("existing_thumbnail_file_id", existingThumbnail?.id ? String(existingThumbnail.id) : "");
+    }
+
+    if (initialVideoFileIdRef.current && !currentVideoFile) {
+      formData.append("remove_video_file", "1");
     }
 
     setIsSubmitting(true);
@@ -263,7 +273,7 @@ export default function VideoEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1fr)_420px]">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]">
       <div className="min-w-0 space-y-6">
         <VideoBasicSection
           form={form}
@@ -289,10 +299,19 @@ export default function VideoEditFormClient() {
           thumbnailFile={thumbnailFile}
           existingThumbnail={thumbnailFile ? null : existingThumbnail}
           currentVideoFile={currentVideoFile}
+          videoFileDownloadUrl={Number.isFinite(videoId) && videoId > 0 ? `/videos/${videoId}/download-video-file` : null}
+          isCurrentVideoFileRemoved={Boolean(initialVideoFileIdRef.current) && !currentVideoFile}
           errors={errors}
           onThumbnailChange={(file) => {
             setThumbnailFile(file);
             clearError("thumbnail_file");
+          }}
+          onExistingThumbnailChange={(item) => {
+            setExistingThumbnail(item);
+            clearError("thumbnail_file");
+          }}
+          onCurrentVideoFileChange={(file) => {
+            setCurrentVideoFile(file);
           }}
         />
 

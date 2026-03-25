@@ -1,6 +1,9 @@
+import React from "react";
 import { Card, CardDescription, CardHeader, CardTitle, FormCheckbox, InputField, Label, Select } from "@beaulab/ui-admin";
 
 import {
+  extractYoutubeVideoId,
+  formatVideoDurationTypingInput,
   VIDEO_DISTRIBUTION_OPTIONS,
   type VideoFormErrors,
   type VideoFormValues,
@@ -17,6 +20,17 @@ export function VideoPublishSection({
   errors,
   onFieldChange,
 }: VideoPublishSectionProps) {
+  const resolveYoutubeMetadata = React.useCallback((rawValue: string) => {
+    const videoId = extractYoutubeVideoId(rawValue);
+    if (!videoId) {
+      return;
+    }
+
+    if (form.external_video_id !== videoId) {
+      onFieldChange("external_video_id", videoId);
+    }
+  }, [form.external_video_id, onFieldChange]);
+
   return (
     <Card as="section">
       <CardHeader className="pb-6">
@@ -46,6 +60,9 @@ export function VideoPublishSection({
             name="external_video_url"
             value={form.external_video_url}
             onChange={(event) => onFieldChange("external_video_url", event.target.value)}
+            onBlur={() => {
+              resolveYoutubeMetadata(form.external_video_url);
+            }}
             placeholder="예: https://www.youtube.com/watch?v=..."
             error={Boolean(errors.external_video_url)}
             hint={errors.external_video_url}
@@ -58,36 +75,37 @@ export function VideoPublishSection({
             id="external_video_id"
             name="external_video_id"
             value={form.external_video_id}
-            onChange={(event) => onFieldChange("external_video_id", event.target.value)}
-            placeholder="예: dQw4w9WgXcQ"
+            readOnly
+            placeholder="외부 영상 URL 입력 시 자동 반영됩니다."
+            className="bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
             error={Boolean(errors.external_video_id)}
             hint={errors.external_video_id}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="duration_seconds">재생 시간(초)</Label>
+          <Label htmlFor="duration_seconds">재생 시간</Label>
           <InputField
             id="duration_seconds"
             name="duration_seconds"
-            type="number"
-            min="0"
-            step={1}
+            type="text"
             value={form.duration_seconds}
-            onChange={(event) => onFieldChange("duration_seconds", event.target.value)}
-            placeholder="예: 90"
+            onChange={(event) => onFieldChange("duration_seconds", formatVideoDurationTypingInput(event.target.value))}
+            placeholder="예: 10:50"
             error={Boolean(errors.duration_seconds)}
             hint={errors.duration_seconds}
           />
         </div>
 
         <div className="space-y-3">
-          <FormCheckbox
-            id="is_publish_period_unlimited"
-            checked={form.is_publish_period_unlimited}
-            onChange={(checked) => onFieldChange("is_publish_period_unlimited", checked)}
-            label="무기한 게시"
-          />
+          <div className="inline-flex">
+            <FormCheckbox
+              id="is_publish_period_unlimited"
+              checked={form.is_publish_period_unlimited}
+              onChange={(checked) => onFieldChange("is_publish_period_unlimited", checked)}
+              label="무기한 게시"
+            />
+          </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

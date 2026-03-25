@@ -15,7 +15,9 @@ type HospitalMediaPanelProps = {
     logo: ExistingMediaItem[];
     gallery: ExistingMediaItem[];
   };
+  orderByCollection?: Partial<Record<HospitalMediaField, string[]>>;
   onExistingItemsChange?: (key: HospitalMediaField, items: ExistingMediaItem[]) => void;
+  onOrderChange?: (key: HospitalMediaField, order: string[]) => void;
   onChange: (key: HospitalMediaField, files: File[]) => void;
 };
 
@@ -23,7 +25,9 @@ export function HospitalMediaPanel({
   filesByCollection,
   errors,
   existingItemsByCollection,
+  orderByCollection,
   onExistingItemsChange,
+  onOrderChange,
   onChange,
 }: HospitalMediaPanelProps) {
   return (
@@ -32,8 +36,10 @@ export function HospitalMediaPanel({
       collections={MEDIA_COLLECTIONS}
       filesByCollection={filesByCollection}
       existingItemsByCollection={existingItemsByCollection}
+      orderByCollection={orderByCollection}
       errors={errors}
       onExistingItemsChange={onExistingItemsChange}
+      onOrderChange={onOrderChange}
       onChange={onChange}
     />
   );

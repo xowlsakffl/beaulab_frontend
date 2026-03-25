@@ -139,8 +139,11 @@ export default function DoctorEditFormClient() {
       setExistingProfileImage(buildDoctorExistingFileItem(detail.profile_image));
       setExistingLicenseImage(buildDoctorExistingFileItem(detail.license_image));
       setExistingSpecialistCertificateImage(buildDoctorExistingFileItem(detail.specialist_certificate_image));
-      setExistingEducationCertificateImages(buildDoctorExistingFileItems(detail.education_certificate_image));
-      setExistingEtcCertificateImages(buildDoctorExistingFileItems(detail.etc_certificate_image));
+      const nextEducationCertificateImages = buildDoctorExistingFileItems(detail.education_certificate_image);
+      const nextEtcCertificateImages = buildDoctorExistingFileItems(detail.etc_certificate_image);
+
+      setExistingEducationCertificateImages(nextEducationCertificateImages);
+      setExistingEtcCertificateImages(nextEtcCertificateImages);
     } catch {
       setLoadError("의료진 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -194,20 +197,45 @@ export default function DoctorEditFormClient() {
 
     if (profileImage) {
       formData.append("profile_image", profileImage);
+    } else {
+      formData.append("existing_profile_image_id", existingProfileImage?.id ? String(existingProfileImage.id) : "");
     }
 
     if (licenseImage) {
       formData.append("license_image", licenseImage);
+    } else {
+      formData.append("existing_license_image_id", existingLicenseImage?.id ? String(existingLicenseImage.id) : "");
     }
 
     if (specialistCertificateImage) {
       formData.append("specialist_certificate_image", specialistCertificateImage);
+    } else {
+      formData.append(
+        "existing_specialist_certificate_image_id",
+        existingSpecialistCertificateImage?.id ? String(existingSpecialistCertificateImage.id) : "",
+      );
+    }
+
+    if (existingEducationCertificateImages.length > 0) {
+      existingEducationCertificateImages.forEach((item) => {
+        formData.append("existing_education_certificate_image_ids[]", String(item.id));
+      });
+    } else {
+      formData.append("existing_education_certificate_image_ids[]", "");
     }
 
     if (educationCertificateImages.length > 0) {
       educationCertificateImages.forEach((file) => {
         formData.append("education_certificate_image[]", file);
       });
+    }
+
+    if (existingEtcCertificateImages.length > 0) {
+      existingEtcCertificateImages.forEach((item) => {
+        formData.append("existing_etc_certificate_image_ids[]", String(item.id));
+      });
+    } else {
+      formData.append("existing_etc_certificate_image_ids[]", "");
     }
 
     if (etcCertificateImages.length > 0) {
@@ -277,7 +305,7 @@ export default function DoctorEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.68fr)]">
+    <form onSubmit={handleSubmit} className="grid gap-6 xl:items-start xl:grid-cols-[minmax(0,1.38fr)_minmax(240px,0.62fr)]">
       <div className="min-w-0 flex flex-col gap-6">
         <DoctorBasicInfoSection
           form={form}
@@ -290,6 +318,10 @@ export default function DoctorEditFormClient() {
           onSelectHospital={() => undefined}
           onProfileImageChange={(file) => {
             setProfileImage(file);
+            clearError("profile_image");
+          }}
+          onExistingProfileImageChange={(item) => {
+            setExistingProfileImage(item);
             clearError("profile_image");
           }}
         />
@@ -320,16 +352,32 @@ export default function DoctorEditFormClient() {
             setLicenseImage(file);
             clearError("license_image");
           }}
+          onExistingLicenseImageChange={(file) => {
+            setExistingLicenseImage(file);
+            clearError("license_image");
+          }}
           onSpecialistCertificateImageChange={(file) => {
             setSpecialistCertificateImage(file);
+            clearError("specialist_certificate_image");
+          }}
+          onExistingSpecialistCertificateImageChange={(file) => {
+            setExistingSpecialistCertificateImage(file);
             clearError("specialist_certificate_image");
           }}
           onEducationCertificateImagesChange={(files) => {
             setEducationCertificateImages(files);
             clearError("education_certificate_image");
           }}
+          onExistingEducationCertificateImagesChange={(files) => {
+            setExistingEducationCertificateImages(files);
+            clearError("education_certificate_image");
+          }}
           onEtcCertificateImagesChange={(files) => {
             setEtcCertificateImages(files);
+            clearError("etc_certificate_image");
+          }}
+          onExistingEtcCertificateImagesChange={(files) => {
+            setExistingEtcCertificateImages(files);
             clearError("etc_certificate_image");
           }}
         />
