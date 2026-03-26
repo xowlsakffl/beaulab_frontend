@@ -126,7 +126,7 @@ export default function VideoDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.28fr)_minmax(250px,0.72fr)]">
+    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">

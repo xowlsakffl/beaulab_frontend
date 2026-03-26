@@ -479,12 +479,22 @@ function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boo
     }
   }
 
-  if (!form.is_publish_period_unlimited && form.publish_start_at && form.publish_end_at) {
-    const start = new Date(form.publish_start_at);
-    const end = new Date(form.publish_end_at);
+  if (!form.is_publish_period_unlimited) {
+    if (!form.publish_start_at) {
+      nextErrors.publish_start_at = "게시 시작 시각을 입력해 주세요.";
+    }
 
-    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() < start.getTime()) {
-      nextErrors.publish_end_at = "게시 종료 시각은 시작 시각 이후여야 합니다.";
+    if (!form.publish_end_at) {
+      nextErrors.publish_end_at = "게시 종료 시각을 입력해 주세요.";
+    }
+
+    if (form.publish_start_at && form.publish_end_at) {
+      const start = new Date(form.publish_start_at);
+      const end = new Date(form.publish_end_at);
+
+      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() < start.getTime()) {
+        nextErrors.publish_end_at = "게시 종료 시각은 시작 시각 이후여야 합니다.";
+      }
     }
   }
 

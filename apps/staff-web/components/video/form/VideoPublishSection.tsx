@@ -107,7 +107,7 @@ export function VideoPublishSection({
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="publish_start_at">게시 시작 시각</Label>
               <InputField

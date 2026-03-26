@@ -16,7 +16,7 @@ export default function DoctorsCreatePage() {
         homeLabel="관리자"
         items={[
           { label: "병의원 관리" },
-          { label: "의료진 목록", href: "/doctors" },
+          { label: "의료진", href: "/doctors" },
         ]}
       />
 

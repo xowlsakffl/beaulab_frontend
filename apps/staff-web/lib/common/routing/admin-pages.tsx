@@ -113,7 +113,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         slug: ["doctors"],
         title: "의료진",
         group: "병의원 관리",
-        description: "의료진 목록, 상태, 노출 정책을 관리하는 기본 페이지입니다.",
+        description: "의료진, 상태, 노출 정책을 관리하는 기본 페이지입니다.",
         requiredPermissions: ["beaulab.doctor.show"],
     },
     {

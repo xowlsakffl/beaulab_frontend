@@ -269,6 +269,7 @@ apps/staff-web/
 4. 에러가 나면 첫 번째 필드로 스크롤 + 포커스를 보냅니다.
 5. 성공 알림은 전역 하단 alert를 사용합니다.
 6. 성공 후에는 목록으로 복귀하고 `highlight`를 남깁니다.
+7. 병의원 폼의 `병의원정보(feature_ids)`는 create/edit 모두 최소 1개 이상 선택해야 합니다.
 
 권한이 분리된 리소스는 상세와 수정을 같은 route에 섞지 않습니다.
 
@@ -292,6 +293,7 @@ apps/staff-web/
   - [VideoDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/VideoDetailPageClient.tsx)
   - [VideoEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/edit/VideoEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/video/form.ts)
+  - 무기한 게시가 아니면 `publish_start_at`, `publish_end_at`를 둘 다 필수로 검증합니다.
 
 ## 6. 권한/메뉴/세션
 

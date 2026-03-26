@@ -87,6 +87,25 @@ function resolveDropPosition(event: React.DragEvent<HTMLElement>): DropPosition 
   return event.clientY - rect.top < rect.height / 2 ? "before" : "after";
 }
 
+function resolveDropPositionWithBias(
+  event: React.DragEvent<HTMLElement>,
+  itemIndex: number,
+  itemCount: number,
+): DropPosition {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const offsetY = event.clientY - rect.top;
+
+  if (itemIndex === 0) {
+    return offsetY < rect.height * 0.72 ? "before" : "after";
+  }
+
+  if (itemIndex === itemCount - 1) {
+    return offsetY < rect.height * 0.28 ? "before" : "after";
+  }
+
+  return offsetY < rect.height / 2 ? "before" : "after";
+}
+
 function resolveInsertionIndex(itemIndex: number, position: DropPosition) {
   return position === "before" ? itemIndex : itemIndex + 1;
 }
@@ -148,25 +167,11 @@ function autoScrollDuringDrag(event: React.DragEvent<HTMLElement>) {
     return;
   }
 
-  const threshold = 96;
-  const maxStep = 26;
+  const threshold = 120;
+  const maxStep = 20;
   const scrollContainer = getScrollContainer(event.currentTarget);
 
   if (scrollContainer === window) {
-    const topDistance = event.clientY;
-    const bottomDistance = window.innerHeight - event.clientY;
-
-    if (topDistance < threshold) {
-      const velocity = Math.ceil(((threshold - topDistance) / threshold) * maxStep);
-      window.scrollBy(0, -velocity);
-      return;
-    }
-
-    if (bottomDistance < threshold) {
-      const velocity = Math.ceil(((threshold - bottomDistance) / threshold) * maxStep);
-      window.scrollBy(0, velocity);
-    }
-
     return;
   }
 
@@ -185,6 +190,63 @@ function autoScrollDuringDrag(event: React.DragEvent<HTMLElement>) {
     const velocity = Math.ceil(((threshold - bottomDistance) / threshold) * maxStep);
     scrollElement.scrollTop += velocity;
   }
+}
+
+function autoScrollWindowByClientY(clientY: number) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const topThreshold = 180;
+  const bottomThreshold = 140;
+  const maxStep = 20;
+  const topDistance = clientY;
+  const bottomDistance = window.innerHeight - clientY;
+
+  if (topDistance < topThreshold) {
+    const velocity = Math.ceil(((topThreshold - topDistance) / topThreshold) * maxStep);
+    window.scrollBy(0, -velocity);
+    return;
+  }
+
+  if (bottomDistance < bottomThreshold) {
+    const velocity = Math.ceil(((bottomThreshold - bottomDistance) / bottomThreshold) * maxStep);
+    window.scrollBy(0, velocity);
+  }
+}
+
+function useWindowAutoScrollWhileDragging(enabled: boolean) {
+  const latestClientYRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    if (!enabled || typeof window === "undefined") {
+      return;
+    }
+
+    let frameId = 0;
+
+    const tick = () => {
+      const clientY = latestClientYRef.current;
+      if (clientY !== null) {
+        autoScrollWindowByClientY(clientY);
+      }
+
+      frameId = window.requestAnimationFrame(tick);
+    };
+
+    const handleDragOver = (event: DragEvent) => {
+      latestClientYRef.current = event.clientY;
+    };
+
+    frameId = window.requestAnimationFrame(tick);
+    window.addEventListener("dragover", handleDragOver);
+
+    return () => {
+      window.removeEventListener("dragover", handleDragOver);
+      window.cancelAnimationFrame(frameId);
+      latestClientYRef.current = null;
+    };
+  }, [enabled]);
 }
 
 function normalizeMediaOrder(order: string[] | undefined, defaultOrder: string[]) {
@@ -848,6 +910,7 @@ function AnimatedExistingMediaList({
   const previousSignatureRef = React.useRef<string>("");
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
+  useWindowAutoScrollWhileDragging(draggedIndex !== null);
 
   const setItemRef = React.useCallback((id: string, node: HTMLDivElement | null) => {
     if (node) {
@@ -920,18 +983,28 @@ function AnimatedExistingMediaList({
   }, [items, prefersReducedMotion]);
 
   return (
-    <div className="space-y-3 pt-2">
+    <div
+      className="space-y-3 pt-2"
+      onDragOver={(event) => {
+        if (draggedIndex === null) return;
+        event.preventDefault();
+        autoScrollDuringDrag(event);
+      }}
+    >
       {items.map((item, itemIndex) => (
         <div
           key={String(item.id)}
           ref={(node) => setItemRef(String(item.id), node)}
-          className="relative"
+          className={`relative ${itemIndex === 0 ? "pt-4" : ""} ${itemIndex === items.length - 1 ? "pb-4" : ""}`}
           onDragOver={(event) => {
             if (draggedIndex === null) return;
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
             autoScrollDuringDrag(event);
-            const insertionIndex = resolveInsertionIndex(itemIndex, resolveDropPosition(event));
+            const insertionIndex = resolveInsertionIndex(
+              itemIndex,
+              resolveDropPositionWithBias(event, itemIndex, items.length),
+            );
             setDropInsertionIndex((current) =>
               current === insertionIndex ? current : insertionIndex,
             );
@@ -963,9 +1036,6 @@ function AnimatedExistingMediaList({
               setDropInsertionIndex(null);
             }}
           />
-          {dropInsertionIndex === items.length && itemIndex === items.length - 1 && draggedIndex !== itemIndex ? (
-            <DropIndicator position="after" />
-          ) : null}
         </div>
       ))}
     </div>
@@ -998,6 +1068,7 @@ function AnimatedMediaFileList({
   const previousSignatureRef = React.useRef<string>("");
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
+  useWindowAutoScrollWhileDragging(draggedIndex !== null);
 
   const setItemRef = React.useCallback((id: string, node: HTMLDivElement | null) => {
     if (node) {
@@ -1070,7 +1141,14 @@ function AnimatedMediaFileList({
   }, [files, getFileId, prefersReducedMotion]);
 
   return (
-    <div className="space-y-3 pt-2">
+    <div
+      className="space-y-3 pt-2"
+      onDragOver={(event) => {
+        if (draggedIndex === null) return;
+        event.preventDefault();
+        autoScrollDuringDrag(event);
+      }}
+    >
       {files.map((file, fileIndex) => {
         const fileId = getFileId(file);
 
@@ -1078,13 +1156,16 @@ function AnimatedMediaFileList({
           <div
             key={fileId}
             ref={(node) => setItemRef(fileId, node)}
-            className="relative"
+            className={`relative ${fileIndex === 0 ? "pt-4" : ""} ${fileIndex === files.length - 1 ? "pb-4" : ""}`}
             onDragOver={(event) => {
               if (draggedIndex === null) return;
               event.preventDefault();
               event.dataTransfer.dropEffect = "move";
               autoScrollDuringDrag(event);
-              const insertionIndex = resolveInsertionIndex(fileIndex, resolveDropPosition(event));
+              const insertionIndex = resolveInsertionIndex(
+                fileIndex,
+                resolveDropPositionWithBias(event, fileIndex, files.length),
+              );
               setDropInsertionIndex((current) =>
                 current === insertionIndex ? current : insertionIndex,
               );
@@ -1116,9 +1197,6 @@ function AnimatedMediaFileList({
                 setDropInsertionIndex(null);
               }}
             />
-            {dropInsertionIndex === files.length && fileIndex === files.length - 1 && draggedIndex !== fileIndex ? (
-              <DropIndicator position="after" />
-            ) : null}
           </div>
         );
       })}
@@ -1146,6 +1224,7 @@ function AnimatedMergedMediaList({
   const previousSignatureRef = React.useRef<string>("");
   const [draggedToken, setDraggedToken] = React.useState<string | null>(null);
   const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
+  useWindowAutoScrollWhileDragging(draggedToken !== null);
 
   const setItemRef = React.useCallback((id: string, node: HTMLDivElement | null) => {
     if (node) {
@@ -1216,23 +1295,34 @@ function AnimatedMergedMediaList({
     };
   }, [items, prefersReducedMotion]);
 
+  const draggedIndex = draggedToken ? items.findIndex((entry) => entry.token === draggedToken) : -1;
+
   return (
-    <div className="space-y-3 pt-2">
+    <div
+      className="space-y-3 pt-2"
+      onDragOver={(event) => {
+        if (!draggedToken) return;
+        event.preventDefault();
+        autoScrollDuringDrag(event);
+      }}
+    >
       {items.map((item, itemIndex) => {
         const isRepresentative = itemIndex === 0;
-        const draggedIndex = draggedToken ? items.findIndex((entry) => entry.token === draggedToken) : -1;
 
         return (
           <div
             key={item.token}
             ref={(node) => setItemRef(item.token, node)}
-            className="relative"
+            className={`relative ${itemIndex === 0 ? "pt-4" : ""} ${itemIndex === items.length - 1 ? "pb-4" : ""}`}
             onDragOver={(event) => {
               if (!draggedToken) return;
               event.preventDefault();
               event.dataTransfer.dropEffect = "move";
               autoScrollDuringDrag(event);
-              const insertionIndex = resolveInsertionIndex(itemIndex, resolveDropPosition(event));
+              const insertionIndex = resolveInsertionIndex(
+                itemIndex,
+                resolveDropPositionWithBias(event, itemIndex, items.length),
+              );
               setDropInsertionIndex((current) =>
                 current === insertionIndex ? current : insertionIndex,
               );
@@ -1289,9 +1379,6 @@ function AnimatedMergedMediaList({
                 }}
               />
             )}
-            {dropInsertionIndex === items.length && itemIndex === items.length - 1 && draggedToken !== item.token ? (
-              <DropIndicator position="after" />
-            ) : null}
           </div>
         );
       })}

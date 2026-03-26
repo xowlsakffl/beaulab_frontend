@@ -345,8 +345,8 @@ export default function DoctorEditFormClient() {
           etcCertificateImages={etcCertificateImages}
           existingLicenseImage={licenseImage ? null : existingLicenseImage}
           existingSpecialistCertificateImage={specialistCertificateImage ? null : existingSpecialistCertificateImage}
-          existingEducationCertificateImages={educationCertificateImages.length > 0 ? [] : existingEducationCertificateImages}
-          existingEtcCertificateImages={etcCertificateImages.length > 0 ? [] : existingEtcCertificateImages}
+          existingEducationCertificateImages={existingEducationCertificateImages}
+          existingEtcCertificateImages={existingEtcCertificateImages}
           onFieldChange={setField}
           onLicenseImageChange={(file) => {
             setLicenseImage(file);

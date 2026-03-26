@@ -449,6 +449,10 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
     nextErrors.issued_at = "사업자 등록일 형식이 올바르지 않습니다.";
   }
 
+  if (form.feature_ids.length === 0) {
+    nextErrors.feature_ids = "병의원정보는 최소 1개 이상 선택해야 합니다.";
+  }
+
   return nextErrors;
 }
 

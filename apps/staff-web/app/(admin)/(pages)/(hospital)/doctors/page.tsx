@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 import DoctorsTableClient from "./DoctorsTableClient";
 
 export const metadata: Metadata = {
-  title: "의료진 목록 | 뷰랩 관리자",
-  description: "뷰랩 관리자 의료진 목록 페이지입니다.",
+  title: "의료진 | 뷰랩 관리자",
+  description: "뷰랩 관리자 의료진 페이지입니다.",
 };
 
 export default function DoctorsPage() {
