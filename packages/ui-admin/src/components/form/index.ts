@@ -9,6 +9,7 @@ export { CheckboxFilterDropdown } from "./filters/CheckboxFilterDropdown";
 export type { CheckboxFilterOption } from "./filters/CheckboxFilterDropdown";
 export { DateRangeFilterDropdown } from "./filters/DateRangeFilterDropdown";
 export type { DatePresetOption } from "./filters/DateRangeFilterDropdown";
+export { FormSettingToggleRow } from "./FormSettingToggleRow";
 export { HierarchicalCategorySelector } from "./category-selector/HierarchicalCategorySelector";
 export type {
   CategorySelectorItem,
@@ -19,6 +20,7 @@ export type {
 export { MediaUploader } from "./media/MediaUploader";
 export type { ExistingMediaItem, MediaCollectionConfig } from "./media/MediaUploader";
 export { SingleDatePickerField } from "./pickers/SingleDatePickerField";
+export { RichTextEditor } from "./RichTextEditor";
 export { Select } from "./Select";
 export { TogglePillGroup } from "./TogglePillGroup";
 export type { TogglePillOption } from "./TogglePillGroup";

@@ -59,6 +59,25 @@ export const InputField: FC<InputProps> = ({
     className
   );
 
+  const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    onClick?.(event);
+
+    if (disabled || readOnly) {
+      return;
+    }
+
+    const dateLikeTypes = new Set(["date", "datetime-local", "time", "month", "week"]);
+    if (!dateLikeTypes.has(type)) {
+      return;
+    }
+
+    const inputElement = event.currentTarget as HTMLInputElement & {
+      showPicker?: () => void;
+    };
+
+    inputElement.showPicker?.();
+  };
+
   return (
     <div className="relative">
       <input
@@ -70,7 +89,7 @@ export const InputField: FC<InputProps> = ({
         defaultValue={defaultValue}
         onChange={onChange}
         onBlur={onBlur}
-        onClick={onClick}
+        onClick={handleClick}
         onKeyDown={onKeyDown}
         readOnly={readOnly}
         min={min}

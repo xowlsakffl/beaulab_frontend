@@ -45,7 +45,8 @@ apps/staff-web
 
 - 앱은 `packages/*`를 조합합니다.
 - `packages/*`는 앱 도메인이나 라우트를 알면 안 됩니다.
-- 메뉴, 보호 라우트, actor 세션, 병의원/의료진 업무 흐름은 `apps/staff-web`에 둡니다.
+- 메뉴, 보호 라우트, actor 세션, 병의원/공지사항/의료진 업무 흐름은 `apps/staff-web`에 둡니다.
+- 설명이 붙는 공통 form UI 패턴은 `packages/ui-admin`에 둡니다.
 
 ## 3. `apps/staff-web` 현재 구조
 
@@ -65,6 +66,9 @@ apps/staff-web/
 │  ├─ hospital/
 │  │  ├─ form/
 │  │  └─ list/
+│  ├─ notice/
+│  │  ├─ form/
+│  │  └─ list/
 │  ├─ doctor/
 │  │  ├─ form/
 │  │  └─ list/
@@ -74,6 +78,7 @@ apps/staff-web/
 ├─ hooks/
 │  ├─ common/
 │  ├─ hospital/
+│  ├─ notice/
 │  ├─ doctor/
 │  └─ video/
 └─ lib/
@@ -88,6 +93,9 @@ apps/staff-web/
    │     ├─ admin-pages.tsx
    │     └─ route-permissions.ts
    ├─ hospital/
+   │  ├─ form.ts
+   │  └─ list.ts
+   ├─ notice/
    │  ├─ form.ts
    │  └─ list.ts
    ├─ doctor/
@@ -139,7 +147,7 @@ apps/staff-web/
 - 대시보드도 도메인별로 분리합니다. 현재 기준 병의원은 `/`, 뷰티는 `/beauty-dashboard`를 사용합니다.
 - 뷰티 도메인 전용 placeholder 페이지는 병의원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
 
-### 4.3 `components/hospital`, `components/doctor`, `components/video`
+### 4.3 `components/hospital`, `components/notice`, `components/doctor`, `components/video`
 
 도메인 전용 UI를 둡니다.
 
@@ -151,6 +159,7 @@ apps/staff-web/
 예:
 
 - 병의원 폼: `Basic / Business / Media`
+- 공지사항 폼: `Main(Basic+Content) / Attachments`
 - 의료진 폼: `Basic / Category / Medical`
 - 동영상 폼: `Basic / Category / Publish / Media`
 
@@ -172,7 +181,7 @@ apps/staff-web/
 - [useFormFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useFormFieldFocus.ts)
 - [useGoBack.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useGoBack.ts)
 
-### 4.5 `hooks/hospital`, `hooks/doctor`, `hooks/video`
+### 4.5 `hooks/hospital`, `hooks/notice`, `hooks/doctor`, `hooks/video`
 
 도메인 필드명, DOM target, API endpoint에 직접 묶인 훅을 둡니다.
 
@@ -181,6 +190,8 @@ apps/staff-web/
 - [useHospitalAddressSearch.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalAddressSearch.ts)
 - [useHospitalFeatureList.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFeatureList.ts)
 - [useHospitalFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFieldFocus.ts)
+- [useNoticeFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/notice/useNoticeFieldFocus.ts)
+- [useNoticeEditorTempImages.ts](/root/beaulab_frontend/apps/staff-web/hooks/notice/useNoticeEditorTempImages.ts)
 - [useDoctorHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorHospitalOptions.ts)
 - [useDoctorFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorFieldFocus.ts)
 - [useVideoHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoHospitalOptions.ts)
@@ -206,7 +217,7 @@ apps/staff-web/
 - `navigation/buildReturnToPath.ts`
   - list -> detail -> list 복귀 경로 조립
 
-### 4.7 `lib/hospital`, `lib/doctor`, `lib/video`
+### 4.7 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`
 
 도메인별 상수, validation, mapper, query helper를 둡니다.
 
@@ -225,13 +236,13 @@ apps/staff-web/
   - row normalize
   - returnTo helper
 
-동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
+공지사항, 동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/notice/form.ts`, `lib/notice/list.ts`, `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
 
 ## 5. 현재 CRUD 패턴
 
 ### 5.1 목록
 
-병의원, 의료진, 동영상 목록은 같은 운영 패턴을 따릅니다.
+병의원, 공지사항, 의료진, 동영상 목록은 같은 운영 패턴을 따릅니다.
 
 핵심 흐름:
 
@@ -248,6 +259,10 @@ apps/staff-web/
   - [HospitalsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/HospitalsTableClient.tsx)
   - [HospitalsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital/list/HospitalsDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/list.ts)
+- 공지사항 목록
+  - [NoticesTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/NoticesTableClient.tsx)
+  - [NoticesDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/notice/list/NoticesDataTable.tsx)
+  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/notice/list.ts)
 - 의료진 목록
   - [DoctorsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/DoctorsTableClient.tsx)
   - [DoctorsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/doctor/list/DoctorsDataTable.tsx)
@@ -259,7 +274,7 @@ apps/staff-web/
 
 ### 5.2 등록/수정 폼
 
-병의원, 의료진, 동영상 폼은 같은 큰 흐름을 따릅니다.
+병의원, 공지사항, 의료진, 동영상 폼은 같은 큰 흐름을 따릅니다.
 
 핵심 흐름:
 
@@ -275,6 +290,7 @@ apps/staff-web/
 
 - 상세: `/resource/[id]`
 - 수정: `/resource/[id]/edit`
+- 수정 페이지 데이터 로딩은 별도 `/edit` API를 만들지 않고, 상세 GET(`/resource/{id}`)를 재사용합니다.
 
 현재 관련 파일:
 
@@ -283,6 +299,11 @@ apps/staff-web/
   - [HospitalDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailPageClient.tsx)
   - [HospitalEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/edit/HospitalEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/form.ts)
+- 공지사항 생성/수정
+  - [NoticesCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/new/NoticesCreateFormClient.tsx)
+  - [NoticeDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/NoticeDetailPageClient.tsx)
+  - [NoticeEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/edit/NoticeEditFormClient.tsx)
+  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/notice/form.ts)
 - 의료진 생성/수정
   - [DoctorsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/new/DoctorsCreateFormClient.tsx)
   - [DoctorDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailPageClient.tsx)
@@ -294,6 +315,7 @@ apps/staff-web/
   - [VideoEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/edit/VideoEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/video/form.ts)
   - 무기한 게시가 아니면 `publish_start_at`, `publish_end_at`를 둘 다 필수로 검증합니다.
+  - 공지사항 본문 편집은 [RichTextEditor.tsx](/root/beaulab_frontend/packages/ui-admin/src/components/form/RichTextEditor.tsx) 공용 컴포넌트를 사용하고, notice editor image API에 업로드를 연결합니다.
 
 ## 6. 권한/메뉴/세션
 

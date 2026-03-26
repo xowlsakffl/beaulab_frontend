@@ -126,7 +126,7 @@ export default function DoctorEditFormClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<DoctorDetailResponse>(`/doctors/${doctorId}/edit`);
+      const response = await api.get<DoctorDetailResponse>(`/doctors/${doctorId}`);
 
       if (!isApiSuccess(response)) {
         setLoadError(response.error.message || "의료진 정보를 불러오지 못했습니다.");

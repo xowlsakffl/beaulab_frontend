@@ -10,6 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  FormSettingToggleRow,
   SpinnerBlock,
   StatusBadge,
 } from "@beaulab/ui-admin";
@@ -70,7 +71,7 @@ export default function VideoDetailPageClient() {
     return rawReturnTo
       ? `/videos/${videoId}/edit?returnTo=${encodeURIComponent(rawReturnTo)}`
       : `/videos/${videoId}/edit`;
-  }, [searchParams, videoId]);
+  }, [videoId, searchParams]);
 
   const fetchVideo = React.useCallback(async () => {
     if (!Number.isFinite(videoId) || videoId <= 0) {
@@ -84,7 +85,6 @@ export default function VideoDetailPageClient() {
 
     try {
       const response = await api.get<VideoViewResponse>(`/videos/${videoId}`);
-
       if (!isApiSuccess(response)) {
         setLoadError(response.error.message || "동영상 정보를 불러오지 못했습니다.");
         return;
@@ -135,11 +135,21 @@ export default function VideoDetailPageClient() {
             </div>
 
             <div className="flex w-full flex-row gap-2 sm:w-auto">
-              <Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={() => router.push(getReturnToPath())}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={() => router.push(getReturnToPath())}
+              >
                 목록으로
               </Button>
               <Can permission="beaulab.video.update">
-                <Button type="button" variant="brand" className="flex-1 sm:flex-none" onClick={() => router.push(editPath)}>
+                <Button
+                  type="button"
+                  variant="brand"
+                  className="flex-1 sm:flex-none"
+                  onClick={() => router.push(editPath)}
+                >
                   수정하기
                 </Button>
               </Can>
@@ -147,28 +157,30 @@ export default function VideoDetailPageClient() {
           </div>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
-          <section className="space-y-6 pb-6">
+        <CardContent className="space-y-8">
+          <section className="space-y-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">동영상과 소속 병의원, 검수 상태를 확인합니다.</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                동영상의 병원, 의료진, 상태 정보를 확인합니다.
+              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <DetailField label="병의원명" value={detail.hospital_name} />
-              <DetailField label="의료진이름" value={detail.doctor_name} />
-              <DetailField label="제목" value={detail.title} multiline className="md:col-span-2" />
-              <DetailField label="설명" value={detail.description} multiline className="md:col-span-2" />
-
+              <DetailField label="의료진명" value={detail.doctor_name} />
+              <DetailField label="제목" value={detail.title} className="md:col-span-2" />
+              <DetailField label="설명" value={detail.description} className="md:col-span-2" />
               <DetailField label="조회수" value={formatCount(detail.view_count)} />
               <DetailField label="좋아요 수" value={formatCount(detail.like_count)} />
-              <StatusField label="운영 상태" value={detail.status} kind="status" />
-              <StatusField label="검수 상태" value={detail.allow_status} kind="allow_status" />
-              <TagField
-                label="카테고리"
-                items={detail.categories?.map((item) => item.full_path?.trim() || item.name) ?? []}
-                className="md:col-span-2"
+              <StatusField label="운영 상태" tone="success" value={detail.status} formatter={labelVideoOperatingStatus} />
+              <StatusField
+                label="검수 상태"
+                tone="warning"
+                value={detail.allow_status}
+                formatter={labelVideoApprovalStatus}
               />
+              <TagField label="카테고리" values={detail.categories?.map((item) => item.full_path || item.name) ?? []} className="md:col-span-2" />
               <DetailField label="등록신청일" value={formatLocalDateTime(detail.created_at)} />
               <DetailField label="등록완료일" value={formatLocalDateTime(detail.allowed_at)} />
             </div>
@@ -177,20 +189,39 @@ export default function VideoDetailPageClient() {
           <section className="space-y-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">배포 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">배포 채널과 게시 기간, 외부 영상 연결 정보를 확인합니다.</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                외부 영상 연동과 게시 기간 정보를 확인합니다.
+              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <DetailField label="배포채널" value={labelVideoDistributionChannel(detail.distribution_channel)} />
+              <DetailField label="배포 채널" value={labelVideoDistributionChannel(detail.distribution_channel)} />
               <DetailField label="재생 시간" value={formatDuration(detail.duration_seconds)} />
-              <LinkField label="외부 영상 URL" value={detail.external_video_url} className="md:col-span-2" />
-              <DetailField label="외부 영상 ID" value={detail.external_video_id} />
-              <DetailField label="게시 기간" value={formatPublishPeriod(detail)} />
+              <LinkField label="외부 영상 URL" href={detail.external_video_url} className="md:col-span-2" />
+              <DetailField label="외부 영상 ID" value={detail.external_video_id} className="md:col-span-2" />
               <DetailField label="등록일" value={formatLocalDateTime(detail.created_at)} />
               <DetailField label="수정일" value={formatLocalDateTime(detail.updated_at)} />
             </div>
+
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-900/50">
+              <FormSettingToggleRow
+                title="무기한 게시"
+                description="게시 종료 없이 계속 노출합니다."
+                checked={Boolean(detail.is_publish_period_unlimited)}
+                onChange={() => undefined}
+                disabled
+                isLast
+              >
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">게시 기간</p>
+                  <p className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">
+                    {formatPublishPeriod(detail)}
+                  </p>
+                </div>
+              </FormSettingToggleRow>
+            </div>
           </section>
-        </div>
+        </CardContent>
       </Card>
 
       <Card as="aside" className="min-w-0">
@@ -199,15 +230,10 @@ export default function VideoDetailPageClient() {
           <CardDescription>썸네일과 원본 동영상 파일을 확인합니다.</CardDescription>
         </CardHeader>
 
-        <div className="space-y-6">
-          <ThumbnailSection media={detail.thumbnail_file ?? null} />
-          <FileSummaryField
-            label="원본 동영상 파일"
-            media={detail.video_file ?? null}
-            downloadUrl={`/videos/${detail.id}/download-video-file`}
-            emptyText="제출된 원본 동영상 파일이 없습니다."
-          />
-        </div>
+        <CardContent className="space-y-6">
+          <ThumbnailSection media={detail.thumbnail_file} />
+          <FileSummaryField label="원본 동영상 파일" media={detail.video_file} detailId={detail.id} />
+        </CardContent>
       </Card>
     </div>
   );
@@ -216,57 +242,47 @@ export default function VideoDetailPageClient() {
 function DetailField({
   label,
   value,
-  multiline = false,
   className,
 }: {
   label: string;
   value?: string | number | null;
-  multiline?: boolean;
   className?: string;
 }) {
-  const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
+  const displayValue = typeof value === "number" ? String(value) : value?.toString().trim() || "-";
 
   return (
     <div className={["space-y-2", className].filter(Boolean).join(" ")}>
       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div
-        className={
-          multiline
-            ? "whitespace-pre-line break-words text-sm leading-6 text-gray-800 dark:text-gray-100"
-            : "break-words text-sm leading-6 text-gray-800 dark:text-gray-100"
-        }
-      >
-        {displayValue}
-      </div>
+      <div className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">{displayValue}</div>
     </div>
   );
 }
 
 function LinkField({
   label,
-  value,
+  href,
   className,
 }: {
   label: string;
-  value?: string | null;
+  href?: string | null;
   className?: string;
 }) {
-  const href = value?.trim();
+  const trimmedHref = href?.trim();
 
   return (
     <div className={["space-y-2", className].filter(Boolean).join(" ")}>
       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      {href ? (
+      {trimmedHref ? (
         <a
-          href={href}
+          href={trimmedHref}
           target="_blank"
           rel="noreferrer"
-          className="break-all text-sm leading-6 font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
+          className="break-all text-sm leading-6 text-brand-600 underline underline-offset-2 dark:text-brand-400"
         >
-          {href}
+          {trimmedHref}
         </a>
       ) : (
-        <div className="text-sm leading-6 text-gray-500 dark:text-gray-400">-</div>
+        <div className="text-sm leading-6 text-gray-800 dark:text-gray-100">-</div>
       )}
     </div>
   );
@@ -275,151 +291,151 @@ function LinkField({
 function StatusField({
   label,
   value,
-  kind,
+  formatter,
+  tone,
 }: {
   label: string;
   value?: string | null;
-  kind: "status" | "allow_status";
+  formatter: (value?: string | null) => string;
+  tone: "success" | "warning" | "error";
 }) {
-  const status = value ?? "";
-  const labelText = kind === "status" ? labelVideoOperatingStatus(status) : labelVideoApprovalStatus(status);
-  const color =
-    status === "ACTIVE" || status === "APPROVED"
-      ? "success"
-      : status === "SUBMITTED" || status === "IN_REVIEW"
-        ? "warning"
-        : "error";
+  const status = value?.trim() || "";
+  const badgeColor = status ? tone : "light";
 
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="flex min-h-[28px] items-center">
-        <StatusBadge size="sm" color={color}>
-          {labelText || "-"}
-        </StatusBadge>
-      </div>
+      <StatusBadge size="sm" color={badgeColor}>
+        {formatter(status)}
+      </StatusBadge>
     </div>
   );
 }
 
 function TagField({
   label,
-  items,
+  values,
   className,
 }: {
   label: string;
-  items: string[];
+  values: string[];
   className?: string;
 }) {
   return (
     <div className={["space-y-2", className].filter(Boolean).join(" ")}>
       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="flex min-h-[28px] flex-wrap items-center gap-2">
-        {items.length > 0 ? (
-          items.map((item) => (
+      {values.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {values.map((value) => (
             <span
-              key={item}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 break-all dark:bg-brand-500/10 dark:text-brand-300"
+              key={value}
+              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-200"
+              title={value}
             >
-              {item}
+              <span className="truncate">{value}</span>
             </span>
-          ))
-        ) : (
-          <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-sm leading-6 text-gray-800 dark:text-gray-100">-</div>
+      )}
     </div>
   );
 }
 
-function ThumbnailSection({ media }: { media: VideoMediaAsset | null }) {
-  const thumbnailUrl = resolveVideoMediaUrl(media);
+function ThumbnailSection({ media }: { media?: VideoMediaAsset | null }) {
+  const fileUrl = resolveVideoMediaUrl(media);
+  const fileName = getVideoMediaFilename(media);
 
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-semibold text-gray-800 dark:text-white/90">썸네일</p>
-      {thumbnailUrl ? (
+    <section className="space-y-3">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">썸네일</h3>
+      </div>
+
+      {fileUrl && fileName ? (
         <DetailImageMediaCard
-          fileName={getVideoMediaFilename(media)}
-          fileUrl={thumbnailUrl}
-          imageUrl={thumbnailUrl}
-          sizeText={media?.size ? formatBytes(media.size) : null}
-          className="w-full"
-          previewAlt="동영상 썸네일"
+          fileName={fileName}
+          fileUrl={fileUrl}
+          imageUrl={fileUrl}
+          sizeText={formatBytes(media?.size) ?? undefined}
+          previewAlt={fileName}
         />
       ) : (
-        <DetailEmptyState>업로드한 썸네일 파일이 없습니다.</DetailEmptyState>
+        <DetailEmptyState>등록된 썸네일이 없습니다.</DetailEmptyState>
       )}
-    </div>
+    </section>
   );
 }
 
 function FileSummaryField({
   label,
   media,
-  downloadUrl,
-  emptyText,
+  detailId,
 }: {
   label: string;
-  media: VideoMediaAsset | null;
-  downloadUrl?: string | null;
-  emptyText: string;
+  media?: VideoMediaAsset | null;
+  detailId: number;
 }) {
   const fileUrl = resolveVideoMediaUrl(media);
+  const fileName = getVideoMediaFilename(media);
 
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-semibold text-gray-800 dark:text-white/90">{label}</p>
-      {media ? (
+    <section className="space-y-3">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">{label}</h3>
+      </div>
+
+      {fileUrl && fileName ? (
         <DetailCompactMediaCard
-          fileName={getVideoMediaFilename(media)}
+          fileName={fileName}
           fileUrl={fileUrl}
-          downloadUrl={downloadUrl}
-          sizeText={media.size ? formatBytes(media.size) : null}
-          previewSizeClassName="h-14 w-14"
+          downloadUrl={`/videos/${detailId}/download-video-file`}
+          sizeText={formatBytes(media?.size) ?? undefined}
+          previewFallbackText="파일"
+          previewSizeClassName="h-[72px] w-[72px]"
           showDownload
         />
       ) : (
-        <DetailEmptyState>{emptyText}</DetailEmptyState>
+        <DetailEmptyState>등록된 원본 동영상 파일이 없습니다.</DetailEmptyState>
       )}
-    </div>
+    </section>
   );
 }
 
 function formatCount(value?: number | null) {
-  return Number.isFinite(value) ? Number(value).toLocaleString() : "-";
+  if (typeof value !== "number" || Number.isNaN(value)) return "0";
+  return value.toLocaleString();
 }
 
 function formatDuration(value?: number | null) {
-  if (!Number.isFinite(value)) return "-";
+  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
+    return "-";
+  }
 
-  const totalSeconds = Math.max(0, Math.floor(Number(value)));
+  const totalSeconds = Math.floor(value);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
   if (hours > 0) {
-    return [
-      String(hours).padStart(2, "0"),
-      String(minutes).padStart(2, "0"),
-      String(seconds).padStart(2, "0"),
-    ].join(":");
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   }
 
-  return [
-    String(minutes).padStart(2, "0"),
-    String(seconds).padStart(2, "0"),
-  ].join(":");
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function formatPublishPeriod(detail: VideoDetailResponse) {
+function formatPublishPeriod(detail: VideoViewResponse) {
   if (detail.is_publish_period_unlimited) {
-    return "무기한";
+    return "무기한 게시";
   }
 
   const start = formatLocalDateTime(detail.publish_start_at);
   const end = formatLocalDateTime(detail.publish_end_at);
 
   if (start === "-" && end === "-") return "-";
+  if (start === "-") return `~ ${end}`;
+  if (end === "-") return `${start} ~`;
+
   return `${start} ~ ${end}`;
 }

@@ -42,7 +42,7 @@ export function PageBreadcrumb({
                 )}
                 {!isLast ? (
                   <svg
-                    className="stroke-current"
+                    className="stroke-current text-gray-400 dark:text-gray-500"
                     width="17"
                     height="16"
                     viewBox="0 0 17 16"

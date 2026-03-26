@@ -210,6 +210,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         slug: ["notices"],
         title: "공지사항",
         description: "공지사항 운영을 위한 기본 페이지입니다.",
+        requiredPermissions: ["beaulab.notice.show"],
     },
     {
         slug: ["faqs"],

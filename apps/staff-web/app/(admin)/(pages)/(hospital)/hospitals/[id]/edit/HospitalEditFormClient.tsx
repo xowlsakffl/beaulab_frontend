@@ -184,7 +184,7 @@ export default function HospitalEditFormClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}/edit`, {
+      const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}`, {
         include: "business_registration,categories,features",
       });
 

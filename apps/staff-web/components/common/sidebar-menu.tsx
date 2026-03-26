@@ -177,7 +177,7 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Bell className={iconClass} />,
             name: "공지사항 관리",
             subItems: [
-                { name: "공지사항", path: "/notices", requiredPermissions: ["common.access"] },
+                { name: "공지사항", path: "/notices", requiredPermissions: ["beaulab.notice.show"] },
                 { name: "자주하는 질문", path: "/faqs", requiredPermissions: ["common.access"] },
                 { name: "1:1문의", path: "/inquiries", requiredPermissions: ["common.access"] },
             ],

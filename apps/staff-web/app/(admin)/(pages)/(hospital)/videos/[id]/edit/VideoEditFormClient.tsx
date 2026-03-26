@@ -135,7 +135,7 @@ export default function VideoEditFormClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<VideoDetailResponse>(`/videos/${videoId}/edit`);
+      const response = await api.get<VideoDetailResponse>(`/videos/${videoId}`);
 
       if (!isApiSuccess(response)) {
         setLoadError(response.error.message || "동영상 정보를 불러오지 못했습니다.");

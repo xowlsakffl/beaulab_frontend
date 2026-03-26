@@ -51,9 +51,10 @@
 아래는 도메인 폴더에 둡니다.
 
 - 병의원 주소/특징/사업자정보 전용 로직
+- 공지사항 본문 에디터/첨부파일/게시설정 전용 로직
 - 의료진 병의원 검색/프로필/증빙 로직
 - 동영상 목록/등록/상세/수정 전용 로직
-- 병의원/의료진 `form.ts`, `list.ts`
+- 병의원/공지사항/의료진 `form.ts`, `list.ts`
 - 동영상 `form.ts`, `list.ts`
 - 도메인 field name을 아는 validation / error mapping / focus mapping
 
@@ -61,7 +62,7 @@
 
 ### 3.1 섹션 단위까지만 분리
 
-병의원/의료진 폼은 섹션 단위까지만 분리합니다.
+병의원/공지사항/의료진 폼은 섹션 단위까지만 분리합니다.
 
 현재 기준:
 
@@ -69,6 +70,10 @@
   - 기본정보
   - 사업자정보
   - 미디어
+- 공지사항 폼
+  - 기본정보
+  - 내용
+  - 첨부파일
 - 의료진 폼
   - 기본정보
   - 시술분야
@@ -129,6 +134,8 @@
 
 - `useHospitalAddressSearch`
 - `useHospitalFeatureList`
+- `useNoticeFieldFocus`
+- `useNoticeEditorTempImages`
 - `useDoctorHospitalOptions`
 - `useHospitalFieldFocus`
 - `useDoctorFieldFocus`
@@ -161,7 +168,7 @@
 - navigation helper
 - 공통 normalize/helper
 
-### 5.2 `lib/hospital`, `lib/doctor`, `lib/video`
+### 5.2 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`
 
 다음만 둡니다.
 
@@ -177,7 +184,7 @@
 
 ## 6. 목록 페이지 규칙
 
-병의원/의료진/동영상 목록은 같은 패턴을 지킵니다.
+병의원/공지사항/의료진/동영상 목록은 같은 패턴을 지킵니다.
 
 - 검색/필터/정렬/페이지/per_page는 URL과 동기화합니다.
 - 새로고침 후에도 현재 목록 문맥이 복원되어야 합니다.
@@ -192,11 +199,14 @@
 - 첫 번째 유효성 에러 필드로 스크롤 + 포커스를 보냅니다.
 - 성공 후에는 목록으로 복귀하고 문맥을 유지합니다.
 - create와 edit의 UI/업로더 경험은 가능한 한 같게 맞춥니다.
+- 공지사항 폼도 섹션 단위만 분리합니다.
+- 현재 기준 섹션은 `메인 정보(기본정보+내용) / 첨부파일`입니다.
 - 동영상 폼도 섹션 단위만 분리합니다.
 - 현재 기준 섹션은 `기본정보 / 카테고리 / 배포정보 / 파일업로드`입니다.
 - 병의원 `병의원정보(feature_ids)`는 create/edit 모두 최소 1개 이상 필수입니다.
 - `show`와 `update` 권한이 분리된 리소스는 상세와 수정을 같은 route에 섞지 않습니다.
 - 이 경우 상세는 `/[id]`, 수정은 `/[id]/edit`로 분리합니다.
+- 수정 페이지 데이터는 상세 GET 하나로만 불러오고, 별도 `/edit` GET endpoint는 만들지 않습니다.
 - 수정 폼에서 계층형 카테고리의 기존 선택값이 있으면, selector에 `selectedItems`를 함께 넘겨서 선택 chip과 체크 상태를 복원합니다.
 
 ## 8. UI 규칙
@@ -225,8 +235,16 @@
 
 - 병의원에서 이미 쓰는 `Select` 패턴이 있으면 새 버튼 그룹을 만들지 않습니다.
 - status / allow_status / approval 류는 우선 `Select` 재사용을 검토합니다.
+- 설명이 붙는 boolean 설정은 `packages/ui-admin`의 `FormSettingToggleRow`를 우선 재사용합니다.
 
-### 8.4 미디어
+### 8.4 에디터
+
+- HTML 본문이 필요한 관리자 공통 CRUD는 `packages/ui-admin`의 `RichTextEditor`를 우선 재사용합니다.
+- 공지사항처럼 에디터 이미지 업로드 API가 따로 있는 경우, editor 컴포넌트에 도메인 API callback만 주입합니다.
+- create는 temp image 업로드 + cleanup을 사용합니다.
+- edit는 권한 구조와 기존 API 계약에 맞춰 notice id 기반 업로드를 사용할 수 있습니다.
+
+### 8.5 미디어
 
 - 업로드는 가능한 한 `MediaUploader`를 재사용합니다.
 - create/edit에서 동작 차이를 최소화합니다.
