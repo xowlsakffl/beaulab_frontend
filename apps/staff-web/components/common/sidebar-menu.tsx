@@ -1,5 +1,9 @@
 import React from "react";
 import {
+    getStaticRoutePermissions,
+    type StaticAdminRoutePath,
+} from "@/lib/common/routing/route-permissions";
+import {
     type SidebarNavItem,
     LayoutGrid,
     Hospital,
@@ -18,8 +22,8 @@ import {
 } from "@beaulab/ui-admin";
 
 type VisibilityRule = { requiredPermissions?: string[] };
-type AppNavSubItem = { name: string; path: string; pro?: boolean; new?: boolean } & VisibilityRule;
-type AppNavItem = { name: string; icon: React.ReactNode; path?: string; subItems?: AppNavSubItem[] } & VisibilityRule;
+type AppNavSubItem = { name: string; path: StaticAdminRoutePath; pro?: boolean; new?: boolean } & VisibilityRule;
+type AppNavItem = { name: string; icon: React.ReactNode; path?: StaticAdminRoutePath; subItems?: AppNavSubItem[] } & VisibilityRule;
 
 type SidebarMenu = {
     main: SidebarNavItem[];
@@ -40,69 +44,84 @@ export const STAFF_SIDEBAR_DOMAIN_OPTIONS: { key: StaffSidebarDomain; label: str
 
 const iconClass = "w-5 h-5";
 
+function routeSubItem(item: Omit<AppNavSubItem, "requiredPermissions">): AppNavSubItem {
+    return {
+        ...item,
+        requiredPermissions: getStaticRoutePermissions(item.path),
+    };
+}
+
+function routeItem(item: Omit<AppNavItem, "requiredPermissions" | "subItems"> & { path: StaticAdminRoutePath }): AppNavItem {
+    return {
+        ...item,
+        requiredPermissions: getStaticRoutePermissions(item.path),
+    };
+}
+
 const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     main: [
         {
-            icon: <LayoutGrid className={iconClass} />,
-            name: "병의원 대시보드",
-            path: "/",
-            requiredPermissions: ["common.dashboard.show"],
+            ...routeItem({
+                icon: <LayoutGrid className={iconClass} />,
+                name: "병의원 대시보드",
+                path: "/",
+            }),
         },
         {
             icon: <Hospital className={iconClass} />,
             name: "병의원 관리",
             subItems: [
-                { name: "병의원", path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
-                { name: "의료진", path: "/doctors", requiredPermissions: ["beaulab.doctor.show"] },
+                routeSubItem({ name: "병의원", path: "/hospitals" }),
+                routeSubItem({ name: "의료진", path: "/doctors" }),
             ],
         },
         {
             icon: <Wallet className={iconClass} />,
             name: "충전금 관리",
             subItems: [
-                { name: "입금/충전 관리", path: "/wallet/deposits", requiredPermissions: ["common.access"] },
-                { name: "충전금 전체내역", path: "/wallet/history", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "입금/충전 관리", path: "/wallet/deposits" }),
+                routeSubItem({ name: "충전금 전체내역", path: "/wallet/history" }),
             ],
         },
         {
             icon: <Database className={iconClass} />,
             name: "고객 DB 관리",
             subItems: [
-                { name: "이벤트 DB", path: "/customer-db/events", requiredPermissions: ["common.access"] },
-                { name: "비대면상담 DB", path: "/customer-db/remote-consultations", requiredPermissions: ["common.access"] },
-                { name: "리얼모델 DB", path: "/customer-db/real-models", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "이벤트 DB", path: "/customer-db/events" }),
+                routeSubItem({ name: "비대면상담 DB", path: "/customer-db/remote-consultations" }),
+                routeSubItem({ name: "리얼모델 DB", path: "/customer-db/real-models" }),
             ],
         },
         {
             icon: <Megaphone className={iconClass} />,
             name: "광고 관리",
             subItems: [
-                { name: "이벤트 관리", path: "/ads/events", requiredPermissions: ["common.access"] },
-                { name: "상품 등록 관리", path: "/ads/products", requiredPermissions: ["common.access"] },
-                { name: "상품 캘린더", path: "/ads/calendar", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "이벤트 관리", path: "/ads/events" }),
+                routeSubItem({ name: "상품 등록 관리", path: "/ads/products" }),
+                routeSubItem({ name: "상품 캘린더", path: "/ads/calendar" }),
             ],
         },
         {
             icon: <Video className={iconClass} />,
             name: "동영상 관리",
-            subItems: [{ name: "동영상", path: "/videos", requiredPermissions: ["beaulab.video.show"] }],
+            subItems: [routeSubItem({ name: "동영상", path: "/videos" })],
         },
         {
             icon: <MessageSquareText className={iconClass} />,
             name: "게시물 관리",
             subItems: [
-                { name: "성형후기", path: "/posts/surgery-reviews", requiredPermissions: ["common.access"] },
-                { name: "병의원 리뷰", path: "/posts/hospital-reviews", requiredPermissions: ["common.access"] },
-                { name: "토크", path: "/posts/talks", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "성형후기", path: "/posts/surgery-reviews" }),
+                routeSubItem({ name: "병의원 리뷰", path: "/posts/hospital-reviews" }),
+                routeSubItem({ name: "토크", path: "/posts/talks" }),
             ],
         },
         {
             icon: <ShieldAlert className={iconClass} />,
             name: "신고컨텐츠 관리",
             subItems: [
-                { name: "성형후기", path: "/reported-content/surgery-reviews", requiredPermissions: ["common.access"] },
-                { name: "병의원 리뷰", path: "/reported-content/hospital-reviews", requiredPermissions: ["common.access"] },
-                { name: "토크", path: "/reported-content/talks", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "성형후기", path: "/reported-content/surgery-reviews" }),
+                routeSubItem({ name: "병의원 리뷰", path: "/reported-content/hospital-reviews" }),
+                routeSubItem({ name: "토크", path: "/reported-content/talks" }),
             ],
         },
     ],
@@ -112,59 +131,60 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
 const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     main: [
         {
-            icon: <LayoutGrid className={iconClass} />,
-            name: "뷰티 대시보드",
-            path: "/beauty-dashboard",
-            requiredPermissions: ["common.dashboard.show"],
+            ...routeItem({
+                icon: <LayoutGrid className={iconClass} />,
+                name: "뷰티 대시보드",
+                path: "/beauty-dashboard",
+            }),
         },
         {
             icon: <Hospital className={iconClass} />,
             name: "뷰티샵 관리",
             subItems: [
-                { name: "뷰티샵", path: "/beauties", requiredPermissions: ["beaulab.beauty.show"] },
-                { name: "뷰티전문가", path: "/experts", requiredPermissions: ["beaulab.expert.show"] },
+                routeSubItem({ name: "뷰티샵", path: "/beauties" }),
+                routeSubItem({ name: "뷰티전문가", path: "/experts" }),
             ],
         },
         {
             icon: <Wallet className={iconClass} />,
             name: "충전금 관리",
             subItems: [
-                { name: "뷰티샵 목록", path: "/beauty-wallet/beauties", requiredPermissions: ["common.access"] },
-                { name: "충전금 사용 목록", path: "/beauty-wallet/usages", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "뷰티샵 목록", path: "/beauty-wallet/beauties" }),
+                routeSubItem({ name: "충전금 사용 목록", path: "/beauty-wallet/usages" }),
             ],
         },
         {
             icon: <Database className={iconClass} />,
             name: "고객 DB 관리",
             subItems: [
-                { name: "비대면상담 DB", path: "/beauty-customer-db/remote-consultations", requiredPermissions: ["common.access"] },
-                { name: "리얼모델 DB", path: "/beauty-customer-db/real-models", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "비대면상담 DB", path: "/beauty-customer-db/remote-consultations" }),
+                routeSubItem({ name: "리얼모델 DB", path: "/beauty-customer-db/real-models" }),
             ],
         },
         {
             icon: <Megaphone className={iconClass} />,
             name: "광고 관리",
             subItems: [
-                { name: "이벤트 관리", path: "/beauty-ads/events", requiredPermissions: ["common.access"] },
-                { name: "상품 등록 관리", path: "/beauty-ads/products", requiredPermissions: ["common.access"] },
-                { name: "상품 캘린더", path: "/beauty-ads/calendar", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "이벤트 관리", path: "/beauty-ads/events" }),
+                routeSubItem({ name: "상품 등록 관리", path: "/beauty-ads/products" }),
+                routeSubItem({ name: "상품 캘린더", path: "/beauty-ads/calendar" }),
             ],
         },
         {
             icon: <MessageSquareText className={iconClass} />,
             name: "게시물 관리",
             subItems: [
-                { name: "뷰티 후기", path: "/beauty-posts/beauty-posts", requiredPermissions: ["common.access"] },
-                { name: "뷰티 리뷰", path: "/beauty-posts/beauty-reviews", requiredPermissions: ["common.access"] },
-                { name: "토크(커뮤니티)", path: "/beauty-posts/talks", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "뷰티 후기", path: "/beauty-posts/beauty-posts" }),
+                routeSubItem({ name: "뷰티 리뷰", path: "/beauty-posts/beauty-reviews" }),
+                routeSubItem({ name: "토크(커뮤니티)", path: "/beauty-posts/talks" }),
             ],
         },
         {
             icon: <ShieldAlert className={iconClass} />,
             name: "신고컨텐츠 관리",
             subItems: [
-                { name: "게시물", path: "/beauty-reported-content/posts", requiredPermissions: ["common.access"] },
-                { name: "댓글", path: "/beauty-reported-content/comments", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "게시물", path: "/beauty-reported-content/posts" }),
+                routeSubItem({ name: "댓글", path: "/beauty-reported-content/comments" }),
             ],
         },
     ],
@@ -177,49 +197,50 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Bell className={iconClass} />,
             name: "공지사항 관리",
             subItems: [
-                { name: "공지사항", path: "/notices", requiredPermissions: ["beaulab.notice.show"] },
-                { name: "자주하는 질문", path: "/faqs", requiredPermissions: ["common.access"] },
-                { name: "1:1문의", path: "/inquiries", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "공지사항", path: "/notices" }),
+                routeSubItem({ name: "자주하는 질문", path: "/faqs" }),
+                routeSubItem({ name: "1:1문의", path: "/inquiries" }),
             ],
         },
         {
             icon: <Users className={iconClass} />,
             name: "회원 관리",
             subItems: [
-                { name: "일반 회원", path: "/users", requiredPermissions: ["common.access"] },
-                { name: "대행사", path: "/agencies", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "일반 회원", path: "/users" }),
+                routeSubItem({ name: "대행사", path: "/agencies" }),
             ],
         },
         {
             icon: <Tags className={iconClass} />,
             name: "카테고리 / 해시태그 관리",
             subItems: [
-                { name: "카테고리", path: "/categories", requiredPermissions: ["common.access"] },
-                { name: "해시태그", path: "/hashtags", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "카테고리", path: "/categories" }),
+                routeSubItem({ name: "해시태그", path: "/hashtags" }),
             ],
         },
         {
             icon: <Images className={iconClass} />,
             name: "컨텐츠 관리",
             subItems: [
-                { name: "배너", path: "/content/banners", requiredPermissions: ["common.access"] },
-                { name: "팝업", path: "/content/popups", requiredPermissions: ["common.access"] },
-                { name: "상단타이틀", path: "/content/top-titles", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "배너", path: "/content/banners" }),
+                routeSubItem({ name: "팝업", path: "/content/popups" }),
+                routeSubItem({ name: "상단타이틀", path: "/content/top-titles" }),
             ],
         },
         {
-            icon: <ChartColumn className={iconClass} />,
-            name: "통계 관리",
-            path: "/statistics",
-            requiredPermissions: ["common.access"],
+            ...routeItem({
+                icon: <ChartColumn className={iconClass} />,
+                name: "통계 관리",
+                path: "/statistics",
+            }),
         },
         {
             icon: <Settings2 className={iconClass} />,
             name: "관리자 설정",
             subItems: [
-                { name: "유해성 단어 설정", path: "/settings/harmful-words", requiredPermissions: ["common.access"] },
-                { name: "닉네임 관리", path: "/settings/nicknames", requiredPermissions: ["common.access"] },
-                { name: "직원 관리", path: "/settings/staff", requiredPermissions: ["common.access"] },
+                routeSubItem({ name: "유해성 단어 설정", path: "/settings/harmful-words" }),
+                routeSubItem({ name: "닉네임 관리", path: "/settings/nicknames" }),
+                routeSubItem({ name: "직원 관리", path: "/settings/staff" }),
             ],
         },
     ],

@@ -1,14 +1,73 @@
-import { ADMIN_PAGE_ROUTE_PERMISSIONS } from "@/lib/common/routing/admin-pages";
-
 export type RoutePermissionRule = {
   path: string;
   requiredPermissions: string[];
 };
 
+export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
+  "/": ["common.dashboard.show"],
+  "/profile": ["common.profile.show"],
+  "/hospitals": ["beaulab.hospital.show"],
+  "/doctors": ["beaulab.doctor.show"],
+  "/videos": ["beaulab.video.show"],
+  "/notices": ["beaulab.notice.show"],
+  "/beauty-dashboard": ["common.dashboard.show"],
+  "/beauties": ["beaulab.beauty.show"],
+  "/experts": ["beaulab.expert.show"],
+  "/wallet/deposits": ["common.access"],
+  "/wallet/history": ["common.access"],
+  "/customer-db/events": ["common.access"],
+  "/customer-db/remote-consultations": ["common.access"],
+  "/customer-db/real-models": ["common.access"],
+  "/ads/events": ["common.access"],
+  "/ads/products": ["common.access"],
+  "/ads/calendar": ["common.access"],
+  "/posts/surgery-reviews": ["common.access"],
+  "/posts/hospital-reviews": ["common.access"],
+  "/posts/talks": ["common.access"],
+  "/reported-content/surgery-reviews": ["common.access"],
+  "/reported-content/hospital-reviews": ["common.access"],
+  "/reported-content/talks": ["common.access"],
+  "/beauty-wallet/beauties": ["common.access"],
+  "/beauty-wallet/usages": ["common.access"],
+  "/beauty-customer-db/remote-consultations": ["common.access"],
+  "/beauty-customer-db/real-models": ["common.access"],
+  "/beauty-ads/events": ["common.access"],
+  "/beauty-ads/products": ["common.access"],
+  "/beauty-ads/calendar": ["common.access"],
+  "/beauty-posts/beauty-posts": ["common.access"],
+  "/beauty-posts/beauty-reviews": ["common.access"],
+  "/beauty-posts/talks": ["common.access"],
+  "/beauty-reported-content/posts": ["common.access"],
+  "/beauty-reported-content/comments": ["common.access"],
+  "/faqs": ["common.access"],
+  "/inquiries": ["common.access"],
+  "/users": ["common.access"],
+  "/agencies": ["common.access"],
+  "/categories": ["common.access"],
+  "/hashtags": ["beaulab.hashtag.manage"],
+  "/content/banners": ["common.access"],
+  "/content/popups": ["common.access"],
+  "/content/top-titles": ["common.access"],
+  "/statistics": ["common.access"],
+  "/settings/harmful-words": ["common.access"],
+  "/settings/nicknames": ["common.access"],
+  "/settings/staff": ["common.access"],
+} as const;
+
+export type StaticAdminRoutePath = keyof typeof STATIC_ADMIN_ROUTE_PERMISSIONS;
+
+const STATIC_ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = Object.entries(
+  STATIC_ADMIN_ROUTE_PERMISSIONS,
+).map(([path, requiredPermissions]) => ({
+  path,
+  requiredPermissions: [...requiredPermissions],
+}));
+
+export function getStaticRoutePermissions(path: StaticAdminRoutePath): string[] {
+  return [...STATIC_ADMIN_ROUTE_PERMISSIONS[path]];
+}
+
 export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
-  { path: "/", requiredPermissions: ["common.dashboard.show"] },
-  { path: "/profile", requiredPermissions: ["common.profile.show"] },
-  { path: "/hospitals", requiredPermissions: ["beaulab.hospital.show"] },
   { path: "/hospitals/[id]", requiredPermissions: ["beaulab.hospital.show"] },
   { path: "/hospitals/[id]/edit", requiredPermissions: ["beaulab.hospital.update"] },
   { path: "/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
@@ -21,7 +80,7 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/notices/[id]", requiredPermissions: ["beaulab.notice.show"] },
   { path: "/notices/[id]/edit", requiredPermissions: ["beaulab.notice.update"] },
   { path: "/notices/new", requiredPermissions: ["beaulab.notice.create"] },
-  ...ADMIN_PAGE_ROUTE_PERMISSIONS,
+  ...STATIC_ADMIN_ROUTE_PERMISSION_RULES,
 ];
 
 function isDynamicSegment(segment: string) {

@@ -2,7 +2,7 @@
 
 이 문서는 `apps/staff-web`에서 앞으로 지켜야 할 리팩토링/구조/구현 규칙을 정리합니다.
 
-작성 기준: 2026-03-24
+작성 기준: 2026-03-27
 
 ## 1. 공통 원칙
 
@@ -87,6 +87,10 @@
   - toolbar
   - filter
   - table
+- 해시태그 목록
+  - toolbar
+  - table
+  - modal
 - 동영상 폼
   - 기본정보
   - 카테고리
@@ -168,7 +172,7 @@
 - navigation helper
 - 공통 normalize/helper
 
-### 5.2 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`
+### 5.2 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`
 
 다음만 둡니다.
 
@@ -181,6 +185,7 @@
 - query builder
 
 페이지 상태 자체는 `lib`로 빼지 않습니다.
+해시태그처럼 단일 필드 관리자 CRUD는 `list.ts` 하나에 URL state, row mapper, 입력 sanitize/validate를 같이 둘 수 있습니다.
 
 ## 6. 목록 페이지 규칙
 
@@ -257,11 +262,20 @@
 - 다중 파일 수정 UI는 기존 파일 목록과 새 파일 목록을 동시에 보여주고, 최대 개수는 둘을 합산해서 계산합니다.
 - 동영상 게시기간은 `무기한 게시`가 아닐 때 `publish_start_at`, `publish_end_at`를 둘 다 필수로 받습니다.
 
+### 8.6 모달
+
+- 같은 panel / header / footer 구조가 두 군데 이상 반복되면 `packages/ui-admin`의 modal 조합 컴포넌트를 우선 재사용합니다.
+- 앱 도메인 문구와 필드만 `apps/staff-web`에서 조립하고, 모달 기본 레이아웃 스타일은 `ui-admin`에 둡니다.
+
 ## 9. 권한 규칙
 
 - 메뉴 노출과 라우트 보호는 같은 permission 기준을 공유해야 합니다.
 - 서버 권한 검증을 프론트가 대체하지 않습니다.
 - 프론트 권한은 UX 제어 목적입니다.
+- 정적 관리자 경로 permission source는 `lib/common/routing/route-permissions.ts`에 둡니다.
+- `route-permissions.ts`는 정적 경로 permission source와 동적 route 매칭 규칙을 함께 소유합니다.
+- 사이드바는 path별 permission string을 하드코딩하지 말고 `route-permissions.ts`의 정적 경로 helper를 참조합니다.
+- `카테고리`와 `해시태그`처럼 메뉴 그룹이 같아도 서버 permission이 다르면 각각 별도 permission으로 연결합니다.
 
 ## 10. 문서 갱신 규칙
 

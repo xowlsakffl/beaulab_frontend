@@ -12,7 +12,6 @@ export type AdminPageDefinition = {
     title: string;
     group?: string;
     description: string;
-    requiredPermissions?: string[];
     breadcrumbItems?: BreadcrumbItem[];
 };
 
@@ -21,21 +20,18 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         slug: ["beauty-dashboard"],
         title: "뷰티 대시보드",
         description: "뷰티 운영 현황을 확인하는 기본 대시보드 페이지입니다.",
-        requiredPermissions: ["common.dashboard.show"],
     },
     {
         slug: ["beauties"],
         title: "뷰티샵",
         group: "뷰티샵 관리",
         description: "뷰티샵 목록, 상태, 검수 흐름을 관리하는 기본 페이지입니다.",
-        requiredPermissions: ["beaulab.beauty.show"],
     },
     {
         slug: ["experts"],
         title: "뷰티전문가",
         group: "뷰티샵 관리",
         description: "뷰티전문가 목록과 운영 상태를 관리하는 기본 페이지입니다.",
-        requiredPermissions: ["beaulab.expert.show"],
     },
     {
         slug: ["beauty-wallet", "beauties"],
@@ -114,7 +110,6 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         title: "의료진",
         group: "병의원 관리",
         description: "의료진, 상태, 노출 정책을 관리하는 기본 페이지입니다.",
-        requiredPermissions: ["beaulab.doctor.show"],
     },
     {
         slug: ["wallet", "deposits"],
@@ -168,7 +163,6 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         slug: ["videos"],
         title: "동영상 관리",
         description: "동영상 등록, 상태, 검수 흐름을 관리하는 기본 페이지입니다.",
-        requiredPermissions: ["beaulab.video.show"],
     },
     {
         slug: ["posts", "surgery-reviews"],
@@ -210,7 +204,6 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         slug: ["notices"],
         title: "공지사항",
         description: "공지사항 운영을 위한 기본 페이지입니다.",
-        requiredPermissions: ["beaulab.notice.show"],
     },
     {
         slug: ["faqs"],
@@ -342,8 +335,3 @@ export function renderAdminPage(path: string) {
         </div>
     );
 }
-
-export const ADMIN_PAGE_ROUTE_PERMISSIONS = ADMIN_PAGE_DEFINITIONS.map((page) => ({
-    path: `/${page.slug.join("/")}`,
-    requiredPermissions: page.requiredPermissions ?? ["common.access"],
-}));

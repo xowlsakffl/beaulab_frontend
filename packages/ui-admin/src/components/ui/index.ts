@@ -3,6 +3,7 @@ export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 export * from "./spinner/Spinner";
 export * from "./dropdown/Dropdown";
 export * from "./dropdown/DropdownItem";
+export * from "./modal";
 export * from "./tabs/SegmentedTabs";
 export * from "./alert/Alert";
 export * from "./avatar/Avatar";

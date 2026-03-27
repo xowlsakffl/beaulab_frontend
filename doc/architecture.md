@@ -2,7 +2,7 @@
 
 이 문서는 현재 `beaulab_frontend`의 실제 구조를 기준으로 정리한 운영 문서입니다.
 
-작성 기준: 2026-03-24
+작성 기준: 2026-03-27
 
 ## 1. 범위
 
@@ -47,6 +47,7 @@ apps/staff-web
 - `packages/*`는 앱 도메인이나 라우트를 알면 안 됩니다.
 - 메뉴, 보호 라우트, actor 세션, 병의원/공지사항/의료진 업무 흐름은 `apps/staff-web`에 둡니다.
 - 설명이 붙는 공통 form UI 패턴은 `packages/ui-admin`에 둡니다.
+- 반복되는 modal panel / header / footer 패턴도 `packages/ui-admin`에 둡니다.
 
 ## 3. `apps/staff-web` 현재 구조
 
@@ -63,6 +64,8 @@ apps/staff-web/
 │  └─ (auth)/
 ├─ components/
 │  ├─ common/
+│  ├─ hashtag/
+│  │  └─ list/
 │  ├─ hospital/
 │  │  ├─ form/
 │  │  └─ list/
@@ -94,6 +97,8 @@ apps/staff-web/
    │     └─ route-permissions.ts
    ├─ hospital/
    │  ├─ form.ts
+   │  └─ list.ts
+   ├─ hashtag/
    │  └─ list.ts
    ├─ notice/
    │  ├─ form.ts
@@ -147,7 +152,7 @@ apps/staff-web/
 - 대시보드도 도메인별로 분리합니다. 현재 기준 병의원은 `/`, 뷰티는 `/beauty-dashboard`를 사용합니다.
 - 뷰티 도메인 전용 placeholder 페이지는 병의원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
 
-### 4.3 `components/hospital`, `components/notice`, `components/doctor`, `components/video`
+### 4.3 `components/hospital`, `components/notice`, `components/doctor`, `components/video`, `components/hashtag`
 
 도메인 전용 UI를 둡니다.
 
@@ -155,6 +160,8 @@ apps/staff-web/
 
 - 폼은 섹션 단위까지만 분리합니다.
 - 목록도 toolbar / filter / table 정도까지만 분리합니다.
+- 해시태그처럼 단일 필드 관리자 마스터 CRUD는 목록 페이지 기준으로 `toolbar / table / modal` 정도만 분리합니다.
+- 모달 내부 레이아웃이 여러 화면에서 반복되면 `packages/ui-admin`의 modal 조합 컴포넌트를 우선 재사용합니다.
 
 예:
 
@@ -162,6 +169,7 @@ apps/staff-web/
 - 공지사항 폼: `Main(Basic+Content) / Attachments`
 - 의료진 폼: `Basic / Category / Medical`
 - 동영상 폼: `Basic / Category / Publish / Media`
+- 해시태그 목록: `Toolbar / DataTable / UpsertModal`
 
 동영상처럼 병의원/의료진과 다른 독립 CRUD 기능은 별도 도메인 폴더를 둘 수 있습니다.
 
@@ -211,13 +219,14 @@ apps/staff-web/
 - `auth/session.ts`
   - login / restoreSession / ensureSession / logout
 - `routing/admin-pages.tsx`
-  - 관리자 기본 페이지 정의와 metadata/breadcrumb helper
+  - placeholder 관리자 페이지 정의와 metadata/breadcrumb helper
 - `routing/route-permissions.ts`
-  - 경로별 permission 규칙
+  - 정적 관리자 경로 permission source
+  - 동적 경로 permission 매칭 규칙
 - `navigation/buildReturnToPath.ts`
   - list -> detail -> list 복귀 경로 조립
 
-### 4.7 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`
+### 4.7 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`
 
 도메인별 상수, validation, mapper, query helper를 둡니다.
 
@@ -237,6 +246,7 @@ apps/staff-web/
   - returnTo helper
 
 공지사항, 동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/notice/form.ts`, `lib/notice/list.ts`, `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
+해시태그처럼 단일 페이지 CRUD는 `lib/hashtag/list.ts` 하나에서 목록 query helper와 입력 sanitize/validate를 같이 둘 수 있습니다.
 
 ## 5. 현재 CRUD 패턴
 

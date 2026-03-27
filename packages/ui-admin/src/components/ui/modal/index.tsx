@@ -10,6 +10,11 @@ interface ModalProps {
   isFullscreen?: boolean; // Default to false for backwards compatibility
 }
 
+type ModalSectionProps = {
+  children: React.ReactNode;
+  className?: string;
+};
+
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -58,7 +63,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
       {!isFullscreen && (
         <div
-          className="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
+          className="fixed inset-0 h-full w-full bg-gray-900/20 backdrop-blur-[10px]"
           onClick={onClose}
         ></div>
       )}
@@ -92,4 +97,32 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+};
+
+export const ModalPanel: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
+  return (
+    <div className={`rounded-3xl bg-white p-5 shadow-2xl shadow-slate-900/10 dark:bg-gray-900 dark:shadow-black/30 sm:p-6 ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+export const ModalHeader: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
+  return <div className={`pr-10 ${className}`}>{children}</div>;
+};
+
+export const ModalTitle: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
+  return <h3 className={`text-xl font-semibold text-gray-800 dark:text-white/90 ${className}`}>{children}</h3>;
+};
+
+export const ModalDescription: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
+  return <p className={`mt-1 text-sm text-gray-500 dark:text-gray-400 ${className}`}>{children}</p>;
+};
+
+export const ModalBody: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
+  return <div className={`mt-6 space-y-5 ${className}`}>{children}</div>;
+};
+
+export const ModalFooter: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
+  return <div className={`mt-6 flex items-center justify-end gap-2 ${className}`}>{children}</div>;
 };
