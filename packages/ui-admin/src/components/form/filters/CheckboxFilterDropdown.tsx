@@ -22,6 +22,7 @@ type CheckboxFilterDropdownProps = {
   containerRef?: React.RefObject<HTMLDivElement | null>;
   emptyLabel?: string;
   allLabel?: string;
+  allSelectedText?: string;
   selectedText?: (count: number) => string;
 };
 
@@ -40,10 +41,23 @@ export function CheckboxFilterDropdown({
   containerRef,
   emptyLabel = "전체",
   allLabel = "전체",
-  selectedText = (count) => `${count}개 선택`,
+  allSelectedText = "전체",
+  selectedText,
 }: CheckboxFilterDropdownProps) {
   const selectedCount = selectedValues.length;
-  const isAllSelected = selectedCount === options.length;
+  const selectedValueSet = React.useMemo(() => new Set(selectedValues), [selectedValues]);
+  const selectedLabels = React.useMemo(
+    () => options.filter((option) => selectedValueSet.has(option.value)).map((option) => option.label),
+    [options, selectedValueSet],
+  );
+  const isAllSelected = options.length > 0 && selectedLabels.length === options.length;
+  const resolvedSelectedText = React.useMemo(() => {
+    if (isAllSelected) return allSelectedText;
+    if (selectedLabels.length > 0) return selectedLabels.join(", ");
+    if (selectedText) return selectedText(selectedCount);
+
+    return `${selectedCount}개 선택`;
+  }, [allSelectedText, isAllSelected, selectedCount, selectedLabels, selectedText]);
 
   return (
     <div className="min-w-0 w-full">
@@ -57,7 +71,7 @@ export function CheckboxFilterDropdown({
           className={filterTriggerClass}
         >
           <span className="min-w-0 flex-1 truncate text-left">
-            {selectedCount > 0 ? selectedText(selectedCount) : emptyLabel}
+            {selectedCount > 0 ? resolvedSelectedText : emptyLabel}
           </span>
           <ChevronDown className="size-4" />
         </Button>

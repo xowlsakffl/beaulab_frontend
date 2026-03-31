@@ -6,64 +6,59 @@ import {
   CheckboxFilterDropdown,
   ChevronDown,
   DateRangeFilterDropdown,
-  Select,
 } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import {
   DATE_PRESET_OPTIONS,
+  TALK_CATEGORY_OPTIONS,
   TALK_STATUS_OPTIONS,
   type DatePresetKey,
   type Filters,
 } from "@/lib/talk/list";
 
-type TalkCategoryOption = {
-  value: string;
-  label: string;
-};
-
 type TalksFilterPanelProps = {
   isOpen: boolean;
   draftFilters: Filters;
-  categoryOptions: TalkCategoryOption[];
-  categoryLoading: boolean;
-  categoryError: string | null;
   draftDateRange?: DateRange;
   isStatusDropdownOpen: boolean;
+  isCategoryDropdownOpen: boolean;
   isDatePickerOpen: boolean;
   statusDropdownRef: React.RefObject<HTMLDivElement | null>;
+  categoryDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
   onToggleFilters: () => void;
   onToggleStatusDropdown: () => void;
+  onToggleCategoryDropdown: () => void;
   onToggleDatePicker: () => void;
   onToggleStatus: (value: string) => void;
   onToggleAllStatus: () => void;
-  onCategoryChange: (value: string) => void;
+  onToggleCategory: (value: string) => void;
+  onToggleAllCategory: () => void;
   onApplyDateRange: (nextRange?: DateRange) => void;
   onApplyDatePreset: (preset: DatePresetKey) => void;
   onApplyFilters: () => void;
   onResetFilters: () => void;
 };
 
-const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
-
 export function TalksFilterPanel({
   isOpen,
   draftFilters,
-  categoryOptions,
-  categoryLoading,
-  categoryError,
   draftDateRange,
   isStatusDropdownOpen,
+  isCategoryDropdownOpen,
   isDatePickerOpen,
   statusDropdownRef,
+  categoryDropdownRef,
   datePickerRef,
   onToggleFilters,
   onToggleStatusDropdown,
+  onToggleCategoryDropdown,
   onToggleDatePicker,
   onToggleStatus,
   onToggleAllStatus,
-  onCategoryChange,
+  onToggleCategory,
+  onToggleAllCategory,
   onApplyDateRange,
   onApplyDatePreset,
   onApplyFilters,
@@ -95,22 +90,18 @@ export function TalksFilterPanel({
               onToggleAll={onToggleAllStatus}
             />
 
-            <div className="min-w-0 w-full">
-              <p className={filterFieldLabelClass}>카테고리</p>
-              <Select
-                value={draftFilters.categoryId}
-                options={[
-                  { value: "", label: categoryLoading ? "카테고리 불러오는 중" : "전체 카테고리" },
-                  ...categoryOptions,
-                ]}
-                showPlaceholderOption={false}
-                onChange={onCategoryChange}
-                className="h-11"
-                disabled={categoryLoading}
+            <div>
+              <CheckboxFilterDropdown
+                label="카테고리"
+                containerRef={categoryDropdownRef}
+                selectedValues={draftFilters.categoryCodes}
+                options={TALK_CATEGORY_OPTIONS}
+                isOpen={isCategoryDropdownOpen}
+                onToggleOpen={onToggleCategoryDropdown}
+                onToggleValue={onToggleCategory}
+                onToggleAll={onToggleAllCategory}
+                emptyLabel="전체"
               />
-              {categoryError ? (
-                <p className="mt-1 text-xs text-rose-600 dark:text-rose-300">{categoryError}</p>
-              ) : null}
             </div>
 
             <DateRangeFilterDropdown

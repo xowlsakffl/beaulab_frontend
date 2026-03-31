@@ -1,8 +1,6 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-export const HOSPITAL_COMMUNITY_DOMAIN = "HOSPITAL_COMMUNITY";
-
 export type TalkAuthor = {
   id?: number | null;
   name?: string | null;
@@ -54,7 +52,7 @@ export type SortState = {
 
 export type Filters = {
   statuses: string[];
-  categoryId: string;
+  categoryCodes: string[];
   dateRange: string;
   startDate: string;
   endDate: string;
@@ -63,7 +61,7 @@ export type Filters = {
 export type TalksQuery = {
   q?: string;
   status?: string;
-  category_id?: number;
+  category_codes?: string;
   start_date?: string;
   end_date?: string;
   include: string;
@@ -78,9 +76,16 @@ export const TALK_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "INACTIVE", label: "비활성" },
 ];
 
+export const TALK_CATEGORY_OPTIONS: CheckboxFilterOption[] = [
+  { value: "TALK_PLASTIC_PETIT", label: "성형/쁘띠" },
+  { value: "TALK_BEAUTY", label: "뷰티" },
+  { value: "TALK_DAILY", label: "일상" },
+  { value: "TALK_SECRET", label: "시크릿" },
+];
+
 export const DEFAULT_FILTERS: Filters = {
   statuses: [],
-  categoryId: "",
+  categoryCodes: [],
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -109,6 +114,7 @@ export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
 
 const TALK_SORT_FIELDS = new Set<SortField>(["id", "title", "status", "view_count", "updated_at", "created_at"]);
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
+const TALK_CATEGORY_VALUE_SET = new Set(TALK_CATEGORY_OPTIONS.map((option) => option.value));
 
 export function labelTalkStatus(status: string) {
   if (status === "ACTIVE") return "활성";
@@ -258,6 +264,10 @@ export function nextSortState(prev: SortState, field: SortField): SortState {
 }
 
 export function parseTalksTableState(searchParams: URLSearchParams) {
+  const categoryCodes = (searchParams.get("category_codes") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => TALK_CATEGORY_VALUE_SET.has(value));
   const statuses = (searchParams.get("status") ?? "")
     .split(",")
     .map((value) => value.trim())
@@ -286,7 +296,7 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       statuses,
-      categoryId: searchParams.get("category_id") ?? "",
+      categoryCodes,
       dateRange: createdDateState.label,
       startDate,
       endDate,
@@ -326,10 +336,11 @@ export function buildTalksQuery({
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
   if (appliedFilters.statuses.length > 0) query.status = appliedFilters.statuses.join(",");
-
-  const parsedCategoryId = Number(appliedFilters.categoryId);
-  if (Number.isFinite(parsedCategoryId) && parsedCategoryId > 0) {
-    query.category_id = parsedCategoryId;
+  const normalizedCategoryCodes = appliedFilters.categoryCodes
+    .map((value) => value.trim())
+    .filter((value) => TALK_CATEGORY_VALUE_SET.has(value));
+  if (normalizedCategoryCodes.length > 0) {
+    query.category_codes = Array.from(new Set(normalizedCategoryCodes)).join(",");
   }
 
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
@@ -343,7 +354,7 @@ export function buildTalksQueryString(query: TalksQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
-  if (query.category_id) params.set("category_id", String(query.category_id));
+  if (query.category_codes) params.set("category_codes", query.category_codes);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);

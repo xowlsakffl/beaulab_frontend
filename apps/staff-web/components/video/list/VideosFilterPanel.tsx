@@ -122,7 +122,6 @@ export function VideosFilterPanel({
               onToggleOpen={onToggleDistributionChannelDropdown}
               onToggleValue={onToggleDistributionChannel}
               onToggleAll={onToggleAllDistributionChannel}
-              selectedText={(count) => `${count}개 선택`}
             />
             <DateRangeFilterDropdown
               label="등록일"

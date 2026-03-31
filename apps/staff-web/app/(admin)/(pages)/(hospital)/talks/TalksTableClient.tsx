@@ -10,11 +10,10 @@ import type { DateRange } from "react-day-picker";
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
 import { TalksToolbar } from "@/components/talk/list/TalksToolbar";
-import type { CategoryApiItem } from "@/lib/common/category";
 import { api } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
-  HOSPITAL_COMMUNITY_DOMAIN,
+  TALK_CATEGORY_OPTIONS,
   TALK_STATUS_OPTIONS,
   buildPresetDateRange,
   buildTalksQuery,
@@ -31,11 +30,6 @@ import {
   type TalkApiItem,
   type TalkRow,
 } from "@/lib/talk/list";
-
-type TalkCategoryOption = {
-  value: string;
-  label: string;
-};
 
 export default function TalksTableClient() {
   const router = useRouter();
@@ -55,6 +49,7 @@ export default function TalksTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
@@ -67,10 +62,8 @@ export default function TalksTableClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
-  const [categoryOptions, setCategoryOptions] = React.useState<TalkCategoryOption[]>([]);
-  const [categoryLoading, setCategoryLoading] = React.useState(true);
-  const [categoryError, setCategoryError] = React.useState<string | null>(null);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const categoryDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const query = React.useMemo(
@@ -132,42 +125,6 @@ export default function TalksTableClient() {
   }, [fetchTalks]);
 
   React.useEffect(() => {
-    const fetchCategoryOptions = async () => {
-      setCategoryLoading(true);
-      setCategoryError(null);
-
-      try {
-        const response = await api.get<CategoryApiItem[]>("/categories/selector", {
-          domain: HOSPITAL_COMMUNITY_DOMAIN,
-          status: ["ACTIVE"],
-          depth: 2,
-          per_page: 100,
-        });
-
-        if (!isApiSuccess(response)) {
-          setCategoryError(response.error.message || "카테고리 목록을 불러오지 못했습니다.");
-          return;
-        }
-
-        const selectableItems = response.data
-          .filter((item) => item.status === "ACTIVE")
-          .map((item) => ({
-            value: String(item.id),
-            label: item.name,
-          }));
-
-        setCategoryOptions(selectableItems);
-      } catch {
-        setCategoryError("카테고리 목록을 불러오지 못했습니다.");
-      } finally {
-        setCategoryLoading(false);
-      }
-    };
-
-    void fetchCategoryOptions();
-  }, []);
-
-  React.useEffect(() => {
     if (searchInput.trim() === searchKeyword) return;
 
     const timer = window.setTimeout(() => {
@@ -183,6 +140,9 @@ export default function TalksTableClient() {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
       }
+      if (!categoryDropdownRef.current?.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
       if (!datePickerRef.current?.contains(event.target as Node)) {
         setIsDatePickerOpen(false);
       }
@@ -196,7 +156,7 @@ export default function TalksTableClient() {
     setPage(1);
     setAppliedFilters({
       statuses: [...draftFilters.statuses],
-      categoryId: draftFilters.categoryId,
+      categoryCodes: [...draftFilters.categoryCodes],
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
@@ -207,6 +167,7 @@ export default function TalksTableClient() {
     setDraftFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
     setIsStatusDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
     setIsDatePickerOpen(false);
     setPage(1);
     setAppliedFilters(DEFAULT_FILTERS);
@@ -231,6 +192,32 @@ export default function TalksTableClient() {
         ? []
         : TALK_STATUS_OPTIONS.map((item) => item.value),
     }));
+  }, []);
+
+  const toggleCategory = React.useCallback((value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.categoryCodes.includes(value);
+
+      return {
+        ...prev,
+        categoryCodes: exists
+          ? prev.categoryCodes.filter((item) => item !== value)
+          : [...prev.categoryCodes, value],
+      };
+    });
+  }, []);
+
+  const toggleAllCategory = React.useCallback(() => {
+    setDraftFilters((prev) => {
+      const allCategoryValues = TALK_CATEGORY_OPTIONS.map((item) => item.value);
+      const isAllSelected = allCategoryValues.length > 0 &&
+        allCategoryValues.every((value) => prev.categoryCodes.includes(value));
+
+      return {
+        ...prev,
+        categoryCodes: isAllSelected ? [] : allCategoryValues,
+      };
+    });
   }, []);
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
@@ -272,20 +259,21 @@ export default function TalksTableClient() {
       <TalksFilterPanel
         isOpen={isFilterOpen}
         draftFilters={draftFilters}
-        categoryOptions={categoryOptions}
-        categoryLoading={categoryLoading}
-        categoryError={categoryError}
         draftDateRange={draftDateRange}
         isStatusDropdownOpen={isStatusDropdownOpen}
+        isCategoryDropdownOpen={isCategoryDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
         statusDropdownRef={statusDropdownRef}
+        categoryDropdownRef={categoryDropdownRef}
         datePickerRef={datePickerRef}
         onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
         onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
+        onToggleCategoryDropdown={() => setIsCategoryDropdownOpen((prev) => !prev)}
         onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
         onToggleStatus={toggleStatus}
         onToggleAllStatus={toggleAllStatus}
-        onCategoryChange={(value) => setDraftFilters((prev) => ({ ...prev, categoryId: value }))}
+        onToggleCategory={toggleCategory}
+        onToggleAllCategory={toggleAllCategory}
         onApplyDateRange={applyDateRange}
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}

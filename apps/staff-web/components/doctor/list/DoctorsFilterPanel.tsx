@@ -122,7 +122,6 @@ export function DoctorsFilterPanel({
               onToggleOpen={onTogglePositionDropdown}
               onToggleValue={onTogglePosition}
               onToggleAll={onToggleAllPosition}
-              selectedText={(count) => `${count}개 선택`}
             />
             <DateRangeFilterDropdown
               label="등록일"

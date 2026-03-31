@@ -40,6 +40,12 @@ function buildTalkColumns({
   const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
   const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
+  const twoLineClampStyle: React.CSSProperties = {
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+  };
 
   return [
     {
@@ -74,7 +80,7 @@ function buildTalkColumns({
         </Button>
       ),
       render: (row) => (
-        <span className="block whitespace-normal break-words font-medium text-gray-800 dark:text-white/90">
+        <span className="block whitespace-normal break-words font-medium text-gray-800 dark:text-white/90" style={twoLineClampStyle}>
           {row.title}
         </span>
       ),
@@ -85,7 +91,7 @@ function buildTalkColumns({
       cellClassName: `${cellBaseClass} lg:w-[280px]`,
       header: "내용",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 dark:text-gray-300">
+        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 dark:text-gray-300" style={twoLineClampStyle}>
           {row.contentPreview || "-"}
         </div>
       ),

@@ -107,7 +107,6 @@ export function NoticesFilterPanel({
               onToggleValue={onToggleChannel}
               onToggleAll={onToggleAllChannels}
               allLabel="전체 선택"
-              selectedText={(count) => `${count}개 선택`}
             />
             <DateRangeFilterDropdown
               label="등록일"
