@@ -44,7 +44,7 @@ export const STAFF_SIDEBAR_DOMAIN_OPTIONS: { key: StaffSidebarDomain; label: str
 
 const iconClass = "w-5 h-5";
 
-function routeSubItem(item: Omit<AppNavSubItem, "requiredPermissions">): AppNavSubItem {
+function routeSubItem(item: { name: string; path: string }): AppNavSubItem {
     return {
         ...item,
         requiredPermissions: getStaticRoutePermissions(item.path),
@@ -71,57 +71,57 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Hospital className={iconClass} />,
             name: "병의원 관리",
             subItems: [
-                routeSubItem({ name: "병의원", path: "/hospitals" }),
-                routeSubItem({ name: "의료진", path: "/doctors" }),
+                routeSubItem({name: "병의원", path: "/hospitals"}),
+                routeSubItem({name: "의료진", path: "/doctors"}),
             ],
         },
         {
             icon: <Wallet className={iconClass} />,
             name: "충전금 관리",
             subItems: [
-                routeSubItem({ name: "입금/충전 관리", path: "/wallet/deposits" }),
-                routeSubItem({ name: "충전금 전체내역", path: "/wallet/history" }),
+                routeSubItem({name: "입금/충전 관리", path: "/wallet/deposits"}),
+                routeSubItem({name: "충전금 전체내역", path: "/wallet/history"}),
             ],
         },
         {
             icon: <Database className={iconClass} />,
             name: "고객 DB 관리",
             subItems: [
-                routeSubItem({ name: "이벤트 DB", path: "/customer-db/events" }),
-                routeSubItem({ name: "비대면상담 DB", path: "/customer-db/remote-consultations" }),
-                routeSubItem({ name: "리얼모델 DB", path: "/customer-db/real-models" }),
+                routeSubItem({name: "이벤트 DB", path: "/customer-db/events"}),
+                routeSubItem({name: "비대면상담 DB", path: "/customer-db/remote-consultations"}),
+                routeSubItem({name: "리얼모델 DB", path: "/customer-db/real-models"}),
             ],
         },
         {
             icon: <Megaphone className={iconClass} />,
             name: "광고 관리",
             subItems: [
-                routeSubItem({ name: "이벤트 관리", path: "/ads/events" }),
-                routeSubItem({ name: "상품 등록 관리", path: "/ads/products" }),
-                routeSubItem({ name: "상품 캘린더", path: "/ads/calendar" }),
+                routeSubItem({name: "이벤트 관리", path: "/ads/events"}),
+                routeSubItem({name: "상품 등록 관리", path: "/ads/products"}),
+                routeSubItem({name: "상품 캘린더", path: "/ads/calendar"}),
             ],
         },
         {
             icon: <Video className={iconClass} />,
             name: "동영상 관리",
-            subItems: [routeSubItem({ name: "동영상", path: "/videos" })],
+            subItems: [routeSubItem({name: "동영상", path: "/videos"})],
         },
         {
             icon: <MessageSquareText className={iconClass} />,
             name: "게시물 관리",
             subItems: [
-                routeSubItem({ name: "성형후기", path: "/posts/surgery-reviews" }),
-                routeSubItem({ name: "병의원 리뷰", path: "/posts/hospital-reviews" }),
-                routeSubItem({ name: "토크", path: "/posts/talks" }),
+                routeSubItem({name: "성형후기", path: "/posts/surgery-reviews"}),
+                routeSubItem({name: "병의원 리뷰", path: "/posts/hospital-reviews"}),
+                routeSubItem({ name: "토크", path: "/talks" }),
             ],
         },
         {
             icon: <ShieldAlert className={iconClass} />,
             name: "신고컨텐츠 관리",
             subItems: [
-                routeSubItem({ name: "성형후기", path: "/reported-content/surgery-reviews" }),
-                routeSubItem({ name: "병의원 리뷰", path: "/reported-content/hospital-reviews" }),
-                routeSubItem({ name: "토크", path: "/reported-content/talks" }),
+                routeSubItem({name: "성형후기", path: "/reported-content/surgery-reviews"}),
+                routeSubItem({name: "병의원 리뷰", path: "/reported-content/hospital-reviews"}),
+                routeSubItem({name: "토크", path: "/reported-content/talks"}),
             ],
         },
     ],
@@ -141,50 +141,50 @@ const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Hospital className={iconClass} />,
             name: "뷰티샵 관리",
             subItems: [
-                routeSubItem({ name: "뷰티샵", path: "/beauties" }),
-                routeSubItem({ name: "뷰티전문가", path: "/experts" }),
+                routeSubItem({name: "뷰티샵", path: "/beauties"}),
+                routeSubItem({name: "뷰티전문가", path: "/experts"}),
             ],
         },
         {
             icon: <Wallet className={iconClass} />,
             name: "충전금 관리",
             subItems: [
-                routeSubItem({ name: "뷰티샵 목록", path: "/beauty-wallet/beauties" }),
-                routeSubItem({ name: "충전금 사용 목록", path: "/beauty-wallet/usages" }),
+                routeSubItem({name: "뷰티샵 목록", path: "/beauty-wallet/beauties"}),
+                routeSubItem({name: "충전금 사용 목록", path: "/beauty-wallet/usages"}),
             ],
         },
         {
             icon: <Database className={iconClass} />,
             name: "고객 DB 관리",
             subItems: [
-                routeSubItem({ name: "비대면상담 DB", path: "/beauty-customer-db/remote-consultations" }),
-                routeSubItem({ name: "리얼모델 DB", path: "/beauty-customer-db/real-models" }),
+                routeSubItem({name: "비대면상담 DB", path: "/beauty-customer-db/remote-consultations"}),
+                routeSubItem({name: "리얼모델 DB", path: "/beauty-customer-db/real-models"}),
             ],
         },
         {
             icon: <Megaphone className={iconClass} />,
             name: "광고 관리",
             subItems: [
-                routeSubItem({ name: "이벤트 관리", path: "/beauty-ads/events" }),
-                routeSubItem({ name: "상품 등록 관리", path: "/beauty-ads/products" }),
-                routeSubItem({ name: "상품 캘린더", path: "/beauty-ads/calendar" }),
+                routeSubItem({name: "이벤트 관리", path: "/beauty-ads/events"}),
+                routeSubItem({name: "상품 등록 관리", path: "/beauty-ads/products"}),
+                routeSubItem({name: "상품 캘린더", path: "/beauty-ads/calendar"}),
             ],
         },
         {
             icon: <MessageSquareText className={iconClass} />,
             name: "게시물 관리",
             subItems: [
-                routeSubItem({ name: "뷰티 후기", path: "/beauty-posts/beauty-posts" }),
-                routeSubItem({ name: "뷰티 리뷰", path: "/beauty-posts/beauty-reviews" }),
-                routeSubItem({ name: "토크(커뮤니티)", path: "/beauty-posts/talks" }),
+                routeSubItem({name: "뷰티 후기", path: "/beauty-posts/beauty-posts"}),
+                routeSubItem({name: "뷰티 리뷰", path: "/beauty-posts/beauty-reviews"}),
+                routeSubItem({name: "토크(커뮤니티)", path: "/beauty-posts/talks"}),
             ],
         },
         {
             icon: <ShieldAlert className={iconClass} />,
             name: "신고컨텐츠 관리",
             subItems: [
-                routeSubItem({ name: "게시물", path: "/beauty-reported-content/posts" }),
-                routeSubItem({ name: "댓글", path: "/beauty-reported-content/comments" }),
+                routeSubItem({name: "게시물", path: "/beauty-reported-content/posts"}),
+                routeSubItem({name: "댓글", path: "/beauty-reported-content/comments"}),
             ],
         },
     ],
@@ -197,34 +197,34 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Bell className={iconClass} />,
             name: "공지사항 관리",
             subItems: [
-                routeSubItem({ name: "공지사항", path: "/notices" }),
-                routeSubItem({ name: "자주하는 질문", path: "/faqs" }),
-                routeSubItem({ name: "1:1문의", path: "/inquiries" }),
+                routeSubItem({name: "공지사항", path: "/notices"}),
+                routeSubItem({name: "자주하는 질문", path: "/faqs"}),
+                routeSubItem({name: "1:1문의", path: "/inquiries"}),
             ],
         },
         {
             icon: <Users className={iconClass} />,
             name: "회원 관리",
             subItems: [
-                routeSubItem({ name: "일반 회원", path: "/users" }),
-                routeSubItem({ name: "대행사", path: "/agencies" }),
+                routeSubItem({name: "일반 회원", path: "/users"}),
+                routeSubItem({name: "대행사", path: "/agencies"}),
             ],
         },
         {
             icon: <Tags className={iconClass} />,
             name: "카테고리 / 해시태그 관리",
             subItems: [
-                routeSubItem({ name: "카테고리", path: "/categories" }),
-                routeSubItem({ name: "해시태그", path: "/hashtags" }),
+                routeSubItem({name: "카테고리", path: "/categories"}),
+                routeSubItem({name: "해시태그", path: "/hashtags"}),
             ],
         },
         {
             icon: <Images className={iconClass} />,
             name: "컨텐츠 관리",
             subItems: [
-                routeSubItem({ name: "배너", path: "/content/banners" }),
-                routeSubItem({ name: "팝업", path: "/content/popups" }),
-                routeSubItem({ name: "상단타이틀", path: "/content/top-titles" }),
+                routeSubItem({name: "배너", path: "/content/banners"}),
+                routeSubItem({name: "팝업", path: "/content/popups"}),
+                routeSubItem({name: "상단타이틀", path: "/content/top-titles"}),
             ],
         },
         {
@@ -238,9 +238,9 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Settings2 className={iconClass} />,
             name: "관리자 설정",
             subItems: [
-                routeSubItem({ name: "유해성 단어 설정", path: "/settings/harmful-words" }),
-                routeSubItem({ name: "닉네임 관리", path: "/settings/nicknames" }),
-                routeSubItem({ name: "직원 관리", path: "/settings/staff" }),
+                routeSubItem({name: "유해성 단어 설정", path: "/settings/harmful-words"}),
+                routeSubItem({name: "닉네임 관리", path: "/settings/nicknames"}),
+                routeSubItem({name: "직원 관리", path: "/settings/staff"}),
             ],
         },
     ],

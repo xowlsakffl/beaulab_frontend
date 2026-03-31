@@ -49,7 +49,7 @@ export function VideoMediaPanel({
     <Card as="aside" className="min-w-0">
       <CardHeader className="pb-6">
         <CardTitle>파일 업로드</CardTitle>
-        <CardDescription>썸네일과 병원 파트너가 제출한 원본 파일을 확인합니다.</CardDescription>
+        <CardDescription>썸네일과 병의원 파트너가 제출한 원본 파일을 확인합니다.</CardDescription>
       </CardHeader>
 
       <div className="space-y-6">

@@ -54,8 +54,10 @@
 - 공지사항 본문 에디터/첨부파일/게시설정 전용 로직
 - 의료진 병의원 검색/프로필/증빙 로직
 - 동영상 목록/등록/상세/수정 전용 로직
+- 토크 목록 전용 로직
 - 병의원/공지사항/의료진 `form.ts`, `list.ts`
 - 동영상 `form.ts`, `list.ts`
+- 토크 `list.ts`
 - 도메인 field name을 아는 validation / error mapping / focus mapping
 
 ## 3. 컴포넌트 분리 규칙
@@ -84,6 +86,10 @@
 예:
 
 - 동영상 목록
+  - toolbar
+  - filter
+  - table
+- 토크 목록
   - toolbar
   - filter
   - table
@@ -172,7 +178,7 @@
 - navigation helper
 - 공통 normalize/helper
 
-### 5.2 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`
+### 5.2 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`, `lib/talk`
 
 다음만 둡니다.
 
@@ -186,10 +192,11 @@
 
 페이지 상태 자체는 `lib`로 빼지 않습니다.
 해시태그처럼 단일 필드 관리자 CRUD는 `list.ts` 하나에 URL state, row mapper, 입력 sanitize/validate를 같이 둘 수 있습니다.
+토크처럼 공통 게시물 하위의 독립 목록도 `list.ts` 하나에 URL state, row mapper, query helper를 같이 둘 수 있습니다.
 
 ## 6. 목록 페이지 규칙
 
-병의원/공지사항/의료진/동영상 목록은 같은 패턴을 지킵니다.
+병의원/공지사항/의료진/동영상/토크 목록은 같은 패턴을 지킵니다.
 
 - 검색/필터/정렬/페이지/per_page는 URL과 동기화합니다.
 - 새로고침 후에도 현재 목록 문맥이 복원되어야 합니다.

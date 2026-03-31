@@ -162,7 +162,7 @@ export default function VideoDetailPageClient() {
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                동영상의 병원, 의료진, 상태 정보를 확인합니다.
+                동영상의 병의원, 의료진, 상태 정보를 확인합니다.
               </p>
             </div>
 

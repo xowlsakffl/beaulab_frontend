@@ -177,10 +177,10 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         description: "병의원 리뷰 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
-        slug: ["posts", "talks"],
-        title: "토크",
+        slug: ["talks"],
+        title: "병원 토크",
         group: "게시물 관리",
-        description: "토크 게시물을 조회하고 관리하는 기본 페이지입니다.",
+        description: "병원 토크 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
         slug: ["reported-content", "surgery-reviews"],

@@ -66,6 +66,8 @@ apps/staff-web/
 │  ├─ common/
 │  ├─ hashtag/
 │  │  └─ list/
+│  ├─ talk/
+│  │  └─ list/
 │  ├─ hospital/
 │  │  ├─ form/
 │  │  └─ list/
@@ -99,6 +101,8 @@ apps/staff-web/
    │  ├─ form.ts
    │  └─ list.ts
    ├─ hashtag/
+   │  └─ list.ts
+   ├─ talk/
    │  └─ list.ts
    ├─ notice/
    │  ├─ form.ts
@@ -152,7 +156,7 @@ apps/staff-web/
 - 대시보드도 도메인별로 분리합니다. 현재 기준 병의원은 `/`, 뷰티는 `/beauty-dashboard`를 사용합니다.
 - 뷰티 도메인 전용 placeholder 페이지는 병의원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
 
-### 4.3 `components/hospital`, `components/notice`, `components/doctor`, `components/video`, `components/hashtag`
+### 4.3 `components/hospital`, `components/notice`, `components/doctor`, `components/video`, `components/hashtag`, `components/talk`
 
 도메인 전용 UI를 둡니다.
 
@@ -170,6 +174,7 @@ apps/staff-web/
 - 의료진 폼: `Basic / Category / Medical`
 - 동영상 폼: `Basic / Category / Publish / Media`
 - 해시태그 목록: `Toolbar / DataTable / UpsertModal`
+- 토크 목록: `Toolbar / Filter / DataTable`
 
 동영상처럼 병의원/의료진과 다른 독립 CRUD 기능은 별도 도메인 폴더를 둘 수 있습니다.
 
@@ -226,7 +231,7 @@ apps/staff-web/
 - `navigation/buildReturnToPath.ts`
   - list -> detail -> list 복귀 경로 조립
 
-### 4.7 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`
+### 4.7 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`, `lib/talk`
 
 도메인별 상수, validation, mapper, query helper를 둡니다.
 
@@ -247,12 +252,13 @@ apps/staff-web/
 
 공지사항, 동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/notice/form.ts`, `lib/notice/list.ts`, `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
 해시태그처럼 단일 페이지 CRUD는 `lib/hashtag/list.ts` 하나에서 목록 query helper와 입력 sanitize/validate를 같이 둘 수 있습니다.
+토크처럼 공통 게시물 하위의 독립 목록도 `lib/talk/list.ts` 하나에서 URL state, row mapper, query helper를 같이 둡니다.
 
 ## 5. 현재 CRUD 패턴
 
 ### 5.1 목록
 
-병의원, 공지사항, 의료진, 동영상 목록은 같은 운영 패턴을 따릅니다.
+병의원, 공지사항, 의료진, 동영상, 토크 목록은 같은 운영 패턴을 따릅니다.
 
 핵심 흐름:
 
@@ -281,6 +287,10 @@ apps/staff-web/
   - [VideosTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/VideosTableClient.tsx)
   - [VideosDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/video/list/VideosDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/video/list.ts)
+- 토크 목록
+  - [TalksTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/talks/TalksTableClient.tsx)
+  - [TalksDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/talk/list/TalksDataTable.tsx)
+  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/talk/list.ts)
 
 ### 5.2 등록/수정 폼
 
