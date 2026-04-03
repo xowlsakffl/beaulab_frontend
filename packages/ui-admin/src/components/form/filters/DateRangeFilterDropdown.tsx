@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { DayPicker, type DateRange, type Locale } from "react-day-picker";
+import { DayFlag, DayPicker, SelectionState, UI, getDefaultClassNames, type DateRange, type Locale } from "react-day-picker";
 import { ko } from "react-day-picker/locale";
 import { ChevronDown } from "../../../icons";
+import { cn } from "../../../lib/utils";
 import { Button } from "../../ui/button/Button";
 import { Card } from "../../ui/card/Card";
 
@@ -26,6 +27,7 @@ type DateRangeFilterDropdownProps = {
   presetOptions: readonly DatePresetOption[];
   containerRef?: React.RefObject<HTMLDivElement | null>;
   locale?: Locale;
+  hideLabel?: boolean;
 };
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
@@ -46,10 +48,51 @@ export function DateRangeFilterDropdown({
   presetOptions,
   containerRef,
   locale = ko,
+  hideLabel = false,
 }: DateRangeFilterDropdownProps) {
+  const defaultClassNames = React.useMemo(() => getDefaultClassNames(), []);
+  const dayPickerClassNames = React.useMemo(
+    () => ({
+      ...defaultClassNames,
+      [UI.Chevron]: cn(defaultClassNames[UI.Chevron], "fill-brand-500 dark:fill-brand-400"),
+      [UI.NextMonthButton]: cn(
+        defaultClassNames[UI.NextMonthButton],
+        "rounded-md text-brand-500 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10",
+      ),
+      [UI.PreviousMonthButton]: cn(
+        defaultClassNames[UI.PreviousMonthButton],
+        "rounded-md text-brand-500 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-500/10",
+      ),
+      [UI.DayButton]: cn(
+        defaultClassNames[UI.DayButton],
+        "transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 dark:hover:bg-brand-500/10 dark:hover:text-brand-100",
+      ),
+      [UI.CaptionLabel]: cn(defaultClassNames[UI.CaptionLabel], "font-semibold text-gray-800 dark:text-white/90"),
+      [UI.Weekday]: cn(defaultClassNames[UI.Weekday], "text-gray-500 dark:text-gray-400"),
+      [DayFlag.today]: cn(defaultClassNames[DayFlag.today], "text-brand-600 dark:text-brand-400"),
+      [SelectionState.selected]: cn(defaultClassNames[SelectionState.selected], "text-brand-700 dark:text-brand-100"),
+      [SelectionState.range_middle]: cn(defaultClassNames[SelectionState.range_middle], "bg-brand-50 dark:bg-brand-500/10"),
+    }),
+    [defaultClassNames],
+  );
+  const dayPickerStyles = React.useMemo(
+    () =>
+      ({
+        "--rdp-accent-color": "var(--color-brand-500)",
+        "--rdp-accent-background-color": "var(--color-brand-50)",
+        "--rdp-selected-border": "2px solid var(--color-brand-500)",
+        "--rdp-today-color": "var(--color-brand-600)",
+        "--rdp-range_middle-background-color": "var(--color-brand-50)",
+        "--rdp-range_middle-color": "var(--color-brand-700)",
+        "--rdp-range_start-date-background-color": "var(--color-brand-500)",
+        "--rdp-range_end-date-background-color": "var(--color-brand-500)",
+      }) as React.CSSProperties,
+    [],
+  );
+
   return (
     <div className="min-w-0 w-full">
-      <p className={filterFieldLabelClass}>{label}</p>
+      {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}
       <div ref={containerRef} className="relative">
         <Button
           type="button"
@@ -77,7 +120,14 @@ export function DateRangeFilterDropdown({
                 </Button>
               ))}
             </div>
-            <DayPicker mode="range" selected={selected} locale={locale} onSelect={onSelect} />
+            <DayPicker
+              mode="range"
+              selected={selected}
+              locale={locale}
+              onSelect={onSelect}
+              classNames={dayPickerClassNames}
+              style={dayPickerStyles}
+            />
             <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-white/[0.06]">
               <Button
                 type="button"

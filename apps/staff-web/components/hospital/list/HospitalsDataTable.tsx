@@ -6,14 +6,14 @@ import {
   ChevronUp,
   ChevronsUpDown,
   DataTable,
-  Select,
+  Download,
+  Pagination,
   StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import {
-  PER_PAGE_OPTIONS,
   labelApprovalStatus,
   labelReviewStatus,
   type HospitalRow,
@@ -37,7 +37,6 @@ function buildHospitalColumns({
   const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const spacedHeaderClass = `${headerBaseClass} lg:pl-3`;
-  const spacedCellClass = `${cellBaseClass} lg:pl-3`;
   const spacedNowrapCellClass = `${nowrapCellClass} lg:pl-3`;
 
   return [
@@ -83,18 +82,6 @@ function buildHospitalColumns({
       cellClassName: `${spacedNowrapCellClass} lg:w-[116px]`,
       header: "대표 연락처",
       render: (row) => row.tel,
-    },
-    {
-      key: "address",
-      headerClassName: `${spacedHeaderClass} lg:w-[200px]`,
-      cellClassName: `${spacedCellClass} lg:w-[200px]`,
-      header: "주소",
-      render: (row) => (
-        <div className="whitespace-pre-line">
-          <div>{row.address || "-"}</div>
-          {row.addressDetail ? <div className="text-gray-500 dark:text-gray-400">{row.addressDetail}</div> : null}
-        </div>
-      ),
     },
     {
       key: "approvalStatus",
@@ -170,11 +157,9 @@ type HospitalsDataTableProps = {
   error: string | null;
   highlightedRowId: number | null;
   sortState: SortState;
-  perPage: number;
   onToggleSort: (field: SortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
-  onPerPageChange: (value: number) => void;
   onRowClick: (row: HospitalRow) => void;
 };
 
@@ -186,11 +171,9 @@ export function HospitalsDataTable({
   error,
   highlightedRowId,
   sortState,
-  perPage,
   onToggleSort,
   onRefresh,
   onGoPage,
-  onPerPageChange,
   onRowClick,
 }: HospitalsDataTableProps) {
   const columns = React.useMemo(
@@ -201,7 +184,7 @@ export function HospitalsDataTable({
   return (
     <DataTable
       title="병의원 목록"
-      description="종합검색은 입력 시 자동 반영되며, 필터는 '필터 적용' 버튼으로 적용됩니다."
+      description="검색어와 필터를 설정한 뒤 검색을 눌러 적용하세요."
       tableClassName="min-w-[860px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
@@ -220,17 +203,26 @@ export function HospitalsDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={
-        <div className="flex items-center gap-2">
-          <Select
-            defaultValue={String(perPage)}
-            options={PER_PAGE_OPTIONS}
-            showPlaceholderOption={false}
-            onChange={(value) => onPerPageChange(Number(value))}
-            placeholder="갯수를 선택하세요."
-            className="w-[70px] px-2 text-xs"
+      footerCenter={
+        meta ? (
+          <Pagination
+            currentPage={meta.current_page}
+            totalPages={Math.max(1, meta.last_page)}
+            onPageChange={onGoPage}
+            disabled={refreshing || !onGoPage}
           />
-        </div>
+        ) : null
+      }
+      footerRight={
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+        >
+          <Download className="size-5" />
+          <span>다운로드</span>
+        </Button>
       }
       emptyText="조건에 맞는 병의원이 없습니다."
     />

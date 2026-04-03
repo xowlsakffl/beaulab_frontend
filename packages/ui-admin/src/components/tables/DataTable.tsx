@@ -25,6 +25,10 @@ type DataTableProps<T> = {
   title?: React.ReactNode;
   description?: React.ReactNode;
   rightActions?: React.ReactNode;
+  footerLeft?: React.ReactNode;
+  footerCenter?: React.ReactNode;
+  footerRight?: React.ReactNode;
+  hideFooterSummary?: boolean;
   tableClassName?: string;
   columns: DataTableColumn<T>[];
   rows: T[];
@@ -54,6 +58,10 @@ export function DataTable<T>({
   title,
   description,
   rightActions,
+  footerLeft,
+  footerCenter,
+  footerRight,
+  hideFooterSummary = false,
   tableClassName,
   columns,
   rows,
@@ -73,10 +81,26 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const colCount = Math.max(1, columns.length);
   const totalPages = Number(meta?.last_page ?? 0);
-  const shouldShowFooter = Boolean(meta);
+  const shouldShowFooter =
+    Boolean(meta) || footerLeft !== undefined || footerCenter !== undefined || footerRight !== undefined;
   const handlePageChange = onGoPage ?? (() => undefined);
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
+  const defaultFooterSummary = meta ? (
+    <div className="text-sm text-gray-500 dark:text-gray-400">
+      총 {meta.total.toLocaleString()}개 · {meta.current_page} / {Math.max(1, totalPages)} 페이지
+    </div>
+  ) : null;
+  const defaultFooterPagination = meta ? (
+    <Pagination
+      currentPage={meta.current_page}
+      totalPages={Math.max(1, totalPages)}
+      onPageChange={handlePageChange}
+      disabled={refreshing || !onGoPage}
+    />
+  ) : null;
+  const hasCustomFooterLayout =
+    footerLeft !== undefined || footerCenter !== undefined || footerRight !== undefined || hideFooterSummary;
 
   React.useEffect(() => {
     const container = scrollContainerRef.current;
@@ -219,18 +243,23 @@ export function DataTable<T>({
 
       </div>
 
-      {shouldShowFooter && meta ? (
-        <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            총 {meta.total.toLocaleString()}개 · {meta.current_page} / {Math.max(1, totalPages)} 페이지
+      {shouldShowFooter ? (
+        hasCustomFooterLayout ? (
+          <div className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:px-6">
+            <div className="min-w-0">
+              {footerLeft === undefined ? (hideFooterSummary ? null : defaultFooterSummary) : footerLeft}
+            </div>
+            <div className="justify-self-start sm:justify-self-center">
+              {footerCenter === undefined ? defaultFooterPagination : footerCenter}
+            </div>
+            <div className="justify-self-start sm:justify-self-end">{footerRight}</div>
           </div>
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, totalPages)}
-            onPageChange={handlePageChange}
-            disabled={refreshing || !onGoPage}
-          />
-        </div>
+        ) : meta ? (
+          <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            {defaultFooterSummary}
+            {defaultFooterPagination}
+          </div>
+        ) : null
       ) : null}
 
       {showRightScrollHint ? (

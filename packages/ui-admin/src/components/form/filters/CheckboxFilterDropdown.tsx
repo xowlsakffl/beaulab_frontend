@@ -24,6 +24,7 @@ type CheckboxFilterDropdownProps = {
   allLabel?: string;
   allSelectedText?: string;
   selectedText?: (count: number) => string;
+  hideLabel?: boolean;
 };
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
@@ -43,6 +44,7 @@ export function CheckboxFilterDropdown({
   allLabel = "전체",
   allSelectedText = "전체",
   selectedText,
+  hideLabel = false,
 }: CheckboxFilterDropdownProps) {
   const selectedCount = selectedValues.length;
   const selectedValueSet = React.useMemo(() => new Set(selectedValues), [selectedValues]);
@@ -61,7 +63,7 @@ export function CheckboxFilterDropdown({
 
   return (
     <div className="min-w-0 w-full">
-      <p className={filterFieldLabelClass}>{label}</p>
+      {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}
       <div ref={containerRef} className="relative">
         <Button
           type="button"

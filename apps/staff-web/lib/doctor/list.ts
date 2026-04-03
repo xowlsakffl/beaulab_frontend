@@ -106,6 +106,8 @@ export const DEFAULT_FILTERS: Filters = {
   updatedEndDate: "",
 };
 
+export const DOCTORS_PER_PAGE = 10;
+
 export const DOCTOR_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "ACTIVE", label: "정상" },
   { value: "SUSPENDED", label: "정지" },
@@ -122,12 +124,6 @@ export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
   { value: "대표원장", label: "대표원장" },
   { value: "원장", label: "원장" },
   { value: "기타", label: "기타" },
-];
-
-export const PER_PAGE_OPTIONS = [
-  { value: "15", label: "15개" },
-  { value: "30", label: "30개" },
-  { value: "50", label: "50개" },
 ];
 
 export const DATE_PRESET_OPTIONS = [
@@ -359,11 +355,7 @@ export function parseDoctorsTableState(searchParams: URLSearchParams) {
   const updatedEndDate = searchParams.get("updated_end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
   const updatedDateState = buildFilterDateState(updatedStartDate, updatedEndDate);
-  const parsedPerPage = Number(searchParams.get("per_page"));
-  const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage)
-    ? parsedPerPage
-    : 15;
+  const perPage = DOCTORS_PER_PAGE;
 
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
@@ -459,7 +451,7 @@ export function buildDoctorsQueryString(query: DoctorsQuery) {
   if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
+  if (query.per_page !== DOCTORS_PER_PAGE) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 
   return params.toString();

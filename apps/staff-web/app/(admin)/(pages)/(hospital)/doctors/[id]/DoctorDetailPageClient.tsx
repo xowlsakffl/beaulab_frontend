@@ -35,6 +35,10 @@ import {
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
+const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+
 export default function DoctorDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -239,9 +243,9 @@ function DetailField({
   const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">{displayValue}</div>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className={detailValueClass}>{displayValue}</div>
     </div>
   );
 }
@@ -264,9 +268,9 @@ function StatusField({
         : "error";
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="flex min-h-[28px] items-center">
+    <div className={detailItemClass}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className="flex min-h-[28px] min-w-0 items-center">
         <StatusBadge size="sm" color={color}>
           {labelText || "-"}
         </StatusBadge>
@@ -285,9 +289,9 @@ function TagField({
   className?: string;
 }) {
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="flex min-h-[28px] flex-wrap items-center gap-2">
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className="flex min-h-[28px] min-w-0 flex-wrap items-center gap-2">
         {items.length > 0 ? (
           items.map((item) => (
             <span
@@ -317,12 +321,12 @@ function ListField({
   const normalizedItems = items.map((item) => item.trim()).filter(Boolean);
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
       {normalizedItems.length > 0 ? (
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           {normalizedItems.map((item, index) => (
-            <div key={`${label}-${index}`} className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">
+            <div key={`${label}-${index}`} className={detailValueClass}>
               {item}
             </div>
           ))}

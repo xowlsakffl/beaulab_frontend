@@ -7,7 +7,8 @@ import {
   ChevronUp,
   ChevronsUpDown,
   DataTable,
-  Select,
+  Download,
+  Pagination,
   StatusBadge,
   X,
   type DataTableColumn,
@@ -15,7 +16,6 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
-  PER_PAGE_OPTIONS,
   labelDoctorApprovalStatus,
   labelDoctorOperatingStatus,
   type DoctorRow,
@@ -303,11 +303,9 @@ type DoctorsDataTableProps = {
   error: string | null;
   highlightedRowId: number | null;
   sortState: SortState;
-  perPage: number;
   onToggleSort: (field: SortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
-  onPerPageChange: (value: number) => void;
   onRowClick: (row: DoctorRow) => void;
 };
 
@@ -319,11 +317,9 @@ export function DoctorsDataTable({
   error,
   highlightedRowId,
   sortState,
-  perPage,
   onToggleSort,
   onRefresh,
   onGoPage,
-  onPerPageChange,
   onRowClick,
 }: DoctorsDataTableProps) {
   const columns = React.useMemo(
@@ -334,7 +330,7 @@ export function DoctorsDataTable({
   return (
     <DataTable
       title="의료진 목록"
-      description="소속 병의원, 검수 상태, 운영 상태와 기본 프로필 정보를 확인할 수 있습니다."
+      description="검색어와 필터를 설정한 뒤 검색을 눌러 적용하세요."
       tableClassName="min-w-[1440px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
@@ -353,18 +349,27 @@ export function DoctorsDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={(
-        <div className="flex items-center gap-2">
-          <Select
-            defaultValue={String(perPage)}
-            options={PER_PAGE_OPTIONS}
-            showPlaceholderOption={false}
-            onChange={(value) => onPerPageChange(Number(value))}
-            placeholder="개수 선택"
-            className="w-[70px] px-2 text-xs"
+      footerCenter={
+        meta ? (
+          <Pagination
+            currentPage={meta.current_page}
+            totalPages={Math.max(1, meta.last_page)}
+            onPageChange={onGoPage}
+            disabled={refreshing || !onGoPage}
           />
-        </div>
-      )}
+        ) : null
+      }
+      footerRight={
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+        >
+          <Download className="size-5" />
+          <span>다운로드</span>
+        </Button>
+      }
       emptyText="조건에 맞는 의료진이 없습니다."
     />
   );

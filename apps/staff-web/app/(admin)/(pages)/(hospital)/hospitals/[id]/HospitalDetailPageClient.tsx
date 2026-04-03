@@ -32,6 +32,10 @@ import {
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
+const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+
 export default function HospitalDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -237,13 +241,13 @@ function DetailField({
   const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
       <div
         className={
           multiline
-            ? "whitespace-pre-line break-words text-sm leading-6 text-gray-800 dark:text-gray-100"
-            : "break-words text-sm leading-6 text-gray-800 dark:text-gray-100"
+            ? `whitespace-pre-line ${detailValueClass}`
+            : detailValueClass
         }
       >
         {displayValue}
@@ -273,9 +277,9 @@ function StatusField({
         : "error";
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="flex min-h-[28px] items-center">
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className="flex min-h-[28px] min-w-0 items-center">
         <StatusBadge size="sm" color={color}>
           {labelText || "-"}
         </StatusBadge>
@@ -286,9 +290,9 @@ function StatusField({
 
 function TagField({ label, items, className }: { label: string; items: string[]; className?: string }) {
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="flex min-h-[28px] flex-wrap items-center gap-2">
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className="flex min-h-[28px] min-w-0 flex-wrap items-center gap-2">
         {items.length > 0 ? (
           items.map((item) => (
             <span
@@ -318,15 +322,17 @@ function FileSummaryField({
   const fileUrl = resolveMediaUrl(media);
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
       {media ? (
-        <DetailCompactMediaCard
-          fileName={getMediaFilename(media)}
-          fileUrl={fileUrl}
-          sizeText={media.size ? formatBytes(media.size) : null}
-          previewSizeClassName="h-14 w-14"
-        />
+        <div className="min-w-0">
+          <DetailCompactMediaCard
+            fileName={getMediaFilename(media)}
+            fileUrl={fileUrl}
+            sizeText={media.size ? formatBytes(media.size) : null}
+            previewSizeClassName="h-14 w-14"
+          />
+        </div>
       ) : (
         <div className="text-sm text-gray-500 dark:text-gray-400">-</div>
       )}

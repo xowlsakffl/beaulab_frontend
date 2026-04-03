@@ -2,12 +2,12 @@
 
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
-import { HospitalsToolbar } from "@/components/hospital/list/HospitalsToolbar";
 import { api } from "@/lib/common/api";
 import {
   ALLOW_STATUS_OPTIONS,
   APPROVAL_STATUS_OPTIONS,
   DEFAULT_FILTERS,
+  HOSPITALS_PER_PAGE,
   buildHospitalsQuery,
   buildHospitalsQueryString,
   buildHospitalsReturnToPath,
@@ -46,7 +46,6 @@ export default function HospitalsTableClient() {
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
 
-  const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isReviewDropdownOpen, setIsReviewDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
@@ -61,7 +60,6 @@ export default function HospitalsTableClient() {
   const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
-  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [page, setPage] = React.useState(initialTableState.page);
 
   const [rows, setRows] = React.useState<HospitalRow[]>([]);
@@ -80,10 +78,10 @@ export default function HospitalsTableClient() {
         searchKeyword,
         appliedFilters,
         sortState,
-        perPage,
+        perPage: HOSPITALS_PER_PAGE,
         page,
       }),
-    [appliedFilters, page, perPage, searchKeyword, sortState],
+    [appliedFilters, page, searchKeyword, sortState],
   );
 
   const queryString = React.useMemo(() => buildHospitalsQueryString(query), [query]);
@@ -136,7 +134,7 @@ export default function HospitalsTableClient() {
   }, [fetchHospitals]);
 
   React.useEffect(() => {
-    rows.slice(0, 15).forEach((row) => {
+    rows.slice(0, HOSPITALS_PER_PAGE).forEach((row) => {
       router.prefetch(`/hospitals/${row.id}`);
     });
   }, [router, rows]);
@@ -156,17 +154,6 @@ export default function HospitalsTableClient() {
     const nextQuery = nextSearchParams.toString();
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
-
-  React.useEffect(() => {
-    if (searchInput.trim() === searchKeyword) return;
-
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setSearchKeyword(searchInput.trim());
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput, searchKeyword]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -190,6 +177,7 @@ export default function HospitalsTableClient() {
 
   const applyFilters = () => {
     setPage(1);
+    setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       approvalStatuses: [...draftFilters.approvalStatuses],
       reviewStatuses: [...draftFilters.reviewStatuses],
@@ -202,20 +190,18 @@ export default function HospitalsTableClient() {
     });
   };
 
-  const resetFilters = (applyNow = true) => {
+  const resetFilters = () => {
     setDraftFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
     setDraftUpdatedDateRange(undefined);
+    setSearchInput("");
+    setSearchKeyword("");
+    setIsStatusDropdownOpen(false);
+    setIsReviewDropdownOpen(false);
     setIsDatePickerOpen(false);
     setIsUpdatedDatePickerOpen(false);
-    if (applyNow) {
-      setPage(1);
-      setAppliedFilters(DEFAULT_FILTERS);
-    }
-  };
-
-  const toggleFilters = () => {
-    setIsFilterOpen((prev) => !prev);
+    setPage(1);
+    setAppliedFilters(DEFAULT_FILTERS);
   };
 
   const toggleReviewStatus = (value: string) => {
@@ -318,15 +304,7 @@ export default function HospitalsTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalsToolbar
-        searchInput={searchInput}
-        isFilterOpen={isFilterOpen}
-        onSearchChange={setSearchInput}
-        onToggleFilters={toggleFilters}
-      />
-
       <HospitalsFilterPanel
-        isOpen={isFilterOpen}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
         draftUpdatedDateRange={draftUpdatedDateRange}
@@ -338,7 +316,8 @@ export default function HospitalsTableClient() {
         reviewDropdownRef={reviewDropdownRef}
         datePickerRef={datePickerRef}
         updatedDatePickerRef={updatedDatePickerRef}
-        onToggleFilters={toggleFilters}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
         onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
         onToggleReviewDropdown={() => setIsReviewDropdownOpen((prev) => !prev)}
         onToggleDatePicker={() => {
@@ -356,7 +335,7 @@ export default function HospitalsTableClient() {
         onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}
-        onResetFilters={() => resetFilters(true)}
+        onResetFilters={resetFilters}
       />
 
       <HospitalsDataTable
@@ -367,14 +346,9 @@ export default function HospitalsTableClient() {
         error={error}
         highlightedRowId={highlightedRowId}
         sortState={sortState}
-        perPage={perPage}
         onToggleSort={toggleSort}
         onRefresh={() => fetchHospitals(true)}
         onGoPage={(nextPage) => setPage(nextPage)}
-        onPerPageChange={(value) => {
-          setPage(1);
-          setPerPage(value);
-        }}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();
           router.push(`/hospitals/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);

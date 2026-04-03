@@ -1,16 +1,31 @@
+import Link from "next/link";
 import React from "react";
-
-import { Button, Card, CheckboxFilterDropdown, ChevronDown, DateRangeFilterDropdown, type CheckboxFilterOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-import type { DateFilterKey, DatePresetKey, Filters } from "@/lib/doctor/list";
+import { Can } from "@/components/common/guard";
+import {
+  Button,
+  Card,
+  CheckboxFilterDropdown,
+  DateRangeFilterDropdown,
+  InputField,
+  SquarePlus,
+} from "@beaulab/ui-admin";
+
+import {
+  DATE_PRESET_OPTIONS,
+  DOCTOR_APPROVAL_STATUS_OPTIONS,
+  DOCTOR_POSITION_OPTIONS,
+  DOCTOR_STATUS_OPTIONS,
+  type DateFilterKey,
+  type DatePresetKey,
+  type Filters,
+} from "@/lib/doctor/list";
 
 type DoctorsFilterPanelProps = {
-  isOpen: boolean;
   draftFilters: Filters;
   draftDateRange?: DateRange;
   draftUpdatedDateRange?: DateRange;
-  positionOptions: CheckboxFilterOption[];
   isOperatingStatusDropdownOpen: boolean;
   isApprovalStatusDropdownOpen: boolean;
   isPositionDropdownOpen: boolean;
@@ -21,10 +36,8 @@ type DoctorsFilterPanelProps = {
   positionDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
   updatedDatePickerRef: React.RefObject<HTMLDivElement | null>;
-  operatingStatusOptions: CheckboxFilterOption[];
-  approvalStatusOptions: CheckboxFilterOption[];
-  datePresetOptions: readonly { key: string; label: string }[];
-  onToggleFilters: () => void;
+  searchInput: string;
+  onSearchChange: (value: string) => void;
   onToggleOperatingStatusDropdown: () => void;
   onToggleApprovalStatusDropdown: () => void;
   onTogglePositionDropdown: () => void;
@@ -43,11 +56,9 @@ type DoctorsFilterPanelProps = {
 };
 
 export function DoctorsFilterPanel({
-  isOpen,
   draftFilters,
   draftDateRange,
   draftUpdatedDateRange,
-  positionOptions,
   isOperatingStatusDropdownOpen,
   isApprovalStatusDropdownOpen,
   isPositionDropdownOpen,
@@ -58,10 +69,8 @@ export function DoctorsFilterPanel({
   positionDropdownRef,
   datePickerRef,
   updatedDatePickerRef,
-  operatingStatusOptions,
-  approvalStatusOptions,
-  datePresetOptions,
-  onToggleFilters,
+  searchInput,
+  onSearchChange,
   onToggleOperatingStatusDropdown,
   onToggleApprovalStatusDropdown,
   onTogglePositionDropdown,
@@ -78,102 +87,136 @@ export function DoctorsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: DoctorsFilterPanelProps) {
-  return (
-    <Card className="rounded-xl p-0 dark:border-white/[0.05]">
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={onToggleFilters}
-        className="flex h-11 w-full items-center justify-between rounded-none px-3 text-left text-sm font-medium text-gray-700 dark:bg-transparent dark:text-white/90"
-      >
-        <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">필터</h3>
-        <ChevronDown className={["size-4", isOpen ? "rotate-180" : "rotate-0"].join(" ")} />
-      </Button>
+  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
 
-      {isOpen ? (
-        <div>
-          <div className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 xl:grid-cols-5">
-            <CheckboxFilterDropdown
-              label="운영 상태"
-              containerRef={operatingStatusDropdownRef}
-              selectedValues={draftFilters.operatingStatuses}
-              options={operatingStatusOptions}
-              isOpen={isOperatingStatusDropdownOpen}
-              onToggleOpen={onToggleOperatingStatusDropdown}
-              onToggleValue={onToggleOperatingStatus}
-              onToggleAll={onToggleAllOperatingStatus}
-            />
-            <CheckboxFilterDropdown
-              label="검수 상태"
-              containerRef={approvalStatusDropdownRef}
-              selectedValues={draftFilters.approvalStatuses}
-              options={approvalStatusOptions}
-              isOpen={isApprovalStatusDropdownOpen}
-              onToggleOpen={onToggleApprovalStatusDropdown}
-              onToggleValue={onToggleApprovalStatus}
-              onToggleAll={onToggleAllApprovalStatus}
-            />
-            <CheckboxFilterDropdown
-              label="직책"
-              containerRef={positionDropdownRef}
-              selectedValues={draftFilters.positions}
-              options={positionOptions}
-              isOpen={isPositionDropdownOpen}
-              onToggleOpen={onTogglePositionDropdown}
-              onToggleValue={onTogglePosition}
-              onToggleAll={onToggleAllPosition}
-            />
-            <DateRangeFilterDropdown
-              label="등록일"
-              containerRef={datePickerRef}
-              value={draftFilters.dateRange}
-              placeholder="등록일 기간 선택"
-              selected={draftDateRange}
-              isOpen={isDatePickerOpen}
-              presetOptions={datePresetOptions}
-              onToggleOpen={onToggleDatePicker}
-              onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
-              onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
-              onReset={() => {
-                onApplyDateRange("created", undefined);
-                onToggleDatePicker();
-              }}
-              onConfirm={onToggleDatePicker}
-            />
-            <DateRangeFilterDropdown
-              label="수정일"
-              containerRef={updatedDatePickerRef}
-              value={draftFilters.updatedDateRange}
-              placeholder="수정일 기간 선택"
-              selected={draftUpdatedDateRange}
-              isOpen={isUpdatedDatePickerOpen}
-              presetOptions={datePresetOptions}
-              onToggleOpen={onToggleUpdatedDatePicker}
-              onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
-              onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
-              onReset={() => {
-                onApplyDateRange("updated", undefined);
-                onToggleUpdatedDatePicker();
-              }}
-              onConfirm={onToggleUpdatedDatePicker}
-            />
-          </div>
-          <div className="flex items-center justify-end gap-2 px-3 pb-3">
-            <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-10 px-5">
-              필터 적용
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onResetFilters}
-              className="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300"
-            >
-              필터 초기화
-            </Button>
-          </div>
+  return (
+    <Card className="rounded-xl p-3 dark:border-white/[0.05]">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)]">
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>운영 상태</span>
+          <CheckboxFilterDropdown
+            label="운영 상태"
+            hideLabel
+            containerRef={operatingStatusDropdownRef}
+            selectedValues={draftFilters.operatingStatuses}
+            options={DOCTOR_STATUS_OPTIONS}
+            isOpen={isOperatingStatusDropdownOpen}
+            onToggleOpen={onToggleOperatingStatusDropdown}
+            onToggleValue={onToggleOperatingStatus}
+            onToggleAll={onToggleAllOperatingStatus}
+          />
         </div>
-      ) : null}
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>검수 상태</span>
+          <CheckboxFilterDropdown
+            label="검수 상태"
+            hideLabel
+            containerRef={approvalStatusDropdownRef}
+            selectedValues={draftFilters.approvalStatuses}
+            options={DOCTOR_APPROVAL_STATUS_OPTIONS}
+            isOpen={isApprovalStatusDropdownOpen}
+            onToggleOpen={onToggleApprovalStatusDropdown}
+            onToggleValue={onToggleApprovalStatus}
+            onToggleAll={onToggleAllApprovalStatus}
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>직책</span>
+          <CheckboxFilterDropdown
+            label="직책"
+            hideLabel
+            containerRef={positionDropdownRef}
+            selectedValues={draftFilters.positions}
+            options={DOCTOR_POSITION_OPTIONS}
+            isOpen={isPositionDropdownOpen}
+            onToggleOpen={onTogglePositionDropdown}
+            onToggleValue={onTogglePosition}
+            onToggleAll={onToggleAllPosition}
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>등록일</span>
+          <DateRangeFilterDropdown
+            label="등록일"
+            hideLabel
+            containerRef={datePickerRef}
+            value={draftFilters.dateRange}
+            placeholder="등록일 기간 선택"
+            selected={draftDateRange}
+            isOpen={isDatePickerOpen}
+            presetOptions={DATE_PRESET_OPTIONS}
+            onToggleOpen={onToggleDatePicker}
+            onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
+            onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
+            onReset={() => {
+              onApplyDateRange("created", undefined);
+              onToggleDatePicker();
+            }}
+            onConfirm={onToggleDatePicker}
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>수정일</span>
+          <DateRangeFilterDropdown
+            label="수정일"
+            hideLabel
+            containerRef={updatedDatePickerRef}
+            value={draftFilters.updatedDateRange}
+            placeholder="수정일 기간 선택"
+            selected={draftUpdatedDateRange}
+            isOpen={isUpdatedDatePickerOpen}
+            presetOptions={DATE_PRESET_OPTIONS}
+            onToggleOpen={onToggleUpdatedDatePicker}
+            onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
+            onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
+            onReset={() => {
+              onApplyDateRange("updated", undefined);
+              onToggleUpdatedDatePicker();
+            }}
+            onConfirm={onToggleUpdatedDatePicker}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="w-full flex-1 lg:max-w-none">
+          <InputField
+            value={searchInput}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                onApplyFilters();
+              }
+            }}
+            placeholder="소속 병의원, 의료진명, 직책 검색"
+            className="bg-white dark:bg-gray-800"
+          />
+        </div>
+
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 px-5">
+            검색
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onResetFilters}
+            className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+          >
+            필터 초기화
+          </Button>
+          <Can permission="beaulab.doctor.create">
+            <Link href="/doctors/new">
+              <Button type="button" variant="brand" size="sm" className="h-11 px-5">
+                <SquarePlus className="size-5" />
+                <span>의료진 등록</span>
+              </Button>
+            </Link>
+          </Can>
+        </div>
+      </div>
     </Card>
   );
 }

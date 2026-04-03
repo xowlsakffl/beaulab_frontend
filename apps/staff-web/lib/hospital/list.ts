@@ -6,9 +6,6 @@ import { resolveMediaUrl, type MediaAsset } from "./form";
 export type HospitalApiItem = {
   id: number;
   name: string;
-  address: string;
-  address_detail?: string;
-  addressDetail?: string;
   tel: string;
   view_count?: number;
   viewCount?: number;
@@ -28,8 +25,6 @@ export type HospitalApiItem = {
 export type HospitalRow = {
   id: number;
   name: string;
-  address: string;
-  addressDetail: string;
   tel: string;
   viewCount: number;
   reviewStatus: string;
@@ -85,6 +80,7 @@ export const DEFAULT_FILTERS: Filters = {
 };
 
 export const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: true };
+export const HOSPITALS_PER_PAGE = 10;
 
 export const APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "ACTIVE", label: "정상" },
@@ -96,12 +92,6 @@ export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "PENDING", label: "검수신청" },
   { value: "APPROVED", label: "검수완료" },
   { value: "REJECTED", label: "검수반려" },
-];
-
-export const PER_PAGE_OPTIONS = [
-  { value: "15", label: "15개" },
-  { value: "30", label: "30개" },
-  { value: "50", label: "50개" },
 ];
 
 export const DATE_PRESET_OPTIONS = [
@@ -250,9 +240,7 @@ export function parseHospitalsTableState(searchParams: URLSearchParams) {
   const createdDateState = buildFilterDateState(startDate, endDate);
   const updatedDateState = buildFilterDateState(updatedStartDate, updatedEndDate);
 
-  const parsedPerPage = Number(searchParams.get("per_page"));
-  const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage) ? parsedPerPage : 15;
+  const perPage = HOSPITALS_PER_PAGE;
 
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
@@ -296,8 +284,6 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
   return {
     id: item.id,
     name: item.name,
-    address: item.address,
-    addressDetail: item.addressDetail ?? item.address_detail ?? "",
     tel: item.tel,
     viewCount: item.viewCount ?? item.view_count ?? 0,
     reviewStatus: item.allowStatus ?? item.allow_status ?? "UNKNOWN",
@@ -339,7 +325,7 @@ export function buildHospitalsQueryString(query: HospitalsQuery) {
   if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
+  if (query.per_page !== HOSPITALS_PER_PAGE) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 
   return params.toString();

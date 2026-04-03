@@ -2,11 +2,10 @@
 
 import { DoctorsDataTable } from "@/components/doctor/list/DoctorsDataTable";
 import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel";
-import { DoctorsToolbar } from "@/components/doctor/list/DoctorsToolbar";
 import { api } from "@/lib/common/api";
 import {
-  DATE_PRESET_OPTIONS,
   DEFAULT_FILTERS,
+  DOCTORS_PER_PAGE,
   DOCTOR_APPROVAL_STATUS_OPTIONS,
   DOCTOR_POSITION_OPTIONS,
   DOCTOR_STATUS_OPTIONS,
@@ -22,6 +21,7 @@ import {
   type DateFilterKey,
   type DatePresetKey,
   type DoctorApiItem,
+  type DoctorRow,
   type Filters,
   type SortField,
   type SortState,
@@ -46,7 +46,6 @@ export default function DoctorsTableClient() {
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const [isOperatingStatusDropdownOpen, setIsOperatingStatusDropdownOpen] = React.useState(false);
@@ -63,10 +62,9 @@ export default function DoctorsTableClient() {
   const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
-  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [page, setPage] = React.useState(initialTableState.page);
 
-  const [rows, setRows] = React.useState<ReturnType<typeof normalizeDoctor>[]>([]);
+  const [rows, setRows] = React.useState<DoctorRow[]>([]);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -82,10 +80,10 @@ export default function DoctorsTableClient() {
         searchKeyword,
         appliedFilters,
         sortState,
-        perPage,
+        perPage: DOCTORS_PER_PAGE,
         page,
       }),
-    [appliedFilters, page, perPage, searchKeyword, sortState],
+    [appliedFilters, page, searchKeyword, sortState],
   );
 
   const queryString = React.useMemo(() => buildDoctorsQueryString(query), [query]);
@@ -146,7 +144,7 @@ export default function DoctorsTableClient() {
   }, [fetchDoctors]);
 
   React.useEffect(() => {
-    rows.slice(0, 15).forEach((row) => {
+    rows.slice(0, DOCTORS_PER_PAGE).forEach((row) => {
       router.prefetch(`/doctors/${row.id}`);
     });
   }, [router, rows]);
@@ -166,17 +164,6 @@ export default function DoctorsTableClient() {
     const nextQuery = nextSearchParams.toString();
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
-
-  React.useEffect(() => {
-    if (searchInput.trim() === searchKeyword) return;
-
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setSearchKeyword(searchInput.trim());
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput, searchKeyword]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -207,6 +194,7 @@ export default function DoctorsTableClient() {
 
   const applyFilters = React.useCallback(() => {
     setPage(1);
+    setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       operatingStatuses: [...draftFilters.operatingStatuses],
       approvalStatuses: [...draftFilters.approvalStatuses],
@@ -218,19 +206,21 @@ export default function DoctorsTableClient() {
       updatedStartDate: draftFilters.updatedStartDate,
       updatedEndDate: draftFilters.updatedEndDate,
     });
-  }, [draftFilters]);
+  }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
-    setPage(1);
     setDraftFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
     setDraftUpdatedDateRange(undefined);
+    setSearchInput("");
+    setSearchKeyword("");
     setIsOperatingStatusDropdownOpen(false);
     setIsApprovalStatusDropdownOpen(false);
     setIsPositionDropdownOpen(false);
     setIsDatePickerOpen(false);
     setIsUpdatedDatePickerOpen(false);
+    setPage(1);
   }, []);
 
   const applyDateRange = React.useCallback(
@@ -331,19 +321,10 @@ export default function DoctorsTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <DoctorsToolbar
-        searchInput={searchInput}
-        isFilterOpen={isFilterOpen}
-        onSearchChange={setSearchInput}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-      />
-
       <DoctorsFilterPanel
-        isOpen={isFilterOpen}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
         draftUpdatedDateRange={draftUpdatedDateRange}
-        positionOptions={DOCTOR_POSITION_OPTIONS}
         isOperatingStatusDropdownOpen={isOperatingStatusDropdownOpen}
         isApprovalStatusDropdownOpen={isApprovalStatusDropdownOpen}
         isPositionDropdownOpen={isPositionDropdownOpen}
@@ -354,10 +335,8 @@ export default function DoctorsTableClient() {
         positionDropdownRef={positionDropdownRef}
         datePickerRef={datePickerRef}
         updatedDatePickerRef={updatedDatePickerRef}
-        operatingStatusOptions={DOCTOR_STATUS_OPTIONS}
-        approvalStatusOptions={DOCTOR_APPROVAL_STATUS_OPTIONS}
-        datePresetOptions={DATE_PRESET_OPTIONS}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
         onToggleOperatingStatusDropdown={() => {
           setIsApprovalStatusDropdownOpen(false);
           setIsPositionDropdownOpen(false);
@@ -417,7 +396,7 @@ export default function DoctorsTableClient() {
         onToggleAllPosition={() =>
           setDraftFilters((prev) => ({
             ...prev,
-              positions:
+            positions:
               prev.positions.length === DOCTOR_POSITION_OPTIONS.length
                 ? []
                 : DOCTOR_POSITION_OPTIONS.map((item) => item.value),
@@ -437,14 +416,9 @@ export default function DoctorsTableClient() {
         error={error}
         highlightedRowId={highlightedRowId}
         sortState={sortState}
-        perPage={perPage}
         onToggleSort={toggleSort}
         onRefresh={() => fetchDoctors(true)}
         onGoPage={(nextPage) => setPage(nextPage)}
-        onPerPageChange={(value) => {
-          setPage(1);
-          setPerPage(value);
-        }}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();
           router.push(`/doctors/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
