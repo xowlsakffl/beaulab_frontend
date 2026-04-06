@@ -315,7 +315,7 @@ apps/staff-web/
 현재 관련 파일:
 
 - 병의원 생성/수정
-  - [HospitalsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx)
+  - [HospitalEventsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx)
   - [HospitalDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailPageClient.tsx)
   - [HospitalEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/edit/HospitalEditFormClient.tsx)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/form.ts)

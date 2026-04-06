@@ -255,9 +255,10 @@ export function DataTable<T>({
             <div className="justify-self-start sm:justify-self-end">{footerRight}</div>
           </div>
         ) : meta ? (
-          <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            {defaultFooterSummary}
-            {defaultFooterPagination}
+          <div className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:px-6">
+            <div className="min-w-0">{defaultFooterSummary}</div>
+            <div className="justify-self-center">{defaultFooterPagination}</div>
+            <div />
           </div>
         ) : null
       ) : null}

@@ -3,7 +3,7 @@
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, FormSettingToggleRow, SpinnerBlock, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SpinnerBlock, StatusBadge } from "@beaulab/ui-admin";
 
 import { Can } from "@/components/common/guard";
 import { DetailCompactMediaCard, DetailEmptyState } from "@/components/common/DetailMediaCard";
@@ -18,6 +18,10 @@ import {
   resolveNoticeAttachmentUrl,
   type NoticeDetailResponse,
 } from "@/lib/notice/form";
+
+const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
 
 export default function NoticeDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -127,8 +131,8 @@ export default function NoticeDetailPageClient() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8">
-          <section className="space-y-6">
+        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+          <section className="space-y-6 pb-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">공지 채널과 작성 정보를 확인합니다.</p>
@@ -144,46 +148,21 @@ export default function NoticeDetailPageClient() {
             </div>
           </section>
 
-          <section className="space-y-3">
+          <section className="space-y-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">게시 옵션</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">설정값은 표시만 되며 상세 화면에서는 수정할 수 없습니다.</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">현재 게시 설정과 노출 기간을 확인합니다.</p>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-900/50">
-              <FormSettingToggleRow
-                title="상단 공지"
-                description="공지 목록 상단에 우선 노출합니다."
-                checked={detail.is_pinned}
-                onChange={() => undefined}
-                disabled
-              />
-
-              <FormSettingToggleRow
-                title="관리자 메인 팝업"
-                description="관리자 메인 진입 시 팝업으로 노출합니다."
-                checked={detail.is_important}
-                onChange={() => undefined}
-                disabled
-              />
-
-              <FormSettingToggleRow
-                title="무기한 게시"
-                description="게시 종료 없이 계속 노출합니다."
-                checked={detail.is_publish_period_unlimited}
-                onChange={() => undefined}
-                disabled
-                isLast
-              >
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">게시 기간</p>
-                  <p className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">{formatPublishPeriod(detail)}</p>
-                </div>
-              </FormSettingToggleRow>
+            <div className="grid gap-4 md:grid-cols-2">
+              <BooleanField label="상단 공지" value={detail.is_pinned} />
+              <BooleanField label="관리자 메인 팝업" value={detail.is_important} />
+              <BooleanField label="무기한 게시" value={detail.is_publish_period_unlimited} />
+              <DetailField label="게시 기간" value={formatPublishPeriod(detail)} className="md:col-span-2" />
             </div>
           </section>
 
-          <section className="space-y-2">
+          <section className="space-y-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">내용</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">공지사항 본문을 확인합니다.</p>
@@ -200,7 +179,7 @@ export default function NoticeDetailPageClient() {
               )}
             </div>
           </section>
-        </CardContent>
+        </div>
       </Card>
 
       <Card as="aside" className="min-w-0">
@@ -242,9 +221,9 @@ function DetailField({
   const displayValue = typeof value === "number" ? String(value) : value?.toString().trim() || "-";
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">{displayValue}</div>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className={detailValueClass}>{displayValue}</div>
     </div>
   );
 }
@@ -257,16 +236,30 @@ function StatusField({
   value?: string | null;
 }) {
   const status = value?.trim() || "";
-  const color = status === "ACTIVE" ? "success" : "error";
+  const color = status ? (status === "ACTIVE" ? "success" : "error") : "light";
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <StatusBadge size="sm" color={color}>
-        {labelNoticeStatus(status)}
-      </StatusBadge>
+    <div className={detailItemClass}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className="flex min-h-[28px] min-w-0 items-center">
+        <StatusBadge size="sm" color={color}>
+          {labelNoticeStatus(status)}
+        </StatusBadge>
+      </div>
     </div>
   );
+}
+
+function BooleanField({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: boolean;
+  className?: string;
+}) {
+  return <DetailField label={label} value={value ? "예" : "아니오"} className={className} />;
 }
 
 function formatPublishPeriod(detail: NoticeDetailResponse) {

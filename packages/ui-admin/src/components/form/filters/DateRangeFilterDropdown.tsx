@@ -89,7 +89,6 @@ export function DateRangeFilterDropdown({
       }) as React.CSSProperties,
     [],
   );
-
   return (
     <div className="min-w-0 w-full">
       {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}

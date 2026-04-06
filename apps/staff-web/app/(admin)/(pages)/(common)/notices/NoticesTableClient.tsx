@@ -8,7 +8,6 @@ import type { DateRange } from "react-day-picker";
 
 import { NoticesDataTable } from "@/components/notice/list/NoticesDataTable";
 import { NoticesFilterPanel } from "@/components/notice/list/NoticesFilterPanel";
-import { NoticesToolbar } from "@/components/notice/list/NoticesToolbar";
 import { api } from "@/lib/common/api";
 import {
   buildPresetDateRange,
@@ -46,7 +45,6 @@ export default function NoticesTableClient() {
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
@@ -168,17 +166,6 @@ export default function NoticesTableClient() {
   }, [pathname, router, searchParams]);
 
   React.useEffect(() => {
-    if (searchInput.trim() === searchKeyword) return;
-
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setSearchKeyword(searchInput.trim());
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput, searchKeyword]);
-
-  React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
@@ -203,6 +190,7 @@ export default function NoticesTableClient() {
 
   const applyFilters = React.useCallback(() => {
     setPage(1);
+    setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       statuses: [...draftFilters.statuses],
       channels: [...draftFilters.channels],
@@ -213,10 +201,12 @@ export default function NoticesTableClient() {
       updatedStartDate: draftFilters.updatedStartDate,
       updatedEndDate: draftFilters.updatedEndDate,
     });
-  }, [draftFilters]);
+  }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
     setPage(1);
+    setSearchInput("");
+    setSearchKeyword("");
     setDraftFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
@@ -318,16 +308,10 @@ export default function NoticesTableClient() {
   }, []);
 
   return (
-    <div className="min-w-0 space-y-6">
-      <NoticesToolbar
-        searchInput={searchInput}
-        isFilterOpen={isFilterOpen}
-        onSearchChange={setSearchInput}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-      />
-
+    <div className="min-w-0 space-y-4">
       <NoticesFilterPanel
-        isOpen={isFilterOpen}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
         draftStatuses={draftFilters.statuses}
         draftChannels={draftFilters.channels}
         draftDateLabel={draftFilters.dateRange}
@@ -345,11 +329,30 @@ export default function NoticesTableClient() {
         datePresetOptions={DATE_PRESET_OPTIONS}
         draftDateRange={draftDateRange}
         draftUpdatedDateRange={draftUpdatedDateRange}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-        onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
-        onToggleChannelDropdown={() => setIsChannelDropdownOpen((prev) => !prev)}
-        onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
-        onToggleUpdatedDatePicker={() => setIsUpdatedDatePickerOpen((prev) => !prev)}
+        onToggleStatusDropdown={() => {
+          setIsChannelDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsUpdatedDatePickerOpen(false);
+          setIsStatusDropdownOpen((prev) => !prev);
+        }}
+        onToggleChannelDropdown={() => {
+          setIsStatusDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsUpdatedDatePickerOpen(false);
+          setIsChannelDropdownOpen((prev) => !prev);
+        }}
+        onToggleDatePicker={() => {
+          setIsStatusDropdownOpen(false);
+          setIsChannelDropdownOpen(false);
+          setIsUpdatedDatePickerOpen(false);
+          setIsDatePickerOpen((prev) => !prev);
+        }}
+        onToggleUpdatedDatePicker={() => {
+          setIsStatusDropdownOpen(false);
+          setIsChannelDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsUpdatedDatePickerOpen((prev) => !prev);
+        }}
         onToggleStatus={handleToggleStatus}
         onToggleChannel={handleToggleChannel}
         onToggleAllStatuses={handleToggleAllStatuses}

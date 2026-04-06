@@ -112,13 +112,21 @@ export function formatLocalDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatFilterDisplayDate(date: Date) {
+  const year = String(date.getFullYear() % 100).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export function formatDateRange(range?: DateRange) {
   if (!range?.from) return "";
 
-  const fromDate = formatLocalDate(range.from);
+  const fromDate = formatFilterDisplayDate(range.from);
   if (!range.to) return fromDate;
 
-  return `${fromDate} ~ ${formatLocalDate(range.to)}`;
+  return `${fromDate} ~ ${formatFilterDisplayDate(range.to)}`;
 }
 
 export function normalizeRangeDate(date: Date) {

@@ -10,7 +10,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  FormSettingToggleRow,
   SpinnerBlock,
   StatusBadge,
 } from "@beaulab/ui-admin";
@@ -38,6 +37,9 @@ import {
 } from "@/lib/video/list";
 
 type VideoViewResponse = Omit<VideoDetailResponse, "hospital_business_number">;
+const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
 
 export default function VideoDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -157,8 +159,8 @@ export default function VideoDetailPageClient() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8">
-          <section className="space-y-6">
+        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+          <section className="space-y-6 pb-6">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -199,29 +201,13 @@ export default function VideoDetailPageClient() {
               <DetailField label="재생 시간" value={formatDuration(detail.duration_seconds)} />
               <LinkField label="외부 영상 URL" href={detail.external_video_url} className="md:col-span-2" />
               <DetailField label="외부 영상 ID" value={detail.external_video_id} className="md:col-span-2" />
+              <BooleanField label="무기한 게시" value={Boolean(detail.is_publish_period_unlimited)} />
+              <DetailField label="게시 기간" value={formatPublishPeriod(detail)} />
               <DetailField label="등록일" value={formatLocalDateTime(detail.created_at)} />
               <DetailField label="수정일" value={formatLocalDateTime(detail.updated_at)} />
             </div>
-
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-900/50">
-              <FormSettingToggleRow
-                title="무기한 게시"
-                description="게시 종료 없이 계속 노출합니다."
-                checked={Boolean(detail.is_publish_period_unlimited)}
-                onChange={() => undefined}
-                disabled
-                isLast
-              >
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">게시 기간</p>
-                  <p className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">
-                    {formatPublishPeriod(detail)}
-                  </p>
-                </div>
-              </FormSettingToggleRow>
-            </div>
           </section>
-        </CardContent>
+        </div>
       </Card>
 
       <Card as="aside" className="min-w-0">
@@ -251,9 +237,9 @@ function DetailField({
   const displayValue = typeof value === "number" ? String(value) : value?.toString().trim() || "-";
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <div className="break-words text-sm leading-6 text-gray-800 dark:text-gray-100">{displayValue}</div>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className={detailValueClass}>{displayValue}</div>
     </div>
   );
 }
@@ -270,8 +256,8 @@ function LinkField({
   const trimmedHref = href?.trim();
 
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
       {trimmedHref ? (
         <a
           href={trimmedHref}
@@ -282,7 +268,7 @@ function LinkField({
           {trimmedHref}
         </a>
       ) : (
-        <div className="text-sm leading-6 text-gray-800 dark:text-gray-100">-</div>
+        <div className={detailValueClass}>-</div>
       )}
     </div>
   );
@@ -303,11 +289,13 @@ function StatusField({
   const badgeColor = status ? tone : "light";
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
-      <StatusBadge size="sm" color={badgeColor}>
-        {formatter(status)}
-      </StatusBadge>
+    <div className={detailItemClass}>
+      <p className={detailLabelClass}>{label}</p>
+      <div className="flex min-h-[28px] min-w-0 items-center">
+        <StatusBadge size="sm" color={badgeColor}>
+          {formatter(status)}
+        </StatusBadge>
+      </div>
     </div>
   );
 }
@@ -322,14 +310,14 @@ function TagField({
   className?: string;
 }) {
   return (
-    <div className={["space-y-2", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</p>
+    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
+      <p className={detailLabelClass}>{label}</p>
       {values.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-h-[28px] min-w-0 flex-wrap items-center gap-2">
           {values.map((value) => (
             <span
               key={value}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-200"
+              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
               title={value}
             >
               <span className="truncate">{value}</span>
@@ -337,10 +325,22 @@ function TagField({
           ))}
         </div>
       ) : (
-        <div className="text-sm leading-6 text-gray-800 dark:text-gray-100">-</div>
+        <div className={detailValueClass}>-</div>
       )}
     </div>
   );
+}
+
+function BooleanField({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: boolean;
+  className?: string;
+}) {
+  return <DetailField label={label} value={value ? "예" : "아니오"} className={className} />;
 }
 
 function ThumbnailSection({ media }: { media?: VideoMediaAsset | null }) {

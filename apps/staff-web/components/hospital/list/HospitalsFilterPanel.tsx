@@ -151,45 +151,47 @@ export function HospitalsFilterPanel({
             onConfirm={onToggleUpdatedDatePicker}
           />
         </div>
-      </div>
+        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <span className={inlineLabelClass}>검색</span>
+            <div className="min-w-0 flex-1">
+              <InputField
+                value={searchInput}
+                onChange={(event) => onSearchChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    onApplyFilters();
+                  }
+                }}
+                placeholder="ID, 병의원명, 연락처 검색"
+                className="bg-white dark:bg-gray-800"
+              />
+            </div>
+          </div>
 
-      <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="w-full flex-1 lg:max-w-none">
-          <InputField
-            value={searchInput}
-            onChange={(event) => onSearchChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                onApplyFilters();
-              }
-            }}
-            placeholder="ID, 병의원명, 연락처 검색"
-            className="bg-white dark:bg-gray-800"
-          />
-        </div>
-
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-          <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 px-5">
-            검색
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onResetFilters}
-            className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-          >
-            필터 초기화
-          </Button>
-          <Can permission="beaulab.hospital.create">
-            <Link href="/hospitals/new">
-              <Button type="button" variant="brand" size="sm" className="h-11 px-5">
-                <SquarePlus className="size-5" />
-                <span>병의원 등록</span>
-              </Button>
-            </Link>
-          </Can>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 shrink-0 px-5">
+              검색
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onResetFilters}
+              className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+            >
+              필터 초기화
+            </Button>
+            <Can permission="beaulab.hospital.create">
+              <Link href="/hospitals/new">
+                <Button type="button" variant="brand" size="sm" className="h-11 px-5">
+                  <SquarePlus className="size-5" />
+                  <span>병의원 등록</span>
+                </Button>
+              </Link>
+            </Can>
+          </div>
         </div>
       </div>
     </Card>

@@ -9,7 +9,6 @@ import type { DateRange } from "react-day-picker";
 
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
-import { TalksToolbar } from "@/components/talk/list/TalksToolbar";
 import { api } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
@@ -47,7 +46,6 @@ export default function TalksTableClient() {
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
@@ -125,17 +123,6 @@ export default function TalksTableClient() {
   }, [fetchTalks]);
 
   React.useEffect(() => {
-    if (searchInput.trim() === searchKeyword) return;
-
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setSearchKeyword(searchInput.trim());
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput, searchKeyword]);
-
-  React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
@@ -154,6 +141,7 @@ export default function TalksTableClient() {
 
   const applyFilters = React.useCallback(() => {
     setPage(1);
+    setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       statuses: [...draftFilters.statuses],
       categoryCodes: [...draftFilters.categoryCodes],
@@ -161,9 +149,11 @@ export default function TalksTableClient() {
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
     });
-  }, [draftFilters]);
+  }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
+    setSearchInput("");
+    setSearchKeyword("");
     setDraftFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
     setIsStatusDropdownOpen(false);
@@ -248,16 +238,10 @@ export default function TalksTableClient() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <TalksToolbar
-        searchInput={searchInput}
-        isFilterOpen={isFilterOpen}
-        onSearchChange={setSearchInput}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-      />
-
+    <div className="min-w-0 space-y-4">
       <TalksFilterPanel
-        isOpen={isFilterOpen}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
         isStatusDropdownOpen={isStatusDropdownOpen}
@@ -266,10 +250,21 @@ export default function TalksTableClient() {
         statusDropdownRef={statusDropdownRef}
         categoryDropdownRef={categoryDropdownRef}
         datePickerRef={datePickerRef}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-        onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
-        onToggleCategoryDropdown={() => setIsCategoryDropdownOpen((prev) => !prev)}
-        onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
+        onToggleStatusDropdown={() => {
+          setIsCategoryDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsStatusDropdownOpen((prev) => !prev);
+        }}
+        onToggleCategoryDropdown={() => {
+          setIsStatusDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsCategoryDropdownOpen((prev) => !prev);
+        }}
+        onToggleDatePicker={() => {
+          setIsStatusDropdownOpen(false);
+          setIsCategoryDropdownOpen(false);
+          setIsDatePickerOpen((prev) => !prev);
+        }}
         onToggleStatus={toggleStatus}
         onToggleAllStatus={toggleAllStatus}
         onToggleCategory={toggleCategory}

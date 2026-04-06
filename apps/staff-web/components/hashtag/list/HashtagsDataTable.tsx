@@ -165,7 +165,7 @@ export function HashtagsDataTable({
   return (
     <DataTable
       title="해시태그 목록"
-      description="종합검색은 입력 시 자동 반영되며, 필터는 '필터 적용' 버튼으로 적용됩니다."
+      description="검색어와 필터를 적용해 해시태그 운영 현황을 확인할 수 있습니다."
       tableClassName="min-w-[1020px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}

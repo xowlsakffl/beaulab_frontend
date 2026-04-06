@@ -8,7 +8,6 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import { VideosDataTable } from "@/components/video/list/VideosDataTable";
 import { VideosFilterPanel } from "@/components/video/list/VideosFilterPanel";
-import { VideosToolbar } from "@/components/video/list/VideosToolbar";
 import { api } from "@/lib/common/api";
 import {
   DATE_PRESET_OPTIONS,
@@ -47,7 +46,6 @@ export default function VideosTableClient() {
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const [isOperatingStatusDropdownOpen, setIsOperatingStatusDropdownOpen] = React.useState(false);
@@ -171,17 +169,6 @@ export default function VideosTableClient() {
   }, [pathname, router, searchParams]);
 
   React.useEffect(() => {
-    if (searchInput.trim() === searchKeyword) return;
-
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setSearchKeyword(searchInput.trim());
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput, searchKeyword]);
-
-  React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
       if (!operatingStatusDropdownRef.current?.contains(event.target as Node)) {
         setIsOperatingStatusDropdownOpen(false);
@@ -210,6 +197,7 @@ export default function VideosTableClient() {
 
   const applyFilters = React.useCallback(() => {
     setPage(1);
+    setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       operatingStatuses: [...draftFilters.operatingStatuses],
       approvalStatuses: [...draftFilters.approvalStatuses],
@@ -221,10 +209,12 @@ export default function VideosTableClient() {
       allowedStartDate: draftFilters.allowedStartDate,
       allowedEndDate: draftFilters.allowedEndDate,
     });
-  }, [draftFilters]);
+  }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
     setPage(1);
+    setSearchInput("");
+    setSearchKeyword("");
     setDraftFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
@@ -366,15 +356,9 @@ export default function VideosTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <VideosToolbar
-        searchInput={searchInput}
-        isFilterOpen={isFilterOpen}
-        onSearchChange={setSearchInput}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-      />
-
       <VideosFilterPanel
-        isOpen={isFilterOpen}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
         draftAllowedDateRange={draftAllowedDateRange}
@@ -392,12 +376,41 @@ export default function VideosTableClient() {
         approvalStatusOptions={VIDEO_APPROVAL_STATUS_OPTIONS}
         distributionChannelOptions={VIDEO_DISTRIBUTION_CHANNEL_OPTIONS}
         datePresetOptions={DATE_PRESET_OPTIONS}
-        onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-        onToggleOperatingStatusDropdown={() => setIsOperatingStatusDropdownOpen((prev) => !prev)}
-        onToggleApprovalStatusDropdown={() => setIsApprovalStatusDropdownOpen((prev) => !prev)}
-        onToggleDistributionChannelDropdown={() => setIsDistributionChannelDropdownOpen((prev) => !prev)}
-        onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
-        onToggleAllowedDatePicker={() => setIsAllowedDatePickerOpen((prev) => !prev)}
+        onToggleOperatingStatusDropdown={() => {
+          setIsApprovalStatusDropdownOpen(false);
+          setIsDistributionChannelDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsAllowedDatePickerOpen(false);
+          setIsOperatingStatusDropdownOpen((prev) => !prev);
+        }}
+        onToggleApprovalStatusDropdown={() => {
+          setIsOperatingStatusDropdownOpen(false);
+          setIsDistributionChannelDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsAllowedDatePickerOpen(false);
+          setIsApprovalStatusDropdownOpen((prev) => !prev);
+        }}
+        onToggleDistributionChannelDropdown={() => {
+          setIsOperatingStatusDropdownOpen(false);
+          setIsApprovalStatusDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsAllowedDatePickerOpen(false);
+          setIsDistributionChannelDropdownOpen((prev) => !prev);
+        }}
+        onToggleDatePicker={() => {
+          setIsOperatingStatusDropdownOpen(false);
+          setIsApprovalStatusDropdownOpen(false);
+          setIsDistributionChannelDropdownOpen(false);
+          setIsAllowedDatePickerOpen(false);
+          setIsDatePickerOpen((prev) => !prev);
+        }}
+        onToggleAllowedDatePicker={() => {
+          setIsOperatingStatusDropdownOpen(false);
+          setIsApprovalStatusDropdownOpen(false);
+          setIsDistributionChannelDropdownOpen(false);
+          setIsDatePickerOpen(false);
+          setIsAllowedDatePickerOpen((prev) => !prev);
+        }}
         onToggleOperatingStatus={toggleOperatingStatus}
         onToggleApprovalStatus={toggleApprovalStatus}
         onToggleDistributionChannel={toggleDistributionChannel}

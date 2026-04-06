@@ -189,7 +189,7 @@ export function TalksDataTable({
   return (
     <DataTable
       title="토크 목록"
-      description="검색어는 자동 반영되고, 등록일/운영상태/카테고리는 '필터 적용' 버튼으로 반영됩니다."
+      description="검색어와 필터를 적용해 토크 등록 현황을 확인할 수 있습니다."
       tableClassName="min-w-[1420px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}

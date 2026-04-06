@@ -11,7 +11,6 @@ import {
 import { HashtagUpsertModal } from "@/components/hashtag/list/HashtagUpsertModal";
 import { HashtagsDataTable } from "@/components/hashtag/list/HashtagsDataTable";
 import { HashtagsFilterPanel } from "@/components/hashtag/list/HashtagsFilterPanel";
-import { HashtagsToolbar } from "@/components/hashtag/list/HashtagsToolbar";
 import { api } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
@@ -50,7 +49,6 @@ export default function HashtagsPageClient() {
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isFilterOpen, setIsFilterOpen] = React.useState(true);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [isUpdatedDatePickerOpen, setIsUpdatedDatePickerOpen] = React.useState(false);
@@ -149,17 +147,6 @@ export default function HashtagsPageClient() {
   }, [fetchHashtags]);
 
   React.useEffect(() => {
-    if (searchInput.trim() === searchKeyword) return;
-
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      setSearchKeyword(searchInput.trim());
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [searchInput, searchKeyword]);
-
-  React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
@@ -208,6 +195,7 @@ export default function HashtagsPageClient() {
 
   const applyFilters = React.useCallback(() => {
     setPage(1);
+    setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       statuses: [...draftFilters.statuses],
       dateRange: draftFilters.dateRange,
@@ -217,9 +205,10 @@ export default function HashtagsPageClient() {
       updatedStartDate: draftFilters.updatedStartDate,
       updatedEndDate: draftFilters.updatedEndDate,
     });
-  }, [draftFilters]);
+  }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback((applyNow = true) => {
+    setIsStatusDropdownOpen(false);
     setDraftFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
     setDraftUpdatedDateRange(undefined);
@@ -227,6 +216,8 @@ export default function HashtagsPageClient() {
     setIsUpdatedDatePickerOpen(false);
     if (applyNow) {
       setPage(1);
+      setSearchInput("");
+      setSearchKeyword("");
       setAppliedFilters(DEFAULT_FILTERS);
     }
   }, []);
@@ -348,16 +339,10 @@ export default function HashtagsPageClient() {
   return (
     <>
       <div className="space-y-4">
-        <HashtagsToolbar
-          searchInput={searchInput}
-          isFilterOpen={isFilterOpen}
-          onSearchChange={setSearchInput}
-          onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-          onOpenCreate={openCreateModal}
-        />
-
         <HashtagsFilterPanel
-          isOpen={isFilterOpen}
+          searchInput={searchInput}
+          onSearchChange={setSearchInput}
+          onOpenCreate={openCreateModal}
           draftFilters={draftFilters}
           draftDateRange={draftDateRange}
           draftUpdatedDateRange={draftUpdatedDateRange}
@@ -367,13 +352,18 @@ export default function HashtagsPageClient() {
           statusDropdownRef={statusDropdownRef}
           datePickerRef={datePickerRef}
           updatedDatePickerRef={updatedDatePickerRef}
-          onToggleFilters={() => setIsFilterOpen((prev) => !prev)}
-          onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
+          onToggleStatusDropdown={() => {
+            setIsDatePickerOpen(false);
+            setIsUpdatedDatePickerOpen(false);
+            setIsStatusDropdownOpen((prev) => !prev);
+          }}
           onToggleDatePicker={() => {
+            setIsStatusDropdownOpen(false);
             setIsUpdatedDatePickerOpen(false);
             setIsDatePickerOpen((prev) => !prev);
           }}
           onToggleUpdatedDatePicker={() => {
+            setIsStatusDropdownOpen(false);
             setIsDatePickerOpen(false);
             setIsUpdatedDatePickerOpen((prev) => !prev);
           }}
