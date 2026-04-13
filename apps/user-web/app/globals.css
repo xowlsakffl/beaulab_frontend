@@ -1,0 +1,170 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  overflow: auto;
+  font-family: sans-serif;
+  font-size: 12px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  white-space: nowrap;
+}
+
+input,
+textarea {
+  min-width: 0;
+  width: 100%;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.chat-test {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  min-height: 100vh;
+  padding: 6px;
+}
+
+.topbar,
+.user-panel,
+.message-panel,
+.panel-section,
+.messages-section,
+.send-box,
+.log-panel {
+  border: 1px solid #999;
+  padding: 6px;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 2fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.topbar h1 {
+  font-size: 16px;
+}
+
+.control-row,
+.button-row,
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.control-row input {
+  width: 72px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.4fr) minmax(250px, 0.8fr);
+  gap: 6px;
+}
+
+.user-panel,
+.message-panel {
+  display: grid;
+  gap: 6px;
+}
+
+.user-panel {
+  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.message-panel {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.panel-section,
+.messages-section {
+  min-height: 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 4px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.muted-line,
+.empty-line {
+  color: #555;
+  font-size: 11px;
+}
+
+.compact-list,
+.message-list {
+  display: grid;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.compact-list li,
+.message-list li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-list button {
+  min-width: 44px;
+}
+
+.send-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.send-box {
+  display: grid;
+  gap: 4px;
+}
+
+.send-box textarea {
+  height: 44px;
+  resize: none;
+}
+
+@media (max-width: 1100px) {
+  .topbar,
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.log-panel pre {
+  max-height: 220px;
+  margin: 4px 0 0;
+  overflow: auto;
+  white-space: pre-wrap;
+}

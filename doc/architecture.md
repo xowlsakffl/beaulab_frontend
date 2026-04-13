@@ -7,13 +7,15 @@
 ## 1. 범위
 
 현재 실제 운영 기준 앱은 `apps/staff-web`입니다.
+`apps/user-web`은 앱 사용자 채팅 API를 화면에서 검증하기 위한 임시 테스트 앱입니다.
 
 모노레포 전체 구조는 아래처럼 봅니다.
 
 ```text
 beaulab_frontend/
 ├─ apps/
-│  └─ staff-web/
+│  ├─ staff-web/
+│  └─ user-web/
 ├─ packages/
 │  ├─ api-client/
 │  ├─ auth/
@@ -26,6 +28,7 @@ beaulab_frontend/
 
 - `packages/*`는 범용 레이어입니다.
 - 실제 관리자 제품 로직은 `apps/staff-web`가 소유합니다.
+- 앱 사용자 채팅 수동 테스트 화면은 `apps/user-web`가 소유합니다.
 - 이 문서는 “미래에 이렇게 될 예정”이 아니라 “지금 이렇게 되어 있음”만 적습니다.
 
 ## 2. 계층
@@ -39,6 +42,9 @@ packages/*
 
 apps/staff-web
   -> 관리자 앱 화면, 라우트, 메뉴, 권한 매핑, feature 흐름
+
+apps/user-web
+  -> 앱 사용자 로그인/채팅 API를 브라우저에서 수동 검증하는 임시 화면
 ```
 
 규칙:
@@ -46,6 +52,7 @@ apps/staff-web
 - 앱은 `packages/*`를 조합합니다.
 - `packages/*`는 앱 도메인이나 라우트를 알면 안 됩니다.
 - 메뉴, 보호 라우트, actor 세션, 병의원/공지사항/의료진 업무 흐름은 `apps/staff-web`에 둡니다.
+- `apps/user-web`은 현재 채팅 테스트 목적의 독립 앱이므로 `staff-web` 관리자 shell, 메뉴, UI 패키지 스타일을 공유하지 않습니다.
 - 설명이 붙는 공통 form UI 패턴은 `packages/ui-admin`에 둡니다.
 - 반복되는 modal panel / header / footer 패턴도 `packages/ui-admin`에 둡니다.
 
