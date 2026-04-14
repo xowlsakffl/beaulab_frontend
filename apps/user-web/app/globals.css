@@ -27,6 +27,10 @@ textarea {
   width: 100%;
 }
 
+textarea {
+  resize: none;
+}
+
 h1,
 h2,
 h3,
@@ -42,18 +46,17 @@ ol {
 
 .chat-test {
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   gap: 6px;
   min-height: 100vh;
+  overflow: visible;
   padding: 6px;
 }
 
 .topbar,
-.user-panel,
-.message-panel,
+.account-screen,
 .panel-section,
-.messages-section,
-.send-box,
+.chat-window,
 .log-panel {
   border: 1px solid #999;
   padding: 6px;
@@ -61,7 +64,7 @@ ol {
 
 .topbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 2fr;
+  grid-template-columns: minmax(260px, 1fr) 1fr;
   gap: 8px;
   align-items: center;
 }
@@ -70,41 +73,65 @@ ol {
   font-size: 16px;
 }
 
+.split-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+  overflow: visible;
+}
+
+.account-screen {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto;
+  gap: 6px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.account-head,
 .control-row,
 .button-row,
 .section-head {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
-.control-row input {
-  width: 72px;
-}
-
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.4fr) minmax(250px, 0.8fr);
-  gap: 6px;
-}
-
-.user-panel,
-.message-panel {
-  display: grid;
-  gap: 6px;
-}
-
-.user-panel {
-  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
-}
-
-.message-panel {
-  grid-template-rows: minmax(0, 1fr) auto;
+.account-head,
+.section-head {
+  justify-content: space-between;
 }
 
 .panel-section,
-.messages-section {
-  min-height: 0;
+.list-section,
+.notification-section,
+.chat-window {
+  overflow: visible;
+}
+
+.log-panel {
+  display: grid;
+  grid-template-rows: auto auto;
+  overflow: visible;
+}
+
+.list-section {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 4px;
+}
+
+.notification-section {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 4px;
+}
+
+.login-section {
+  display: grid;
+  gap: 4px;
 }
 
 .field-row {
@@ -112,6 +139,10 @@ ol {
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 4px;
   align-items: center;
+}
+
+.compact-field {
+  grid-template-columns: 42px 90px;
   margin-top: 4px;
 }
 
@@ -128,6 +159,12 @@ ol {
   margin-top: 4px;
 }
 
+.compact-list {
+  max-height: 180px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
 .compact-list li,
 .message-list li {
   overflow: hidden;
@@ -135,36 +172,163 @@ ol {
   white-space: nowrap;
 }
 
+.active-row {
+  background: #eee;
+}
+
+.unread-row {
+  font-weight: 700;
+}
+
 .notification-list button {
   min-width: 44px;
 }
 
-.send-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+.notification-list {
+  max-height: 160px;
 }
 
-.send-box {
+.list-row-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+}
+
+.list-row-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-window {
+  display: grid;
+  grid-template-rows: auto auto auto auto;
+  gap: 4px;
+  min-height: 160px;
+  cursor: pointer;
+}
+
+.chat-window:has(.message-scroll) {
+  cursor: default;
+}
+
+.message-scroll {
+  min-height: 180px;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #ccc;
+  padding: 4px;
+}
+
+.message-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.message-list li.message-item {
+  display: flex;
+  gap: 4px;
+  align-items: end;
+  overflow: visible;
+  white-space: normal;
+}
+
+.message-item-mine {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.message-item-other {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  display: grid;
+  gap: 2px;
+  max-width: min(72%, 420px);
+  min-width: 120px;
+  padding: 5px 7px;
+  border: 1px solid #999;
+}
+
+.message-item-mine .message-bubble {
+  text-align: right;
+  background: #eee;
+}
+
+.message-item-other .message-bubble {
+  text-align: left;
+  background: #fff;
+}
+
+.message-meta {
+  color: #555;
+  font-size: 11px;
+}
+
+.message-bubble > span:not(.message-meta),
+.message-bubble span:last-child {
+  overflow-wrap: anywhere;
+}
+
+.attachment-list {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
-.send-box textarea {
-  height: 44px;
-  resize: none;
+.attachment-image {
+  display: block;
+  max-width: min(220px, 100%);
+  max-height: 160px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+}
+
+.attachment-file {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-selected {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.read-receipt {
+  color: #111;
+  font-weight: 700;
+}
+
+.chat-window textarea {
+  height: 46px;
+}
+
+.log-panel pre {
+  max-height: 180px;
+  margin: 4px 0 0;
+  overflow: auto;
+  white-space: pre-wrap;
 }
 
 @media (max-width: 1100px) {
   .topbar,
-  .workspace {
+  .split-workspace {
     grid-template-columns: 1fr;
   }
-}
 
-.log-panel pre {
-  max-height: 220px;
-  margin: 4px 0 0;
-  overflow: auto;
-  white-space: pre-wrap;
+  .message-bubble {
+    min-width: 0;
+  }
 }

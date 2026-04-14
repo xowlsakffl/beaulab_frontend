@@ -10,7 +10,9 @@
     "typecheck": "next typegen && tsc --noEmit --incremental false"
   },
   "dependencies": {
+    "laravel-echo": "^2.3.4",
     "next": "16.1.6",
+    "pusher-js": "^8.5.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
