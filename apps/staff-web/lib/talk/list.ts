@@ -75,15 +75,25 @@ export type SortState = {
 export type Filters = {
   statuses: string[];
   categoryCodes: string[];
+  isVisible: string;
+  metricField: TalkMetricField;
+  metricMin: string;
+  metricMax: string;
   dateRange: string;
   startDate: string;
   endDate: string;
 };
 
+export type TalkMetricField = "like_count" | "save_count" | "comment_count" | "view_count";
+
 export type TalksQuery = {
   q?: string;
   status?: string;
   category_codes?: string;
+  is_visible?: string;
+  metric?: TalkMetricField;
+  metric_min?: string;
+  metric_max?: string;
   start_date?: string;
   end_date?: string;
   include: string;
@@ -107,9 +117,26 @@ export const TALK_CATEGORY_OPTIONS: CheckboxFilterOption[] = [
   { value: "TALK_SECRET", label: "시크릿" },
 ];
 
+export const TALK_VISIBILITY_OPTIONS = [
+  { value: "", label: "전체" },
+  { value: "1", label: "노출" },
+  { value: "0", label: "미노출" },
+];
+
+export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = [
+  { value: "like_count", label: "좋아요수" },
+  { value: "save_count", label: "저장수" },
+  { value: "comment_count", label: "댓글수" },
+  { value: "view_count", label: "조회수" },
+];
+
 export const DEFAULT_FILTERS: Filters = {
   statuses: [],
   categoryCodes: [],
+  isVisible: "",
+  metricField: "like_count",
+  metricMin: "",
+  metricMax: "",
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -144,6 +171,8 @@ const TALK_SORT_FIELDS = new Set<SortField>([
 ]);
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
 const TALK_CATEGORY_VALUE_SET = new Set(TALK_CATEGORY_OPTIONS.map((option) => option.value));
+const TALK_VISIBILITY_VALUE_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
+const TALK_METRIC_VALUE_SET = new Set<TalkMetricField>(TALK_METRIC_OPTIONS.map((option) => option.value));
 
 export function labelTalkStatus(status: string) {
   if (status === "ACTIVE") return "활성";
@@ -240,6 +269,13 @@ export function buildFilterDateState(startDate: string, endDate: string) {
   };
 }
 
+export function normalizeMetricBound(value: string | null | undefined) {
+  const trimmedValue = (value ?? "").trim();
+  if (!/^\d+$/.test(trimmedValue)) return "";
+
+  return trimmedValue.replace(/^0+(?=\d)/, "");
+}
+
 export function buildTalkContentPreview(content: string | null | undefined, maxLength = 140): string | null {
   if (!content) return null;
 
@@ -313,6 +349,11 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
+  const isVisible = searchParams.get("is_visible") ?? "";
+  const metricParam = searchParams.get("metric");
+  const metricField = metricParam && TALK_METRIC_VALUE_SET.has(metricParam as TalkMetricField)
+    ? (metricParam as TalkMetricField)
+    : DEFAULT_FILTERS.metricField;
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
@@ -332,6 +373,10 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     filters: {
       statuses,
       categoryCodes,
+      isVisible: TALK_VISIBILITY_VALUE_SET.has(isVisible) ? isVisible : "",
+      metricField,
+      metricMin: normalizeMetricBound(searchParams.get("metric_min")),
+      metricMax: normalizeMetricBound(searchParams.get("metric_max")),
       dateRange: createdDateState.label,
       startDate,
       endDate,
@@ -368,6 +413,9 @@ export function buildTalksQuery({
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
   if (appliedFilters.statuses.length > 0) query.status = appliedFilters.statuses.join(",");
+  if (appliedFilters.isVisible === "1" || appliedFilters.isVisible === "0") {
+    query.is_visible = appliedFilters.isVisible;
+  }
   const normalizedCategoryCodes = appliedFilters.categoryCodes
     .map((value) => value.trim())
     .filter((value) => TALK_CATEGORY_VALUE_SET.has(value));
@@ -378,6 +426,14 @@ export function buildTalksQuery({
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
 
+  const metricMin = normalizeMetricBound(appliedFilters.metricMin);
+  const metricMax = normalizeMetricBound(appliedFilters.metricMax);
+  if ((metricMin || metricMax) && TALK_METRIC_VALUE_SET.has(appliedFilters.metricField)) {
+    query.metric = appliedFilters.metricField;
+    if (metricMin) query.metric_min = metricMin;
+    if (metricMax) query.metric_max = metricMax;
+  }
+
   return query;
 }
 
@@ -387,6 +443,10 @@ export function buildTalksQueryString(query: TalksQuery) {
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
   if (query.category_codes) params.set("category_codes", query.category_codes);
+  if (query.is_visible) params.set("is_visible", query.is_visible);
+  if (query.metric) params.set("metric", query.metric);
+  if (query.metric_min) params.set("metric_min", query.metric_min);
+  if (query.metric_max) params.set("metric_max", query.metric_max);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);

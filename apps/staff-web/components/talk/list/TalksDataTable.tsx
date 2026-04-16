@@ -8,6 +8,7 @@ import {
   DataTable,
   FormCheckbox,
   StatusBadge,
+  Switch,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -81,17 +82,23 @@ function buildTalkColumns({
   selectedIds,
   allPageRowsSelected,
   hasRows,
+  visibilityUpdatingIds,
+  visibilityControlsDisabled,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
+  onRowVisibilityChange,
 }: {
   sortState: SortState;
   selectedIds: Set<number>;
   allPageRowsSelected: boolean;
   hasRows: boolean;
+  visibilityUpdatingIds: Set<number>;
+  visibilityControlsDisabled: boolean;
   onToggleSort: (field: SortField) => void;
   onToggleRow: (id: number, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
+  onRowVisibilityChange: (id: number, isVisible: boolean) => void;
 }): DataTableColumn<TalkRow>[] {
   const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
   const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
@@ -177,9 +184,13 @@ function buildTalkColumns({
       cellClassName: `${nowrapCellClass} lg:w-[100px]`,
       header: <SortHeader field="is_visible" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
-          {row.isVisible ? "노출" : "미노출"}
-        </StatusBadge>
+        <Switch
+          ariaLabel={`토크 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
+          checked={row.isVisible}
+          color="gray"
+          disabled={visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
+          onChange={(checked) => onRowVisibilityChange(row.id, checked)}
+        />
       ),
     },
     {
@@ -232,11 +243,13 @@ type TalksDataTableProps = {
   error: string | null;
   sortState: SortState;
   selectedIds: Set<number>;
+  visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
   onToggleSort: (field: SortField) => void;
   onToggleRow: (id: number, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (isVisible: boolean) => void;
+  onRowVisibilityChange: (id: number, isVisible: boolean) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
@@ -249,11 +262,13 @@ export function TalksDataTable({
   error,
   sortState,
   selectedIds,
+  visibilityUpdatingIds,
   bulkUpdating,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
   onBulkVisibilityChange,
+  onRowVisibilityChange,
   onRefresh,
   onGoPage,
 }: TalksDataTableProps) {
@@ -265,11 +280,27 @@ export function TalksDataTable({
       selectedIds,
       allPageRowsSelected,
       hasRows: rows.length > 0,
+      visibilityUpdatingIds,
+      visibilityControlsDisabled: bulkUpdating || loading || refreshing,
       onToggleSort,
       onToggleRow,
       onToggleAllRows,
+      onRowVisibilityChange,
     }),
-    [allPageRowsSelected, onToggleAllRows, onToggleRow, onToggleSort, rows.length, selectedIds, sortState],
+    [
+      allPageRowsSelected,
+      onRowVisibilityChange,
+      onToggleAllRows,
+      onToggleRow,
+      onToggleSort,
+      rows.length,
+      selectedIds,
+      sortState,
+      visibilityUpdatingIds,
+      bulkUpdating,
+      loading,
+      refreshing,
+    ],
   );
 
   return (
@@ -295,7 +326,7 @@ export function TalksDataTable({
             size="sm"
             disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
             onClick={() => onBulkVisibilityChange(true)}
-            className="h-9 px-3 text-xs"
+            className="h-9 border-brand-500 px-3 text-xs text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
           >
             노출
           </Button>
@@ -305,11 +336,22 @@ export function TalksDataTable({
             size="sm"
             disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
             onClick={() => onBulkVisibilityChange(false)}
-            className="h-9 px-3 text-xs"
+            className="h-9 border-brand-500 px-3 text-xs text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
           >
             미노출
           </Button>
         </div>
+      )}
+      footerRight={(
+        <Button
+          type="button"
+          variant="brand"
+          size="sm"
+          onClick={() => undefined}
+          className="h-11 shrink-0 px-5"
+        >
+          엑셀 다운로드
+        </Button>
       )}
       emptyText="조건에 맞는 토크가 없습니다."
     />

@@ -22,6 +22,7 @@ export type { ExistingMediaItem, MediaCollectionConfig } from "./media/MediaUplo
 export { SingleDatePickerField } from "./pickers/SingleDatePickerField";
 export { RichTextEditor } from "./RichTextEditor";
 export { Select } from "./Select";
+export { default as Switch } from "./switch/Switch";
 export { TogglePillGroup } from "./TogglePillGroup";
 export type { TogglePillOption } from "./TogglePillGroup";
 export { Label } from "./Label";

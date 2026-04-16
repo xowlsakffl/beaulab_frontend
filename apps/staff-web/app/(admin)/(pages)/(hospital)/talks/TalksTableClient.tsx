@@ -28,6 +28,7 @@ import {
   buildTalksQueryString,
   mapDateRangeToFilter,
   nextSortState,
+  normalizeMetricBound,
   normalizeRangeDate,
   normalizeTalk,
   parseTalksTableState,
@@ -81,6 +82,7 @@ export default function TalksTableClient() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
+  const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const categoryDropdownRef = React.useRef<HTMLDivElement | null>(null);
@@ -175,6 +177,10 @@ export default function TalksTableClient() {
     setAppliedFilters({
       statuses: [...draftFilters.statuses],
       categoryCodes: [...draftFilters.categoryCodes],
+      isVisible: draftFilters.isVisible,
+      metricField: draftFilters.metricField,
+      metricMin: normalizeMetricBound(draftFilters.metricMin),
+      metricMax: normalizeMetricBound(draftFilters.metricMax),
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
@@ -240,6 +246,42 @@ export default function TalksTableClient() {
     });
   }, []);
 
+  const changeVisibility = React.useCallback((value: string) => {
+    setIsStatusDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setDraftFilters((prev) => ({
+      ...prev,
+      isVisible: value,
+    }));
+  }, []);
+
+  const changeMetricField = React.useCallback((value: string) => {
+    setIsStatusDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setDraftFilters((prev) => ({
+      ...prev,
+      metricField: value === "save_count" || value === "comment_count" || value === "view_count"
+        ? value
+        : "like_count",
+    }));
+  }, []);
+
+  const changeMetricMin = React.useCallback((value: string) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      metricMin: normalizeMetricBound(value),
+    }));
+  }, []);
+
+  const changeMetricMax = React.useCallback((value: string) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      metricMax: normalizeMetricBound(value),
+    }));
+  }, []);
+
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     setDraftDateRange(nextRange);
     const normalizedRange = nextRange
@@ -303,6 +345,38 @@ export default function TalksTableClient() {
 
     setPendingVisibilityChange({ ids, isVisible });
   }, [selectedIds]);
+
+  const handleRowVisibilityChange = React.useCallback(async (id: number, isVisible: boolean) => {
+    setRowVisibilityUpdatingIds((prev) => new Set(prev).add(id));
+    setError(null);
+
+    try {
+      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/visibility", {
+        ids: [id],
+        is_visible: isVisible,
+      });
+
+      if (!isApiSuccess(response)) {
+        setError(response.error.message || "토크 노출여부 변경에 실패했습니다.");
+        return;
+      }
+
+      setRows((prev) => prev.map((row) => (
+        row.id === id
+          ? { ...row, isVisible }
+          : row
+      )));
+    } catch {
+      setError("토크 노출여부 변경 중 오류가 발생했습니다.");
+    } finally {
+      setRowVisibilityUpdatingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+
+        return next;
+      });
+    }
+  }, []);
 
   const closeVisibilityConfirmModal = React.useCallback(() => {
     if (bulkUpdating) return;
@@ -372,6 +446,10 @@ export default function TalksTableClient() {
         onToggleAllStatus={toggleAllStatus}
         onToggleCategory={toggleCategory}
         onToggleAllCategory={toggleAllCategory}
+        onVisibilityChange={changeVisibility}
+        onMetricFieldChange={changeMetricField}
+        onMetricMinChange={changeMetricMin}
+        onMetricMaxChange={changeMetricMax}
         onApplyDateRange={applyDateRange}
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}
@@ -386,11 +464,13 @@ export default function TalksTableClient() {
         error={error}
         sortState={sortState}
         selectedIds={selectedIds}
+        visibilityUpdatingIds={rowVisibilityUpdatingIds}
         bulkUpdating={bulkUpdating}
         onToggleSort={handleToggleSort}
         onToggleRow={handleToggleRow}
         onToggleAllRows={handleToggleAllRows}
         onBulkVisibilityChange={requestBulkVisibilityChange}
+        onRowVisibilityChange={handleRowVisibilityChange}
         onRefresh={() => void fetchTalks(true)}
         onGoPage={setPage}
       />
@@ -408,7 +488,7 @@ export default function TalksTableClient() {
 
           <ModalBody className="mt-5">
             <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              {pendingVisibilityCount.toLocaleString()}건 정말 {pendingVisibilityLabel} 하시겠습니까?
+              <span className="text-error-500">{pendingVisibilityCount.toLocaleString()}</span>건 정말 {pendingVisibilityLabel} 하시겠습니까?
             </p>
           </ModalBody>
 
