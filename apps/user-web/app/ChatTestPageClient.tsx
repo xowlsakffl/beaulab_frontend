@@ -28,6 +28,7 @@ type ApiResponse<TData, TMeta = unknown> =
 type UserProfile = {
   id: number | string;
   name: string;
+  nickname: string;
   email: string;
   status?: string;
 };
@@ -60,7 +61,7 @@ type ChatMessage = {
   created_at: string | null;
   sender: {
     id: number;
-    name: string;
+    nickname: string;
     email: string;
   } | null;
 };
@@ -74,7 +75,7 @@ type ChatSummary = {
   last_message: ChatMessage | null;
   other_user: {
     id: number;
-    name: string;
+    nickname: string;
     email: string;
   } | null;
 };
@@ -91,6 +92,7 @@ type NotificationInbox = {
   target_type: string | null;
   target_id: number | null;
   payload?: {
+    sender_user_nickname?: string | null;
     sender_user_name?: string | null;
     [key: string]: unknown;
   } | null;
@@ -214,6 +216,22 @@ function compactText(value: string | null | undefined, fallback = "-"): string {
   }
 
   return text.length > 34 ? `${text.slice(0, 34)}...` : text;
+}
+
+function displayNickname(user: { nickname?: string | null; name?: string | null; id?: number | string } | null | undefined): string {
+  const nickname = typeof user?.nickname === "string" ? user.nickname.trim() : "";
+
+  if (nickname) {
+    return nickname;
+  }
+
+  const legacyName = typeof user?.name === "string" ? user.name.trim() : "";
+
+  if (legacyName) {
+    return legacyName;
+  }
+
+  return user?.id !== undefined ? String(user.id) : "사용자 없음";
 }
 
 function messageLabel(message: ChatMessage | null | undefined): string {
@@ -348,9 +366,13 @@ function notificationActorName(slot: SlotState, notification: NotificationInbox)
   if (notification.target_type === "chat" && notification.target_id) {
     const chat = slot.chats.find((item) => item.id === notification.target_id);
 
-    if (chat?.other_user?.name) {
-      return chat.other_user.name;
+    if (chat?.other_user) {
+      return displayNickname(chat.other_user);
     }
+  }
+
+  if (typeof notification.payload?.sender_user_nickname === "string" && notification.payload.sender_user_nickname.trim()) {
+    return notification.payload.sender_user_nickname;
   }
 
   if (typeof notification.payload?.sender_user_name === "string" && notification.payload.sender_user_name.trim()) {
@@ -1049,7 +1071,7 @@ export default function ChatTestPageClient() {
             >
               <span>#{chat.id}</span>
               <span>
-                {chat.other_user ? chat.other_user.name : "상대 없음"} / 안읽음 {chat.unread_count} /{" "}
+                {displayNickname(chat.other_user)} / 안읽음 {chat.unread_count} /{" "}
                 {messageLabel(chat.last_message)}
               </span>
             </button>
@@ -1149,7 +1171,7 @@ export default function ChatTestPageClient() {
             >
               <div className="message-bubble">
                 <span className="message-meta">
-                  #{message.id} {message.is_mine ? "나" : message.sender?.name ?? message.sender_user_id}
+                  #{message.id} {message.is_mine ? "나" : displayNickname(message.sender)}
                 </span>
                 {renderMessageContent(message)}
               </div>
@@ -1179,7 +1201,7 @@ export default function ChatTestPageClient() {
           <div>
             <h2>{slotId.toUpperCase()} 화면</h2>
             <p className="muted-line">
-              {slot.user ? `${slot.user.id} / ${slot.user.name} / ${slot.user.email}` : "로그인 안됨"}
+              {slot.user ? `${slot.user.id} / ${slot.user.nickname} / ${slot.user.email}` : "로그인 안됨"}
             </p>
             <p className="muted-line">실시간: {slot.realtimeStatus}</p>
           </div>
