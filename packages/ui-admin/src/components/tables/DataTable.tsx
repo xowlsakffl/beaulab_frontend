@@ -42,6 +42,7 @@ type DataTableProps<T> = {
   meta?: DataTableMeta | null;
   onGoPage?: (page: number) => void;
   onRefresh?: () => void;
+  refreshPlacement?: "left" | "right";
   refreshing?: boolean;
   onRowClick?: (row: T) => void;
   getRowClassName?: (row: T) => string | undefined;
@@ -75,6 +76,7 @@ export function DataTable<T>({
   meta = null,
   onGoPage,
   onRefresh,
+  refreshPlacement = "right",
   refreshing = false,
   onRowClick,
   getRowClassName,
@@ -101,6 +103,17 @@ export function DataTable<T>({
   ) : null;
   const hasCustomFooterLayout =
     footerLeft !== undefined || footerCenter !== undefined || footerRight !== undefined || hideFooterSummary;
+  const refreshControl = onRefresh ? (
+    <button
+      type="button"
+      onClick={onRefresh}
+      disabled={refreshing}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]"
+      title="새로고침"
+    >
+      {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
+    </button>
+  ) : null;
 
   React.useEffect(() => {
     const container = scrollContainerRef.current;
@@ -138,23 +151,18 @@ export function DataTable<T>({
     <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {(title || description || rightActions || onRefresh) && (
         <div className="lg:flex lg:items-center lg:justify-between gap-3 px-4 py-4 sm:px-4">
-          <div className="mb-3 lg:mb-0">
-            {title ? <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3> : null}
-            {description ? <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{description}</p> : null}
+          <div className="mb-3 flex items-center gap-3 lg:mb-0">
+            {refreshPlacement === "left" ? refreshControl : null}
+            {title || description ? (
+              <div>
+                {title ? <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">{title}</h3> : null}
+                {description ? <p className="mt-1 text-theme-xs text-gray-500 dark:text-gray-400">{description}</p> : null}
+              </div>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-3">
-            {onRefresh ? (
-                <button
-                    type="button"
-                    onClick={onRefresh}
-                    disabled={refreshing}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]"
-                    title="새로고침"
-                >
-                  {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
-                </button>
-            ) : null}
+            {refreshPlacement === "right" ? refreshControl : null}
             {rightActions}
           </div>
         </div>

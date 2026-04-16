@@ -70,9 +70,9 @@ export function TalksFilterPanel({
     <Card className="rounded-xl p-3 dark:border-white/[0.05]">
       <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)]">
         <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>운영 상태</span>
+          <span className={inlineLabelClass}>상태</span>
           <CheckboxFilterDropdown
-            label="운영 상태"
+            label="상태"
             hideLabel
             containerRef={statusDropdownRef}
             selectedValues={draftFilters.statuses}
@@ -99,13 +99,13 @@ export function TalksFilterPanel({
           />
         </div>
         <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>등록일</span>
+          <span className={inlineLabelClass}>작성일</span>
           <DateRangeFilterDropdown
-            label="등록일"
+            label="작성일"
             hideLabel
             containerRef={datePickerRef}
             value={draftFilters.dateRange}
-            placeholder="등록일 기간 선택"
+            placeholder="작성일 기간 선택"
             selected={draftDateRange}
             isOpen={isDatePickerOpen}
             presetOptions={DATE_PRESET_OPTIONS}

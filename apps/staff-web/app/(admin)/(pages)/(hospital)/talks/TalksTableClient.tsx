@@ -3,7 +3,16 @@
 import React from "react";
 
 import { isApiSuccess } from "@beaulab/types";
-import type { DataTableMeta } from "@beaulab/ui-admin";
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalPanel,
+  ModalTitle,
+  type DataTableMeta,
+} from "@beaulab/ui-admin";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 
@@ -30,6 +39,17 @@ import {
   type TalkRow,
 } from "@/lib/talk/list";
 
+type TalkVisibilityUpdateResponse = {
+  updated_count: number;
+  is_visible: boolean;
+  ids: number[];
+};
+
+type PendingVisibilityChange = {
+  ids: number[];
+  isVisible: boolean;
+} | null;
+
 export default function TalksTableClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -53,13 +73,15 @@ export default function TalksTableClient() {
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
-  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [page, setPage] = React.useState(initialTableState.page);
   const [rows, setRows] = React.useState<TalkRow[]>([]);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [bulkUpdating, setBulkUpdating] = React.useState(false);
+  const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
+  const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const categoryDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
@@ -70,10 +92,9 @@ export default function TalksTableClient() {
         searchKeyword,
         appliedFilters,
         sortState,
-        perPage,
         page,
       }),
-    [appliedFilters, page, perPage, searchKeyword, sortState],
+    [appliedFilters, page, searchKeyword, sortState],
   );
 
   const queryString = React.useMemo(() => buildTalksQueryString(query), [query]);
@@ -121,6 +142,15 @@ export default function TalksTableClient() {
   React.useEffect(() => {
     void fetchTalks(false);
   }, [fetchTalks]);
+
+  React.useEffect(() => {
+    setSelectedIds((prev) => {
+      const visibleRowIds = new Set(rows.map((row) => row.id));
+      const next = new Set(Array.from(prev).filter((id) => visibleRowIds.has(id)));
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [rows]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -237,6 +267,79 @@ export default function TalksTableClient() {
     setSortState((prev) => nextSortState(prev, field));
   }, []);
 
+  const handleToggleRow = React.useCallback((id: number, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+
+      return next;
+    });
+  }, []);
+
+  const handleToggleAllRows = React.useCallback((checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+
+      for (const row of rows) {
+        if (checked) {
+          next.add(row.id);
+        } else {
+          next.delete(row.id);
+        }
+      }
+
+      return next;
+    });
+  }, [rows]);
+
+  const requestBulkVisibilityChange = React.useCallback((isVisible: boolean) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+
+    setPendingVisibilityChange({ ids, isVisible });
+  }, [selectedIds]);
+
+  const closeVisibilityConfirmModal = React.useCallback(() => {
+    if (bulkUpdating) return;
+    setPendingVisibilityChange(null);
+  }, [bulkUpdating]);
+
+  const confirmBulkVisibilityChange = React.useCallback(async () => {
+    if (!pendingVisibilityChange) return;
+
+    const { ids, isVisible } = pendingVisibilityChange;
+    setBulkUpdating(true);
+    setError(null);
+
+    try {
+      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/visibility", {
+        ids,
+        is_visible: isVisible,
+      });
+
+      if (!isApiSuccess(response)) {
+        setError(response.error.message || "토크 노출여부 변경에 실패했습니다.");
+        return;
+      }
+
+      setSelectedIds(new Set());
+      setPendingVisibilityChange(null);
+      await fetchTalks(true);
+    } catch {
+      setError("토크 노출여부 변경 중 오류가 발생했습니다.");
+    } finally {
+      setBulkUpdating(false);
+    }
+  }, [fetchTalks, pendingVisibilityChange]);
+
+  const pendingVisibilityLabel = pendingVisibilityChange?.isVisible ? "노출" : "미노출";
+  const pendingVisibilityCount = pendingVisibilityChange?.ids.length ?? 0;
+
   return (
     <div className="min-w-0 space-y-4">
       <TalksFilterPanel
@@ -282,15 +385,53 @@ export default function TalksTableClient() {
         refreshing={refreshing}
         error={error}
         sortState={sortState}
-        perPage={perPage}
+        selectedIds={selectedIds}
+        bulkUpdating={bulkUpdating}
         onToggleSort={handleToggleSort}
+        onToggleRow={handleToggleRow}
+        onToggleAllRows={handleToggleAllRows}
+        onBulkVisibilityChange={requestBulkVisibilityChange}
         onRefresh={() => void fetchTalks(true)}
         onGoPage={setPage}
-        onPerPageChange={(value) => {
-          setPerPage(value);
-          setPage(1);
-        }}
       />
+
+      <Modal
+        isOpen={Boolean(pendingVisibilityChange)}
+        onClose={closeVisibilityConfirmModal}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-md"
+      >
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>노출여부 변경</ModalTitle>
+          </ModalHeader>
+
+          <ModalBody className="mt-5">
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              {pendingVisibilityCount.toLocaleString()}건 정말 {pendingVisibilityLabel} 하시겠습니까?
+            </p>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeVisibilityConfirmModal}
+              disabled={bulkUpdating}
+            >
+              취소
+            </Button>
+            <Button
+              type="button"
+              variant="brand"
+              onClick={() => void confirmBulkVisibilityChange()}
+              disabled={bulkUpdating}
+            >
+              {bulkUpdating ? "처리 중..." : "확인"}
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
     </div>
   );
 }

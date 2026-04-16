@@ -19,8 +19,16 @@ export type TalkApiItem = {
   title?: string | null;
   content?: string | null;
   status?: string | null;
+  is_visible?: boolean | null;
+  isVisible?: boolean | null;
   view_count?: number | null;
   viewCount?: number | null;
+  comment_count?: number | null;
+  commentCount?: number | null;
+  like_count?: number | null;
+  likeCount?: number | null;
+  save_count?: number | null;
+  saveCount?: number | null;
   created_at?: string | null;
   createdAt?: string | null;
   updated_at?: string | null;
@@ -35,13 +43,27 @@ export type TalkRow = {
   title: string;
   contentPreview: string | null;
   status: string;
+  isVisible: boolean;
   nickname: string;
   viewCount: number;
+  commentCount: number;
+  likeCount: number;
+  saveCount: number;
   updatedAt: string;
   createdAt: string;
 };
 
-export type SortField = "id" | "title" | "status" | "view_count" | "updated_at" | "created_at";
+export type SortField =
+  | "id"
+  | "title"
+  | "status"
+  | "is_visible"
+  | "view_count"
+  | "comment_count"
+  | "like_count"
+  | "save_count"
+  | "updated_at"
+  | "created_at";
 export type SortDirection = "asc" | "desc";
 
 export type SortState = {
@@ -71,6 +93,8 @@ export type TalksQuery = {
   page: number;
 };
 
+export const TALKS_PER_PAGE = 10;
+
 export const TALK_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "ACTIVE", label: "활성" },
   { value: "INACTIVE", label: "비활성" },
@@ -97,12 +121,6 @@ export const DEFAULT_SORT: SortState = {
   enabled: true,
 };
 
-export const PER_PAGE_OPTIONS = [
-  { value: "15", label: "15개" },
-  { value: "30", label: "30개" },
-  { value: "50", label: "50개" },
-];
-
 export const DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
   { key: "yesterday", label: "어제" },
@@ -112,7 +130,18 @@ export const DATE_PRESET_OPTIONS = [
 
 export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
 
-const TALK_SORT_FIELDS = new Set<SortField>(["id", "title", "status", "view_count", "updated_at", "created_at"]);
+const TALK_SORT_FIELDS = new Set<SortField>([
+  "id",
+  "title",
+  "status",
+  "is_visible",
+  "view_count",
+  "comment_count",
+  "like_count",
+  "save_count",
+  "updated_at",
+  "created_at",
+]);
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
 const TALK_CATEGORY_VALUE_SET = new Set(TALK_CATEGORY_OPTIONS.map((option) => option.value));
 
@@ -250,8 +279,12 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     title: item.title?.trim() || "-",
     contentPreview: buildTalkContentPreview(item.content),
     status: item.status?.trim() || "ACTIVE",
+    isVisible: Boolean(item.isVisible ?? item.is_visible ?? true),
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     viewCount: Number(item.viewCount ?? item.view_count ?? 0),
+    commentCount: Number(item.commentCount ?? item.comment_count ?? 0),
+    likeCount: Number(item.likeCount ?? item.like_count ?? 0),
+    saveCount: Number(item.saveCount ?? item.save_count ?? 0),
     updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
     createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
   };
@@ -284,12 +317,6 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
   const endDate = searchParams.get("end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
 
-  const parsedPerPage = Number(searchParams.get("per_page"));
-  const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage)
-    ? parsedPerPage
-    : 15;
-
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
@@ -315,7 +342,6 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
       direction: sortDirection,
       enabled: Boolean(sortFieldParam || sortDirectionParam),
     },
-    perPage,
     page,
   };
 }
@@ -324,20 +350,18 @@ export function buildTalksQuery({
   searchKeyword,
   appliedFilters,
   sortState,
-  perPage,
   page,
 }: {
   searchKeyword: string;
   appliedFilters: Filters;
   sortState: SortState;
-  perPage: number;
   page: number;
 }): TalksQuery {
   const query: TalksQuery = {
     include: DEFAULT_INCLUDE_FIELDS.join(","),
     sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
     direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
-    per_page: perPage,
+    per_page: TALKS_PER_PAGE,
     page,
   };
 
@@ -367,7 +391,6 @@ export function buildTalksQueryString(query: TalksQuery) {
   if (query.end_date) params.set("end_date", query.end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 
   return params.toString();
