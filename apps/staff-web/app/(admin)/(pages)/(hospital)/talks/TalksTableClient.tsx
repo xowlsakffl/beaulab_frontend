@@ -5,6 +5,7 @@ import React from "react";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
+  InputField,
   Modal,
   ModalBody,
   ModalFooter,
@@ -22,7 +23,7 @@ import { api } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
   TALK_CATEGORY_OPTIONS,
-  TALK_STATUS_OPTIONS,
+  TALK_POST_STATUS_OPTIONS,
   buildPresetDateRange,
   buildTalksQuery,
   buildTalksQueryString,
@@ -42,13 +43,21 @@ import {
 
 type TalkVisibilityUpdateResponse = {
   updated_count: number;
-  is_visible: boolean;
+  status: string;
   ids: number[];
 };
 
-type PendingVisibilityChange = {
+type TalkVisibilityUpdatePayload = {
   ids: number[];
-  isVisible: boolean;
+  status: string;
+  hidden_reason?: string;
+};
+
+type PendingVisibilityChange = {
+  source: "bulk" | "row";
+  ids: number[];
+  status: string;
+  hiddenReason?: string;
 } | null;
 
 export default function TalksTableClient() {
@@ -147,8 +156,10 @@ export default function TalksTableClient() {
 
   React.useEffect(() => {
     setSelectedIds((prev) => {
-      const visibleRowIds = new Set(rows.map((row) => row.id));
-      const next = new Set(Array.from(prev).filter((id) => visibleRowIds.has(id)));
+      const selectableRowIds = new Set(rows
+        .filter((row) => !row.visibilityChangeLocked)
+        .map((row) => row.id));
+      const next = new Set(Array.from(prev).filter((id) => selectableRowIds.has(id)));
 
       return next.size === prev.size ? prev : next;
     });
@@ -175,9 +186,9 @@ export default function TalksTableClient() {
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
-      statuses: [...draftFilters.statuses],
+      postStatuses: [...draftFilters.postStatuses],
       categoryCodes: [...draftFilters.categoryCodes],
-      isVisible: draftFilters.isVisible,
+      visibilityStatus: draftFilters.visibilityStatus,
       metricField: draftFilters.metricField,
       metricMin: normalizeMetricBound(draftFilters.metricMin),
       metricMax: normalizeMetricBound(draftFilters.metricMax),
@@ -201,12 +212,12 @@ export default function TalksTableClient() {
 
   const toggleStatus = React.useCallback((value: string) => {
     setDraftFilters((prev) => {
-      const exists = prev.statuses.includes(value);
+      const exists = prev.postStatuses.includes(value);
       return {
         ...prev,
-        statuses: exists
-          ? prev.statuses.filter((item) => item !== value)
-          : [...prev.statuses, value],
+        postStatuses: exists
+          ? prev.postStatuses.filter((item) => item !== value)
+          : [...prev.postStatuses, value],
       };
     });
   }, []);
@@ -214,9 +225,9 @@ export default function TalksTableClient() {
   const toggleAllStatus = React.useCallback(() => {
     setDraftFilters((prev) => ({
       ...prev,
-      statuses: prev.statuses.length === TALK_STATUS_OPTIONS.length
+      postStatuses: prev.postStatuses.length === TALK_POST_STATUS_OPTIONS.length
         ? []
-        : TALK_STATUS_OPTIONS.map((item) => item.value),
+        : TALK_POST_STATUS_OPTIONS.map((item) => item.value),
     }));
   }, []);
 
@@ -252,7 +263,7 @@ export default function TalksTableClient() {
     setIsDatePickerOpen(false);
     setDraftFilters((prev) => ({
       ...prev,
-      isVisible: value,
+      visibilityStatus: value,
     }));
   }, []);
 
@@ -310,6 +321,9 @@ export default function TalksTableClient() {
   }, []);
 
   const handleToggleRow = React.useCallback((id: number, checked: boolean) => {
+    const row = rows.find((item) => item.id === id);
+    if (checked && row?.visibilityChangeLocked) return;
+
     setSelectedIds((prev) => {
       const next = new Set(prev);
 
@@ -321,16 +335,16 @@ export default function TalksTableClient() {
 
       return next;
     });
-  }, []);
+  }, [rows]);
 
   const handleToggleAllRows = React.useCallback((checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
 
       for (const row of rows) {
-        if (checked) {
+        if (checked && !row.visibilityChangeLocked) {
           next.add(row.id);
-        } else {
+        } else if (!checked) {
           next.delete(row.id);
         }
       }
@@ -339,80 +353,117 @@ export default function TalksTableClient() {
     });
   }, [rows]);
 
-  const requestBulkVisibilityChange = React.useCallback((isVisible: boolean) => {
-    const ids = Array.from(selectedIds);
+  const requestBulkVisibilityChange = React.useCallback((status: string) => {
+    const currentRowsById = new Map(rows.map((row) => [row.id, row]));
+    const ids = Array.from(selectedIds)
+      .filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
     if (ids.length === 0) return;
 
-    setPendingVisibilityChange({ ids, isVisible });
-  }, [selectedIds]);
+    setPendingVisibilityChange({ source: "bulk", ids, status });
+  }, [rows, selectedIds]);
 
-  const handleRowVisibilityChange = React.useCallback(async (id: number, isVisible: boolean) => {
-    setRowVisibilityUpdatingIds((prev) => new Set(prev).add(id));
-    setError(null);
-
-    try {
-      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/visibility", {
-        ids: [id],
-        is_visible: isVisible,
-      });
-
-      if (!isApiSuccess(response)) {
-        setError(response.error.message || "토크 노출여부 변경에 실패했습니다.");
-        return;
-      }
-
-      setRows((prev) => prev.map((row) => (
-        row.id === id
-          ? { ...row, isVisible }
-          : row
-      )));
-    } catch {
-      setError("토크 노출여부 변경 중 오류가 발생했습니다.");
-    } finally {
-      setRowVisibilityUpdatingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-
-        return next;
-      });
-    }
+  const handleRowVisibilityChange = React.useCallback((id: number, status: string) => {
+    setPendingVisibilityChange({
+      source: "row",
+      ids: [id],
+      status,
+      hiddenReason: "",
+    });
   }, []);
 
   const closeVisibilityConfirmModal = React.useCallback(() => {
     if (bulkUpdating) return;
-    setPendingVisibilityChange(null);
-  }, [bulkUpdating]);
+    if (
+      pendingVisibilityChange?.source === "row"
+      && pendingVisibilityChange.ids.some((id) => rowVisibilityUpdatingIds.has(id))
+    ) {
+      return;
+    }
 
-  const confirmBulkVisibilityChange = React.useCallback(async () => {
+    setPendingVisibilityChange(null);
+  }, [bulkUpdating, pendingVisibilityChange, rowVisibilityUpdatingIds]);
+
+  const updatePendingHiddenReason = React.useCallback((value: string) => {
+    setPendingVisibilityChange((prev) => (
+      prev?.source === "row"
+        ? { ...prev, hiddenReason: value }
+        : prev
+    ));
+  }, []);
+
+  const confirmVisibilityChange = React.useCallback(async () => {
     if (!pendingVisibilityChange) return;
 
-    const { ids, isVisible } = pendingVisibilityChange;
-    setBulkUpdating(true);
+    const { ids, status, source, hiddenReason } = pendingVisibilityChange;
+    const isBulkChange = source === "bulk";
+    const normalizedHiddenReason = source === "row" && status === "INACTIVE"
+      ? hiddenReason?.trim()
+      : "";
+    const requestPayload: TalkVisibilityUpdatePayload = {
+      ids,
+      status,
+    };
+
+    if (normalizedHiddenReason) {
+      requestPayload.hidden_reason = normalizedHiddenReason;
+    }
+
+    if (isBulkChange) {
+      setBulkUpdating(true);
+    } else {
+      setRowVisibilityUpdatingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.add(id));
+
+        return next;
+      });
+    }
+
     setError(null);
 
     try {
-      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/visibility", {
-        ids,
-        is_visible: isVisible,
-      });
+      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/visibility", requestPayload);
 
       if (!isApiSuccess(response)) {
         setError(response.error.message || "토크 노출여부 변경에 실패했습니다.");
         return;
       }
 
-      setSelectedIds(new Set());
       setPendingVisibilityChange(null);
-      await fetchTalks(true);
+
+      if (isBulkChange) {
+        setSelectedIds(new Set());
+        await fetchTalks(true);
+      } else {
+        setRows((prev) => prev.map((row) => (
+          ids.includes(row.id)
+            ? { ...row, status, isVisible: status === "ACTIVE" }
+            : row
+        )));
+      }
     } catch {
       setError("토크 노출여부 변경 중 오류가 발생했습니다.");
     } finally {
-      setBulkUpdating(false);
+      if (isBulkChange) {
+        setBulkUpdating(false);
+      } else {
+        setRowVisibilityUpdatingIds((prev) => {
+          const next = new Set(prev);
+          ids.forEach((id) => next.delete(id));
+
+          return next;
+        });
+      }
     }
   }, [fetchTalks, pendingVisibilityChange]);
 
-  const pendingVisibilityLabel = pendingVisibilityChange?.isVisible ? "노출" : "미노출";
+  const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityCount = pendingVisibilityChange?.ids.length ?? 0;
+  const pendingVisibilityUpdating = bulkUpdating
+    || Boolean(
+      pendingVisibilityChange?.source === "row"
+      && pendingVisibilityChange.ids.some((id) => rowVisibilityUpdatingIds.has(id)),
+    );
 
   return (
     <div className="min-w-0 space-y-4">
@@ -488,8 +539,26 @@ export default function TalksTableClient() {
 
           <ModalBody className="mt-5">
             <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              <span className="text-error-500">{pendingVisibilityCount.toLocaleString()}</span>건 정말 {pendingVisibilityLabel} 하시겠습니까?
+              총 <span className="text-error-500">{pendingVisibilityCount.toLocaleString()}</span>건을 {pendingVisibilityLabel}로 변경하시겠습니까?
             </p>
+
+            {pendingVisibilityChange?.source === "row" && pendingVisibilityChange.status === "INACTIVE" && (
+              <div className="mt-4">
+                <label
+                  htmlFor="talk-hidden-reason"
+                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                >
+                  미노출 사유
+                </label>
+                <InputField
+                  id="talk-hidden-reason"
+                  name="hidden_reason"
+                  value={pendingVisibilityChange.hiddenReason ?? ""}
+                  onChange={(event) => updatePendingHiddenReason(event.target.value)}
+                  disabled={pendingVisibilityUpdating}
+                />
+              </div>
+            )}
           </ModalBody>
 
           <ModalFooter>
@@ -497,17 +566,17 @@ export default function TalksTableClient() {
               type="button"
               variant="outline"
               onClick={closeVisibilityConfirmModal}
-              disabled={bulkUpdating}
+              disabled={pendingVisibilityUpdating}
             >
               취소
             </Button>
             <Button
               type="button"
               variant="brand"
-              onClick={() => void confirmBulkVisibilityChange()}
-              disabled={bulkUpdating}
+              onClick={() => void confirmVisibilityChange()}
+              disabled={pendingVisibilityUpdating}
             >
-              {bulkUpdating ? "처리 중..." : "확인"}
+              {pendingVisibilityUpdating ? "처리 중..." : "확인"}
             </Button>
           </ModalFooter>
         </ModalPanel>

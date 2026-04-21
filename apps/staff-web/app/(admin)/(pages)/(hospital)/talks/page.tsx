@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TalksPage() {
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <PageBreadcrumb
         pageTitle="토크"
         homeLabel="관리자"

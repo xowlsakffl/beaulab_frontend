@@ -19,8 +19,8 @@ export type TalkApiItem = {
   title?: string | null;
   content?: string | null;
   status?: string | null;
-  is_visible?: boolean | null;
-  isVisible?: boolean | null;
+  post_status?: string | null;
+  postStatus?: string | null;
   view_count?: number | null;
   viewCount?: number | null;
   comment_count?: number | null;
@@ -43,7 +43,9 @@ export type TalkRow = {
   title: string;
   contentPreview: string | null;
   status: string;
+  postStatus: string;
   isVisible: boolean;
+  visibilityChangeLocked: boolean;
   nickname: string;
   viewCount: number;
   commentCount: number;
@@ -57,7 +59,7 @@ export type SortField =
   | "id"
   | "title"
   | "status"
-  | "is_visible"
+  | "post_status"
   | "view_count"
   | "comment_count"
   | "like_count"
@@ -73,9 +75,9 @@ export type SortState = {
 };
 
 export type Filters = {
-  statuses: string[];
+  postStatuses: string[];
   categoryCodes: string[];
-  isVisible: string;
+  visibilityStatus: string;
   metricField: TalkMetricField;
   metricMin: string;
   metricMax: string;
@@ -89,8 +91,8 @@ export type TalkMetricField = "like_count" | "save_count" | "comment_count" | "v
 export type TalksQuery = {
   q?: string;
   status?: string;
+  post_status?: string;
   category_codes?: string;
-  is_visible?: string;
   metric?: TalkMetricField;
   metric_min?: string;
   metric_max?: string;
@@ -105,9 +107,11 @@ export type TalksQuery = {
 
 export const TALKS_PER_PAGE = 10;
 
-export const TALK_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "ACTIVE", label: "활성" },
-  { value: "INACTIVE", label: "비활성" },
+export const TALK_POST_STATUS_OPTIONS: CheckboxFilterOption[] = [
+  { value: "POST_NORMAL", label: "정상" },
+  { value: "POST_AUTO_BLIND", label: "시스템차단" },
+  { value: "POST_ADMIN_STOP", label: "게시중단" },
+  { value: "POST_USER_DELETE", label: "본인삭제" },
 ];
 
 export const TALK_CATEGORY_OPTIONS: CheckboxFilterOption[] = [
@@ -119,21 +123,21 @@ export const TALK_CATEGORY_OPTIONS: CheckboxFilterOption[] = [
 
 export const TALK_VISIBILITY_OPTIONS = [
   { value: "", label: "전체" },
-  { value: "1", label: "노출" },
-  { value: "0", label: "미노출" },
+  { value: "ACTIVE", label: "노출" },
+  { value: "INACTIVE", label: "미노출" },
 ];
 
 export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = [
   { value: "like_count", label: "좋아요수" },
-  { value: "save_count", label: "저장수" },
+  { value: "save_count", label: "저장횟수" },
   { value: "comment_count", label: "댓글수" },
   { value: "view_count", label: "조회수" },
 ];
 
 export const DEFAULT_FILTERS: Filters = {
-  statuses: [],
+  postStatuses: [],
   categoryCodes: [],
-  isVisible: "",
+  visibilityStatus: "",
   metricField: "like_count",
   metricMin: "",
   metricMax: "",
@@ -161,7 +165,7 @@ const TALK_SORT_FIELDS = new Set<SortField>([
   "id",
   "title",
   "status",
-  "is_visible",
+  "post_status",
   "view_count",
   "comment_count",
   "like_count",
@@ -170,14 +174,26 @@ const TALK_SORT_FIELDS = new Set<SortField>([
   "created_at",
 ]);
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
+const TALK_POST_STATUS_VALUE_SET = new Set(TALK_POST_STATUS_OPTIONS.map((option) => option.value));
 const TALK_CATEGORY_VALUE_SET = new Set(TALK_CATEGORY_OPTIONS.map((option) => option.value));
 const TALK_VISIBILITY_VALUE_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
 const TALK_METRIC_VALUE_SET = new Set<TalkMetricField>(TALK_METRIC_OPTIONS.map((option) => option.value));
+const TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET = new Set([
+  "POST_AUTO_BLIND",
+  "POST_ADMIN_STOP",
+  "POST_USER_DELETE",
+]);
 
-export function labelTalkStatus(status: string) {
-  if (status === "ACTIVE") return "활성";
-  if (status === "INACTIVE") return "비활성";
+export function labelTalkPostStatus(status: string) {
+  if (status === "POST_NORMAL") return "정상";
+  if (status === "POST_AUTO_BLIND") return "시스템차단";
+  if (status === "POST_ADMIN_STOP") return "게시중단";
+  if (status === "POST_USER_DELETE") return "본인삭제";
   return status;
+}
+
+export function isTalkVisibilityChangeLocked(postStatus: string | null | undefined) {
+  return TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET.has((postStatus ?? "").trim());
 }
 
 export function formatLocalDate(date: Date) {
@@ -315,7 +331,9 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     title: item.title?.trim() || "-",
     contentPreview: buildTalkContentPreview(item.content),
     status: item.status?.trim() || "ACTIVE",
-    isVisible: Boolean(item.isVisible ?? item.is_visible ?? true),
+    postStatus: item.postStatus?.trim() || item.post_status?.trim() || "POST_NORMAL",
+    isVisible: (item.status?.trim() || "ACTIVE") === "ACTIVE",
+    visibilityChangeLocked: isTalkVisibilityChangeLocked(item.postStatus ?? item.post_status),
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     viewCount: Number(item.viewCount ?? item.view_count ?? 0),
     commentCount: Number(item.commentCount ?? item.comment_count ?? 0),
@@ -345,11 +363,11 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     .split(",")
     .map((value) => value.trim())
     .filter((value) => TALK_CATEGORY_VALUE_SET.has(value));
-  const statuses = (searchParams.get("status") ?? "")
+  const postStatuses = (searchParams.get("post_status") ?? "")
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
-  const isVisible = searchParams.get("is_visible") ?? "";
+    .filter((value) => TALK_POST_STATUS_VALUE_SET.has(value));
+  const visibilityStatus = searchParams.get("status") ?? "";
   const metricParam = searchParams.get("metric");
   const metricField = metricParam && TALK_METRIC_VALUE_SET.has(metricParam as TalkMetricField)
     ? (metricParam as TalkMetricField)
@@ -371,9 +389,9 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      statuses,
+      postStatuses,
       categoryCodes,
-      isVisible: TALK_VISIBILITY_VALUE_SET.has(isVisible) ? isVisible : "",
+      visibilityStatus: TALK_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       metricField,
       metricMin: normalizeMetricBound(searchParams.get("metric_min")),
       metricMax: normalizeMetricBound(searchParams.get("metric_max")),
@@ -412,9 +430,14 @@ export function buildTalksQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
-  if (appliedFilters.statuses.length > 0) query.status = appliedFilters.statuses.join(",");
-  if (appliedFilters.isVisible === "1" || appliedFilters.isVisible === "0") {
-    query.is_visible = appliedFilters.isVisible;
+  if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
+    query.status = appliedFilters.visibilityStatus;
+  }
+  const normalizedPostStatuses = appliedFilters.postStatuses
+    .map((value) => value.trim())
+    .filter((value) => TALK_POST_STATUS_VALUE_SET.has(value));
+  if (normalizedPostStatuses.length > 0) {
+    query.post_status = Array.from(new Set(normalizedPostStatuses)).join(",");
   }
   const normalizedCategoryCodes = appliedFilters.categoryCodes
     .map((value) => value.trim())
@@ -442,8 +465,8 @@ export function buildTalksQueryString(query: TalksQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
+  if (query.post_status) params.set("post_status", query.post_status);
   if (query.category_codes) params.set("category_codes", query.category_codes);
-  if (query.is_visible) params.set("is_visible", query.is_visible);
   if (query.metric) params.set("metric", query.metric);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);

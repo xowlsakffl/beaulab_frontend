@@ -108,7 +108,7 @@ export function DataTable<T>({
       type="button"
       onClick={onRefresh}
       disabled={refreshing}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]"
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]"
       title="새로고침"
     >
       {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
@@ -150,8 +150,8 @@ export function DataTable<T>({
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {(title || description || rightActions || onRefresh) && (
-        <div className="lg:flex lg:items-center lg:justify-between gap-3 px-4 py-4 sm:px-4">
-          <div className="mb-3 flex items-center gap-3 lg:mb-0">
+        <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-4">
+          <div className="flex shrink-0 items-center gap-3">
             {refreshPlacement === "left" ? refreshControl : null}
             {title || description ? (
               <div>
@@ -161,7 +161,7 @@ export function DataTable<T>({
             ) : null}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
             {refreshPlacement === "right" ? refreshControl : null}
             {rightActions}
           </div>
@@ -257,10 +257,10 @@ export function DataTable<T>({
             <div className="min-w-0">
               {footerLeft === undefined ? (hideFooterSummary ? null : defaultFooterSummary) : footerLeft}
             </div>
-            <div className="justify-self-start sm:justify-self-center">
+            <div className="justify-self-center">
               {footerCenter === undefined ? defaultFooterPagination : footerCenter}
             </div>
-            <div className="justify-self-start sm:justify-self-end">{footerRight}</div>
+            <div className="justify-self-end">{footerRight}</div>
           </div>
         ) : meta ? (
           <div className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:px-6">

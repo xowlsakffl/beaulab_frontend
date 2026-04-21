@@ -14,7 +14,7 @@ import {
   DATE_PRESET_OPTIONS,
   TALK_CATEGORY_OPTIONS,
   TALK_METRIC_OPTIONS,
-  TALK_STATUS_OPTIONS,
+  TALK_POST_STATUS_OPTIONS,
   TALK_VISIBILITY_OPTIONS,
   type DatePresetKey,
   type Filters,
@@ -75,6 +75,7 @@ export function TalksFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: TalksFilterPanelProps) {
+  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -84,9 +85,9 @@ export function TalksFilterPanel({
   };
 
   return (
-    <Card className="rounded-xl p-3 dark:border-white/[0.05]">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(15rem,1fr)_minmax(15rem,1fr)_minmax(12rem,0.8fr)_minmax(28rem,1.7fr)_minmax(12rem,0.8fr)]">
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+    <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
+      <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-4 xl:grid-cols-[minmax(13rem,1.15fr)_minmax(10rem,0.85fr)_minmax(9rem,0.75fr)] min-[1800px]:grid-cols-[minmax(13rem,1.15fr)_minmax(10rem,0.85fr)_minmax(9rem,0.75fr)_minmax(24rem,1.9fr)_minmax(10rem,0.85fr)]">
+        <div className={filterRowClass}>
           <span className={inlineLabelClass}>작성일</span>
           <DateRangeFilterDropdown
             label="작성일"
@@ -107,10 +108,10 @@ export function TalksFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>카테고리</span>
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>토크유형</span>
           <CheckboxFilterDropdown
-            label="카테고리"
+            label="토크유형"
             hideLabel
             containerRef={categoryDropdownRef}
             selectedValues={draftFilters.categoryCodes}
@@ -122,11 +123,11 @@ export function TalksFilterPanel({
             emptyLabel="전체"
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className={filterRowClass}>
           <span className={inlineLabelClass}>노출여부</span>
           <div className="min-w-0 flex-1">
             <Select
-              value={draftFilters.isVisible}
+              value={draftFilters.visibilityStatus}
               options={TALK_VISIBILITY_OPTIONS}
               showPlaceholderOption={false}
               onChange={onVisibilityChange}
@@ -134,53 +135,59 @@ export function TalksFilterPanel({
             />
           </div>
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className={`${filterRowClass} xl:col-span-2 min-[1800px]:col-span-1`}>
           <span className={inlineLabelClass}>지표</span>
-          <div className="grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-            <Select
-              value={draftFilters.metricField}
-              options={TALK_METRIC_OPTIONS}
-              showPlaceholderOption={false}
-              onChange={onMetricFieldChange}
-              className="h-11 px-3"
-            />
-            <InputField
-              type="number"
-              min="0"
-              value={draftFilters.metricMin}
-              onChange={(event) => onMetricMinChange(event.target.value)}
-              onKeyDown={handleEnterToSearch}
-              placeholder="1"
-              className="bg-white px-3 dark:bg-gray-800"
-            />
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
+            <div className="min-w-0 max-sm:col-span-3">
+              <Select
+                value={draftFilters.metricField}
+                options={TALK_METRIC_OPTIONS}
+                showPlaceholderOption={false}
+                onChange={onMetricFieldChange}
+                className="h-11 px-3"
+              />
+            </div>
+            <div className="min-w-0">
+              <InputField
+                type="number"
+                min="0"
+                value={draftFilters.metricMin}
+                onChange={(event) => onMetricMinChange(event.target.value)}
+                onKeyDown={handleEnterToSearch}
+                placeholder="1"
+                className="bg-white px-3 dark:bg-gray-800"
+              />
+            </div>
             <span className="text-sm text-gray-400">~</span>
-            <InputField
-              type="number"
-              min="0"
-              value={draftFilters.metricMax}
-              onChange={(event) => onMetricMaxChange(event.target.value)}
-              onKeyDown={handleEnterToSearch}
-              placeholder="500"
-              className="bg-white px-3 dark:bg-gray-800"
-            />
+            <div className="min-w-0">
+              <InputField
+                type="number"
+                min="0"
+                value={draftFilters.metricMax}
+                onChange={(event) => onMetricMaxChange(event.target.value)}
+                onKeyDown={handleEnterToSearch}
+                placeholder="500"
+                className="bg-white px-3 dark:bg-gray-800"
+              />
+            </div>
           </div>
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>상태</span>
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>게시상태</span>
           <CheckboxFilterDropdown
-            label="상태"
+            label="게시상태"
             hideLabel
             containerRef={statusDropdownRef}
-            selectedValues={draftFilters.statuses}
-            options={TALK_STATUS_OPTIONS}
+            selectedValues={draftFilters.postStatuses}
+            options={TALK_POST_STATUS_OPTIONS}
             isOpen={isStatusDropdownOpen}
             onToggleOpen={onToggleStatusDropdown}
             onToggleValue={onToggleStatus}
             onToggleAll={onToggleAllStatus}
           />
         </div>
-        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center xl:col-span-3 min-[1800px]:col-span-full">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField
