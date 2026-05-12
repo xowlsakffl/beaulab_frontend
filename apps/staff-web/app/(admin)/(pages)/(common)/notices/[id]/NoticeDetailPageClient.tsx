@@ -12,6 +12,7 @@ import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   formatBytes,
   formatLocalDateTime,
+  formatNoticeStaffName,
   getNoticeAttachmentFilename,
   labelNoticeChannel,
   labelNoticeStatus,
@@ -143,6 +144,8 @@ export default function NoticeDetailPageClient() {
               <DetailField label="채널" value={labelNoticeChannel(detail.channel)} />
               <StatusField label="운영 상태" value={detail.status} />
               <DetailField label="조회수" value={detail.view_count.toLocaleString()} />
+              <DetailField label="작성자" value={formatNoticeStaffName(detail.creator)} />
+              <DetailField label="수정자" value={formatNoticeStaffName(detail.updater)} />
               <DetailField label="등록일" value={formatLocalDateTime(detail.created_at)} />
               <DetailField label="수정일" value={formatLocalDateTime(detail.updated_at)} />
             </div>

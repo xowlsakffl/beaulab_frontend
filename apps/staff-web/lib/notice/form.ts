@@ -13,6 +13,12 @@ export type NoticeAttachment = {
   updated_at?: string | null;
 };
 
+export type NoticeStaffUser = {
+  id: number;
+  name?: string | null;
+  email?: string | null;
+};
+
 export type NoticeDetailResponse = {
   id: number;
   channel: string;
@@ -25,6 +31,8 @@ export type NoticeDetailResponse = {
   publish_end_at?: string | null;
   is_important: boolean;
   view_count: number;
+  creator?: NoticeStaffUser | null;
+  updater?: NoticeStaffUser | null;
   attachments?: NoticeAttachment[] | null;
   created_at?: string | null;
   updated_at?: string | null;
@@ -106,6 +114,10 @@ export function labelNoticeStatus(status?: string | null) {
   if (status === "ACTIVE") return "정상";
   if (status === "INACTIVE") return "비활성";
   return status?.trim() || "-";
+}
+
+export function formatNoticeStaffName(staff?: NoticeStaffUser | null) {
+  return staff?.name?.trim() || staff?.email?.trim() || "-";
 }
 
 export function formatLocalDateTime(isoString?: string | null) {

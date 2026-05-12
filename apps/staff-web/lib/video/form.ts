@@ -12,6 +12,18 @@ export type VideoDoctorOption = {
   position?: string | null;
 };
 
+export type VideoHospitalRef = {
+  id: number;
+  name?: string | null;
+  business_number?: string | null;
+};
+
+export type VideoDoctorRef = {
+  id: number;
+  name?: string | null;
+  position?: string | null;
+};
+
 export type VideoMediaAsset = {
   id?: number | string;
   path?: string | null;
@@ -34,9 +46,11 @@ export type VideoCategoryItem = {
 
 export type VideoDetailResponse = {
   id: number;
-  hospital_id: number;
+  hospital?: VideoHospitalRef | null;
+  hospital_id?: number | null;
   hospital_name?: string | null;
   hospital_business_number?: string | null;
+  doctor?: VideoDoctorRef | null;
   doctor_id?: number | null;
   doctor_name?: string | null;
   title: string;
@@ -107,13 +121,13 @@ export const VIDEO_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
     key: "surgery",
     label: "성형",
-    domain: "HOSPITAL_SURGERY",
+    domain: "HOSPITAL_REVIEW_SURGERY",
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 눈, 코)",
   },
   {
     key: "treatment",
     label: "쁘띠/피부",
-    domain: "HOSPITAL_TREATMENT",
+    domain: "HOSPITAL_REVIEW_TREATMENT",
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 인모드)",
   },
 ];
@@ -293,13 +307,17 @@ export function formatBytes(bytes?: number | null) {
 }
 
 export function mapVideoDetailToForm(detail: VideoDetailResponse): VideoFormValues {
+  const hospitalName = detail.hospital_name ?? detail.hospital?.name ?? "";
+  const hospitalBusinessNumber = detail.hospital_business_number ?? detail.hospital?.business_number ?? "";
+  const doctorName = detail.doctor_name ?? detail.doctor?.name ?? "";
+
   return {
     ...INITIAL_VIDEO_FORM,
-    hospital_id: detail.hospital_id,
-    hospital_name: detail.hospital_name?.trim() ?? "",
-    hospital_business_number: detail.hospital_business_number?.trim() ?? "",
-    doctor_id: detail.doctor_id ?? null,
-    doctor_name: detail.doctor_name?.trim() ?? "",
+    hospital_id: detail.hospital_id ?? detail.hospital?.id ?? null,
+    hospital_name: hospitalName.trim(),
+    hospital_business_number: hospitalBusinessNumber.trim(),
+    doctor_id: detail.doctor_id ?? detail.doctor?.id ?? null,
+    doctor_name: doctorName.trim(),
     title: detail.title ?? "",
     description: detail.description ?? "",
     distribution_channel: detail.distribution_channel ?? INITIAL_VIDEO_FORM.distribution_channel,

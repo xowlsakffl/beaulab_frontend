@@ -12,18 +12,19 @@ import type { DateRange } from "react-day-picker";
 
 import {
   DATE_PRESET_OPTIONS,
-  TALK_CATEGORY_OPTIONS,
   TALK_METRIC_OPTIONS,
   TALK_POST_STATUS_OPTIONS,
   TALK_VISIBILITY_OPTIONS,
   type DatePresetKey,
   type Filters,
 } from "@/lib/talk/list";
+import type { CheckboxFilterOption } from "@beaulab/ui-admin";
 
 type TalksFilterPanelProps = {
   searchInput: string;
   draftFilters: Filters;
   draftDateRange?: DateRange;
+  categoryOptions: CheckboxFilterOption[];
   isStatusDropdownOpen: boolean;
   isCategoryDropdownOpen: boolean;
   isDatePickerOpen: boolean;
@@ -52,6 +53,7 @@ export function TalksFilterPanel({
   searchInput,
   draftFilters,
   draftDateRange,
+  categoryOptions,
   isStatusDropdownOpen,
   isCategoryDropdownOpen,
   isDatePickerOpen,
@@ -114,8 +116,8 @@ export function TalksFilterPanel({
             label="토크유형"
             hideLabel
             containerRef={categoryDropdownRef}
-            selectedValues={draftFilters.categoryCodes}
-            options={TALK_CATEGORY_OPTIONS}
+            selectedValues={draftFilters.categoryIds}
+            options={categoryOptions}
             isOpen={isCategoryDropdownOpen}
             onToggleOpen={onToggleCategoryDropdown}
             onToggleValue={onToggleCategory}
@@ -211,7 +213,7 @@ export function TalksFilterPanel({
               onClick={onResetFilters}
               className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
             >
-              필터 초기화
+              검색 초기화
             </Button>
           </div>
         </div>

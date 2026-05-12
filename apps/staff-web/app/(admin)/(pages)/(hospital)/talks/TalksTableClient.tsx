@@ -12,6 +12,7 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
+  type CheckboxFilterOption,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -19,14 +20,17 @@ import type { DateRange } from "react-day-picker";
 
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, downloadFile } from "@/lib/common/api";
+import type { CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_FILTERS,
-  TALK_CATEGORY_OPTIONS,
   TALK_POST_STATUS_OPTIONS,
+  buildTalksExcelDownloadPath,
   buildPresetDateRange,
   buildTalksQuery,
   buildTalksQueryString,
+  formatTalkCategoryName,
+  isTalkExcelDateRangeAllowed,
   mapDateRangeToFilter,
   nextSortState,
   normalizeMetricBound,
@@ -90,6 +94,8 @@ export default function TalksTableClient() {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
+  const [excelDownloading, setExcelDownloading] = React.useState(false);
+  const [categoryOptions, setCategoryOptions] = React.useState<CheckboxFilterOption[]>([]);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
@@ -109,6 +115,41 @@ export default function TalksTableClient() {
   );
 
   const queryString = React.useMemo(() => buildTalksQueryString(query), [query]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function fetchTalkCategoryOptions() {
+      try {
+        const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+          domain: "TALK",
+          status: ["ACTIVE"],
+          per_page: 100,
+        });
+
+        if (!isApiSuccess(response)) {
+          throw new Error(response.error.message || "토크 유형 필터를 불러오지 못했습니다.");
+        }
+
+        if (cancelled) return;
+
+        setCategoryOptions(response.data.map((item) => ({
+          value: String(item.id),
+          label: formatTalkCategoryName(item) || item.name,
+        })));
+      } catch {
+        if (!cancelled) {
+          setCategoryOptions([]);
+        }
+      }
+    }
+
+    void fetchTalkCategoryOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -187,7 +228,7 @@ export default function TalksTableClient() {
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       postStatuses: [...draftFilters.postStatuses],
-      categoryCodes: [...draftFilters.categoryCodes],
+      categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
       metricField: draftFilters.metricField,
       metricMin: normalizeMetricBound(draftFilters.metricMin),
@@ -233,29 +274,29 @@ export default function TalksTableClient() {
 
   const toggleCategory = React.useCallback((value: string) => {
     setDraftFilters((prev) => {
-      const exists = prev.categoryCodes.includes(value);
+      const exists = prev.categoryIds.includes(value);
 
       return {
         ...prev,
-        categoryCodes: exists
-          ? prev.categoryCodes.filter((item) => item !== value)
-          : [...prev.categoryCodes, value],
+        categoryIds: exists
+          ? prev.categoryIds.filter((item) => item !== value)
+          : [...prev.categoryIds, value],
       };
     });
   }, []);
 
   const toggleAllCategory = React.useCallback(() => {
     setDraftFilters((prev) => {
-      const allCategoryValues = TALK_CATEGORY_OPTIONS.map((item) => item.value);
+      const allCategoryValues = categoryOptions.map((item) => item.value);
       const isAllSelected = allCategoryValues.length > 0 &&
-        allCategoryValues.every((value) => prev.categoryCodes.includes(value));
+        allCategoryValues.every((value) => prev.categoryIds.includes(value));
 
       return {
         ...prev,
-        categoryCodes: isAllSelected ? [] : allCategoryValues,
+        categoryIds: isAllSelected ? [] : allCategoryValues,
       };
     });
-  }, []);
+  }, [categoryOptions]);
 
   const changeVisibility = React.useCallback((value: string) => {
     setIsStatusDropdownOpen(false);
@@ -422,7 +463,7 @@ export default function TalksTableClient() {
     setError(null);
 
     try {
-      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/visibility", requestPayload);
+      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/status", requestPayload);
 
       if (!isApiSuccess(response)) {
         setError(response.error.message || "토크 노출여부 변경에 실패했습니다.");
@@ -457,6 +498,35 @@ export default function TalksTableClient() {
     }
   }, [fetchTalks, pendingVisibilityChange]);
 
+  const handleDownloadExcel = React.useCallback(async () => {
+    const startDate = appliedFilters.startDate;
+    const endDate = appliedFilters.endDate;
+
+    if (!startDate || !endDate) {
+      setError("엑셀 다운로드는 작성일 시작일과 종료일을 선택해야 합니다.");
+      return;
+    }
+
+    if (!isTalkExcelDateRangeAllowed(startDate, endDate)) {
+      setError("엑셀 다운로드 기간은 최대 1개월까지만 가능합니다.");
+      return;
+    }
+
+    setExcelDownloading(true);
+    setError(null);
+
+    try {
+      await downloadFile(
+        buildTalksExcelDownloadPath(query),
+        `talks_${startDate}_${endDate}.xls`,
+      );
+    } catch {
+      setError("토크 엑셀 다운로드 중 오류가 발생했습니다.");
+    } finally {
+      setExcelDownloading(false);
+    }
+  }, [appliedFilters.endDate, appliedFilters.startDate, query]);
+
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityCount = pendingVisibilityChange?.ids.length ?? 0;
   const pendingVisibilityUpdating = bulkUpdating
@@ -472,6 +542,7 @@ export default function TalksTableClient() {
         onSearchChange={setSearchInput}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
+        categoryOptions={categoryOptions}
         isStatusDropdownOpen={isStatusDropdownOpen}
         isCategoryDropdownOpen={isCategoryDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
@@ -517,11 +588,13 @@ export default function TalksTableClient() {
         selectedIds={selectedIds}
         visibilityUpdatingIds={rowVisibilityUpdatingIds}
         bulkUpdating={bulkUpdating}
+        excelDownloading={excelDownloading}
         onToggleSort={handleToggleSort}
         onToggleRow={handleToggleRow}
         onToggleAllRows={handleToggleAllRows}
         onBulkVisibilityChange={requestBulkVisibilityChange}
         onRowVisibilityChange={handleRowVisibilityChange}
+        onDownloadExcel={() => void handleDownloadExcel()}
         onRefresh={() => void fetchTalks(true)}
         onGoPage={setPage}
       />

@@ -1,4 +1,4 @@
-import type { ExistingMediaItem, CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
+import type { CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 export type HospitalFormValues = {
   name: string;
@@ -164,13 +164,13 @@ export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
     key: "surgery",
     label: "성형",
-    domain: "HOSPITAL_SURGERY",
+    domain: "HOSPITAL_REVIEW_SURGERY",
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 눈, 코)",
   },
   {
     key: "treatment",
     label: "쁘띠/피부",
-    domain: "HOSPITAL_TREATMENT",
+    domain: "HOSPITAL_REVIEW_TREATMENT",
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 인모드)",
   },
 ];

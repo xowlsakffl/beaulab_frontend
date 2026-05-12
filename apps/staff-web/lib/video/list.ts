@@ -8,15 +8,28 @@ type MediaAsset = {
   url?: string | null;
 };
 
+type VideoHospitalRef = {
+  id: number;
+  name?: string | null;
+  business_number?: string | null;
+};
+
+type VideoDoctorRef = {
+  id: number;
+  name?: string | null;
+  position?: string | null;
+};
+
 export type VideoApiItem = {
   id: number;
-  hospital_id: number;
+  hospital?: VideoHospitalRef | null;
+  hospital_id?: number | null;
   hospital_name?: string | null;
+  doctor?: VideoDoctorRef | null;
   doctor_id?: number | null;
   doctor_name?: string | null;
   title: string;
   thumbnail_file?: MediaAsset | null;
-  activity_scope?: string | null;
   distribution_channel?: string | null;
   view_count?: number | null;
   like_count?: number | null;
@@ -281,11 +294,14 @@ function resolveMediaUrl(media?: MediaAsset | null): string | null {
 }
 
 export function normalizeVideo(item: VideoApiItem): VideoRow {
+  const hospitalName = item.hospital_name ?? item.hospital?.name ?? "";
+  const doctorName = item.doctor_name ?? item.doctor?.name ?? "";
+
   return {
     id: item.id,
     requestedAt: formatLocalDateTime(item.created_at),
-    hospitalName: item.hospital_name?.trim() || "-",
-    doctorName: item.doctor_name?.trim() || "-",
+    hospitalName: hospitalName.trim() || "-",
+    doctorName: doctorName.trim() || "-",
     title: item.title?.trim() || "-",
     thumbnailUrl: resolveMediaUrl(item.thumbnail_file),
     distributionChannelLabel: labelVideoDistributionChannel(item.distribution_channel),

@@ -174,7 +174,7 @@ function buildTalkColumns({
       header: "토크유형",
       render: (row) => (
         <div className="whitespace-normal break-words text-sm leading-6 text-gray-700 dark:text-gray-200">
-          {row.categoryNames.length > 0 ? row.categoryNames.join(", ") : "-"}
+          {row.categoryName || "-"}
         </div>
       ),
     },
@@ -267,11 +267,13 @@ type TalksDataTableProps = {
   selectedIds: Set<number>;
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
+  excelDownloading: boolean;
   onToggleSort: (field: SortField) => void;
   onToggleRow: (id: number, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (status: string) => void;
   onRowVisibilityChange: (id: number, status: string) => void;
+  onDownloadExcel: () => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
@@ -286,11 +288,13 @@ export function TalksDataTable({
   selectedIds,
   visibilityUpdatingIds,
   bulkUpdating,
+  excelDownloading,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
   onBulkVisibilityChange,
   onRowVisibilityChange,
+  onDownloadExcel,
   onRefresh,
   onGoPage,
 }: TalksDataTableProps) {
@@ -373,10 +377,11 @@ export function TalksDataTable({
           type="button"
           variant="brand"
           size="sm"
-          onClick={() => undefined}
+          disabled={excelDownloading || loading || refreshing}
+          onClick={onDownloadExcel}
           className="h-11 shrink-0 px-5"
         >
-          엑셀 다운로드
+          {excelDownloading ? "다운로드 중..." : "엑셀 다운로드"}
         </Button>
       )}
       emptyText="조건에 맞는 토크가 없습니다."

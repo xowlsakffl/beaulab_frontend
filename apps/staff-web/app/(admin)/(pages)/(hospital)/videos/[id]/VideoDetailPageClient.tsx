@@ -169,8 +169,8 @@ export default function VideoDetailPageClient() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <DetailField label="병의원명" value={detail.hospital_name} />
-              <DetailField label="의료진명" value={detail.doctor_name} />
+              <DetailField label="병의원명" value={detail.hospital?.name ?? detail.hospital_name} />
+              <DetailField label="의료진명" value={detail.doctor?.name ?? detail.doctor_name} />
               <DetailField label="제목" value={detail.title} className="md:col-span-2" />
               <DetailField label="설명" value={detail.description} className="md:col-span-2" />
               <DetailField label="조회수" value={formatCount(detail.view_count)} />

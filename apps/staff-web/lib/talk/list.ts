@@ -10,7 +10,10 @@ export type TalkAuthor = {
 
 export type TalkCategory = {
   id?: number | null;
+  code?: string | null;
+  domain?: string | null;
   name?: string | null;
+  full_path?: string | null;
   is_primary?: boolean | null;
 };
 
@@ -21,6 +24,9 @@ export type TalkApiItem = {
   status?: string | null;
   post_status?: string | null;
   postStatus?: string | null;
+  category?: TalkCategory | null;
+  category_name?: string | null;
+  categoryName?: string | null;
   view_count?: number | null;
   viewCount?: number | null;
   comment_count?: number | null;
@@ -34,12 +40,11 @@ export type TalkApiItem = {
   updated_at?: string | null;
   updatedAt?: string | null;
   author?: TalkAuthor | null;
-  categories?: TalkCategory[] | null;
 };
 
 export type TalkRow = {
   id: number;
-  categoryNames: string[];
+  categoryName: string;
   title: string;
   contentPreview: string | null;
   status: string;
@@ -76,7 +81,7 @@ export type SortState = {
 
 export type Filters = {
   postStatuses: string[];
-  categoryCodes: string[];
+  categoryIds: string[];
   visibilityStatus: string;
   metricField: TalkMetricField;
   metricMin: string;
@@ -92,7 +97,7 @@ export type TalksQuery = {
   q?: string;
   status?: string;
   post_status?: string;
-  category_codes?: string;
+  category_ids?: string;
   metric?: TalkMetricField;
   metric_min?: string;
   metric_max?: string;
@@ -114,13 +119,6 @@ export const TALK_POST_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "POST_USER_DELETE", label: "본인삭제" },
 ];
 
-export const TALK_CATEGORY_OPTIONS: CheckboxFilterOption[] = [
-  { value: "TALK_PLASTIC_PETIT", label: "성형/쁘띠" },
-  { value: "TALK_BEAUTY", label: "뷰티" },
-  { value: "TALK_DAILY", label: "일상" },
-  { value: "TALK_SECRET", label: "시크릿" },
-];
-
 export const TALK_VISIBILITY_OPTIONS = [
   { value: "", label: "전체" },
   { value: "ACTIVE", label: "노출" },
@@ -136,7 +134,7 @@ export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = 
 
 export const DEFAULT_FILTERS: Filters = {
   postStatuses: [],
-  categoryCodes: [],
+  categoryIds: [],
   visibilityStatus: "",
   metricField: "like_count",
   metricMin: "",
@@ -175,7 +173,6 @@ const TALK_SORT_FIELDS = new Set<SortField>([
 ]);
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
 const TALK_POST_STATUS_VALUE_SET = new Set(TALK_POST_STATUS_OPTIONS.map((option) => option.value));
-const TALK_CATEGORY_VALUE_SET = new Set(TALK_CATEGORY_OPTIONS.map((option) => option.value));
 const TALK_VISIBILITY_VALUE_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
 const TALK_METRIC_VALUE_SET = new Set<TalkMetricField>(TALK_METRIC_OPTIONS.map((option) => option.value));
 const TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET = new Set([
@@ -274,6 +271,25 @@ export function parseDateParam(value: string) {
   return parsedDate;
 }
 
+export function addMonthNoOverflow(date: Date) {
+  const targetMonthIndex = date.getMonth() + 1;
+  const targetYear = date.getFullYear() + Math.floor(targetMonthIndex / 12);
+  const targetMonth = targetMonthIndex % 12;
+  const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+  return new Date(targetYear, targetMonth, Math.min(date.getDate(), lastDayOfTargetMonth));
+}
+
+export function isTalkExcelDateRangeAllowed(startDate: string, endDate: string) {
+  const start = parseDateParam(startDate);
+  const end = parseDateParam(endDate);
+
+  if (!start || !end) return false;
+  if (end < start) return false;
+
+  return end <= addMonthNoOverflow(start);
+}
+
 export function buildFilterDateState(startDate: string, endDate: string) {
   const from = startDate ? parseDateParam(startDate) : undefined;
   const to = endDate ? parseDateParam(endDate) : undefined;
@@ -312,13 +328,28 @@ export function buildTalkContentPreview(content: string | null | undefined, maxL
   return `${normalized.slice(0, maxLength).trimEnd()}...`;
 }
 
+export function formatTalkCategoryName(category?: TalkCategory | null) {
+  const fullPath = category?.full_path?.trim();
+  if (fullPath) return fullPath;
+
+  const name = category?.name?.trim();
+  if (name) return name;
+
+  return "";
+}
+
+function normalizePositiveIdListParam(value: string | null) {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => /^[1-9]\d*$/.test(item));
+}
+
 export function normalizeTalk(item: TalkApiItem): TalkRow {
-  const sortedCategories = [...(item.categories ?? [])].sort(
-    (left, right) => Number(Boolean(right?.is_primary)) - Number(Boolean(left?.is_primary)),
-  );
-  const categoryNames = sortedCategories
-    .map((category) => category?.name?.trim() ?? "")
-    .filter(Boolean);
+  const categoryName = formatTalkCategoryName(item.category)
+    || item.categoryName?.trim()
+    || item.category_name?.trim()
+    || "-";
 
   const createdAtRaw = item.createdAt ?? item.created_at ?? "";
   const updatedAtRaw = item.updatedAt ?? item.updated_at ?? "";
@@ -327,7 +358,7 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
 
   return {
     id: item.id,
-    categoryNames,
+    categoryName,
     title: item.title?.trim() || "-",
     contentPreview: buildTalkContentPreview(item.content),
     status: item.status?.trim() || "ACTIVE",
@@ -359,10 +390,9 @@ export function nextSortState(prev: SortState, field: SortField): SortState {
 }
 
 export function parseTalksTableState(searchParams: URLSearchParams) {
-  const categoryCodes = (searchParams.get("category_codes") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter((value) => TALK_CATEGORY_VALUE_SET.has(value));
+  const categoryIds = normalizePositiveIdListParam(
+    searchParams.get("category_ids") ?? searchParams.get("category_id"),
+  );
   const postStatuses = (searchParams.get("post_status") ?? "")
     .split(",")
     .map((value) => value.trim())
@@ -390,7 +420,7 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       postStatuses,
-      categoryCodes,
+      categoryIds,
       visibilityStatus: TALK_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       metricField,
       metricMin: normalizeMetricBound(searchParams.get("metric_min")),
@@ -439,11 +469,11 @@ export function buildTalksQuery({
   if (normalizedPostStatuses.length > 0) {
     query.post_status = Array.from(new Set(normalizedPostStatuses)).join(",");
   }
-  const normalizedCategoryCodes = appliedFilters.categoryCodes
+  const normalizedCategoryIds = appliedFilters.categoryIds
     .map((value) => value.trim())
-    .filter((value) => TALK_CATEGORY_VALUE_SET.has(value));
-  if (normalizedCategoryCodes.length > 0) {
-    query.category_codes = Array.from(new Set(normalizedCategoryCodes)).join(",");
+    .filter((value) => /^[1-9]\d*$/.test(value));
+  if (normalizedCategoryIds.length > 0) {
+    query.category_ids = Array.from(new Set(normalizedCategoryIds)).join(",");
   }
 
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
@@ -461,12 +491,22 @@ export function buildTalksQuery({
 }
 
 export function buildTalksQueryString(query: TalksQuery) {
+  return buildTalksQuerySearchParams(query, { includePage: true }).toString();
+}
+
+export function buildTalksExcelDownloadPath(query: TalksQuery) {
+  const queryString = buildTalksQuerySearchParams(query, { includePage: false }).toString();
+
+  return queryString ? `/talks/excel-download?${queryString}` : "/talks/excel-download";
+}
+
+function buildTalksQuerySearchParams(query: TalksQuery, { includePage }: { includePage: boolean }) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
   if (query.post_status) params.set("post_status", query.post_status);
-  if (query.category_codes) params.set("category_codes", query.category_codes);
+  if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric) params.set("metric", query.metric);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);
@@ -474,7 +514,7 @@ export function buildTalksQueryString(query: TalksQuery) {
   if (query.end_date) params.set("end_date", query.end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.page !== 1) params.set("page", String(query.page));
+  if (includePage && query.page !== 1) params.set("page", String(query.page));
 
-  return params.toString();
+  return params;
 }

@@ -6,10 +6,18 @@ export type NoticeApiItem = {
   channel?: string | null;
   title?: string | null;
   status?: string | null;
+  creator?: NoticeStaffUser | null;
+  updater?: NoticeStaffUser | null;
   creator_name?: string | null;
   view_count?: number | null;
   created_at?: string | null;
   updated_at?: string | null;
+};
+
+export type NoticeStaffUser = {
+  id: number;
+  name?: string | null;
+  email?: string | null;
 };
 
 export type NoticeRow = {
@@ -208,13 +216,14 @@ export function labelNoticeStatus(status?: string | null) {
 export function normalizeNotice(item: NoticeApiItem): NoticeRow {
   const createdDate = item.created_at ? new Date(item.created_at) : null;
   const updatedDate = item.updated_at ? new Date(item.updated_at) : null;
+  const creatorName = item.creator?.name ?? item.creator_name ?? "";
 
   return {
     id: item.id,
     channel: labelNoticeChannel(item.channel),
     title: item.title?.trim() || "-",
     status: item.status?.trim() || "",
-    creatorName: item.creator_name?.trim() || "-",
+    creatorName: creatorName.trim() || "-",
     viewCount: Number(item.view_count ?? 0),
     createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
     updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
