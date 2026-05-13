@@ -11,11 +11,14 @@ export const metadata: Metadata = {
 export default function DoctorsPage() {
   return (
     <div className="space-y-6">
-      <PageBreadcrumb
-        pageTitle="의료진"
-        homeLabel="관리자"
-        items={[{ label: "병의원 관리" }]}
-      />
+      <div className="xl:hidden">
+        <PageBreadcrumb
+          pageTitle="의료진"
+          homeLabel="관리자"
+          items={[{ label: "병의원 관리" }]}
+        />
+      </div>
+
       <DoctorsTableClient />
     </div>
   );

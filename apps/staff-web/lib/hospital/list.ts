@@ -1,7 +1,7 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-import { resolveMediaUrl, type MediaAsset } from "./form";
+import { resolveMediaUrl, type MediaAsset } from "./detail";
 
 export type HospitalApiItem = {
   id: number;

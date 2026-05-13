@@ -79,8 +79,8 @@ function buildVideoColumns({
     },
     {
       key: "title",
-      headerClassName: `${headerBaseClass} lg:w-[220px]`,
-      cellClassName: `${cellBaseClass} lg:w-[220px]`,
+      headerClassName: `${headerBaseClass} lg:w-[290px]`,
+      cellClassName: `${cellBaseClass} lg:w-[290px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("title")} className="inline-flex items-center gap-1 px-0 text-xs">
           제목 <span className="text-xs text-gray-400">{renderSortMark("title", sortState)}</span>
@@ -93,10 +93,10 @@ function buildVideoColumns({
             <img
               src={row.thumbnailUrl}
               alt={row.title}
-              className="h-10 w-10 shrink-0 rounded-md border border-gray-200 object-cover dark:border-white/[0.08]"
+              className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover dark:border-white/[0.08]"
             />
           ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-dashed border-gray-300 text-[10px] text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
+            <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
               없음
             </div>
           )}
@@ -243,7 +243,7 @@ export function VideosDataTable({
     <DataTable
       title="동영상 목록"
       description="병의원 파트너가 신청한 동영상의 검수 상태와 배포 정보를 확인할 수 있습니다."
-      tableClassName="min-w-[1280px] w-full lg:min-w-0 lg:table-fixed"
+      tableClassName="min-w-[1350px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

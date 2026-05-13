@@ -18,8 +18,9 @@ import {
     Backdrop,
     SidebarProvider,
     ThemeProvider,
-    useSidebar,
 } from "@beaulab/ui-admin";
+import { resolveAdminPageByPath } from "@/lib/common/routing/admin-pages";
+import { PageHeaderExtraProvider } from "@/lib/common/routing/page-header-extra";
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -38,16 +39,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 }
 
 function AdminLayoutInner({ children }: AdminLayoutProps) {
-    const { isExpanded, isHovered, isMobileOpen } = useSidebar();
     const router = useRouter();
     const pathname = usePathname();
     const session = React.useMemo(() => getSession(), []);
-    const permissions = session?.auth?.permissions ?? [];
-    const permissionsSignature = React.useMemo(
-        () => [...permissions].sort().join("|"),
-        [permissions],
-    );
-    const sidebarMenus = React.useMemo(() => buildStaffSidebarMenus(permissions), [permissionsSignature]);
+    const permissions = React.useMemo(() => session?.auth?.permissions ?? [], [session]);
+    const sidebarMenus = React.useMemo(() => buildStaffSidebarMenus(permissions), [permissions]);
     const availableDomains = React.useMemo(
         () =>
             STAFF_SIDEBAR_DOMAIN_OPTIONS.filter(({ key }) => sidebarMenus.domainMenus[key].main.length > 0),
@@ -69,12 +65,20 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     const displayName = profile?.name || profile?.nickname || "뷰랩 관리자";
     const subtitle = profile?.nickname ? `아이디 ${profile.nickname}` : "스태프 관리자";
     const description = profile?.email ?? "권한 기반으로 접근이 제어됩니다.";
+    const headerTitle = resolveHeaderPageTitle(pathname, activeDomain, menuByActor);
+    const [pageHeaderExtra, setPageHeaderExtra] = React.useState<ReactNode | null>(null);
+    const headerTitleNode = React.useMemo(() => {
+        if (!pageHeaderExtra) {
+            return headerTitle;
+        }
 
-    const mainContentMargin = isMobileOpen
-        ? "ml-0"
-        : isExpanded || isHovered
-            ? "xl:ml-[290px]"
-            : "xl:ml-[90px]";
+        return (
+            <span className="inline-flex min-w-0 max-w-full items-center gap-2 align-middle">
+                <span className="truncate">{headerTitle}</span>
+                <span className="shrink-0">{pageHeaderExtra}</span>
+            </span>
+        );
+    }, [headerTitle, pageHeaderExtra]);
 
     const handleSignOut = () => {
         logout();
@@ -103,6 +107,10 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
         }
     }, [activeDomain, availableDomains]);
 
+    React.useEffect(() => {
+        setPageHeaderExtra(null);
+    }, [pathname]);
+
     const sidebarTopContent = availableDomains.length > 1 ? (
         <div className="rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
             <div className="grid grid-cols-2 gap-1">
@@ -129,76 +137,109 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     ) : null;
 
     return (
-        <div className="min-h-dvh bg-gray-50 dark:bg-gray-900 xl:flex">
-            <AppSidebar
-                menu={menuByActor}
-                topContent={sidebarTopContent}
-                sectionLabels={{
-                    main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
-                    others: "공통메뉴",
-                }}
-                brand={{
-                    href: "/",
-                    expandedLogo: (
-                        <div className="flex items-center">
-                            <Image
-                                src="/images/logo/board_logo.png"
-                                alt="뷰랩 관리자"
-                                width={160}
-                                height={36}
-                                className="block h-auto dark:hidden"
-                                priority
-                            />
-                            <Image
-                                src="/images/logo/board_logo_dark.png"
-                                alt="뷰랩 관리자"
-                                width={160}
-                                height={36}
-                                className="hidden h-auto dark:block"
-                                priority
-                            />
-                        </div>
-                    ),
-                    collapsedLogo: (
-                        <Image
-                            src="/images/logo/logo.png"
-                            alt="뷰랩"
-                            width={36}
-                            height={36}
-                            className="h-9 w-9"
-                            priority
-                        />
-                    ),
-                }}
-            />
-            <Backdrop />
-
-            <div className={`min-w-0 flex flex-1 flex-col transition-all duration-300 ease-in-out ${mainContentMargin}`}>
-                <AppHeader
-                    mobileHomeHref="/"
-                    mobileLogo={
-                        <Image
-                            src="/images/logo/logo.png"
-                            alt="뷰랩"
-                            width={36}
-                            height={36}
-                            className="h-9 w-9"
-                            priority
-                        />
-                    }
-                    showSearch={false}
-                    notifications={null}
-                    userMenu={{
-                        name: displayName,
-                        subtitle,
-                        description,
-                        avatarSrc: "/images/user/owner.png",
-                        actionItems: [{ label: "내 프로필", href: "/profile" }],
-                        signOutItem: { label: "로그아웃", onClick: handleSignOut },
+        <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
+            <div className="min-h-dvh bg-gray-50 dark:bg-gray-900 xl:flex">
+                <AppSidebar
+                    menu={menuByActor}
+                    topContent={sidebarTopContent}
+                    sectionLabels={{
+                        main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
+                        others: "공통메뉴",
+                    }}
+                    brand={{
+                        href: "/",
+                        expandedLogo: (
+                            <div className="flex items-center">
+                                <Image
+                                    src="/images/logo/board_logo.png"
+                                    alt="뷰랩 관리자"
+                                    width={160}
+                                    height={36}
+                                    className="block h-auto dark:hidden"
+                                    priority
+                                />
+                                <Image
+                                    src="/images/logo/board_logo_dark.png"
+                                    alt="뷰랩 관리자"
+                                    width={160}
+                                    height={36}
+                                    className="hidden h-auto dark:block"
+                                    priority
+                                />
+                            </div>
+                        ),
                     }}
                 />
-                <main className="mx-auto min-w-0 w-full max-w-screen-2xl flex-1 p-4 md:p-6">{children}</main>
+                <Backdrop />
+
+                <div className="min-w-0 flex flex-1 flex-col xl:ml-[290px]">
+                    <AppHeader
+                        mobileHomeHref="/"
+                        mobileLogo={
+                            <Image
+                                src="/images/logo/logo.png"
+                                alt="뷰랩"
+                                width={36}
+                                height={36}
+                                className="h-9 w-9"
+                                priority
+                            />
+                        }
+                        pageTitle={headerTitleNode}
+                        showSearch={false}
+                        notifications={null}
+                        userMenu={{
+                            name: displayName,
+                            subtitle,
+                            description,
+                            avatarSrc: "/images/user/owner.png",
+                            actionItems: [{ label: "내 프로필", href: "/profile" }],
+                            signOutItem: { label: "로그아웃", onClick: handleSignOut },
+                        }}
+                    />
+                    <main className="mx-auto min-w-0 w-full max-w-screen-2xl flex-1 p-4 md:p-6">{children}</main>
+                </div>
             </div>
-        </div>
+        </PageHeaderExtraProvider>
     );
+}
+
+function resolveHeaderPageTitle(
+    pathname: string,
+    activeDomain: StaffSidebarDomain,
+    menu: ReturnType<typeof mergeStaffSidebarMenu>,
+) {
+    if (pathname === "/") {
+        return activeDomain === "beauty" ? "뷰티 대시보드" : "병의원 대시보드";
+    }
+
+    const menuMatches = [...menu.main, ...(menu.others ?? [])]
+        .flatMap((item) => {
+            if (item.path) {
+                return [{ path: item.path, title: item.name }];
+            }
+
+            return (item.subItems ?? []).map((subItem) => ({
+                path: subItem.path,
+                title: subItem.name,
+            }));
+        })
+        .filter(({ path }) => pathname === path || pathname.startsWith(`${path}/`))
+        .sort((left, right) => right.path.length - left.path.length);
+
+    if (menuMatches[0]) {
+        return menuMatches[0].title;
+    }
+
+    const segments = pathname.split("/").filter(Boolean);
+
+    for (let length = segments.length; length > 0; length -= 1) {
+        const definition = resolveAdminPageByPath(`/${segments.slice(0, length).join("/")}`);
+
+        if (definition) {
+            return definition.title;
+        }
+    }
+
+    return "뷰랩 관리자";
 }

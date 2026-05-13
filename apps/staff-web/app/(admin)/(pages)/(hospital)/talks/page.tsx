@@ -11,11 +11,14 @@ export const metadata: Metadata = {
 export default function TalksPage() {
   return (
     <div className="min-w-0 space-y-6">
-      <PageBreadcrumb
-        pageTitle="토크"
-        homeLabel="관리자"
-        items={[{ label: "게시물 관리" }]}
-      />
+      <div className="xl:hidden">
+        <PageBreadcrumb
+          pageTitle="토크"
+          homeLabel="관리자"
+          items={[{ label: "게시물 관리" }]}
+        />
+      </div>
+
       <TalksTableClient />
     </div>
   );

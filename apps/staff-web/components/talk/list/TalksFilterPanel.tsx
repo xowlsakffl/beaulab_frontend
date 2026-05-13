@@ -21,6 +21,7 @@ import {
 import type { CheckboxFilterOption } from "@beaulab/ui-admin";
 
 type TalksFilterPanelProps = {
+  board: "talks" | "comments";
   searchInput: string;
   draftFilters: Filters;
   draftDateRange?: DateRange;
@@ -50,6 +51,7 @@ type TalksFilterPanelProps = {
 };
 
 export function TalksFilterPanel({
+  board,
   searchInput,
   draftFilters,
   draftDateRange,
@@ -77,6 +79,7 @@ export function TalksFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: TalksFilterPanelProps) {
+  const isCommentBoard = board === "comments";
   const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -138,17 +141,23 @@ export function TalksFilterPanel({
           </div>
         </div>
         <div className={`${filterRowClass} xl:col-span-2 min-[1800px]:col-span-1`}>
-          <span className={inlineLabelClass}>지표</span>
-          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
-            <div className="min-w-0 max-sm:col-span-3">
-              <Select
-                value={draftFilters.metricField}
-                options={TALK_METRIC_OPTIONS}
-                showPlaceholderOption={false}
-                onChange={onMetricFieldChange}
-                className="h-11 px-3"
-              />
-            </div>
+          <span className={inlineLabelClass}>{isCommentBoard ? "좋아요 수" : "지표"}</span>
+          <div
+            className={isCommentBoard
+              ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"
+              : "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)]"}
+          >
+            {!isCommentBoard && (
+              <div className="min-w-0 max-sm:col-span-3">
+                <Select
+                  value={draftFilters.metricField}
+                  options={TALK_METRIC_OPTIONS}
+                  showPlaceholderOption={false}
+                  onChange={onMetricFieldChange}
+                  className="h-11 px-3"
+                />
+              </div>
+            )}
             <div className="min-w-0">
               <InputField
                 type="number"
@@ -175,9 +184,9 @@ export function TalksFilterPanel({
           </div>
         </div>
         <div className={filterRowClass}>
-          <span className={inlineLabelClass}>게시상태</span>
+          <span className={inlineLabelClass}>{isCommentBoard ? "토크상태" : "게시상태"}</span>
           <CheckboxFilterDropdown
-            label="게시상태"
+            label={isCommentBoard ? "토크상태" : "게시상태"}
             hideLabel
             containerRef={statusDropdownRef}
             selectedValues={draftFilters.postStatuses}
@@ -196,7 +205,7 @@ export function TalksFilterPanel({
                 value={searchInput}
                 onChange={(event) => onSearchChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
-                placeholder="제목, 내용 검색"
+                placeholder={isCommentBoard ? "댓글 내용, 토크 제목, 닉네임 검색" : "제목, 내용, 닉네임 검색"}
                 className="bg-white dark:bg-gray-800"
               />
             </div>

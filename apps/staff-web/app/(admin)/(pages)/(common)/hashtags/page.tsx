@@ -11,11 +11,14 @@ export const metadata: Metadata = {
 export default function HashtagsPage() {
   return (
     <div className="space-y-6">
-      <PageBreadcrumb
-        pageTitle="해시태그"
-        homeLabel="관리자"
-        items={[{ label: "카테고리 / 해시태그 관리" }]}
-      />
+      <div className="xl:hidden">
+        <PageBreadcrumb
+          pageTitle="해시태그"
+          homeLabel="관리자"
+          items={[{ label: "카테고리 / 해시태그 관리" }]}
+        />
+      </div>
+
       <HashtagsPageClient />
     </div>
   );

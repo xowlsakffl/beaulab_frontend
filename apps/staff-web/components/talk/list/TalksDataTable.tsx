@@ -15,6 +15,7 @@ import {
 
 import {
   labelTalkPostStatus,
+  talkPostStatusBadgeColor,
   type SortField,
   type SortState,
   type TalkRow,
@@ -67,24 +68,16 @@ function SelectionCheckbox({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <FormCheckbox
-      ariaLabel={label}
-      checked={checked}
-      disabled={disabled}
-      onChange={onChange}
-      className="size-4"
-    />
+    <span onClick={(event) => event.stopPropagation()}>
+      <FormCheckbox
+        ariaLabel={label}
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        className="size-4"
+      />
+    </span>
   );
-}
-
-type TalkStatusBadgeColor = "success" | "warning" | "error" | "dark" | "light";
-
-function talkPostStatusBadgeColor(status: string): TalkStatusBadgeColor {
-  if (status === "POST_NORMAL") return "success";
-  if (status === "POST_ADMIN_STOP") return "warning";
-  if (status === "POST_AUTO_BLIND") return "error";
-
-  return "light";
 }
 
 function buildTalkColumns({
@@ -157,17 +150,6 @@ function buildTalkColumns({
       render: (row) => row.createdAt,
     },
     {
-      key: "nickname",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${cellBaseClass} lg:w-[110px]`,
-      header: "닉네임",
-      render: (row) => (
-        <span className="block whitespace-normal break-words text-sm text-gray-700 dark:text-gray-200">
-          {row.nickname}
-        </span>
-      ),
-    },
-    {
       key: "category",
       headerClassName: `${headerBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px]`,
       cellClassName: `${cellBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px]`,
@@ -179,12 +161,26 @@ function buildTalkColumns({
       ),
     },
     {
+      key: "nickname",
+      headerClassName: `${headerBaseClass} lg:w-[110px]`,
+      cellClassName: `${cellBaseClass} lg:w-[110px]`,
+      header: "닉네임",
+      render: (row) => (
+        <span className="block whitespace-normal break-words text-sm text-gray-700 dark:text-gray-200">
+          {row.nickname}
+        </span>
+      ),
+    },
+    {
       key: "title",
       headerClassName: `${headerBaseClass} lg:w-[180px]`,
       cellClassName: `${cellBaseClass} lg:w-[180px]`,
       header: <SortHeader field="title" label="제목" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <span className="block whitespace-normal break-words font-medium text-gray-800 dark:text-white/90" style={twoLineClampStyle}>
+        <span
+          className="block whitespace-normal break-words font-medium text-gray-800 dark:text-white/90"
+          style={twoLineClampStyle}
+        >
           {row.title}
         </span>
       ),
@@ -206,13 +202,15 @@ function buildTalkColumns({
       cellClassName: `${nowrapCellClass} lg:w-[82px]`,
       header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <Switch
-          ariaLabel={`토크 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
-          checked={row.isVisible}
-          color="gray"
-          disabled={visibilityControlsDisabled || row.visibilityChangeLocked || visibilityUpdatingIds.has(row.id)}
-          onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
-        />
+        <span onClick={(event) => event.stopPropagation()}>
+          <Switch
+            ariaLabel={`토크 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
+            checked={row.isVisible}
+            color="gray"
+            disabled={visibilityControlsDisabled || row.visibilityChangeLocked || visibilityUpdatingIds.has(row.id)}
+            onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
+          />
+        </span>
       ),
     },
     {
@@ -273,6 +271,7 @@ type TalksDataTableProps = {
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (status: string) => void;
   onRowVisibilityChange: (id: number, status: string) => void;
+  onOpenDetail: (row: TalkRow) => void;
   onDownloadExcel: () => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
@@ -294,6 +293,7 @@ export function TalksDataTable({
   onToggleAllRows,
   onBulkVisibilityChange,
   onRowVisibilityChange,
+  onOpenDetail,
   onDownloadExcel,
   onRefresh,
   onGoPage,
@@ -347,6 +347,7 @@ export function TalksDataTable({
       meta={meta}
       onGoPage={onGoPage}
       onRefresh={onRefresh}
+      onRowClick={onOpenDetail}
       refreshPlacement="left"
       rightActions={(
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
@@ -356,7 +357,7 @@ export function TalksDataTable({
             size="sm"
             disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
             onClick={() => onBulkVisibilityChange("ACTIVE")}
-            className="h-9 border-brand-500 px-3 text-xs text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+            className="h-9 min-w-16"
           >
             노출
           </Button>
@@ -366,7 +367,7 @@ export function TalksDataTable({
             size="sm"
             disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
             onClick={() => onBulkVisibilityChange("INACTIVE")}
-            className="h-9 border-brand-500 px-3 text-xs text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+            className="h-9 min-w-16"
           >
             미노출
           </Button>

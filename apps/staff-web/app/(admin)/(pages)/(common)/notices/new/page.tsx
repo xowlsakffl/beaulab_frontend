@@ -11,14 +11,16 @@ export const metadata: Metadata = {
 export default function NoticesCreatePage() {
   return (
     <div className="space-y-6">
-      <PageBreadcrumb
-        pageTitle="공지사항 등록"
-        homeLabel="관리자"
-        items={[
-          { label: "공지사항 관리" },
-          { label: "공지사항", href: "/notices" },
-        ]}
-      />
+      <div className="xl:hidden">
+        <PageBreadcrumb
+          pageTitle="공지사항 등록"
+          homeLabel="관리자"
+          items={[
+            { label: "공지사항 관리" },
+            { label: "공지사항", href: "/notices" },
+          ]}
+        />
+      </div>
 
       <NoticesCreateFormClient />
     </div>

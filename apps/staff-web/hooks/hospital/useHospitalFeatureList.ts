@@ -3,7 +3,7 @@
 import React from "react";
 
 import { api } from "@/lib/common/api";
-import type { HospitalFeatureItem } from "@/lib/hospital/form";
+import type { HospitalFeatureItem } from "@/lib/hospital/detail";
 import { isApiSuccess } from "@beaulab/types";
 
 export function useHospitalFeatureList() {

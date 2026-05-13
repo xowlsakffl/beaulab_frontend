@@ -14,9 +14,11 @@ import {
   formatBytes,
   getVideoMediaFilename,
   resolveVideoMediaUrl,
+  type VideoMediaAsset,
+} from "@/lib/video/detail";
+import {
   VIDEO_THUMBNAIL_COLLECTIONS,
   type VideoFormErrors,
-  type VideoMediaAsset,
 } from "@/lib/video/form";
 import { downloadFile } from "@/lib/common/api";
 

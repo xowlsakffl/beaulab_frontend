@@ -18,7 +18,7 @@ import {
   labelNoticeStatus,
   resolveNoticeAttachmentUrl,
   type NoticeDetailResponse,
-} from "@/lib/notice/form";
+} from "@/lib/notice/detail";
 
 const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
 const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";

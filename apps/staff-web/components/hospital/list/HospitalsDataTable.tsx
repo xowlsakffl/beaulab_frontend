@@ -52,28 +52,36 @@ function buildHospitalColumns({
       render: (row) => row.id,
     },
     {
+      key: "image",
+      headerClassName: `${headerBaseClass} lg:w-[122px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[122px]`,
+      header: "이미지",
+      render: (row) => row.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- logo domains come from runtime API/storage configuration
+        <img
+          src={row.logoUrl}
+          alt=""
+          className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover dark:border-white/[0.08]"
+        />
+      ) : (
+        <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
+          없음
+        </div>
+      ),
+    },
+    {
       key: "name",
-      headerClassName: `${headerBaseClass} lg:w-[150px]`,
-      cellClassName: `${cellBaseClass} lg:w-[150px]`,
+      headerClassName: `${headerBaseClass} lg:w-[180px]`,
+      cellClassName: `${cellBaseClass} lg:w-[180px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("name")} className="inline-flex items-center gap-1 px-0 text-xs">
           병의원명 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
         </Button>
       ),
       render: (row) => (
-        <div className="flex items-start gap-2">
-          {row.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- logo domains come from runtime API/storage configuration
-            <img
-              src={row.logoUrl}
-              alt=""
-              className="h-10 w-10 shrink-0 rounded-md border border-gray-200 object-cover dark:border-white/[0.08]"
-            />
-          ) : null}
-          <span className="block min-w-0 truncate font-medium text-gray-800 dark:text-white/90" title={row.name}>
-            {row.name}
-          </span>
-        </div>
+        <span className="block line-clamp-2 break-words font-medium text-gray-800 dark:text-white/90" title={row.name}>
+          {row.name}
+        </span>
       ),
     },
     {
@@ -185,7 +193,7 @@ export function HospitalsDataTable({
     <DataTable
       title="병의원 목록"
       description="검색어와 필터를 설정한 뒤 검색을 눌러 적용하세요."
-      tableClassName="min-w-[860px] w-full lg:min-w-0 lg:table-fixed"
+      tableClassName="min-w-[1010px] w-full lg:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

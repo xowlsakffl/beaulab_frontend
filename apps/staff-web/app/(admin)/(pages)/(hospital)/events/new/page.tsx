@@ -10,14 +10,17 @@ export const metadata: Metadata = {
 export default function HospitalEventsCreatePage() {
   return (
     <div className="space-y-6">
-      <PageBreadcrumb
-        pageTitle="이벤트 등록"
-        homeLabel="관리자"
-        items={[
-          { label: "광고 관리" },
-          { label: "이벤트", href: "/ads/events" },
-        ]}
-      />
+      <div className="xl:hidden">
+        <PageBreadcrumb
+          pageTitle="이벤트 등록"
+          homeLabel="관리자"
+          items={[
+            { label: "광고 관리" },
+            { label: "이벤트", href: "/ads/events" },
+          ]}
+        />
+      </div>
+
       <HospitalEventsCreateFormClient />
     </div>
   );

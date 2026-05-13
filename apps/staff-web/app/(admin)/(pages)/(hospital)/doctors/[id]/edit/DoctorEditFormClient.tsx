@@ -9,6 +9,7 @@ import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoa
 import { useDoctorFieldFocus } from "@/hooks/doctor/useDoctorFieldFocus";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
+import type { DoctorCategoryItem, DoctorDetailResponse } from "@/lib/doctor/detail";
 import {
   buildDoctorExistingFileItem,
   buildDoctorExistingFileItems,
@@ -17,8 +18,6 @@ import {
   mapDoctorDetailToForm,
   sanitizeDoctorList,
   validateUpdateDoctorForm,
-  type DoctorCategoryItem,
-  type DoctorDetailResponse,
   type DoctorFieldName,
   type DoctorFormErrors,
   type DoctorFormValues,

@@ -91,7 +91,7 @@ export type Filters = {
   endDate: string;
 };
 
-export type TalkMetricField = "like_count" | "save_count" | "comment_count" | "view_count";
+export type TalkMetricField = "" | "like_count" | "save_count" | "comment_count" | "view_count";
 
 export type TalksQuery = {
   q?: string;
@@ -114,10 +114,12 @@ export const TALKS_PER_PAGE = 10;
 
 export const TALK_POST_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "POST_NORMAL", label: "정상" },
-  { value: "POST_AUTO_BLIND", label: "시스템차단" },
-  { value: "POST_ADMIN_STOP", label: "게시중단" },
+  { value: "POST_AUTO_BLIND", label: "자동차단" },
+  { value: "POST_ADMIN_STOP", label: "노출중지" },
   { value: "POST_USER_DELETE", label: "본인삭제" },
 ];
+
+export type TalkPostStatusBadgeColor = "success" | "warning" | "error" | "pink" | "light";
 
 export const TALK_VISIBILITY_OPTIONS = [
   { value: "", label: "전체" },
@@ -126,6 +128,7 @@ export const TALK_VISIBILITY_OPTIONS = [
 ];
 
 export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = [
+  { value: "", label: "선택" },
   { value: "like_count", label: "좋아요수" },
   { value: "save_count", label: "저장횟수" },
   { value: "comment_count", label: "댓글수" },
@@ -136,7 +139,7 @@ export const DEFAULT_FILTERS: Filters = {
   postStatuses: [],
   categoryIds: [],
   visibilityStatus: "",
-  metricField: "like_count",
+  metricField: "",
   metricMin: "",
   metricMax: "",
   dateRange: "",
@@ -174,7 +177,7 @@ const TALK_SORT_FIELDS = new Set<SortField>([
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
 const TALK_POST_STATUS_VALUE_SET = new Set(TALK_POST_STATUS_OPTIONS.map((option) => option.value));
 const TALK_VISIBILITY_VALUE_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
-const TALK_METRIC_VALUE_SET = new Set<TalkMetricField>(TALK_METRIC_OPTIONS.map((option) => option.value));
+const TALK_METRIC_VALUE_SET = new Set<TalkMetricField>(["like_count", "save_count", "comment_count", "view_count"]);
 const TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET = new Set([
   "POST_AUTO_BLIND",
   "POST_ADMIN_STOP",
@@ -183,10 +186,19 @@ const TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET = new Set([
 
 export function labelTalkPostStatus(status: string) {
   if (status === "POST_NORMAL") return "정상";
-  if (status === "POST_AUTO_BLIND") return "시스템차단";
-  if (status === "POST_ADMIN_STOP") return "게시중단";
+  if (status === "POST_AUTO_BLIND") return "자동차단";
+  if (status === "POST_ADMIN_STOP") return "노출중지";
   if (status === "POST_USER_DELETE") return "본인삭제";
   return status;
+}
+
+export function talkPostStatusBadgeColor(status?: string | null): TalkPostStatusBadgeColor {
+  if (status === "POST_NORMAL") return "success";
+  if (status === "POST_ADMIN_STOP") return "warning";
+  if (status === "POST_AUTO_BLIND") return "error";
+  if (status === "POST_USER_DELETE") return "pink";
+
+  return "light";
 }
 
 export function isTalkVisibilityChangeLocked(postStatus: string | null | undefined) {

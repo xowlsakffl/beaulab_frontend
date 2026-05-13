@@ -11,14 +11,13 @@ import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempIma
 import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
+import type { NoticeAttachment, NoticeDetailResponse } from "@/lib/notice/detail";
 import {
   appendNoticeFormData,
   extractNoticeFieldErrors,
   INITIAL_NOTICE_FORM,
   mapNoticeDetailToForm,
   validateNoticeForm,
-  type NoticeAttachment,
-  type NoticeDetailResponse,
   type NoticeFieldName,
   type NoticeFormErrors,
   type NoticeFormValues,

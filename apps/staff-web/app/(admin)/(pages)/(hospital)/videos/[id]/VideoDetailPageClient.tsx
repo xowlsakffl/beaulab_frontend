@@ -28,7 +28,7 @@ import {
   resolveVideoMediaUrl,
   type VideoDetailResponse,
   type VideoMediaAsset,
-} from "@/lib/video/form";
+} from "@/lib/video/detail";
 import {
   formatLocalDateTime,
   labelVideoApprovalStatus,

@@ -9,8 +9,8 @@ import {
   getNoticeAttachmentFilename,
   resolveNoticeAttachmentUrl,
   type NoticeAttachment,
-  type NoticeFormErrors,
-} from "@/lib/notice/form";
+} from "@/lib/notice/detail";
+import type { NoticeFormErrors } from "@/lib/notice/form";
 
 type NoticeAttachmentSectionProps = {
   attachments: File[];

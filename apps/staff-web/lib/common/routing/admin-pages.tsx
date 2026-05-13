@@ -96,7 +96,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     {
         slug: ["beauty-reported-content", "posts"],
         title: "게시물",
-        group: "신고컨텐츠 관리",
+        group: "신고게시물 관리",
         description: "신고된 뷰티 게시물을 검토하는 기본 페이지입니다.",
     },
     {
@@ -171,10 +171,16 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         description: "성형후기 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
-        slug: ["posts", "hospital-reviews"],
-        title: "병의원 리뷰",
+        slug: ["posts", "treatment-reviews"],
+        title: "시술후기",
         group: "게시물 관리",
-        description: "병의원 리뷰 게시물을 조회하고 관리하는 기본 페이지입니다.",
+        description: "시술후기 게시물을 조회하고 관리하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["posts", "hospital-evaluations"],
+        title: "병의원 평가",
+        group: "게시물 관리",
+        description: "병의원 평가 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
         slug: ["talks"],
@@ -312,17 +318,18 @@ export function renderAdminPage(path: string) {
     const page = resolveAdminPageByPath(path);
 
     if (!page) notFound();
-
     const breadcrumbItems = page.breadcrumbItems
         ?? (page.group && page.group !== page.title ? [{ label: page.group }] : []);
 
     return (
         <div className="space-y-6">
-            <PageBreadcrumb
-                pageTitle={page.title}
-                homeLabel="관리자"
-                items={breadcrumbItems}
-            />
+            <div className="xl:hidden">
+                <PageBreadcrumb
+                    pageTitle={page.title}
+                    homeLabel="관리자"
+                    items={breadcrumbItems}
+                />
+            </div>
 
             <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">{page.title}</h3>

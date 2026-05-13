@@ -44,7 +44,7 @@ export const STAFF_SIDEBAR_DOMAIN_OPTIONS: { key: StaffSidebarDomain; label: str
 
 const iconClass = "w-5 h-5";
 
-function routeSubItem(item: { name: string; path: string }): AppNavSubItem {
+function routeSubItem(item: { name: string; path: StaticAdminRoutePath }): AppNavSubItem {
     return {
         ...item,
         requiredPermissions: getStaticRoutePermissions(item.path),
@@ -111,13 +111,14 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             name: "게시물 관리",
             subItems: [
                 routeSubItem({name: "성형후기", path: "/posts/surgery-reviews"}),
-                routeSubItem({name: "병의원 리뷰", path: "/posts/hospital-reviews"}),
+                routeSubItem({name: "시술후기", path: "/posts/treatment-reviews"}),
+                routeSubItem({name: "병의원 평가", path: "/posts/hospital-evaluations"}),
                 routeSubItem({ name: "토크", path: "/talks" }),
             ],
         },
         {
             icon: <ShieldAlert className={iconClass} />,
-            name: "신고컨텐츠 관리",
+            name: "신고게시물 관리",
             subItems: [
                 routeSubItem({name: "성형후기", path: "/reported-content/surgery-reviews"}),
                 routeSubItem({name: "병의원 리뷰", path: "/reported-content/hospital-reviews"}),

@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-import { useSidebar } from "../context";
 import { ThemeToggleButton } from "../components/common";
 import {
   NotificationDropdown,
@@ -12,10 +11,12 @@ import {
   UserDropdown,
   type UserDropdownProps,
 } from "../components/header";
+import { useSidebar } from "../context";
 
 type AppHeaderProps = {
   mobileHomeHref?: string;
   mobileLogo?: ReactNode;
+  pageTitle?: ReactNode;
   searchPlaceholder?: string;
   searchShortcutLabel?: string;
   showSearch?: boolean;
@@ -24,11 +25,10 @@ type AppHeaderProps = {
   userMenu?: UserDropdownProps | null;
 };
 
-const DESKTOP_LAYOUT_BREAKPOINT = 1300;
-
 export function AppHeader({
   mobileHomeHref = "/",
   mobileLogo,
+  pageTitle,
   searchPlaceholder = "Search or type command...",
   searchShortcutLabel = "Ctrl K",
   showSearch = true,
@@ -36,14 +36,8 @@ export function AppHeader({
   notifications = null,
   userMenu = null,
 }: AppHeaderProps) {
+  const { isMobileOpen, toggleMobileSidebar } = useSidebar();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-
-  const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
-
-  const handleToggle = () => {
-    if (window.innerWidth >= DESKTOP_LAYOUT_BREAKPOINT) toggleSidebar();
-    else toggleMobileSidebar();
-  };
 
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen((value) => !value);
@@ -69,34 +63,39 @@ export function AppHeader({
         <div className="flex flex-col items-center justify-between xl:flex-row">
           <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 dark:border-gray-800 sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 xl:py-4">
             <button
-              className={`z-99999 flex h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400 xl:h-11 xl:w-11 xl:border ${
-                !isExpanded
-                  ? "xl:border-brand-500 xl:bg-brand-500 xl:text-white dark:xl:border-brand-500 dark:xl:bg-brand-500 dark:xl:text-white"
-                  : ""
-              }`}
-              onClick={handleToggle}
-              aria-label="Toggle Sidebar"
+              type="button"
+              onClick={toggleMobileSidebar}
+              className="z-99999 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 xl:hidden"
+              aria-label={isMobileOpen ? "Close Sidebar" : "Open Sidebar"}
             >
               {isMobileOpen ? (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     fillRule="evenodd"
                     clipRule="evenodd"
-                    d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z"
+                    d="M6.21967 6.21967C6.51256 5.92678 6.98744 5.92678 7.28033 6.21967L12 10.9393L16.7197 6.21967C17.0126 5.92678 17.4874 5.92678 17.7803 6.21967C18.0732 6.51256 18.0732 6.98744 17.7803 7.28033L13.0607 12L17.7803 16.7197C18.0732 17.0126 18.0732 17.4874 17.7803 17.7803C17.4874 18.0732 17.0126 18.0732 16.7197 17.7803L12 13.0607L7.28033 17.7803C6.98744 18.0732 6.51256 18.0732 6.21967 17.7803C5.92678 17.4874 5.92678 17.0126 6.21967 16.7197L10.9393 12L6.21967 7.28033C5.92678 6.98744 5.92678 6.51256 6.21967 6.21967Z"
                     fill="currentColor"
                   />
                 </svg>
               ) : (
-                <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     fillRule="evenodd"
                     clipRule="evenodd"
-                    d="M0.583252 1C0.583252 0.585788 0.919038 0.25 1.33325 0.25H14.6666C15.0808 0.25 15.4166 0.585786 15.4166 1C15.4166 1.41421 15.0808 1.75 14.6666 1.75L1.33325 1.75C0.919038 1.75 0.583252 1.41422 0.583252 1ZM0.583252 11C0.583252 10.5858 0.919038 10.25 1.33325 10.25L14.6666 10.25C15.0808 10.25 15.4166 10.5858 15.4166 11C15.4166 11.4142 15.0808 11.75 14.6666 11.75L1.33325 11.75C0.919038 11.75 0.583252 11.4142 0.583252 11ZM1.33325 5.25C0.919038 5.25 0.583252 5.58579 0.583252 6C0.583252 6.41421 0.919038 6.75 1.33325 6.75L7.99992 6.75C8.41413 6.75 8.74992 6.41421 8.74992 6C8.74992 5.58579 8.41413 5.25 7.99992 5.25L1.33325 5.25Z"
+                    d="M3.75 6.75C3.75 6.33579 4.08579 6 4.5 6H19.5C19.9142 6 20.25 6.33579 20.25 6.75C20.25 7.16421 19.9142 7.5 19.5 7.5H4.5C4.08579 7.5 3.75 7.16421 3.75 6.75ZM3.75 12C3.75 11.5858 4.08579 11.25 4.5 11.25H19.5C19.9142 11.25 20.25 11.5858 20.25 12C20.25 12.4142 19.9142 12.75 19.5 12.75H4.5C4.08579 12.75 3.75 12.4142 3.75 12ZM4.5 16.5C4.08579 16.5 3.75 16.8358 3.75 17.25C3.75 17.6642 4.08579 18 4.5 18H19.5C19.9142 18 20.25 17.6642 20.25 17.25C20.25 16.8358 19.9142 16.5 19.5 16.5H4.5Z"
                     fill="currentColor"
                   />
                 </svg>
               )}
             </button>
+
+            {pageTitle ? (
+              <div className="hidden min-w-0 flex-1 xl:block xl:flex-none">
+                <h1 className="truncate text-base font-semibold tracking-[-0.02em] text-gray-900 dark:text-white xl:text-xl">
+                  {pageTitle}
+                </h1>
+              </div>
+            ) : null}
 
             {mobileLogo ? (
               <Link href={mobileHomeHref} className="xl:hidden">

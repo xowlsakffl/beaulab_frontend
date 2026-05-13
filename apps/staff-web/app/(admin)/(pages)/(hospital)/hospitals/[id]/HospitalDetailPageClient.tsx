@@ -17,7 +17,7 @@ import {
   resolveMediaUrl,
   type HospitalDetailResponse,
   type MediaAsset,
-} from "@/lib/hospital/form";
+} from "@/lib/hospital/detail";
 import { labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
 import { isApiSuccess } from "@beaulab/types";
 import {

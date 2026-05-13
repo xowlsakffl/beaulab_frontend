@@ -35,6 +35,7 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
   const [uncontrolledValue, setUncontrolledValue] = useState<string>(defaultValue);
   const selectedValue = value ?? uncontrolledValue;
+  const hasSelectedOption = options.some((option) => option.value === selectedValue);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nextValue = e.target.value;
@@ -52,7 +53,7 @@ export const Select: React.FC<SelectProps> = ({
         id={id}
         name={name}
         className={`h-9 w-full cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white pr-10 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
-          selectedValue ? "text-gray-800 dark:text-white/90" : "text-gray-400 dark:text-gray-400"
+          hasSelectedOption ? "text-gray-800 dark:text-white/90" : "text-gray-400 dark:text-gray-400"
         } ${disabled ? "cursor-not-allowed opacity-60" : ""} ${className}`}
         value={selectedValue}
         onChange={handleChange}

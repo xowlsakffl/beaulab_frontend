@@ -20,11 +20,10 @@ import {
   HOSPITAL_STATUS_OPTIONS,
   type HospitalAddressDetailField,
   type HospitalAddressField,
-  type HospitalCategoryItem,
-  type HospitalFeatureItem,
   type HospitalFormErrors,
   type HospitalFormValues,
 } from "@/lib/hospital/form";
+import type { HospitalCategoryItem, HospitalFeatureItem } from "@/lib/hospital/detail";
 
 type HospitalBasicSectionProps = {
   mode: "create" | "edit";

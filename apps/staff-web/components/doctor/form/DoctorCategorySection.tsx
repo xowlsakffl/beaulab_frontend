@@ -8,7 +8,8 @@ import {
   type CategorySelectorLoadParams,
 } from "@beaulab/ui-admin";
 
-import { DOCTOR_CATEGORY_SECTIONS, type DoctorCategoryItem, type DoctorFormErrors } from "@/lib/doctor/form";
+import type { DoctorCategoryItem } from "@/lib/doctor/detail";
+import { DOCTOR_CATEGORY_SECTIONS, type DoctorFormErrors } from "@/lib/doctor/form";
 
 type DoctorCategorySectionProps = {
   selectedIds: number[];

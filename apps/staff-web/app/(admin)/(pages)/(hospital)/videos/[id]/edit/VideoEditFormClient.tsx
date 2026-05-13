@@ -13,6 +13,7 @@ import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoa
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
+import type { VideoCategoryItem, VideoDetailResponse, VideoMediaAsset } from "@/lib/video/detail";
 import {
   buildVideoExistingFileItem,
   extractVideoFieldErrors,
@@ -20,14 +21,11 @@ import {
   mapVideoDetailToForm,
   parseVideoDurationInput,
   validateUpdateVideoForm,
-  type VideoCategoryItem,
-  type VideoDetailResponse,
   type VideoDoctorOption,
   type VideoFieldName,
   type VideoFormErrors,
   type VideoFormValues,
   type VideoHospitalOption,
-  type VideoMediaAsset,
 } from "@/lib/video/form";
 
 export default function VideoEditFormClient() {

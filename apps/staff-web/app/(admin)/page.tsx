@@ -10,7 +10,10 @@ export const metadata: Metadata = {
 export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
-      <PageBreadcrumb pageTitle="대시보드" homeLabel="관리자" />
+      <div className="xl:hidden">
+        <PageBreadcrumb pageTitle="대시보드" homeLabel="관리자" />
+      </div>
+
       <Card as="section" className="p-6">
         <CardTitle className="text-lg">운영 현황</CardTitle>
         <CardDescription className="mt-2">

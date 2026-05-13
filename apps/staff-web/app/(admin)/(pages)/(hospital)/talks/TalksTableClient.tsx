@@ -18,12 +18,26 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 
+import { TalkCommentsDataTable } from "@/components/talk/list/TalkCommentsDataTable";
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
 import { api, downloadFile } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
 import {
+  DEFAULT_TALK_COMMENT_SORT,
+  buildTalkCommentsQuery,
+  buildTalkCommentsQueryString,
+  nextTalkCommentSortState,
+  normalizeTalkComment,
+  parseTalkCommentSortState,
+  type TalkCommentApiItem,
+  type TalkCommentRow,
+  type TalkCommentSortField,
+  type TalkCommentSortState,
+} from "@/lib/talk/comment-list";
+import {
   DEFAULT_FILTERS,
+  DEFAULT_SORT,
   TALK_POST_STATUS_OPTIONS,
   buildTalksExcelDownloadPath,
   buildPresetDateRange,
@@ -45,6 +59,8 @@ import {
   type TalkRow,
 } from "@/lib/talk/list";
 
+type TalkBoard = "talks" | "comments";
+
 type TalkVisibilityUpdateResponse = {
   updated_count: number;
   status: string;
@@ -58,6 +74,7 @@ type TalkVisibilityUpdatePayload = {
 };
 
 type PendingVisibilityChange = {
+  board: TalkBoard;
   source: "bulk" | "row";
   ids: number[];
   status: string;
@@ -69,15 +86,22 @@ export default function TalksTableClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const initialTableStateRef = React.useRef<ReturnType<typeof parseTalksTableState> | null>(null);
+  const initialCommentSortStateRef = React.useRef<TalkCommentSortState | null>(null);
+  const initialBoardRef = React.useRef<TalkBoard | null>(null);
   const hasFetchedRef = React.useRef(false);
   const requestKeyRef = React.useRef("");
 
   if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseTalksTableState(new URLSearchParams(searchParams.toString()));
+    const initialSearchParams = new URLSearchParams(searchParams.toString());
+
+    initialTableStateRef.current = parseTalksTableState(initialSearchParams);
+    initialCommentSortStateRef.current = parseTalkCommentSortState(initialSearchParams);
+    initialBoardRef.current = initialSearchParams.get("board") === "comments" ? "comments" : "talks";
   }
 
   const initialTableState = initialTableStateRef.current;
 
+  const [activeBoard, setActiveBoard] = React.useState<TalkBoard>(initialBoardRef.current ?? "talks");
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
@@ -87,14 +111,19 @@ export default function TalksTableClient() {
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
+  const [commentSortState, setCommentSortState] = React.useState<TalkCommentSortState>(
+    initialCommentSortStateRef.current ?? DEFAULT_TALK_COMMENT_SORT,
+  );
   const [page, setPage] = React.useState(initialTableState.page);
   const [rows, setRows] = React.useState<TalkRow[]>([]);
+  const [commentRows, setCommentRows] = React.useState<TalkCommentRow[]>([]);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
   const [excelDownloading, setExcelDownloading] = React.useState(false);
+  const [excelValidationMessage, setExcelValidationMessage] = React.useState<string | null>(null);
   const [categoryOptions, setCategoryOptions] = React.useState<CheckboxFilterOption[]>([]);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
@@ -114,7 +143,27 @@ export default function TalksTableClient() {
     [appliedFilters, page, searchKeyword, sortState],
   );
 
-  const queryString = React.useMemo(() => buildTalksQueryString(query), [query]);
+  const commentQuery = React.useMemo(
+    () =>
+      buildTalkCommentsQuery({
+        searchKeyword,
+        appliedFilters,
+        sortState: commentSortState,
+        page,
+      }),
+    [appliedFilters, commentSortState, page, searchKeyword],
+  );
+
+  const queryString = React.useMemo(() => {
+    if (activeBoard === "comments") {
+      const params = new URLSearchParams(buildTalkCommentsQueryString(commentQuery));
+      params.set("board", "comments");
+
+      return params.toString();
+    }
+
+    return buildTalksQueryString(query);
+  }, [activeBoard, commentQuery, query]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -160,7 +209,7 @@ export default function TalksTableClient() {
 
   const fetchTalks = React.useCallback(
     async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
+      const requestKey = `talks:${JSON.stringify(query)}`;
       if (!manualRefresh && requestKeyRef.current === requestKey) return;
       requestKeyRef.current = requestKey;
 
@@ -191,20 +240,62 @@ export default function TalksTableClient() {
     [query],
   );
 
+  const fetchTalkComments = React.useCallback(
+    async (manualRefresh = false) => {
+      const requestKey = `comments:${JSON.stringify(commentQuery)}`;
+      if (!manualRefresh && requestKeyRef.current === requestKey) return;
+      requestKeyRef.current = requestKey;
+
+      if (!hasFetchedRef.current) setLoading(true);
+      else setRefreshing(true);
+      if (manualRefresh) setRefreshing(true);
+
+      setError(null);
+
+      try {
+        const response = await api.get<TalkCommentApiItem[]>("/talk-comments", commentQuery);
+
+        if (!isApiSuccess(response)) {
+          setError(response.error.message || "토크 댓글 목록 조회에 실패했습니다.");
+          return;
+        }
+
+        setCommentRows(response.data.map(normalizeTalkComment));
+        setMeta((response.meta as DataTableMeta | null) ?? null);
+        hasFetchedRef.current = true;
+      } catch {
+        setError("토크 댓글 목록 조회 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [commentQuery],
+  );
+
   React.useEffect(() => {
-    void fetchTalks(false);
-  }, [fetchTalks]);
+    if (activeBoard === "talks") {
+      void fetchTalks(false);
+    }
+  }, [activeBoard, fetchTalks]);
+
+  React.useEffect(() => {
+    if (activeBoard === "comments") {
+      void fetchTalkComments(false);
+    }
+  }, [activeBoard, fetchTalkComments]);
 
   React.useEffect(() => {
     setSelectedIds((prev) => {
-      const selectableRowIds = new Set(rows
+      const activeRows = activeBoard === "comments" ? commentRows : rows;
+      const selectableRowIds = new Set(activeRows
         .filter((row) => !row.visibilityChangeLocked)
         .map((row) => row.id));
       const next = new Set(Array.from(prev).filter((id) => selectableRowIds.has(id)));
 
       return next.size === prev.size ? prev : next;
     });
-  }, [rows]);
+  }, [activeBoard, commentRows, rows]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -314,7 +405,7 @@ export default function TalksTableClient() {
     setIsDatePickerOpen(false);
     setDraftFilters((prev) => ({
       ...prev,
-      metricField: value === "save_count" || value === "comment_count" || value === "view_count"
+      metricField: value === "" || value === "save_count" || value === "comment_count" || value === "view_count"
         ? value
         : "like_count",
     }));
@@ -356,13 +447,42 @@ export default function TalksTableClient() {
     applyDateRange(buildPresetDateRange(preset));
   }, [applyDateRange]);
 
+  const changeBoard = React.useCallback((board: TalkBoard) => {
+    if (board === activeBoard) return;
+
+    requestKeyRef.current = "";
+    setActiveBoard(board);
+    setPage(1);
+    setSearchInput("");
+    setSearchKeyword("");
+    setDraftDateRange(undefined);
+    setDraftFilters(DEFAULT_FILTERS);
+    setAppliedFilters(DEFAULT_FILTERS);
+    setSortState(DEFAULT_SORT);
+    setCommentSortState(DEFAULT_TALK_COMMENT_SORT);
+    setIsStatusDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setSelectedIds(new Set());
+    setRowVisibilityUpdatingIds(new Set());
+    setPendingVisibilityChange(null);
+    setExcelValidationMessage(null);
+    setError(null);
+  }, [activeBoard]);
+
   const handleToggleSort = React.useCallback((field: SortField) => {
     setPage(1);
     setSortState((prev) => nextSortState(prev, field));
   }, []);
 
+  const handleToggleCommentSort = React.useCallback((field: TalkCommentSortField) => {
+    setPage(1);
+    setCommentSortState((prev) => nextTalkCommentSortState(prev, field));
+  }, []);
+
   const handleToggleRow = React.useCallback((id: number, checked: boolean) => {
-    const row = rows.find((item) => item.id === id);
+    const activeRows = activeBoard === "comments" ? commentRows : rows;
+    const row = activeRows.find((item) => item.id === id);
     if (checked && row?.visibilityChangeLocked) return;
 
     setSelectedIds((prev) => {
@@ -376,13 +496,14 @@ export default function TalksTableClient() {
 
       return next;
     });
-  }, [rows]);
+  }, [activeBoard, commentRows, rows]);
 
   const handleToggleAllRows = React.useCallback((checked: boolean) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
+      const activeRows = activeBoard === "comments" ? commentRows : rows;
 
-      for (const row of rows) {
+      for (const row of activeRows) {
         if (checked && !row.visibilityChangeLocked) {
           next.add(row.id);
         } else if (!checked) {
@@ -392,25 +513,40 @@ export default function TalksTableClient() {
 
       return next;
     });
-  }, [rows]);
+  }, [activeBoard, commentRows, rows]);
 
   const requestBulkVisibilityChange = React.useCallback((status: string) => {
-    const currentRowsById = new Map(rows.map((row) => [row.id, row]));
+    const activeRows = activeBoard === "comments" ? commentRows : rows;
+    const currentRowsById = new Map(activeRows.map((row) => [row.id, row]));
     const ids = Array.from(selectedIds)
       .filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
     if (ids.length === 0) return;
 
-    setPendingVisibilityChange({ source: "bulk", ids, status });
-  }, [rows, selectedIds]);
+    setPendingVisibilityChange({ board: activeBoard, source: "bulk", ids, status });
+  }, [activeBoard, commentRows, rows, selectedIds]);
 
   const handleRowVisibilityChange = React.useCallback((id: number, status: string) => {
     setPendingVisibilityChange({
+      board: "talks",
       source: "row",
       ids: [id],
       status,
       hiddenReason: "",
     });
   }, []);
+
+  const handleCommentRowVisibilityChange = React.useCallback((id: number, status: string) => {
+    const row = commentRows.find((item) => item.id === id);
+    if (row?.visibilityChangeLocked) return;
+
+    setPendingVisibilityChange({
+      board: "comments",
+      source: "row",
+      ids: [id],
+      status,
+      hiddenReason: "",
+    });
+  }, [commentRows]);
 
   const closeVisibilityConfirmModal = React.useCallback(() => {
     if (bulkUpdating) return;
@@ -435,8 +571,9 @@ export default function TalksTableClient() {
   const confirmVisibilityChange = React.useCallback(async () => {
     if (!pendingVisibilityChange) return;
 
-    const { ids, status, source, hiddenReason } = pendingVisibilityChange;
+    const { board, ids, status, source, hiddenReason } = pendingVisibilityChange;
     const isBulkChange = source === "bulk";
+    const isCommentChange = board === "comments";
     const normalizedHiddenReason = source === "row" && status === "INACTIVE"
       ? hiddenReason?.trim()
       : "";
@@ -463,10 +600,13 @@ export default function TalksTableClient() {
     setError(null);
 
     try {
-      const response = await api.patch<TalkVisibilityUpdateResponse>("/talks/status", requestPayload);
+      const response = await api.patch<TalkVisibilityUpdateResponse>(
+        isCommentChange ? "/talk-comments/status" : "/talks/status",
+        requestPayload,
+      );
 
       if (!isApiSuccess(response)) {
-        setError(response.error.message || "토크 노출여부 변경에 실패했습니다.");
+        setError(response.error.message || `${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경에 실패했습니다.`);
         return;
       }
 
@@ -474,7 +614,17 @@ export default function TalksTableClient() {
 
       if (isBulkChange) {
         setSelectedIds(new Set());
-        await fetchTalks(true);
+        if (isCommentChange) {
+          await fetchTalkComments(true);
+        } else {
+          await fetchTalks(true);
+        }
+      } else if (isCommentChange) {
+        setCommentRows((prev) => prev.map((row) => (
+          ids.includes(row.id)
+            ? { ...row, status, isVisible: status === "ACTIVE" }
+            : row
+        )));
       } else {
         setRows((prev) => prev.map((row) => (
           ids.includes(row.id)
@@ -483,7 +633,7 @@ export default function TalksTableClient() {
         )));
       }
     } catch {
-      setError("토크 노출여부 변경 중 오류가 발생했습니다.");
+      setError(`${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경 중 오류가 발생했습니다.`);
     } finally {
       if (isBulkChange) {
         setBulkUpdating(false);
@@ -496,28 +646,49 @@ export default function TalksTableClient() {
         });
       }
     }
-  }, [fetchTalks, pendingVisibilityChange]);
+  }, [fetchTalkComments, fetchTalks, pendingVisibilityChange]);
 
   const handleDownloadExcel = React.useCallback(async () => {
-    const startDate = appliedFilters.startDate;
-    const endDate = appliedFilters.endDate;
+    const excelFilters: Filters = {
+      postStatuses: [...draftFilters.postStatuses],
+      categoryIds: [...draftFilters.categoryIds],
+      visibilityStatus: draftFilters.visibilityStatus,
+      metricField: draftFilters.metricField,
+      metricMin: normalizeMetricBound(draftFilters.metricMin),
+      metricMax: normalizeMetricBound(draftFilters.metricMax),
+      dateRange: draftFilters.dateRange,
+      startDate: draftFilters.startDate,
+      endDate: draftFilters.endDate,
+    };
+    const startDate = excelFilters.startDate;
+    const endDate = excelFilters.endDate;
 
     if (!startDate || !endDate) {
-      setError("엑셀 다운로드는 작성일 시작일과 종료일을 선택해야 합니다.");
+      setError(null);
+      setExcelValidationMessage("작성일을 선택해주세요.");
       return;
     }
 
     if (!isTalkExcelDateRangeAllowed(startDate, endDate)) {
-      setError("엑셀 다운로드 기간은 최대 1개월까지만 가능합니다.");
+      setError(null);
+      setExcelValidationMessage("엑셀 다운로드 작성일 기간은 시작일 이후 종료일이어야 하며, 최대 1개월까지만 가능합니다.");
       return;
     }
 
     setExcelDownloading(true);
+    setExcelValidationMessage(null);
     setError(null);
 
     try {
+      const excelQuery = buildTalksQuery({
+        searchKeyword: searchInput.trim(),
+        appliedFilters: excelFilters,
+        sortState,
+        page: 1,
+      });
+
       await downloadFile(
-        buildTalksExcelDownloadPath(query),
+        buildTalksExcelDownloadPath(excelQuery),
         `talks_${startDate}_${endDate}.xls`,
       );
     } catch {
@@ -525,10 +696,24 @@ export default function TalksTableClient() {
     } finally {
       setExcelDownloading(false);
     }
-  }, [appliedFilters.endDate, appliedFilters.startDate, query]);
+  }, [draftFilters, searchInput, sortState]);
+
+  const openTalkDetail = React.useCallback((row: TalkRow) => {
+    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(`/talks/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [pathname, queryString, router]);
+
+  React.useEffect(() => {
+    rows.slice(0, 10).forEach((row) => {
+      router.prefetch(`/talks/${row.id}`);
+    });
+  }, [router, rows]);
 
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityCount = pendingVisibilityChange?.ids.length ?? 0;
+  const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
+    ? `해당 ${pendingVisibilityChange.board === "comments" ? "댓글을" : "후기를"} ${pendingVisibilityLabel} 하시겠습니까?`
+    : <>총 <span className="text-error-500">{pendingVisibilityCount.toLocaleString()}</span>건을 {pendingVisibilityLabel} 하시겠습니까?</>;
   const pendingVisibilityUpdating = bulkUpdating
     || Boolean(
       pendingVisibilityChange?.source === "row"
@@ -537,7 +722,29 @@ export default function TalksTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant={activeBoard === "talks" ? "brand" : "outline"}
+          size="sm"
+          onClick={() => changeBoard("talks")}
+          className="h-10 min-w-[88px] px-5"
+        >
+          토크
+        </Button>
+        <Button
+          type="button"
+          variant={activeBoard === "comments" ? "brand" : "outline"}
+          size="sm"
+          onClick={() => changeBoard("comments")}
+          className="h-10 min-w-[88px] px-5"
+        >
+          댓글
+        </Button>
+      </div>
+
       <TalksFilterPanel
+        board={activeBoard}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         draftFilters={draftFilters}
@@ -578,26 +785,77 @@ export default function TalksTableClient() {
         onResetFilters={resetFilters}
       />
 
-      <TalksDataTable
-        rows={rows}
-        meta={meta}
-        loading={loading}
-        refreshing={refreshing}
-        error={error}
-        sortState={sortState}
-        selectedIds={selectedIds}
-        visibilityUpdatingIds={rowVisibilityUpdatingIds}
-        bulkUpdating={bulkUpdating}
-        excelDownloading={excelDownloading}
-        onToggleSort={handleToggleSort}
-        onToggleRow={handleToggleRow}
-        onToggleAllRows={handleToggleAllRows}
-        onBulkVisibilityChange={requestBulkVisibilityChange}
-        onRowVisibilityChange={handleRowVisibilityChange}
-        onDownloadExcel={() => void handleDownloadExcel()}
-        onRefresh={() => void fetchTalks(true)}
-        onGoPage={setPage}
-      />
+      {activeBoard === "talks" ? (
+        <TalksDataTable
+          rows={rows}
+          meta={meta}
+          loading={loading}
+          refreshing={refreshing}
+          error={error}
+          sortState={sortState}
+          selectedIds={selectedIds}
+          visibilityUpdatingIds={rowVisibilityUpdatingIds}
+          bulkUpdating={bulkUpdating}
+          excelDownloading={excelDownloading}
+          onToggleSort={handleToggleSort}
+          onToggleRow={handleToggleRow}
+          onToggleAllRows={handleToggleAllRows}
+          onBulkVisibilityChange={requestBulkVisibilityChange}
+          onRowVisibilityChange={handleRowVisibilityChange}
+          onOpenDetail={openTalkDetail}
+          onDownloadExcel={() => void handleDownloadExcel()}
+          onRefresh={() => void fetchTalks(true)}
+          onGoPage={setPage}
+        />
+      ) : (
+        <TalkCommentsDataTable
+          rows={commentRows}
+          meta={meta}
+          loading={loading}
+          refreshing={refreshing}
+          error={error}
+          sortState={commentSortState}
+          selectedIds={selectedIds}
+          visibilityUpdatingIds={rowVisibilityUpdatingIds}
+          bulkUpdating={bulkUpdating}
+          onToggleSort={handleToggleCommentSort}
+          onToggleRow={handleToggleRow}
+          onToggleAllRows={handleToggleAllRows}
+          onBulkVisibilityChange={requestBulkVisibilityChange}
+          onRowVisibilityChange={handleCommentRowVisibilityChange}
+          onRefresh={() => void fetchTalkComments(true)}
+          onGoPage={setPage}
+        />
+      )}
+
+      <Modal
+        isOpen={Boolean(excelValidationMessage)}
+        onClose={() => setExcelValidationMessage(null)}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-md"
+      >
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>엑셀 다운로드 조건 확인</ModalTitle>
+          </ModalHeader>
+
+          <ModalBody className="mt-5">
+            <p className="text-sm font-medium leading-6 text-gray-800 dark:text-white/90">
+              {excelValidationMessage}
+            </p>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="brand"
+              onClick={() => setExcelValidationMessage(null)}
+            >
+              확인
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
 
       <Modal
         isOpen={Boolean(pendingVisibilityChange)}
@@ -612,19 +870,19 @@ export default function TalksTableClient() {
 
           <ModalBody className="mt-5">
             <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-              총 <span className="text-error-500">{pendingVisibilityCount.toLocaleString()}</span>건을 {pendingVisibilityLabel}로 변경하시겠습니까?
+              {pendingVisibilityMessage}
             </p>
 
             {pendingVisibilityChange?.source === "row" && pendingVisibilityChange.status === "INACTIVE" && (
               <div className="mt-4">
                 <label
-                  htmlFor="talk-hidden-reason"
+                  htmlFor="visibility-hidden-reason"
                   className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
                 >
                   미노출 사유
                 </label>
                 <InputField
-                  id="talk-hidden-reason"
+                  id="visibility-hidden-reason"
                   name="hidden_reason"
                   value={pendingVisibilityChange.hiddenReason ?? ""}
                   onChange={(event) => updatePendingHiddenReason(event.target.value)}

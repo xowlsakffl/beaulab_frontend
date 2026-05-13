@@ -15,7 +15,7 @@ import {
   resolveDoctorMediaUrl,
   type DoctorDetailResponse,
   type DoctorMediaAsset,
-} from "@/lib/doctor/form";
+} from "@/lib/doctor/detail";
 import {
   formatCareerPeriod,
   labelDoctorApprovalStatus,

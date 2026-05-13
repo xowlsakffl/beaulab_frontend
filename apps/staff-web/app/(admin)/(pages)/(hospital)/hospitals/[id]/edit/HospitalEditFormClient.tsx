@@ -10,21 +10,23 @@ import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
 import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
 import { api } from "@/lib/common/api";
 import {
-  buildHospitalExistingMediaItems,
-  extractFieldErrors,
   formatBytes,
   getMediaFilename,
+  resolveMediaUrl,
+  type HospitalCategoryItem,
+  type HospitalDetailResponse,
+  type MediaAsset,
+} from "@/lib/hospital/detail";
+import {
+  buildHospitalExistingMediaItems,
+  extractFieldErrors,
   INITIAL_HOSPITAL_FORM,
   mapHospitalDetailToForm,
   normalizeBusinessNumber,
-  resolveMediaUrl,
   validateUpdateHospitalForm,
-  type HospitalCategoryItem,
-  type HospitalDetailResponse,
   type HospitalFieldName,
   type HospitalFormErrors,
   type HospitalFormValues,
-  type MediaAsset,
 } from "@/lib/hospital/form";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { isApiSuccess } from "@beaulab/types";

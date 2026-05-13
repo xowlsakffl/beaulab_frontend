@@ -8,7 +8,8 @@ import {
   type CategorySelectorLoadParams,
 } from "@beaulab/ui-admin";
 
-import { VIDEO_CATEGORY_SECTIONS, type VideoCategoryItem, type VideoFormErrors } from "@/lib/video/form";
+import type { VideoCategoryItem } from "@/lib/video/detail";
+import { VIDEO_CATEGORY_SECTIONS, type VideoFormErrors } from "@/lib/video/form";
 
 type VideoCategorySectionProps = {
   selectedIds: number[];
