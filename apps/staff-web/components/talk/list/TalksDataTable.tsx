@@ -245,7 +245,7 @@ function buildTalkColumns({
       key: "status",
       headerClassName: `${headerBaseClass} lg:w-[86px]`,
       cellClassName: `${nowrapCellClass} lg:w-[86px]`,
-      header: <SortHeader field="post_status" label="게시상태" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader field="post_status" label="게시글상태" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <StatusBadge size="sm" color={talkPostStatusBadgeColor(row.postStatus)}>
           {labelTalkPostStatus(row.postStatus)}

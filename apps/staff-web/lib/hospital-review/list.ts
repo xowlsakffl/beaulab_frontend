@@ -130,6 +130,7 @@ export type HospitalReviewFilters = {
   categoryIds: string[];
   majorCategoryId: string;
   middleCategoryId: string;
+  smallCategoryId: string;
   visibilityStatus: string;
   ratings: string[];
   best: string;
@@ -147,8 +148,8 @@ export type HospitalReviewsQuery = {
   post_status?: string;
   category_ids?: string;
   ratings?: string;
-  is_main_featured?: boolean;
-  is_sub_featured?: boolean;
+  is_main_featured?: "1";
+  is_sub_featured?: "1";
   metric?: HospitalReviewMetricField;
   metric_min?: string;
   metric_max?: string;
@@ -187,6 +188,7 @@ export const DEFAULT_HOSPITAL_REVIEW_FILTERS: HospitalReviewFilters = {
   categoryIds: [],
   majorCategoryId: "",
   middleCategoryId: "",
+  smallCategoryId: "",
   visibilityStatus: "",
   ratings: [],
   best: "",
@@ -333,10 +335,10 @@ export function formatHospitalReviewCategoryPath(category?: HospitalReviewCatego
   return pathItems.slice(0, maxDepth).join(" > ");
 }
 
-export function formatHospitalReviewCategories(categories?: HospitalReviewCategory[] | null) {
+export function formatHospitalReviewCategories(categories?: HospitalReviewCategory[] | null, maxDepth = 2) {
   const names = Array.from(new Set(
     (categories ?? [])
-      .map((category) => formatHospitalReviewCategoryPath(category, 2))
+      .map((category) => formatHospitalReviewCategoryPath(category, maxDepth))
       .filter(Boolean),
   ));
 
@@ -541,6 +543,7 @@ export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
       categoryIds,
       majorCategoryId: "",
       middleCategoryId: "",
+      smallCategoryId: "",
       visibilityStatus: HOSPITAL_REVIEW_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       ratings,
       best,
@@ -588,15 +591,19 @@ export function buildHospitalReviewsQuery({
   const postStatuses = uniqueAllowedValues(appliedFilters.postStatuses, HOSPITAL_REVIEW_POST_STATUS_VALUE_SET);
   if (postStatuses.length > 0) query.post_status = postStatuses.join(",");
 
-  const selectedCategoryId = appliedFilters.middleCategoryId || appliedFilters.majorCategoryId || appliedFilters.categoryIds[0] || "";
+  const selectedCategoryId = appliedFilters.smallCategoryId
+    || appliedFilters.middleCategoryId
+    || appliedFilters.majorCategoryId
+    || appliedFilters.categoryIds[0]
+    || "";
   const categoryIds = [selectedCategoryId].filter((value) => /^[1-9]\d*$/.test(value));
   if (categoryIds.length > 0) query.category_ids = Array.from(new Set(categoryIds)).join(",");
 
   const ratings = uniqueAllowedValues(appliedFilters.ratings, HOSPITAL_REVIEW_RATING_VALUE_SET);
   if (ratings.length > 0) query.ratings = ratings.join(",");
 
-  if (appliedFilters.best === "main") query.is_main_featured = true;
-  if (appliedFilters.best === "sub") query.is_sub_featured = true;
+  if (appliedFilters.best === "main") query.is_main_featured = "1";
+  if (appliedFilters.best === "sub") query.is_sub_featured = "1";
 
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
@@ -620,8 +627,8 @@ export function buildHospitalReviewsQueryString(query: HospitalReviewsQuery) {
   if (query.post_status) params.set("post_status", query.post_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.ratings) params.set("ratings", query.ratings);
-  if (query.is_main_featured) params.set("is_main_featured", "true");
-  if (query.is_sub_featured) params.set("is_sub_featured", "true");
+  if (query.is_main_featured) params.set("is_main_featured", query.is_main_featured);
+  if (query.is_sub_featured) params.set("is_sub_featured", query.is_sub_featured);
   if (query.metric) params.set("metric", query.metric);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);

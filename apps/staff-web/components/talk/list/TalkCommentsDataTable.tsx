@@ -220,7 +220,7 @@ function buildCommentColumns({
       key: "likeCount",
       headerClassName: `${headerBaseClass} lg:w-[82px]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px]`,
-      header: <SortHeader field="like_count" label="좋아요 수" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.likeCount.toLocaleString(),
     },
     {

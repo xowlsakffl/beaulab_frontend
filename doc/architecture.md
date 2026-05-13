@@ -2,7 +2,7 @@
 
 이 문서는 현재 `beaulab_frontend`의 실제 구조를 기준으로 정리한 운영 문서입니다.
 
-작성 기준: 2026-03-27
+작성 기준: 2026-05-13
 
 ## 1. 범위
 
@@ -78,6 +78,8 @@ apps/staff-web/
 │  ├─ hospital/
 │  │  ├─ form/
 │  │  └─ list/
+│  ├─ hospital-review/
+│  │  └─ list/
 │  ├─ notice/
 │  │  ├─ form/
 │  │  └─ list/
@@ -105,11 +107,17 @@ apps/staff-web/
    │     ├─ admin-pages.tsx
    │     └─ route-permissions.ts
    ├─ hospital/
+   │  ├─ detail.ts
    │  ├─ form.ts
+   │  └─ list.ts
+   ├─ hospital-review/
+   │  ├─ comment-list.ts
    │  └─ list.ts
    ├─ hashtag/
    │  └─ list.ts
    ├─ talk/
+   │  ├─ comment-list.ts
+   │  ├─ detail.ts
    │  └─ list.ts
    ├─ notice/
    │  ├─ form.ts
@@ -134,6 +142,7 @@ apps/staff-web/
 - 페이지 클라이언트 컴포넌트 연결
 - 권한 보호 shell 진입
 - `(admin)/(pages)` 아래 route group과 공통 페이지는 `common / hospital / beauty` 기준으로만 나눕니다.
+- 병의원 도메인 게시물은 `(hospital)` 아래에 둡니다. 현재 성형후기/시술후기/병의원 평가는 `/(hospital)/reviews/*`에 둡니다.
 
 원칙:
 
@@ -163,7 +172,7 @@ apps/staff-web/
 - 대시보드도 도메인별로 분리합니다. 현재 기준 병의원은 `/`, 뷰티는 `/beauty-dashboard`를 사용합니다.
 - 뷰티 도메인 전용 placeholder 페이지는 병의원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
 
-### 4.3 `components/hospital`, `components/notice`, `components/doctor`, `components/video`, `components/hashtag`, `components/talk`
+### 4.3 `components/hospital`, `components/hospital-review`, `components/notice`, `components/doctor`, `components/video`, `components/hashtag`, `components/talk`
 
 도메인 전용 UI를 둡니다.
 
@@ -182,6 +191,9 @@ apps/staff-web/
 - 동영상 폼: `Basic / Category / Publish / Media`
 - 해시태그 목록: `Toolbar / DataTable / UpsertModal`
 - 토크 목록: `Toolbar / Filter / DataTable`
+- 토크 상세: 본문, 투표, 이미지, 댓글, 댓글 처리 이력
+- 병의원 후기 목록: 게시글 탭과 댓글 탭을 같은 페이지 클라이언트가 소유하되, 필터 상태는 탭별로 분리합니다.
+- 병의원 후기 댓글 목록: 부모 후기 정보를 `parent` 객체 기준으로 표시하고, 카테고리는 부모 후기 카테고리를 기준으로 필터링합니다.
 
 동영상처럼 병의원/의료진과 다른 독립 CRUD 기능은 별도 도메인 폴더를 둘 수 있습니다.
 
@@ -238,7 +250,7 @@ apps/staff-web/
 - `navigation/buildReturnToPath.ts`
   - list -> detail -> list 복귀 경로 조립
 
-### 4.7 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`, `lib/talk`
+### 4.7 `lib/hospital`, `lib/hospital-review`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`, `lib/talk`
 
 도메인별 상수, validation, mapper, query helper를 둡니다.
 
@@ -259,13 +271,14 @@ apps/staff-web/
 
 공지사항, 동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/notice/form.ts`, `lib/notice/list.ts`, `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
 해시태그처럼 단일 페이지 CRUD는 `lib/hashtag/list.ts` 하나에서 목록 query helper와 입력 sanitize/validate를 같이 둘 수 있습니다.
-토크처럼 공통 게시물 하위의 독립 목록도 `lib/talk/list.ts` 하나에서 URL state, row mapper, query helper를 같이 둡니다.
+토크처럼 병의원 게시물 하위의 독립 목록은 `lib/talk/list.ts`, 댓글 목록은 `lib/talk/comment-list.ts`, 상세 mapper는 `lib/talk/detail.ts`에 둡니다.
+성형후기/시술후기 같은 병의원 후기 게시글 목록은 `lib/hospital-review/list.ts`, 댓글 목록은 `lib/hospital-review/comment-list.ts`에 둡니다.
 
 ## 5. 현재 CRUD 패턴
 
 ### 5.1 목록
 
-병의원, 공지사항, 의료진, 동영상, 토크 목록은 같은 운영 패턴을 따릅니다.
+병의원, 공지사항, 의료진, 동영상, 토크, 병의원 후기 목록은 같은 운영 패턴을 따릅니다.
 
 핵심 흐름:
 
@@ -298,6 +311,12 @@ apps/staff-web/
   - [TalksTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/talks/TalksTableClient.tsx)
   - [TalksDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/talk/list/TalksDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/talk/list.ts)
+- 병의원 후기 목록
+  - [HospitalReviewsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/HospitalReviewsTableClient.tsx)
+  - [HospitalReviewsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital-review/list/HospitalReviewsDataTable.tsx)
+  - [HospitalReviewCommentsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital-review/list/HospitalReviewCommentsDataTable.tsx)
+  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-review/list.ts)
+  - [comment-list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-review/comment-list.ts)
 
 ### 5.2 등록/수정 폼
 
@@ -364,6 +383,8 @@ apps/staff-web/
 - 메뉴 권한과 라우트 권한은 같은 permission 모델을 공유해야 합니다.
 - 서버 검증을 대체하지 않습니다.
 - 프론트 권한은 UX 제어 목적으로만 사용합니다.
+- 병의원 후기 라우트(`/reviews/surgery-reviews`, `/reviews/treatment-reviews`)는 `beaulab.hospital_review.show` 권한을 사용합니다.
+- 병의원 평가 라우트(`/reviews/hospital-evaluations`)는 `beaulab.hospital_evaluation.show` 권한을 사용합니다.
 
 ## 7. UI 정책
 

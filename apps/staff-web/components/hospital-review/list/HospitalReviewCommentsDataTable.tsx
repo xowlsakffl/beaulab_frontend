@@ -15,17 +15,17 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
-  formatHospitalReviewCost,
-  formatHospitalReviewRating,
+  type HospitalReviewCommentRow,
+  type HospitalReviewCommentSortField,
+  type HospitalReviewCommentSortState,
+} from "@/lib/hospital-review/comment-list";
+import {
   hospitalReviewPostStatusBadgeColor,
   labelHospitalReviewPostStatus,
   resolveHospitalReviewMediaUrl,
-  type HospitalReviewRow,
-  type HospitalReviewSortField,
-  type HospitalReviewSortState,
 } from "@/lib/hospital-review/list";
 
-function renderSortMark(field: HospitalReviewSortField, sortState: HospitalReviewSortState) {
+function renderSortMark(field: HospitalReviewCommentSortField, sortState: HospitalReviewCommentSortState) {
   if (!sortState.enabled || sortState.field !== field) {
     return <ChevronsUpDown className="size-4" />;
   }
@@ -40,13 +40,11 @@ function SortHeader({
   label,
   sortState,
   onToggleSort,
-  align = "left",
 }: {
-  field: HospitalReviewSortField;
+  field: HospitalReviewCommentSortField;
   label: string;
-  sortState: HospitalReviewSortState;
-  onToggleSort: (field: HospitalReviewSortField) => void;
-  align?: "left" | "center";
+  sortState: HospitalReviewCommentSortState;
+  onToggleSort: (field: HospitalReviewCommentSortField) => void;
 }) {
   return (
     <Button
@@ -54,12 +52,10 @@ function SortHeader({
       variant="ghost"
       size="sm"
       onClick={() => onToggleSort(field)}
-      className={`inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal ${
-        align === "center" ? "justify-center text-center" : ""
-      }`}
+      className="inline-flex items-center gap-1 px-0 text-xs"
     >
-      <span className="min-w-0 break-keep">{label}</span>
-      <span className="shrink-0 text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
+      {label}
+      <span className="text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
     </Button>
   );
 }
@@ -88,28 +84,7 @@ function SelectionCheckbox({
   );
 }
 
-function FeatureBadge({ label }: { label: string }) {
-  return (
-    <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
-      {label}
-    </span>
-  );
-}
-
-function renderBestBadges(row: HospitalReviewRow) {
-  if (!row.isMainFeatured && !row.isSubFeatured) {
-    return "-";
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1">
-      {row.isMainFeatured ? <FeatureBadge label="메인" /> : null}
-      {row.isSubFeatured ? <FeatureBadge label="부위" /> : null}
-    </div>
-  );
-}
-
-function renderCategoryBadges(row: HospitalReviewRow) {
+function renderCategoryBadges(row: HospitalReviewCommentRow) {
   const categories = row.categoryName.split("\n").filter((categoryName) => categoryName.trim() && categoryName !== "-");
 
   if (categories.length === 0) {
@@ -130,14 +105,13 @@ function renderCategoryBadges(row: HospitalReviewRow) {
   );
 }
 
-function renderImagePreview(row: HospitalReviewRow) {
-  const imageCount = row.beforeImageCount + row.afterImageCount;
+function renderParentImage(row: HospitalReviewCommentRow) {
   const imageUrl = resolveHospitalReviewMediaUrl(row.firstImage);
 
   if (!imageUrl) {
     return (
       <div className="flex h-[100px] w-[100px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
-        {imageCount > 0 ? "1+" : "0"}
+        {row.imageCount > 0 ? "1+" : "0"}
       </div>
     );
   }
@@ -147,11 +121,11 @@ function renderImagePreview(row: HospitalReviewRow) {
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
       <img
         src={imageUrl}
-        alt={`후기 ${row.id} 이미지`}
+        alt={`후기 ${row.parentReviewId ?? row.id} 이미지`}
         loading="lazy"
         className="h-full w-full object-cover"
       />
-      {imageCount > 0 ? (
+      {row.imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
           1+
         </span>
@@ -160,7 +134,7 @@ function renderImagePreview(row: HospitalReviewRow) {
   );
 }
 
-function buildHospitalReviewColumns({
+function buildCommentColumns({
   sortState,
   selectedIds,
   allPageRowsSelected,
@@ -172,33 +146,37 @@ function buildHospitalReviewColumns({
   onToggleAllRows,
   onRowVisibilityChange,
 }: {
-  sortState: HospitalReviewSortState;
+  sortState: HospitalReviewCommentSortState;
   selectedIds: Set<number>;
   allPageRowsSelected: boolean;
   hasSelectableRows: boolean;
   visibilityUpdatingIds: Set<number>;
   visibilityControlsDisabled: boolean;
-  onToggleSort: (field: HospitalReviewSortField) => void;
-  onToggleRow: (row: HospitalReviewRow, checked: boolean) => void;
+  onToggleSort: (field: HospitalReviewCommentSortField) => void;
+  onToggleRow: (row: HospitalReviewCommentRow, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
-  onRowVisibilityChange: (row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => void;
-}): DataTableColumn<HospitalReviewRow>[] {
-  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
+  onRowVisibilityChange: (row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => void;
+}): DataTableColumn<HospitalReviewCommentRow>[] {
+  const headerBaseClass = "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
+  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const imageHeaderClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
   const imageCellClass = "px-2 py-4 text-start align-top whitespace-nowrap dark:text-gray-200";
-  const metricHeaderClass = "px-1.5 py-3 text-center font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const metricCellClass = "px-2 py-4 text-center align-top whitespace-nowrap dark:text-gray-200";
+  const twoLineClampStyle: React.CSSProperties = {
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+  };
 
   return [
     {
       key: "select",
-      headerClassName: `${headerBaseClass} lg:w-[34px] xl:w-[3%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[34px] xl:w-[3%]`,
+      headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[4%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[4%]`,
       header: (
         <SelectionCheckbox
-          label="현재 페이지 후기 전체 선택"
+          label="현재 페이지 후기 댓글 전체 선택"
           checked={allPageRowsSelected}
           disabled={!hasSelectableRows || visibilityControlsDisabled}
           onChange={onToggleAllRows}
@@ -206,7 +184,7 @@ function buildHospitalReviewColumns({
       ),
       render: (row) => (
         <SelectionCheckbox
-          label={`후기 ${row.id} 선택`}
+          label={`후기 댓글 ${row.id} 선택`}
           checked={selectedIds.has(row.id)}
           disabled={row.visibilityChangeLocked || visibilityControlsDisabled}
           onChange={(checked) => onToggleRow(row, checked)}
@@ -215,79 +193,65 @@ function buildHospitalReviewColumns({
     },
     {
       key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[44px] xl:w-[4%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[44px] xl:w-[4%]`,
-      header: <SortHeader field="id" label="ID" sortState={sortState} onToggleSort={onToggleSort} />,
+      headerClassName: `${headerBaseClass} lg:w-[76px] xl:w-[7%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[76px] xl:w-[7%]`,
+      header: <SortHeader field="id" label="댓글ID" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.id,
     },
     {
       key: "createdAt",
-      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[7%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[7%]`,
-      header: <SortHeader field="created_at" label="작성일" sortState={sortState} onToggleSort={onToggleSort} />,
+      headerClassName: `${headerBaseClass} lg:w-[104px] xl:w-[9%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[104px] xl:w-[9%]`,
+      header: <SortHeader field="created_at" label="댓글작성일" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.createdAt,
     },
     {
       key: "category",
-      headerClassName: `${headerBaseClass} lg:w-[142px] xl:w-[11.5%]`,
-      cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[11.5%]`,
+      headerClassName: `${headerBaseClass} lg:w-[184px] xl:w-[16%]`,
+      cellClassName: `${cellBaseClass} lg:w-[184px] xl:w-[16%]`,
       header: "카테고리",
       render: renderCategoryBadges,
     },
     {
-      key: "images",
-      headerClassName: `${imageHeaderClass} lg:w-[108px] xl:w-[10%]`,
-      cellClassName: `${imageCellClass} lg:w-[108px] xl:w-[10%]`,
-      header: "이미지",
-      render: renderImagePreview,
-    },
-    {
       key: "author",
-      headerClassName: `${headerBaseClass} lg:w-[112px] xl:w-[9%]`,
-      cellClassName: `${cellBaseClass} lg:w-[112px] xl:w-[9%]`,
-      header: "닉네임",
+      headerClassName: `${headerBaseClass} lg:w-[120px] xl:w-[10%]`,
+      cellClassName: `${cellBaseClass} lg:w-[120px] xl:w-[10%]`,
+      header: "댓글작성자",
       render: (row) => (
-        <span className="block line-clamp-2 break-words" title={row.authorName}>
+        <span className="block line-clamp-2 break-words text-sm text-gray-700 dark:text-gray-200" title={row.authorName}>
           {row.authorName}
         </span>
       ),
     },
     {
-      key: "hospital",
-      headerClassName: `${headerBaseClass} lg:w-[142px] xl:w-[11.5%]`,
-      cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[11.5%]`,
-      header: "병의원명",
+      key: "content",
+      headerClassName: `${headerBaseClass} lg:w-[260px] xl:w-[23%]`,
+      cellClassName: `${cellBaseClass} lg:w-[260px] xl:w-[23%]`,
+      header: "댓글내용",
       render: (row) => (
-        <span className="block line-clamp-2 font-medium text-gray-800 dark:text-white/90" title={row.hospitalName}>
-          {row.hospitalName}
-        </span>
+        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 dark:text-gray-300" style={twoLineClampStyle}>
+          {row.contentPreview}
+        </div>
       ),
     },
     {
-      key: "cost",
-      headerClassName: `${headerBaseClass} lg:w-[88px] xl:w-[7%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[88px] xl:w-[7%]`,
-      header: <SortHeader field="cost" label="시/수술비용" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => formatHospitalReviewCost(row.cost),
-    },
-    {
-      key: "rating",
-      headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[4%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[4%]`,
-      header: <SortHeader field="rating" label="평점" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
-      render: (row) => formatHospitalReviewRating(row.rating),
+      key: "parentImage",
+      headerClassName: `${imageHeaderClass} lg:w-[116px] xl:w-[10%]`,
+      cellClassName: `${imageCellClass} lg:w-[116px] xl:w-[10%]`,
+      header: "게시글 이미지",
+      render: renderParentImage,
     },
     {
       key: "status",
-      headerClassName: `${headerBaseClass} lg:w-[62px] xl:w-[5%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[62px] xl:w-[5%]`,
-      header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[7%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[7%]`,
+      header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <span onClick={(event) => event.stopPropagation()}>
           <Switch
             checked={row.isVisible}
             disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
-            ariaLabel={`후기 ${row.id} 노출 상태 변경`}
+            ariaLabel={`후기 댓글 ${row.id} 노출 상태 변경`}
             color="gray"
             onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
           />
@@ -295,45 +259,17 @@ function buildHospitalReviewColumns({
       ),
     },
     {
-      key: "featured",
-      headerClassName: `${headerBaseClass} lg:w-[58px] xl:w-[5%]`,
-      cellClassName: `${cellBaseClass} lg:w-[58px] xl:w-[5%]`,
-      header: "베스트",
-      render: renderBestBadges,
-    },
-    {
       key: "likeCount",
-      headerClassName: `${metricHeaderClass} lg:w-[78px] xl:w-[6%]`,
-      cellClassName: `${metricCellClass} lg:w-[78px] xl:w-[6%]`,
-      header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      headerClassName: `${headerBaseClass} lg:w-[84px] xl:w-[6%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[84px] xl:w-[6%]`,
+      header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.likeCount.toLocaleString(),
     },
     {
-      key: "saveCount",
-      headerClassName: `${metricHeaderClass} lg:w-[68px] xl:w-[5%]`,
-      cellClassName: `${metricCellClass} lg:w-[68px] xl:w-[5%]`,
-      header: <SortHeader field="save_count" label="저장횟수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
-      render: (row) => row.saveCount.toLocaleString(),
-    },
-    {
-      key: "commentCount",
-      headerClassName: `${metricHeaderClass} lg:w-[58px] xl:w-[4%]`,
-      cellClassName: `${metricCellClass} lg:w-[58px] xl:w-[4%]`,
-      header: <SortHeader field="comment_count" label="댓글수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
-      render: (row) => row.commentCount.toLocaleString(),
-    },
-    {
-      key: "viewCount",
-      headerClassName: `${metricHeaderClass} lg:w-[58px] xl:w-[4%]`,
-      cellClassName: `${metricCellClass} lg:w-[58px] xl:w-[4%]`,
-      header: <SortHeader field="view_count" label="조회수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
-      render: (row) => row.viewCount.toLocaleString(),
-    },
-    {
       key: "postStatus",
-      headerClassName: `${headerBaseClass} lg:w-[64px] xl:w-[5%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[64px] xl:w-[5%]`,
-      header: <SortHeader field="post_status" label="상태" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      headerClassName: `${headerBaseClass} lg:w-[92px] xl:w-[8%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[92px] xl:w-[8%]`,
+      header: <SortHeader field="post_status" label="게시글상태" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <StatusBadge size="sm" color={hospitalReviewPostStatusBadgeColor(row.postStatus)}>
           {labelHospitalReviewPostStatus(row.postStatus)}
@@ -343,26 +279,26 @@ function buildHospitalReviewColumns({
   ];
 }
 
-type HospitalReviewsDataTableProps = {
-  rows: HospitalReviewRow[];
+type HospitalReviewCommentsDataTableProps = {
+  rows: HospitalReviewCommentRow[];
   meta: DataTableMeta | null;
   loading: boolean;
   refreshing: boolean;
   error: string | null;
-  sortState: HospitalReviewSortState;
+  sortState: HospitalReviewCommentSortState;
   selectedIds: Set<number>;
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
-  onToggleSort: (field: HospitalReviewSortField) => void;
+  onToggleSort: (field: HospitalReviewCommentSortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
-  onToggleRow: (row: HospitalReviewRow, checked: boolean) => void;
+  onToggleRow: (row: HospitalReviewCommentRow, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (status: "ACTIVE" | "INACTIVE") => void;
-  onRowVisibilityChange: (row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => void;
+  onRowVisibilityChange: (row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => void;
 };
 
-export function HospitalReviewsDataTable({
+export function HospitalReviewCommentsDataTable({
   rows,
   meta,
   loading,
@@ -379,7 +315,7 @@ export function HospitalReviewsDataTable({
   onToggleAllRows,
   onBulkVisibilityChange,
   onRowVisibilityChange,
-}: HospitalReviewsDataTableProps) {
+}: HospitalReviewCommentsDataTableProps) {
   const selectedCount = selectedIds.size;
   const selectableRows = React.useMemo(
     () => rows.filter((row) => !row.visibilityChangeLocked),
@@ -387,7 +323,7 @@ export function HospitalReviewsDataTable({
   );
   const allPageRowsSelected = selectableRows.length > 0 && selectableRows.every((row) => selectedIds.has(row.id));
   const columns = React.useMemo(
-    () => buildHospitalReviewColumns({
+    () => buildCommentColumns({
       sortState,
       selectedIds,
       allPageRowsSelected,
@@ -417,12 +353,12 @@ export function HospitalReviewsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1120px] w-full xl:min-w-0 lg:table-fixed"
+      tableClassName="min-w-[1080px] w-full xl:min-w-0 lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
       loadingVariant="spinner"
-      loadingLabel="후기 목록 불러오는 중"
+      loadingLabel="후기 댓글 목록 불러오는 중"
       loading={loading}
       refreshing={refreshing}
       error={error}
@@ -454,7 +390,7 @@ export function HospitalReviewsDataTable({
           </Button>
         </div>
       )}
-      emptyText="조건에 맞는 후기가 없습니다."
+      emptyText="조건에 맞는 후기 댓글이 없습니다."
     />
   );
 }

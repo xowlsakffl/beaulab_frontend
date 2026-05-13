@@ -165,19 +165,19 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         description: "동영상 등록, 상태, 검수 흐름을 관리하는 기본 페이지입니다.",
     },
     {
-        slug: ["posts", "surgery-reviews"],
+        slug: ["reviews", "surgery-reviews"],
         title: "성형후기",
         group: "게시물 관리",
         description: "성형후기 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
-        slug: ["posts", "treatment-reviews"],
+        slug: ["reviews", "treatment-reviews"],
         title: "시술후기",
         group: "게시물 관리",
         description: "시술후기 게시물을 조회하고 관리하는 기본 페이지입니다.",
     },
     {
-        slug: ["posts", "hospital-evaluations"],
+        slug: ["reviews", "hospital-evaluations"],
         title: "병의원 평가",
         group: "게시물 관리",
         description: "병의원 평가 게시물을 조회하고 관리하는 기본 페이지입니다.",

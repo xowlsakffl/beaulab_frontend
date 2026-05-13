@@ -110,9 +110,9 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <MessageSquareText className={iconClass} />,
             name: "게시물 관리",
             subItems: [
-                routeSubItem({name: "성형후기", path: "/posts/surgery-reviews"}),
-                routeSubItem({name: "시술후기", path: "/posts/treatment-reviews"}),
-                routeSubItem({name: "병의원 평가", path: "/posts/hospital-evaluations"}),
+                routeSubItem({name: "성형후기", path: "/reviews/surgery-reviews"}),
+                routeSubItem({name: "시술후기", path: "/reviews/treatment-reviews"}),
+                routeSubItem({name: "병의원 평가", path: "/reviews/hospital-evaluations"}),
                 routeSubItem({ name: "토크", path: "/talks" }),
             ],
         },

@@ -2,7 +2,7 @@
 
 이 문서는 `apps/staff-web`에서 앞으로 지켜야 할 리팩토링/구조/구현 규칙을 정리합니다.
 
-작성 기준: 2026-03-27
+작성 기준: 2026-05-13
 
 ## 1. 공통 원칙
 
@@ -24,6 +24,8 @@
 기능명 기준 route group `(wallet)`, `(ads)`, `(posts)`처럼 잘게 쪼개지 않습니다.
 공통 메뉴에 해당하는 page는 `(pages)/(common)` 아래에 둡니다.
 `/profile` 같은 관리자 공통 페이지도 `(pages)/(common)` 아래에 둡니다.
+병의원 도메인 게시물 page는 `(pages)/(hospital)` 아래에 둡니다.
+성형후기/시술후기/병의원 평가는 URL 세그먼트도 `/reviews/*`를 사용하고, `(common)/posts`에는 두지 않습니다.
 
 ### 2.1 `common`의 의미
 
@@ -55,9 +57,13 @@
 - 의료진 병의원 검색/프로필/증빙 로직
 - 동영상 목록/등록/상세/수정 전용 로직
 - 토크 목록 전용 로직
+- 토크 상세/댓글 목록/댓글 멘션 전용 로직
+- 성형후기/시술후기 게시글/댓글 목록 전용 로직
 - 병의원/공지사항/의료진 `form.ts`, `list.ts`
 - 동영상 `form.ts`, `list.ts`
 - 토크 `list.ts`
+- 토크 댓글 `comment-list.ts`, 상세 `detail.ts`
+- 병의원 후기 `list.ts`, 댓글 `comment-list.ts`
 - 도메인 field name을 아는 validation / error mapping / focus mapping
 
 ## 3. 컴포넌트 분리 규칙
@@ -178,7 +184,7 @@
 - navigation helper
 - 공통 normalize/helper
 
-### 5.2 `lib/hospital`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`, `lib/talk`
+### 5.2 `lib/hospital`, `lib/hospital-review`, `lib/notice`, `lib/doctor`, `lib/video`, `lib/hashtag`, `lib/talk`
 
 다음만 둡니다.
 
@@ -192,17 +198,22 @@
 
 페이지 상태 자체는 `lib`로 빼지 않습니다.
 해시태그처럼 단일 필드 관리자 CRUD는 `list.ts` 하나에 URL state, row mapper, 입력 sanitize/validate를 같이 둘 수 있습니다.
-토크처럼 공통 게시물 하위의 독립 목록도 `list.ts` 하나에 URL state, row mapper, query helper를 같이 둘 수 있습니다.
+토크처럼 병의원 게시물 하위의 독립 목록도 `list.ts` 하나에 URL state, row mapper, query helper를 같이 둘 수 있습니다.
+토크 댓글 목록은 `lib/talk/comment-list.ts`, 토크 상세 mapper는 `lib/talk/detail.ts`에 둡니다.
+병의원 후기 게시글 목록은 `lib/hospital-review/list.ts`, 댓글 목록은 `lib/hospital-review/comment-list.ts`에 둡니다.
 
 ## 6. 목록 페이지 규칙
 
-병의원/공지사항/의료진/동영상/토크 목록은 같은 패턴을 지킵니다.
+병의원/공지사항/의료진/동영상/토크/병의원 후기 목록은 같은 패턴을 지킵니다.
 
 - 검색/필터/정렬/페이지/per_page는 URL과 동기화합니다.
 - 새로고침 후에도 현재 목록 문맥이 복원되어야 합니다.
 - 상세 진입 시 `returnTo`를 유지합니다.
 - 등록/수정 후 복귀 시 `highlight`로 해당 행을 강조합니다.
 - 행 클릭 전환은 `router.prefetch()`를 같이 씁니다.
+- 게시글/댓글 탭이 한 화면에 있으면 탭별 필터 상태를 공유하지 않습니다.
+- 탭 전환 시 필터와 선택 row 상태는 초기화합니다.
+- 댓글 목록의 카테고리는 댓글 자체가 아니라 부모 게시글 카테고리 기준으로 필터링합니다.
 
 ## 7. 등록/수정 폼 규칙
 
@@ -283,6 +294,7 @@
 - `route-permissions.ts`는 정적 경로 permission source와 동적 route 매칭 규칙을 함께 소유합니다.
 - 사이드바는 path별 permission string을 하드코딩하지 말고 `route-permissions.ts`의 정적 경로 helper를 참조합니다.
 - `카테고리`와 `해시태그`처럼 메뉴 그룹이 같아도 서버 permission이 다르면 각각 별도 permission으로 연결합니다.
+- 병의원 후기 라우트는 `beaulab.hospital_review.show`, 병의원 평가 라우트는 `beaulab.hospital_evaluation.show`를 사용합니다.
 
 ## 10. 문서 갱신 규칙
 

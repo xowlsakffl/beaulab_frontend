@@ -25,7 +25,6 @@ import {
 
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
-import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import { isTalkVisibilityChangeLocked, talkPostStatusBadgeColor } from "@/lib/talk/list";
 import {
@@ -103,12 +102,6 @@ export default function TalkDetailPageClient() {
     () => new Set(),
   );
   const hasLoadedRef = React.useRef(false);
-  const pageHeaderExtra = React.useMemo(
-    () => renderTalkPostStatusBadge(detail?.post_status),
-    [detail?.post_status],
-  );
-
-  usePageHeaderExtra(pageHeaderExtra);
 
   const getReturnToPath = React.useCallback(
     (highlightId?: number) =>
@@ -510,7 +503,10 @@ function TalkContentCard({
     <Card as="section">
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <CardTitle>토크</CardTitle>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <CardTitle>토크</CardTitle>
+            {renderTalkPostStatusBadge(detail.post_status)}
+          </div>
           <VisibilityButtons
             status={detail.status}
             disabled={visibilityLocked || visibilityUpdating}
