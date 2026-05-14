@@ -197,7 +197,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                             signOutItem: { label: "로그아웃", onClick: handleSignOut },
                         }}
                     />
-                    <main className="mx-auto min-w-0 w-full max-w-screen-2xl flex-1 p-4 md:p-6">{children}</main>
+                    <main className="min-w-0 w-full flex-1 px-2 py-4 md:px-4 md:py-5">{children}</main>
                 </div>
             </div>
         </PageHeaderExtraProvider>
