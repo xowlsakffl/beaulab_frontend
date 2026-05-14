@@ -15,7 +15,6 @@ import {
   HOSPITAL_REVIEW_BEST_OPTIONS,
   HOSPITAL_REVIEW_DATE_PRESET_OPTIONS,
   HOSPITAL_REVIEW_METRIC_OPTIONS,
-  HOSPITAL_REVIEW_POST_STATUS_OPTIONS,
   HOSPITAL_REVIEW_RATING_OPTIONS,
   HOSPITAL_REVIEW_VISIBILITY_OPTIONS,
   type HospitalReviewDatePresetKey,
@@ -28,18 +27,13 @@ type HospitalReviewsFilterPanelProps = {
   draftDateRange?: DateRange;
   majorCategoryOptions: SelectOption[];
   middleCategoryOptions: SelectOption[];
-  isStatusDropdownOpen: boolean;
   isRatingDropdownOpen: boolean;
   isDatePickerOpen: boolean;
-  statusDropdownRef: React.RefObject<HTMLDivElement | null>;
   ratingDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
-  onToggleStatusDropdown: () => void;
   onToggleRatingDropdown: () => void;
   onToggleDatePicker: () => void;
-  onToggleStatus: (value: string) => void;
-  onToggleAllStatus: () => void;
   onMajorCategoryChange: (value: string) => void;
   onMiddleCategoryChange: (value: string) => void;
   onToggleRating: (value: string) => void;
@@ -66,18 +60,13 @@ export function HospitalReviewsFilterPanel({
   draftDateRange,
   majorCategoryOptions,
   middleCategoryOptions,
-  isStatusDropdownOpen,
   isRatingDropdownOpen,
   isDatePickerOpen,
-  statusDropdownRef,
   ratingDropdownRef,
   datePickerRef,
   onSearchChange,
-  onToggleStatusDropdown,
   onToggleRatingDropdown,
   onToggleDatePicker,
-  onToggleStatus,
-  onToggleAllStatus,
   onMajorCategoryChange,
   onMiddleCategoryChange,
   onToggleRating,
@@ -104,7 +93,7 @@ export function HospitalReviewsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(13rem,1fr)_minmax(20rem,1.55fr)_minmax(9rem,0.75fr)_minmax(24rem,1.9fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)_minmax(0,0.75fr)_minmax(0,1.9fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -200,7 +189,7 @@ export function HospitalReviewsFilterPanel({
           </div>
         </div>
 
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(9rem,0.75fr)_minmax(9rem,0.75fr)_minmax(9rem,0.75fr)_minmax(22rem,1.8fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-3 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,2.7fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>베스트</span>
             <div className="min-w-0 flex-1">
@@ -230,22 +219,7 @@ export function HospitalReviewsFilterPanel({
             />
           </div>
 
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>상태</span>
-            <CheckboxFilterDropdown
-              label="상태"
-              hideLabel
-              containerRef={statusDropdownRef}
-              selectedValues={draftFilters.postStatuses}
-              options={HOSPITAL_REVIEW_POST_STATUS_OPTIONS}
-              isOpen={isStatusDropdownOpen}
-              onToggleOpen={onToggleStatusDropdown}
-              onToggleValue={onToggleStatus}
-              onToggleAll={onToggleAllStatus}
-            />
-          </div>
-
-          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
+          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center xl:pl-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">

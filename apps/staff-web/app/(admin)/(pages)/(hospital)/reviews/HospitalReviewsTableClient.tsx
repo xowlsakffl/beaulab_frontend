@@ -40,7 +40,6 @@ import {
   DEFAULT_HOSPITAL_REVIEW_FILTERS,
   DEFAULT_HOSPITAL_REVIEW_SORT,
   HOSPITAL_REVIEW_BOARD_CONFIGS,
-  HOSPITAL_REVIEW_POST_STATUS_OPTIONS,
   HOSPITAL_REVIEW_RATING_OPTIONS,
   buildHospitalReviewPresetDateRange,
   buildHospitalReviewsQuery,
@@ -114,7 +113,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const [activeBoard, setActiveBoard] = React.useState<HospitalReviewBoard>(initialBoardRef.current ?? "posts");
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isRatingDropdownOpen, setIsRatingDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
@@ -139,7 +137,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
-  const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const ratingDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
   const middleCategoryParentRef = React.useRef("");
@@ -441,8 +438,24 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     });
   }, [activeBoard, commentRows, rows]);
 
+  React.useEffect(() => {
+    const onOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (!ratingDropdownRef.current?.contains(target)) {
+        setIsRatingDropdownOpen(false);
+      }
+      if (!datePickerRef.current?.contains(target)) {
+        setIsDatePickerOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => document.removeEventListener("mousedown", onOutsideClick);
+  }, []);
+
   const toggleDraftArrayValue = React.useCallback(
-    (key: "postStatuses" | "ratings", value: string) => {
+    (key: "ratings", value: string) => {
       setDraftFilters((prev) => {
         const exists = prev[key].includes(value);
         const nextValues = exists ? prev[key].filter((item) => item !== value) : [...prev[key], value];
@@ -454,7 +467,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   );
 
   const toggleAllDraftArrayValues = React.useCallback(
-    (key: "postStatuses" | "ratings", options: CheckboxFilterOption[]) => {
+    (key: "ratings", options: CheckboxFilterOption[]) => {
       setDraftFilters((prev) => {
         const allValues = options.map((option) => option.value);
         const hasAll = allValues.length > 0 && allValues.every((value) => prev[key].includes(value));
@@ -480,7 +493,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     setAppliedFilters(DEFAULT_HOSPITAL_REVIEW_FILTERS);
     setSortState(DEFAULT_HOSPITAL_REVIEW_SORT);
     setCommentSortState(DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT);
-    setIsStatusDropdownOpen(false);
     setIsRatingDropdownOpen(false);
     setIsDatePickerOpen(false);
     setPage(1);
@@ -776,6 +788,17 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     }
   }, [fetchComments, fetchReviews, pendingVisibilityChange]);
 
+  const openReviewDetail = React.useCallback((row: HospitalReviewRow) => {
+    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(`${config.listPath}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [config.listPath, pathname, queryString, router]);
+
+  React.useEffect(() => {
+    rows.slice(0, 10).forEach((row) => {
+      router.prefetch(`${config.listPath}/${row.id}`);
+    });
+  }, [config.listPath, router, rows]);
+
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityTarget = pendingVisibilityChange?.board === "comments" ? "댓글" : "후기";
   const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
@@ -817,18 +840,19 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           draftDateRange={draftDateRange}
           majorCategoryOptions={majorCategoryOptions}
           middleCategoryOptions={middleCategoryOptions}
-          isStatusDropdownOpen={isStatusDropdownOpen}
           isRatingDropdownOpen={isRatingDropdownOpen}
           isDatePickerOpen={isDatePickerOpen}
-          statusDropdownRef={statusDropdownRef}
           ratingDropdownRef={ratingDropdownRef}
           datePickerRef={datePickerRef}
           onSearchChange={setSearchInput}
-          onToggleStatusDropdown={() => setIsStatusDropdownOpen((value) => !value)}
-          onToggleRatingDropdown={() => setIsRatingDropdownOpen((value) => !value)}
-          onToggleDatePicker={() => setIsDatePickerOpen((value) => !value)}
-          onToggleStatus={(value) => toggleDraftArrayValue("postStatuses", value)}
-          onToggleAllStatus={() => toggleAllDraftArrayValues("postStatuses", HOSPITAL_REVIEW_POST_STATUS_OPTIONS)}
+          onToggleRatingDropdown={() => {
+            setIsDatePickerOpen(false);
+            setIsRatingDropdownOpen((value) => !value);
+          }}
+          onToggleDatePicker={() => {
+            setIsRatingDropdownOpen(false);
+            setIsDatePickerOpen((value) => !value);
+          }}
           onMajorCategoryChange={changeMajorCategory}
           onMiddleCategoryChange={changeMiddleCategory}
           onToggleRating={(value) => toggleDraftArrayValue("ratings", value)}
@@ -851,15 +875,13 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           majorCategoryOptions={majorCategoryOptions}
           middleCategoryOptions={middleCategoryOptions}
           smallCategoryOptions={smallCategoryOptions}
-          isStatusDropdownOpen={isStatusDropdownOpen}
           isDatePickerOpen={isDatePickerOpen}
-          statusDropdownRef={statusDropdownRef}
           datePickerRef={datePickerRef}
           onSearchChange={setSearchInput}
-          onToggleStatusDropdown={() => setIsStatusDropdownOpen((value) => !value)}
-          onToggleDatePicker={() => setIsDatePickerOpen((value) => !value)}
-          onToggleStatus={(value) => toggleDraftArrayValue("postStatuses", value)}
-          onToggleAllStatus={() => toggleAllDraftArrayValues("postStatuses", HOSPITAL_REVIEW_POST_STATUS_OPTIONS)}
+          onToggleDatePicker={() => {
+            setIsRatingDropdownOpen(false);
+            setIsDatePickerOpen((value) => !value);
+          }}
           onMajorCategoryChange={changeMajorCategory}
           onMiddleCategoryChange={changeMiddleCategory}
           onSmallCategoryChange={changeSmallCategory}
@@ -897,6 +919,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onToggleAllRows={toggleAllRows}
           onBulkVisibilityChange={requestBulkVisibilityChange}
           onRowVisibilityChange={requestRowVisibilityChange}
+          onOpenDetail={openReviewDetail}
         />
       ) : (
         <HospitalReviewCommentsDataTable

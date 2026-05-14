@@ -1,12 +1,10 @@
 import {
   DEFAULT_HOSPITAL_REVIEW_FILTERS,
-  HOSPITAL_REVIEW_POST_STATUS_OPTIONS,
   HOSPITAL_REVIEW_VISIBILITY_OPTIONS,
   HOSPITAL_REVIEWS_PER_PAGE,
   formatHospitalReviewAuthorName,
   formatHospitalReviewCategories,
   formatHospitalReviewDate,
-  isHospitalReviewVisibilityChangeLocked,
   normalizeMetricBound,
   type HospitalReviewAuthor,
   type HospitalReviewCategory,
@@ -33,7 +31,6 @@ export type HospitalReviewCommentApiItem = {
   content?: string | null;
   status?: string | null;
   like_count?: number | null;
-  post_status?: string | null;
 };
 
 export type HospitalReviewCommentRow = {
@@ -50,13 +47,11 @@ export type HospitalReviewCommentRow = {
   isVisible: boolean;
   visibilityChangeLocked: boolean;
   likeCount: number;
-  postStatus: string;
 };
 
 export type HospitalReviewCommentSortField =
   | "id"
   | "status"
-  | "post_status"
   | "like_count"
   | "created_at"
   | "updated_at";
@@ -70,7 +65,6 @@ export type HospitalReviewCommentSortState = {
 export type HospitalReviewCommentsQuery = {
   q?: string;
   status?: string;
-  post_status?: string;
   category_domain: string;
   category_ids?: string;
   metric_min?: string;
@@ -92,17 +86,14 @@ export const DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT: HospitalReviewCommentSortStat
 const HOSPITAL_REVIEW_COMMENT_SORT_FIELDS = new Set<HospitalReviewCommentSortField>([
   "id",
   "status",
-  "post_status",
   "like_count",
   "created_at",
   "updated_at",
 ]);
-const HOSPITAL_REVIEW_COMMENT_POST_STATUS_SET = new Set(HOSPITAL_REVIEW_POST_STATUS_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_COMMENT_VISIBILITY_SET = new Set(HOSPITAL_REVIEW_VISIBILITY_OPTIONS.map((option) => option.value));
 
 export function normalizeHospitalReviewComment(item: HospitalReviewCommentApiItem): HospitalReviewCommentRow {
   const status = item.status?.trim() || "ACTIVE";
-  const postStatus = item.post_status?.trim() || "POST_NORMAL";
   const beforeImages = item.parent?.before_images ?? [];
   const afterImages = item.parent?.after_images ?? [];
   const categories = normalizeHospitalReviewCommentCategories(item);
@@ -119,9 +110,8 @@ export function normalizeHospitalReviewComment(item: HospitalReviewCommentApiIte
     imageCount: beforeImages.length + afterImages.length,
     status,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: isHospitalReviewVisibilityChangeLocked(postStatus),
+    visibilityChangeLocked: false,
     likeCount: Number(item.like_count ?? 0),
-    postStatus,
   };
 }
 
@@ -211,13 +201,6 @@ export function buildHospitalReviewCommentsQuery({
     query.status = appliedFilters.visibilityStatus;
   }
 
-  const postStatuses = Array.from(new Set(
-    appliedFilters.postStatuses
-      .map((value) => value.trim())
-      .filter((value) => HOSPITAL_REVIEW_COMMENT_POST_STATUS_SET.has(value)),
-  ));
-  if (postStatuses.length > 0) query.post_status = postStatuses.join(",");
-
   const selectedCategoryId = appliedFilters.smallCategoryId
     || appliedFilters.middleCategoryId
     || appliedFilters.majorCategoryId
@@ -243,7 +226,6 @@ export function buildHospitalReviewCommentsQueryString(query: HospitalReviewComm
   params.set("board", "comments");
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
-  if (query.post_status) params.set("post_status", query.post_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);

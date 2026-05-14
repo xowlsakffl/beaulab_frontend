@@ -8,7 +8,6 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
@@ -17,8 +16,6 @@ import {
 import {
   formatHospitalReviewCost,
   formatHospitalReviewRating,
-  hospitalReviewPostStatusBadgeColor,
-  labelHospitalReviewPostStatus,
   resolveHospitalReviewMediaUrl,
   type HospitalReviewRow,
   type HospitalReviewSortField,
@@ -133,17 +130,18 @@ function renderCategoryBadges(row: HospitalReviewRow) {
 function renderImagePreview(row: HospitalReviewRow) {
   const imageCount = row.beforeImageCount + row.afterImageCount;
   const imageUrl = resolveHospitalReviewMediaUrl(row.firstImage);
+  const imageFrameClass = "h-[100px] w-full min-w-[84px] max-w-[100px] shrink-0";
 
   if (!imageUrl) {
     return (
-      <div className="flex h-[100px] w-[100px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
-        {imageCount > 0 ? "1+" : "0"}
+      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500`}>
+        {imageCount > 0 ? `${imageCount}+` : "0"}
       </div>
     );
   }
 
   return (
-    <div className="relative h-[100px] w-[100px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-white/[0.04]">
+    <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-white/[0.04]`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
       <img
         src={imageUrl}
@@ -153,7 +151,7 @@ function renderImagePreview(row: HospitalReviewRow) {
       />
       {imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
-          1+
+          {imageCount}+
         </span>
       ) : null}
     </div>
@@ -183,13 +181,13 @@ function buildHospitalReviewColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => void;
 }): DataTableColumn<HospitalReviewRow>[] {
-  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-1.5 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
+  const cellBaseClass = "px-1.5 py-4 text-start align-top dark:text-gray-200";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
-  const imageHeaderClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const imageCellClass = "px-2 py-4 text-start align-top whitespace-nowrap dark:text-gray-200";
+  const imageHeaderClass = "px-1.5 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
+  const imageCellClass = "px-1.5 py-4 text-start align-top dark:text-gray-200";
   const metricHeaderClass = "px-1.5 py-3 text-center font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const metricCellClass = "px-2 py-4 text-center align-top whitespace-nowrap dark:text-gray-200";
+  const metricCellClass = "px-1.5 py-4 text-center align-top whitespace-nowrap dark:text-gray-200";
 
   return [
     {
@@ -215,36 +213,36 @@ function buildHospitalReviewColumns({
     },
     {
       key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[44px] xl:w-[4%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[44px] xl:w-[4%]`,
+      headerClassName: `${headerBaseClass} lg:w-[44px] xl:w-[3.5%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[44px] xl:w-[3.5%]`,
       header: <SortHeader field="id" label="ID" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.id,
     },
     {
       key: "createdAt",
-      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[7%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[7%]`,
+      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6.5%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6.5%]`,
       header: <SortHeader field="created_at" label="작성일" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.createdAt,
     },
     {
       key: "category",
-      headerClassName: `${headerBaseClass} lg:w-[142px] xl:w-[11.5%]`,
-      cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[11.5%]`,
+      headerClassName: `${headerBaseClass} lg:w-[142px] xl:w-[10.5%]`,
+      cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[10.5%]`,
       header: "카테고리",
       render: renderCategoryBadges,
     },
     {
       key: "images",
-      headerClassName: `${imageHeaderClass} lg:w-[108px] xl:w-[10%]`,
-      cellClassName: `${imageCellClass} lg:w-[108px] xl:w-[10%]`,
+      headerClassName: `${imageHeaderClass} lg:w-[108px] xl:w-[9%]`,
+      cellClassName: `${imageCellClass} lg:w-[108px] xl:w-[9%]`,
       header: "이미지",
       render: renderImagePreview,
     },
     {
       key: "author",
-      headerClassName: `${headerBaseClass} lg:w-[112px] xl:w-[9%]`,
-      cellClassName: `${cellBaseClass} lg:w-[112px] xl:w-[9%]`,
+      headerClassName: `${headerBaseClass} lg:w-[112px] xl:w-[8.5%]`,
+      cellClassName: `${cellBaseClass} lg:w-[112px] xl:w-[8.5%]`,
       header: "닉네임",
       render: (row) => (
         <span className="block line-clamp-2 break-words" title={row.authorName}>
@@ -254,8 +252,8 @@ function buildHospitalReviewColumns({
     },
     {
       key: "hospital",
-      headerClassName: `${headerBaseClass} lg:w-[142px] xl:w-[11.5%]`,
-      cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[11.5%]`,
+      headerClassName: `${headerBaseClass} lg:w-[142px] xl:w-[11%]`,
+      cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[11%]`,
       header: "병의원명",
       render: (row) => (
         <span className="block line-clamp-2 font-medium text-gray-800 dark:text-white/90" title={row.hospitalName}>
@@ -272,8 +270,8 @@ function buildHospitalReviewColumns({
     },
     {
       key: "rating",
-      headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[4%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[4%]`,
+      headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[3.8%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[3.8%]`,
       header: <SortHeader field="rating" label="평점" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
       render: (row) => formatHospitalReviewRating(row.rating),
     },
@@ -296,22 +294,22 @@ function buildHospitalReviewColumns({
     },
     {
       key: "featured",
-      headerClassName: `${headerBaseClass} lg:w-[58px] xl:w-[5%]`,
-      cellClassName: `${cellBaseClass} lg:w-[58px] xl:w-[5%]`,
+      headerClassName: `${headerBaseClass} lg:w-[58px] xl:w-[4.5%]`,
+      cellClassName: `${cellBaseClass} lg:w-[58px] xl:w-[4.5%]`,
       header: "베스트",
       render: renderBestBadges,
     },
     {
       key: "likeCount",
-      headerClassName: `${metricHeaderClass} lg:w-[78px] xl:w-[6%]`,
-      cellClassName: `${metricCellClass} lg:w-[78px] xl:w-[6%]`,
+      headerClassName: `${metricHeaderClass} lg:w-[78px] xl:w-[5.5%]`,
+      cellClassName: `${metricCellClass} lg:w-[78px] xl:w-[5.5%]`,
       header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
       render: (row) => row.likeCount.toLocaleString(),
     },
     {
       key: "saveCount",
-      headerClassName: `${metricHeaderClass} lg:w-[68px] xl:w-[5%]`,
-      cellClassName: `${metricCellClass} lg:w-[68px] xl:w-[5%]`,
+      headerClassName: `${metricHeaderClass} lg:w-[68px] xl:w-[4.8%]`,
+      cellClassName: `${metricCellClass} lg:w-[68px] xl:w-[4.8%]`,
       header: <SortHeader field="save_count" label="저장횟수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
       render: (row) => row.saveCount.toLocaleString(),
     },
@@ -328,17 +326,6 @@ function buildHospitalReviewColumns({
       cellClassName: `${metricCellClass} lg:w-[58px] xl:w-[4%]`,
       header: <SortHeader field="view_count" label="조회수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
       render: (row) => row.viewCount.toLocaleString(),
-    },
-    {
-      key: "postStatus",
-      headerClassName: `${headerBaseClass} lg:w-[64px] xl:w-[5%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[64px] xl:w-[5%]`,
-      header: <SortHeader field="post_status" label="상태" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
-      render: (row) => (
-        <StatusBadge size="sm" color={hospitalReviewPostStatusBadgeColor(row.postStatus)}>
-          {labelHospitalReviewPostStatus(row.postStatus)}
-        </StatusBadge>
-      ),
     },
   ];
 }
@@ -360,6 +347,7 @@ type HospitalReviewsDataTableProps = {
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (status: "ACTIVE" | "INACTIVE") => void;
   onRowVisibilityChange: (row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => void;
+  onOpenDetail: (row: HospitalReviewRow) => void;
 };
 
 export function HospitalReviewsDataTable({
@@ -379,6 +367,7 @@ export function HospitalReviewsDataTable({
   onToggleAllRows,
   onBulkVisibilityChange,
   onRowVisibilityChange,
+  onOpenDetail,
 }: HospitalReviewsDataTableProps) {
   const selectedCount = selectedIds.size;
   const selectableRows = React.useMemo(
@@ -417,7 +406,7 @@ export function HospitalReviewsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1120px] w-full xl:min-w-0 lg:table-fixed"
+      tableClassName="min-w-[1080px] w-full lg:min-w-full lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
@@ -429,6 +418,7 @@ export function HospitalReviewsDataTable({
       meta={meta}
       onGoPage={onGoPage}
       onRefresh={onRefresh}
+      onRowClick={onOpenDetail}
       refreshPlacement="left"
       rightActions={(
         <div className="flex w-full flex-wrap items-center justify-end gap-2">

@@ -8,7 +8,6 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
@@ -20,8 +19,6 @@ import {
   type HospitalReviewCommentSortState,
 } from "@/lib/hospital-review/comment-list";
 import {
-  hospitalReviewPostStatusBadgeColor,
-  labelHospitalReviewPostStatus,
   resolveHospitalReviewMediaUrl,
 } from "@/lib/hospital-review/list";
 
@@ -52,10 +49,10 @@ function SortHeader({
       variant="ghost"
       size="sm"
       onClick={() => onToggleSort(field)}
-      className="inline-flex items-center gap-1 px-0 text-xs"
+      className="inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal"
     >
-      {label}
-      <span className="text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
+      <span className="min-w-0 break-keep">{label}</span>
+      <span className="shrink-0 text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
     </Button>
   );
 }
@@ -107,17 +104,18 @@ function renderCategoryBadges(row: HospitalReviewCommentRow) {
 
 function renderParentImage(row: HospitalReviewCommentRow) {
   const imageUrl = resolveHospitalReviewMediaUrl(row.firstImage);
+  const imageFrameClass = "h-[100px] w-full min-w-[84px] max-w-[100px] shrink-0";
 
   if (!imageUrl) {
     return (
-      <div className="flex h-[100px] w-[100px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
-        {row.imageCount > 0 ? "1+" : "0"}
+      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500`}>
+        {row.imageCount > 0 ? `${row.imageCount}+` : "0"}
       </div>
     );
   }
 
   return (
-    <div className="relative h-[100px] w-[100px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-white/[0.04]">
+    <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-white/[0.04]`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
       <img
         src={imageUrl}
@@ -127,7 +125,7 @@ function renderParentImage(row: HospitalReviewCommentRow) {
       />
       {row.imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
-          1+
+          {row.imageCount}+
         </span>
       ) : null}
     </div>
@@ -157,11 +155,11 @@ function buildCommentColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => void;
 }): DataTableColumn<HospitalReviewCommentRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
+  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const imageHeaderClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const imageCellClass = "px-2 py-4 text-start align-top whitespace-nowrap dark:text-gray-200";
+  const imageCellClass = "px-2 py-4 text-start align-top dark:text-gray-200";
   const twoLineClampStyle: React.CSSProperties = {
     display: "-webkit-box",
     WebkitLineClamp: 2,
@@ -265,17 +263,6 @@ function buildCommentColumns({
       header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.likeCount.toLocaleString(),
     },
-    {
-      key: "postStatus",
-      headerClassName: `${headerBaseClass} lg:w-[92px] xl:w-[8%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[92px] xl:w-[8%]`,
-      header: <SortHeader field="post_status" label="게시글상태" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => (
-        <StatusBadge size="sm" color={hospitalReviewPostStatusBadgeColor(row.postStatus)}>
-          {labelHospitalReviewPostStatus(row.postStatus)}
-        </StatusBadge>
-      ),
-    },
   ];
 }
 
@@ -353,7 +340,7 @@ export function HospitalReviewCommentsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1080px] w-full xl:min-w-0 lg:table-fixed"
+      tableClassName="min-w-[1040px] w-full lg:min-w-full lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

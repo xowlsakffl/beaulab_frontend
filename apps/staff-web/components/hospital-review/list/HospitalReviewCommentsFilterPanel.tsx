@@ -5,7 +5,6 @@ import type { DateRange } from "react-day-picker";
 import {
   Button,
   Card,
-  CheckboxFilterDropdown,
   DateRangeFilterDropdown,
   InputField,
   Select,
@@ -13,7 +12,6 @@ import {
 
 import {
   HOSPITAL_REVIEW_DATE_PRESET_OPTIONS,
-  HOSPITAL_REVIEW_POST_STATUS_OPTIONS,
   HOSPITAL_REVIEW_VISIBILITY_OPTIONS,
   type HospitalReviewDatePresetKey,
   type HospitalReviewFilters,
@@ -31,15 +29,10 @@ type HospitalReviewCommentsFilterPanelProps = {
   majorCategoryOptions: SelectOption[];
   middleCategoryOptions: SelectOption[];
   smallCategoryOptions: SelectOption[];
-  isStatusDropdownOpen: boolean;
   isDatePickerOpen: boolean;
-  statusDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
-  onToggleStatusDropdown: () => void;
   onToggleDatePicker: () => void;
-  onToggleStatus: (value: string) => void;
-  onToggleAllStatus: () => void;
   onMajorCategoryChange: (value: string) => void;
   onMiddleCategoryChange: (value: string) => void;
   onSmallCategoryChange: (value: string) => void;
@@ -59,15 +52,10 @@ export function HospitalReviewCommentsFilterPanel({
   majorCategoryOptions,
   middleCategoryOptions,
   smallCategoryOptions,
-  isStatusDropdownOpen,
   isDatePickerOpen,
-  statusDropdownRef,
   datePickerRef,
   onSearchChange,
-  onToggleStatusDropdown,
   onToggleDatePicker,
-  onToggleStatus,
-  onToggleAllStatus,
   onMajorCategoryChange,
   onMiddleCategoryChange,
   onSmallCategoryChange,
@@ -91,7 +79,7 @@ export function HospitalReviewCommentsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(13rem,0.85fr)_minmax(28rem,1.55fr)_minmax(9rem,0.7fr)_minmax(17rem,1fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)_minmax(0,0.7fr)_minmax(0,1fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -182,25 +170,8 @@ export function HospitalReviewCommentsFilterPanel({
           </div>
         </div>
 
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[16rem_minmax(0,1fr)]">
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>게시글상태</span>
-            <div className="min-w-0 flex-1 xl:max-w-[11rem]">
-              <CheckboxFilterDropdown
-                label="게시글상태"
-                hideLabel
-                containerRef={statusDropdownRef}
-                selectedValues={draftFilters.postStatuses}
-                options={HOSPITAL_REVIEW_POST_STATUS_OPTIONS}
-                isOpen={isStatusDropdownOpen}
-                onToggleOpen={onToggleStatusDropdown}
-                onToggleValue={onToggleStatus}
-                onToggleAll={onToggleAllStatus}
-              />
-            </div>
-          </div>
-
-          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
+        <div className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-3">
+          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center xl:pl-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">

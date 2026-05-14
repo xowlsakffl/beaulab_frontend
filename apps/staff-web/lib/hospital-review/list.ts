@@ -6,6 +6,7 @@ export type HospitalReviewBoardType = "surgery" | "treatment";
 export type HospitalReviewBoardConfig = {
   type: HospitalReviewBoardType;
   title: string;
+  listPath: string;
   apiPath: string;
   categoryDomain: string;
 };
@@ -15,6 +16,7 @@ export type HospitalReviewAuthor = {
   name?: string | null;
   nickname?: string | null;
   email?: string | null;
+  phone?: string | null;
 };
 
 export type HospitalReviewCategory = {
@@ -75,7 +77,6 @@ export type HospitalReviewApiItem = {
   save_count?: number | null;
   comment_count?: number | null;
   view_count?: number | null;
-  post_status?: string | null;
 };
 
 export type HospitalReviewRow = {
@@ -91,7 +92,6 @@ export type HospitalReviewRow = {
   cost: number;
   rating: number;
   status: string;
-  postStatus: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
   isMainFeatured: boolean;
@@ -108,7 +108,6 @@ export type HospitalReviewSortField =
   | "cost"
   | "rating"
   | "status"
-  | "post_status"
   | "is_main_featured"
   | "is_sub_featured"
   | "view_count"
@@ -126,7 +125,6 @@ export type HospitalReviewSortState = {
 };
 
 export type HospitalReviewFilters = {
-  postStatuses: string[];
   categoryIds: string[];
   majorCategoryId: string;
   middleCategoryId: string;
@@ -145,7 +143,6 @@ export type HospitalReviewFilters = {
 export type HospitalReviewsQuery = {
   q?: string;
   status?: string;
-  post_status?: string;
   category_ids?: string;
   ratings?: string;
   is_main_featured?: "1";
@@ -165,12 +162,14 @@ export const HOSPITAL_REVIEW_BOARD_CONFIGS: Record<HospitalReviewBoardType, Hosp
   surgery: {
     type: "surgery",
     title: "성형후기",
+    listPath: "/reviews/surgery-reviews",
     apiPath: "/hospital-reviews/surgery",
     categoryDomain: "HOSPITAL_REVIEW_SURGERY",
   },
   treatment: {
     type: "treatment",
     title: "시술후기",
+    listPath: "/reviews/treatment-reviews",
     apiPath: "/hospital-reviews/treatment",
     categoryDomain: "HOSPITAL_REVIEW_TREATMENT",
   },
@@ -184,7 +183,6 @@ export const DEFAULT_HOSPITAL_REVIEW_SORT: HospitalReviewSortState = {
 };
 
 export const DEFAULT_HOSPITAL_REVIEW_FILTERS: HospitalReviewFilters = {
-  postStatuses: [],
   categoryIds: [],
   majorCategoryId: "",
   middleCategoryId: "",
@@ -199,13 +197,6 @@ export const DEFAULT_HOSPITAL_REVIEW_FILTERS: HospitalReviewFilters = {
   startDate: "",
   endDate: "",
 };
-
-export const HOSPITAL_REVIEW_POST_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "POST_NORMAL", label: "정상" },
-  { value: "POST_AUTO_BLIND", label: "자동차단" },
-  { value: "POST_ADMIN_STOP", label: "노출중지" },
-  { value: "POST_USER_DELETE", label: "본인삭제" },
-];
 
 export const HOSPITAL_REVIEW_VISIBILITY_OPTIONS = [
   { value: "", label: "전체" },
@@ -249,7 +240,6 @@ const HOSPITAL_REVIEW_SORT_FIELDS = new Set<HospitalReviewSortField>([
   "cost",
   "rating",
   "status",
-  "post_status",
   "is_main_featured",
   "is_sub_featured",
   "view_count",
@@ -259,15 +249,9 @@ const HOSPITAL_REVIEW_SORT_FIELDS = new Set<HospitalReviewSortField>([
   "created_at",
   "updated_at",
 ]);
-const HOSPITAL_REVIEW_POST_STATUS_VALUE_SET = new Set(HOSPITAL_REVIEW_POST_STATUS_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_VISIBILITY_VALUE_SET = new Set(HOSPITAL_REVIEW_VISIBILITY_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_RATING_VALUE_SET = new Set(HOSPITAL_REVIEW_RATING_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_METRIC_VALUE_SET = new Set<HospitalReviewMetricField>(["like_count", "save_count", "comment_count", "view_count"]);
-const HOSPITAL_REVIEW_VISIBILITY_LOCKED_POST_STATUS_SET = new Set([
-  "POST_AUTO_BLIND",
-  "POST_ADMIN_STOP",
-  "POST_USER_DELETE",
-]);
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export function resolveHospitalReviewMediaUrl(media?: HospitalReviewMediaAsset | null): string | null {
@@ -287,26 +271,6 @@ export function resolveHospitalReviewMediaUrl(media?: HospitalReviewMediaAsset |
 
 export function labelHospitalReviewVisibilityStatus(status?: string | null) {
   return status === "INACTIVE" ? "미노출" : "노출";
-}
-
-export function labelHospitalReviewPostStatus(status?: string | null) {
-  if (status === "POST_NORMAL") return "정상";
-  if (status === "POST_AUTO_BLIND") return "자동차단";
-  if (status === "POST_ADMIN_STOP") return "노출중지";
-  if (status === "POST_USER_DELETE") return "본인삭제";
-  return status?.trim() || "-";
-}
-
-export function hospitalReviewPostStatusBadgeColor(status?: string | null) {
-  if (status === "POST_NORMAL") return "success";
-  if (status === "POST_ADMIN_STOP") return "warning";
-  if (status === "POST_AUTO_BLIND") return "error";
-  if (status === "POST_USER_DELETE") return "pink";
-  return "light";
-}
-
-export function isHospitalReviewVisibilityChangeLocked(postStatus?: string | null) {
-  return HOSPITAL_REVIEW_VISIBILITY_LOCKED_POST_STATUS_SET.has((postStatus ?? "").trim());
 }
 
 export function formatHospitalReviewCategoryName(category?: HospitalReviewCategory | null) {
@@ -368,7 +332,6 @@ export function formatHospitalReviewRating(value: number) {
 
 export function normalizeHospitalReview(item: HospitalReviewApiItem): HospitalReviewRow {
   const status = item.status?.trim() || "ACTIVE";
-  const postStatus = item.post_status?.trim() || "POST_NORMAL";
   const beforeImages = item.before_images ?? [];
   const afterImages = item.after_images ?? [];
 
@@ -385,9 +348,8 @@ export function normalizeHospitalReview(item: HospitalReviewApiItem): HospitalRe
     cost: Number(item.cost ?? 0),
     rating: Number(item.rating ?? 0),
     status,
-    postStatus,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: isHospitalReviewVisibilityChangeLocked(postStatus),
+    visibilityChangeLocked: false,
     isMainFeatured: Boolean(item.is_main_featured),
     isSubFeatured: Boolean(item.is_sub_featured),
     likeCount: Number(item.like_count ?? 0),
@@ -505,8 +467,6 @@ export function nextHospitalReviewSortState(
 }
 
 export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
-  const postStatuses = normalizeListParam(searchParams.get("post_status"))
-    .filter((value) => HOSPITAL_REVIEW_POST_STATUS_VALUE_SET.has(value));
   const categoryIds = normalizePositiveIdListParam(
     searchParams.get("category_ids") ?? searchParams.get("category_id"),
   );
@@ -539,7 +499,6 @@ export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      postStatuses,
       categoryIds,
       majorCategoryId: "",
       middleCategoryId: "",
@@ -588,9 +547,6 @@ export function buildHospitalReviewsQuery({
     query.status = appliedFilters.visibilityStatus;
   }
 
-  const postStatuses = uniqueAllowedValues(appliedFilters.postStatuses, HOSPITAL_REVIEW_POST_STATUS_VALUE_SET);
-  if (postStatuses.length > 0) query.post_status = postStatuses.join(",");
-
   const selectedCategoryId = appliedFilters.smallCategoryId
     || appliedFilters.middleCategoryId
     || appliedFilters.majorCategoryId
@@ -624,7 +580,6 @@ export function buildHospitalReviewsQueryString(query: HospitalReviewsQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
-  if (query.post_status) params.set("post_status", query.post_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.ratings) params.set("ratings", query.ratings);
   if (query.is_main_featured) params.set("is_main_featured", query.is_main_featured);
