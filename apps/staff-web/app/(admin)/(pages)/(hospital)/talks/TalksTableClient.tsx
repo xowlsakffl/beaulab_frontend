@@ -38,7 +38,6 @@ import {
 import {
   DEFAULT_FILTERS,
   DEFAULT_SORT,
-  TALK_POST_STATUS_OPTIONS,
   buildTalksExcelDownloadPath,
   buildPresetDateRange,
   buildTalksQuery,
@@ -104,7 +103,6 @@ export default function TalksTableClient() {
   const [activeBoard, setActiveBoard] = React.useState<TalkBoard>(initialBoardRef.current ?? "talks");
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
@@ -128,7 +126,6 @@ export default function TalksTableClient() {
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
-  const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const categoryDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -299,9 +296,6 @@ export default function TalksTableClient() {
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
-      if (!statusDropdownRef.current?.contains(event.target as Node)) {
-        setIsStatusDropdownOpen(false);
-      }
       if (!categoryDropdownRef.current?.contains(event.target as Node)) {
         setIsCategoryDropdownOpen(false);
       }
@@ -318,7 +312,6 @@ export default function TalksTableClient() {
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
-      postStatuses: [...draftFilters.postStatuses],
       categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
       metricField: draftFilters.metricField,
@@ -335,32 +328,10 @@ export default function TalksTableClient() {
     setSearchKeyword("");
     setDraftFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
-    setIsStatusDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
     setIsDatePickerOpen(false);
     setPage(1);
     setAppliedFilters(DEFAULT_FILTERS);
-  }, []);
-
-  const toggleStatus = React.useCallback((value: string) => {
-    setDraftFilters((prev) => {
-      const exists = prev.postStatuses.includes(value);
-      return {
-        ...prev,
-        postStatuses: exists
-          ? prev.postStatuses.filter((item) => item !== value)
-          : [...prev.postStatuses, value],
-      };
-    });
-  }, []);
-
-  const toggleAllStatus = React.useCallback(() => {
-    setDraftFilters((prev) => ({
-      ...prev,
-      postStatuses: prev.postStatuses.length === TALK_POST_STATUS_OPTIONS.length
-        ? []
-        : TALK_POST_STATUS_OPTIONS.map((item) => item.value),
-    }));
   }, []);
 
   const toggleCategory = React.useCallback((value: string) => {
@@ -390,7 +361,6 @@ export default function TalksTableClient() {
   }, [categoryOptions]);
 
   const changeVisibility = React.useCallback((value: string) => {
-    setIsStatusDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
     setIsDatePickerOpen(false);
     setDraftFilters((prev) => ({
@@ -400,7 +370,6 @@ export default function TalksTableClient() {
   }, []);
 
   const changeMetricField = React.useCallback((value: string) => {
-    setIsStatusDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
     setIsDatePickerOpen(false);
     setDraftFilters((prev) => ({
@@ -460,7 +429,6 @@ export default function TalksTableClient() {
     setAppliedFilters(DEFAULT_FILTERS);
     setSortState(DEFAULT_SORT);
     setCommentSortState(DEFAULT_TALK_COMMENT_SORT);
-    setIsStatusDropdownOpen(false);
     setIsCategoryDropdownOpen(false);
     setIsDatePickerOpen(false);
     setSelectedIds(new Set());
@@ -620,17 +588,9 @@ export default function TalksTableClient() {
           await fetchTalks(true);
         }
       } else if (isCommentChange) {
-        setCommentRows((prev) => prev.map((row) => (
-          ids.includes(row.id)
-            ? { ...row, status, isVisible: status === "ACTIVE" }
-            : row
-        )));
+        await fetchTalkComments(true);
       } else {
-        setRows((prev) => prev.map((row) => (
-          ids.includes(row.id)
-            ? { ...row, status, isVisible: status === "ACTIVE" }
-            : row
-        )));
+        await fetchTalks(true);
       }
     } catch {
       setError(`${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경 중 오류가 발생했습니다.`);
@@ -650,7 +610,6 @@ export default function TalksTableClient() {
 
   const handleDownloadExcel = React.useCallback(async () => {
     const excelFilters: Filters = {
-      postStatuses: [...draftFilters.postStatuses],
       categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
       metricField: draftFilters.metricField,
@@ -712,7 +671,7 @@ export default function TalksTableClient() {
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityCount = pendingVisibilityChange?.ids.length ?? 0;
   const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
-    ? `해당 ${pendingVisibilityChange.board === "comments" ? "댓글을" : "후기를"} ${pendingVisibilityLabel} 하시겠습니까?`
+    ? `해당 ${pendingVisibilityChange.board === "comments" ? "댓글을" : "토크를"} ${pendingVisibilityLabel} 하시겠습니까?`
     : <>총 <span className="text-error-500">{pendingVisibilityCount.toLocaleString()}</span>건을 {pendingVisibilityLabel} 하시겠습니까?</>;
   const pendingVisibilityUpdating = bulkUpdating
     || Boolean(
@@ -750,29 +709,18 @@ export default function TalksTableClient() {
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
         categoryOptions={categoryOptions}
-        isStatusDropdownOpen={isStatusDropdownOpen}
         isCategoryDropdownOpen={isCategoryDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
-        statusDropdownRef={statusDropdownRef}
         categoryDropdownRef={categoryDropdownRef}
         datePickerRef={datePickerRef}
-        onToggleStatusDropdown={() => {
-          setIsCategoryDropdownOpen(false);
-          setIsDatePickerOpen(false);
-          setIsStatusDropdownOpen((prev) => !prev);
-        }}
         onToggleCategoryDropdown={() => {
-          setIsStatusDropdownOpen(false);
           setIsDatePickerOpen(false);
           setIsCategoryDropdownOpen((prev) => !prev);
         }}
         onToggleDatePicker={() => {
-          setIsStatusDropdownOpen(false);
           setIsCategoryDropdownOpen(false);
           setIsDatePickerOpen((prev) => !prev);
         }}
-        onToggleStatus={toggleStatus}
-        onToggleAllStatus={toggleAllStatus}
         onToggleCategory={toggleCategory}
         onToggleAllCategory={toggleAllCategory}
         onVisibilityChange={changeVisibility}

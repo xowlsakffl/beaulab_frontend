@@ -2,7 +2,6 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import {
   formatTalkCategoryName,
-  labelTalkPostStatus,
   type TalkAuthor,
   type TalkCategory,
 } from "@/lib/talk/list";
@@ -45,13 +44,13 @@ export type TalkOperationHistory = {
   before_value?: unknown;
   after_value?: unknown;
   reason?: string | null;
+  metadata?: Record<string, unknown> | null;
   created_at?: string | null;
 };
 
 export type TalkCommentHistory = {
   actor_label?: string | null;
   status?: string | null;
-  post_status?: string | null;
   created_at?: string | null;
   reason?: string | null;
 };
@@ -71,7 +70,6 @@ export type TalkDetailComment = {
   author?: TalkAuthor | null;
   content?: string | null;
   status?: string | null;
-  post_status?: string | null;
   author_ip?: string | null;
   like_count?: number | null;
   mention?: TalkCommentMention | null;
@@ -93,7 +91,6 @@ export type TalkDetailResponse = {
   title?: string | null;
   content?: string | null;
   status?: string | null;
-  post_status?: string | null;
   author_ip?: string | null;
   is_pinned?: boolean | null;
   pinned_order?: number | null;
@@ -141,17 +138,9 @@ export function labelTalkVisibilityStatus(status?: string | null) {
   return status === "INACTIVE" ? "미노출" : "노출";
 }
 
-export function labelTalkDetailPostStatus(status?: string | null) {
-  return labelTalkPostStatus(status?.trim() || "POST_NORMAL");
-}
-
 export function labelTalkHistoryChange(history: TalkOperationHistory) {
   if (history.field === "status") {
     return labelTalkVisibilityStatus(stringifyHistoryValue(history.after_value));
-  }
-
-  if (history.field === "post_status") {
-    return labelTalkDetailPostStatus(stringifyHistoryValue(history.after_value));
   }
 
   return history.action?.trim() || "-";
@@ -162,11 +151,19 @@ export function labelTalkCommentHistoryChange(history: TalkCommentHistory) {
     return labelTalkVisibilityStatus(history.status);
   }
 
-  if (history.post_status) {
-    return labelTalkDetailPostStatus(history.post_status);
-  }
-
   return "-";
+}
+
+export function formatTalkHistoryReason(history: TalkOperationHistory) {
+  const reason = history.reason?.trim() || "";
+
+  return reason || "-";
+}
+
+export function formatTalkCommentHistoryReason(history: TalkCommentHistory) {
+  const reason = history.reason?.trim() || "";
+
+  return reason || "-";
 }
 
 function stringifyHistoryValue(value: unknown) {

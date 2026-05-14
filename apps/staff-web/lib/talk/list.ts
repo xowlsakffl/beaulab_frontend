@@ -1,4 +1,4 @@
-import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
+import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 export type TalkAuthor = {
@@ -22,8 +22,6 @@ export type TalkApiItem = {
   title?: string | null;
   content?: string | null;
   status?: string | null;
-  post_status?: string | null;
-  postStatus?: string | null;
   category?: TalkCategory | null;
   category_name?: string | null;
   categoryName?: string | null;
@@ -48,7 +46,6 @@ export type TalkRow = {
   title: string;
   contentPreview: string | null;
   status: string;
-  postStatus: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
   nickname: string;
@@ -64,7 +61,6 @@ export type SortField =
   | "id"
   | "title"
   | "status"
-  | "post_status"
   | "view_count"
   | "comment_count"
   | "like_count"
@@ -80,7 +76,6 @@ export type SortState = {
 };
 
 export type Filters = {
-  postStatuses: string[];
   categoryIds: string[];
   visibilityStatus: string;
   metricField: TalkMetricField;
@@ -96,7 +91,6 @@ export type TalkMetricField = "" | "like_count" | "save_count" | "comment_count"
 export type TalksQuery = {
   q?: string;
   status?: string;
-  post_status?: string;
   category_ids?: string;
   metric?: TalkMetricField;
   metric_min?: string;
@@ -111,15 +105,6 @@ export type TalksQuery = {
 };
 
 export const TALKS_PER_PAGE = 10;
-
-export const TALK_POST_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "POST_NORMAL", label: "정상" },
-  { value: "POST_AUTO_BLIND", label: "자동차단" },
-  { value: "POST_ADMIN_STOP", label: "노출중지" },
-  { value: "POST_USER_DELETE", label: "본인삭제" },
-];
-
-export type TalkPostStatusBadgeColor = "success" | "warning" | "error" | "pink" | "light";
 
 export const TALK_VISIBILITY_OPTIONS = [
   { value: "", label: "전체" },
@@ -136,7 +121,6 @@ export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = 
 ];
 
 export const DEFAULT_FILTERS: Filters = {
-  postStatuses: [],
   categoryIds: [],
   visibilityStatus: "",
   metricField: "",
@@ -166,7 +150,6 @@ const TALK_SORT_FIELDS = new Set<SortField>([
   "id",
   "title",
   "status",
-  "post_status",
   "view_count",
   "comment_count",
   "like_count",
@@ -175,35 +158,8 @@ const TALK_SORT_FIELDS = new Set<SortField>([
   "created_at",
 ]);
 const DEFAULT_INCLUDE_FIELDS = ["author", "categories"];
-const TALK_POST_STATUS_VALUE_SET = new Set(TALK_POST_STATUS_OPTIONS.map((option) => option.value));
 const TALK_VISIBILITY_VALUE_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
 const TALK_METRIC_VALUE_SET = new Set<TalkMetricField>(["like_count", "save_count", "comment_count", "view_count"]);
-const TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET = new Set([
-  "POST_AUTO_BLIND",
-  "POST_ADMIN_STOP",
-  "POST_USER_DELETE",
-]);
-
-export function labelTalkPostStatus(status: string) {
-  if (status === "POST_NORMAL") return "정상";
-  if (status === "POST_AUTO_BLIND") return "자동차단";
-  if (status === "POST_ADMIN_STOP") return "노출중지";
-  if (status === "POST_USER_DELETE") return "본인삭제";
-  return status;
-}
-
-export function talkPostStatusBadgeColor(status?: string | null): TalkPostStatusBadgeColor {
-  if (status === "POST_NORMAL") return "success";
-  if (status === "POST_ADMIN_STOP") return "warning";
-  if (status === "POST_AUTO_BLIND") return "error";
-  if (status === "POST_USER_DELETE") return "pink";
-
-  return "light";
-}
-
-export function isTalkVisibilityChangeLocked(postStatus: string | null | undefined) {
-  return TALK_VISIBILITY_CHANGE_LOCKED_POST_STATUS_SET.has((postStatus ?? "").trim());
-}
 
 export function formatLocalDate(date: Date) {
   const year = date.getFullYear();
@@ -374,9 +330,8 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     title: item.title?.trim() || "-",
     contentPreview: buildTalkContentPreview(item.content),
     status: item.status?.trim() || "ACTIVE",
-    postStatus: item.postStatus?.trim() || item.post_status?.trim() || "POST_NORMAL",
     isVisible: (item.status?.trim() || "ACTIVE") === "ACTIVE",
-    visibilityChangeLocked: isTalkVisibilityChangeLocked(item.postStatus ?? item.post_status),
+    visibilityChangeLocked: false,
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     viewCount: Number(item.viewCount ?? item.view_count ?? 0),
     commentCount: Number(item.commentCount ?? item.comment_count ?? 0),
@@ -405,10 +360,6 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
   const categoryIds = normalizePositiveIdListParam(
     searchParams.get("category_ids") ?? searchParams.get("category_id"),
   );
-  const postStatuses = (searchParams.get("post_status") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter((value) => TALK_POST_STATUS_VALUE_SET.has(value));
   const visibilityStatus = searchParams.get("status") ?? "";
   const metricParam = searchParams.get("metric");
   const metricField = metricParam && TALK_METRIC_VALUE_SET.has(metricParam as TalkMetricField)
@@ -431,7 +382,6 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      postStatuses,
       categoryIds,
       visibilityStatus: TALK_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       metricField,
@@ -475,12 +425,6 @@ export function buildTalksQuery({
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
-  const normalizedPostStatuses = appliedFilters.postStatuses
-    .map((value) => value.trim())
-    .filter((value) => TALK_POST_STATUS_VALUE_SET.has(value));
-  if (normalizedPostStatuses.length > 0) {
-    query.post_status = Array.from(new Set(normalizedPostStatuses)).join(",");
-  }
   const normalizedCategoryIds = appliedFilters.categoryIds
     .map((value) => value.trim())
     .filter((value) => /^[1-9]\d*$/.test(value));
@@ -517,7 +461,6 @@ function buildTalksQuerySearchParams(query: TalksQuery, { includePage }: { inclu
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
-  if (query.post_status) params.set("post_status", query.post_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric) params.set("metric", query.metric);
   if (query.metric_min) params.set("metric_min", query.metric_min);

@@ -7,15 +7,12 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import {
-  labelTalkPostStatus,
-  talkPostStatusBadgeColor,
   type SortField,
   type SortState,
   type TalkRow,
@@ -48,10 +45,10 @@ function SortHeader({
       variant="ghost"
       size="sm"
       onClick={() => onToggleSort(field)}
-      className="inline-flex items-center gap-1 px-0 text-xs"
+      className="inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal"
     >
-      {label}
-      <span className="text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
+      <span className="min-w-0 break-keep">{label}</span>
+      <span className="shrink-0 text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
     </Button>
   );
 }
@@ -103,8 +100,8 @@ function buildTalkColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (id: number, status: string) => void;
 }): DataTableColumn<TalkRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
-  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
+  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const twoLineClampStyle: React.CSSProperties = {
     display: "-webkit-box",
@@ -116,8 +113,8 @@ function buildTalkColumns({
   return [
     {
       key: "select",
-      headerClassName: `${headerBaseClass} lg:w-[40px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[40px]`,
+      headerClassName: `${headerBaseClass} lg:w-[40px] xl:w-[3%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[40px] xl:w-[3%]`,
       header: (
         <SelectionCheckbox
           label="현재 페이지 토크 전체 선택"
@@ -137,22 +134,22 @@ function buildTalkColumns({
     },
     {
       key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[56px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[56px]`,
+      headerClassName: `${headerBaseClass} lg:w-[56px] xl:w-[4%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[56px] xl:w-[4%]`,
       header: <SortHeader field="id" label="ID" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.id,
     },
     {
       key: "createdAt",
-      headerClassName: `${headerBaseClass} lg:w-[96px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[96px]`,
+      headerClassName: `${headerBaseClass} lg:w-[96px] xl:w-[7.5%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[96px] xl:w-[7.5%]`,
       header: <SortHeader field="created_at" label="작성일" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.createdAt,
     },
     {
       key: "category",
-      headerClassName: `${headerBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px]`,
-      cellClassName: `${cellBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px]`,
+      headerClassName: `${headerBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px] xl:w-[10%]`,
+      cellClassName: `${cellBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px] xl:w-[10%]`,
       header: "토크유형",
       render: (row) => (
         <div className="whitespace-normal break-words text-sm leading-6 text-gray-700 dark:text-gray-200">
@@ -162,8 +159,8 @@ function buildTalkColumns({
     },
     {
       key: "nickname",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${cellBaseClass} lg:w-[110px]`,
+      headerClassName: `${headerBaseClass} lg:w-[110px] xl:w-[8%]`,
+      cellClassName: `${cellBaseClass} lg:w-[110px] xl:w-[8%]`,
       header: "닉네임",
       render: (row) => (
         <span className="block whitespace-normal break-words text-sm text-gray-700 dark:text-gray-200">
@@ -173,8 +170,8 @@ function buildTalkColumns({
     },
     {
       key: "title",
-      headerClassName: `${headerBaseClass} lg:w-[180px]`,
-      cellClassName: `${cellBaseClass} lg:w-[180px]`,
+      headerClassName: `${headerBaseClass} lg:w-[180px] xl:w-[13%]`,
+      cellClassName: `${cellBaseClass} lg:w-[180px] xl:w-[13%]`,
       header: <SortHeader field="title" label="제목" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <span
@@ -187,8 +184,8 @@ function buildTalkColumns({
     },
     {
       key: "content",
-      headerClassName: `${headerBaseClass} lg:w-[220px]`,
-      cellClassName: `${cellBaseClass} lg:w-[220px]`,
+      headerClassName: `${headerBaseClass} lg:w-[220px] xl:w-[17%]`,
+      cellClassName: `${cellBaseClass} lg:w-[220px] xl:w-[17%]`,
       header: "내용",
       render: (row) => (
         <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 dark:text-gray-300" style={twoLineClampStyle}>
@@ -198,8 +195,8 @@ function buildTalkColumns({
     },
     {
       key: "isVisible",
-      headerClassName: `${headerBaseClass} lg:w-[82px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[82px]`,
+      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6%]`,
       header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <span onClick={(event) => event.stopPropagation()}>
@@ -215,42 +212,31 @@ function buildTalkColumns({
     },
     {
       key: "likeCount",
-      headerClassName: `${headerBaseClass} lg:w-[76px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[76px]`,
+      headerClassName: `${headerBaseClass} lg:w-[76px] xl:w-[6%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[76px] xl:w-[6%]`,
       header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.likeCount.toLocaleString(),
     },
     {
       key: "saveCount",
-      headerClassName: `${headerBaseClass} lg:w-[68px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[68px]`,
+      headerClassName: `${headerBaseClass} lg:w-[68px] xl:w-[5%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[68px] xl:w-[5%]`,
       header: <SortHeader field="save_count" label="저장횟수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.saveCount.toLocaleString(),
     },
     {
       key: "commentCount",
-      headerClassName: `${headerBaseClass} lg:w-[68px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[68px]`,
+      headerClassName: `${headerBaseClass} lg:w-[68px] xl:w-[5%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[68px] xl:w-[5%]`,
       header: <SortHeader field="comment_count" label="댓글수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.commentCount.toLocaleString(),
     },
     {
       key: "viewCount",
-      headerClassName: `${headerBaseClass} lg:w-[68px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[68px]`,
+      headerClassName: `${headerBaseClass} lg:w-[68px] xl:w-[5%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[68px] xl:w-[5%]`,
       header: <SortHeader field="view_count" label="조회수" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.viewCount.toLocaleString(),
-    },
-    {
-      key: "status",
-      headerClassName: `${headerBaseClass} lg:w-[86px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[86px]`,
-      header: <SortHeader field="post_status" label="게시글상태" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => (
-        <StatusBadge size="sm" color={talkPostStatusBadgeColor(row.postStatus)}>
-          {labelTalkPostStatus(row.postStatus)}
-        </StatusBadge>
-      ),
     },
   ];
 }
@@ -335,7 +321,7 @@ export function TalksDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1280px] w-full lg:min-w-full lg:table-fixed"
+      tableClassName="min-w-[1080px] w-full lg:min-w-full lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

@@ -19,22 +19,21 @@ import {
   ModalTitle,
   Pagination,
   SpinnerBlock,
-  StatusBadge,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
-import { isTalkVisibilityChangeLocked, talkPostStatusBadgeColor } from "@/lib/talk/list";
 import {
   TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS,
   TALK_DETAIL_HISTORY_PER_PAGE,
   formatTalkAuthorName,
   formatTalkDetailCategory,
   formatTalkDetailDateTime,
+  formatTalkCommentHistoryReason,
+  formatTalkHistoryReason,
   labelTalkCommentHistoryChange,
-  labelTalkDetailPostStatus,
   labelTalkHistoryChange,
   labelTalkVisibilityStatus,
   type TalkCommentHistory,
@@ -183,7 +182,7 @@ export default function TalkDetailPageClient() {
 
   const requestTalkVisibility = React.useCallback(
     (status: "ACTIVE" | "INACTIVE") => {
-      if (!detail || isTalkVisibilityChangeLocked(detail.post_status)) return;
+      if (!detail) return;
 
       setPendingVisibilityChange({
         target: "talk",
@@ -198,7 +197,7 @@ export default function TalkDetailPageClient() {
   const requestCommentVisibility = React.useCallback(
     (commentId: number, status: "ACTIVE" | "INACTIVE") => {
       const comment = detail?.comments?.items?.find((item) => item.id === commentId);
-      if (!comment || isTalkVisibilityChangeLocked(comment.post_status)) return;
+      if (!comment) return;
 
       setPendingVisibilityChange({
         target: "comment",
@@ -342,10 +341,10 @@ export default function TalkDetailPageClient() {
   const commentsMeta = detail.comments?.meta ?? null;
   const operationHistories = detail.operation_histories?.items ?? [];
   const operationHistoriesMeta = detail.operation_histories?.meta ?? null;
-  const talkVisibilityLocked = isTalkVisibilityChangeLocked(detail.post_status);
+  const talkVisibilityLocked = false;
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityMessage = pendingVisibilityChange
-    ? `해당 ${pendingVisibilityChange.target === "comment" ? "댓글을" : "후기를"} ${pendingVisibilityLabel} 하시겠습니까?`
+    ? `해당 ${pendingVisibilityChange.target === "comment" ? "댓글을" : "토크를"} ${pendingVisibilityLabel} 하시겠습니까?`
     : "";
   const pendingVisibilityUpdating = pendingVisibilityChange
     ? pendingVisibilityChange.target === "comment"
@@ -505,7 +504,6 @@ function TalkContentCard({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <CardTitle>토크</CardTitle>
-            {renderTalkPostStatusBadge(detail.post_status)}
           </div>
           <VisibilityButtons
             status={detail.status}
@@ -589,7 +587,7 @@ function TalkHistoryCard({
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span className="font-medium">{labelTalkHistoryChange(history)}</span>
                 <span className="min-w-0 break-words text-sm text-gray-600 dark:text-gray-300">
-                  {history.reason?.trim() || "-"}
+                  {formatTalkHistoryReason(history)}
                 </span>
               </div>
             ))}
@@ -712,7 +710,7 @@ function CommentItem({
 }) {
   const histories = comment.operation_histories ?? [];
   const visibleHistories = expanded ? histories : histories.slice(0, 1);
-  const visibilityLocked = isTalkVisibilityChangeLocked(comment.post_status);
+  const visibilityLocked = false;
 
   return (
     <article
@@ -787,7 +785,7 @@ function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
       </span>
       <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
       <span className="font-semibold">{labelTalkCommentHistoryChange(history)}</span>
-      <span className="min-w-0 break-words">{history.reason?.trim() || "-"}</span>
+      <span className="min-w-0 break-words">{formatTalkCommentHistoryReason(history)}</span>
     </div>
   );
 }
@@ -915,20 +913,6 @@ function EmptyDetailState({ children }: { children: React.ReactNode }) {
     <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
       {children}
     </div>
-  );
-}
-
-function renderTalkPostStatusBadge(status?: string | null) {
-  const label = labelTalkDetailPostStatus(status);
-
-  if (label === "정상") {
-    return null;
-  }
-
-  return (
-    <StatusBadge size="sm" color={talkPostStatusBadgeColor(status)}>
-      {label}
-    </StatusBadge>
   );
 }
 

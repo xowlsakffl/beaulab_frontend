@@ -1,11 +1,9 @@
 import {
-  TALK_POST_STATUS_OPTIONS,
   TALK_VISIBILITY_OPTIONS,
   TALKS_PER_PAGE,
   buildTalkContentPreview,
   formatLocalDate,
   formatTalkCategoryName,
-  isTalkVisibilityChangeLocked,
   normalizeMetricBound,
   type Filters,
   type SortDirection,
@@ -26,8 +24,6 @@ export type TalkCommentApiItem = {
   status?: string | null;
   like_count?: number | null;
   likeCount?: number | null;
-  post_status?: string | null;
-  postStatus?: string | null;
 };
 
 export type TalkCommentMention = {
@@ -51,13 +47,11 @@ export type TalkCommentRow = {
   isVisible: boolean;
   visibilityChangeLocked: boolean;
   likeCount: number;
-  postStatus: string;
 };
 
 export type TalkCommentSortField =
   | "id"
   | "status"
-  | "post_status"
   | "like_count"
   | "created_at";
 
@@ -70,7 +64,6 @@ export type TalkCommentSortState = {
 export type TalkCommentsQuery = {
   q?: string;
   status?: string;
-  post_status?: string;
   category_ids?: string;
   metric_min?: string;
   metric_max?: string;
@@ -91,11 +84,9 @@ export const DEFAULT_TALK_COMMENT_SORT: TalkCommentSortState = {
 const TALK_COMMENT_SORT_FIELDS = new Set<TalkCommentSortField>([
   "id",
   "status",
-  "post_status",
   "like_count",
   "created_at",
 ]);
-const TALK_COMMENT_POST_STATUS_SET = new Set(TALK_POST_STATUS_OPTIONS.map((option) => option.value));
 const TALK_COMMENT_VISIBILITY_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
 
 export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
@@ -115,9 +106,8 @@ export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
     parentTalkTitle: item.parentTalkTitle?.trim() || item.parent_talk_title?.trim() || "-",
     status,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: isTalkVisibilityChangeLocked(item.postStatus ?? item.post_status),
+    visibilityChangeLocked: false,
     likeCount: Number(item.likeCount ?? item.like_count ?? 0),
-    postStatus: item.postStatus?.trim() || item.post_status?.trim() || "POST_NORMAL",
   };
 }
 
@@ -177,13 +167,6 @@ export function buildTalkCommentsQuery({
     query.status = appliedFilters.visibilityStatus;
   }
 
-  const normalizedPostStatuses = appliedFilters.postStatuses
-    .map((value) => value.trim())
-    .filter((value) => TALK_COMMENT_POST_STATUS_SET.has(value));
-  if (normalizedPostStatuses.length > 0) {
-    query.post_status = Array.from(new Set(normalizedPostStatuses)).join(",");
-  }
-
   const normalizedCategoryIds = appliedFilters.categoryIds
     .map((value) => value.trim())
     .filter((value) => /^[1-9]\d*$/.test(value));
@@ -207,7 +190,6 @@ export function buildTalkCommentsQueryString(query: TalkCommentsQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
-  if (query.post_status) params.set("post_status", query.post_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);
