@@ -273,6 +273,7 @@ type HospitalEvaluationsDataTableProps = {
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (status: "ACTIVE" | "INACTIVE") => void;
   onRowVisibilityChange: (row: HospitalEvaluationRow, status: "ACTIVE" | "INACTIVE") => void;
+  onOpenDetail: (row: HospitalEvaluationRow) => void;
 };
 
 export function HospitalEvaluationsDataTable({
@@ -292,6 +293,7 @@ export function HospitalEvaluationsDataTable({
   onToggleAllRows,
   onBulkVisibilityChange,
   onRowVisibilityChange,
+  onOpenDetail,
 }: HospitalEvaluationsDataTableProps) {
   const selectedCount = selectedIds.size;
   const selectableRows = React.useMemo(
@@ -342,6 +344,7 @@ export function HospitalEvaluationsDataTable({
       meta={meta}
       onGoPage={onGoPage}
       onRefresh={onRefresh}
+      onRowClick={onOpenDetail}
       refreshPlacement="left"
       rightActions={(
         <div className="flex w-full flex-wrap items-center justify-end gap-2">

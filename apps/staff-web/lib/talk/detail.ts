@@ -108,7 +108,7 @@ export type TalkDetailResponse = {
 };
 
 export const TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS = [10, 20, 50] as const;
-export const TALK_DETAIL_HISTORY_PER_PAGE = 15;
+export const TALK_DETAIL_HISTORY_PER_PAGE = 10;
 
 export function formatTalkDetailDateTime(value?: string | null) {
   if (!value) return "-";

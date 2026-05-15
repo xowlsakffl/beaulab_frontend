@@ -121,7 +121,8 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             name: "신고게시물 관리",
             subItems: [
                 routeSubItem({name: "성형후기", path: "/reported-content/surgery-reviews"}),
-                routeSubItem({name: "병의원 리뷰", path: "/reported-content/hospital-reviews"}),
+                routeSubItem({name: "시술후기", path: "/reported-content/treatment-reviews"}),
+                routeSubItem({name: "병의원 평가", path: "/reported-content/hospital-evaluations"}),
                 routeSubItem({name: "토크", path: "/reported-content/talks"}),
             ],
         },

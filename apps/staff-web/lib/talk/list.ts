@@ -21,6 +21,7 @@ export type TalkApiItem = {
   id: number;
   title?: string | null;
   content?: string | null;
+  content_preview?: string | null;
   status?: string | null;
   category?: TalkCategory | null;
   category_name?: string | null;
@@ -328,7 +329,7 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     id: item.id,
     categoryName,
     title: item.title?.trim() || "-",
-    contentPreview: buildTalkContentPreview(item.content),
+    contentPreview: buildTalkContentPreview(item.content_preview ?? item.content),
     status: item.status?.trim() || "ACTIVE",
     isVisible: (item.status?.trim() || "ACTIVE") === "ACTIVE",
     visibilityChangeLocked: false,

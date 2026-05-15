@@ -17,6 +17,8 @@ export type HospitalReviewCommentParent = {
   id?: number | null;
   title?: string | null;
   categories?: HospitalReviewCategory[] | null;
+  first_image?: HospitalReviewMediaAsset | null;
+  image_count?: number | null;
   before_images?: HospitalReviewMediaAsset[] | null;
   after_images?: HospitalReviewMediaAsset[] | null;
 };
@@ -29,6 +31,7 @@ export type HospitalReviewCommentApiItem = {
   categories?: HospitalReviewCategory[] | null;
   parent?: HospitalReviewCommentParent | null;
   content?: string | null;
+  content_preview?: string | null;
   status?: string | null;
   like_count?: number | null;
 };
@@ -103,11 +106,11 @@ export function normalizeHospitalReviewComment(item: HospitalReviewCommentApiIte
     createdAt: formatHospitalReviewDate(item.created_at),
     categoryName: formatHospitalReviewCategories(categories, 3),
     authorName: formatHospitalReviewAuthorName(item.author),
-    contentPreview: buildHospitalReviewCommentContentPreview(item.content),
+    contentPreview: item.content_preview?.trim() || buildHospitalReviewCommentContentPreview(item.content),
     parentReviewId: item.parent?.id ? Number(item.parent.id) : null,
     parentReviewTitle: item.parent?.title?.trim() || "-",
-    firstImage: beforeImages[0] ?? afterImages[0] ?? null,
-    imageCount: beforeImages.length + afterImages.length,
+    firstImage: item.parent?.first_image ?? beforeImages[0] ?? afterImages[0] ?? null,
+    imageCount: Number(item.parent?.image_count ?? beforeImages.length + afterImages.length),
     status,
     isVisible: status === "ACTIVE",
     visibilityChangeLocked: false,

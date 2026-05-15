@@ -330,6 +330,17 @@ export function HospitalEvaluationsTableClient() {
     }
   }, [fetchEvaluations, pendingVisibilityChange]);
 
+  const openEvaluationDetail = React.useCallback((row: HospitalEvaluationRow) => {
+    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(`${pathname}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [pathname, queryString, router]);
+
+  React.useEffect(() => {
+    rows.slice(0, 10).forEach((row) => {
+      router.prefetch(`${pathname}/${row.id}`);
+    });
+  }, [pathname, router, rows]);
+
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
     ? `해당 평가를 ${pendingVisibilityLabel} 하시겠습니까?`
@@ -388,6 +399,7 @@ export function HospitalEvaluationsTableClient() {
         onToggleAllRows={toggleAllRows}
         onBulkVisibilityChange={requestBulkVisibilityChange}
         onRowVisibilityChange={requestRowVisibilityChange}
+        onOpenDetail={openEvaluationDetail}
       />
 
       <Modal

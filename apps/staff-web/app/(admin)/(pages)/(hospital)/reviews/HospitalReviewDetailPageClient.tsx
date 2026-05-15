@@ -41,6 +41,7 @@ import {
   getHospitalReviewDetailSmallCategoryNames,
   labelHospitalReviewCommentHistoryChange,
   labelHospitalReviewHistoryChange,
+  type PaginatedBlock,
   type HospitalReviewCommentHistory,
   type HospitalReviewDetailComment,
   type HospitalReviewDetailResponse,
@@ -87,6 +88,9 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
   const reviewId = Number(rawReviewId);
 
   const [detail, setDetail] = React.useState<HospitalReviewDetailResponse | null>(null);
+  const [commentsBlock, setCommentsBlock] = React.useState<PaginatedBlock<HospitalReviewDetailComment> | null>(null);
+  const [operationHistoriesBlock, setOperationHistoriesBlock] =
+    React.useState<PaginatedBlock<HospitalReviewOperationHistory> | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -153,19 +157,14 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
 
       if (!hasLoadedRef.current) {
         setIsLoading(true);
-      } else if (manualRefresh || commentsPage > 0 || historiesPage > 0) {
+      } else if (manualRefresh) {
         setIsRefreshing(true);
       }
 
       setLoadError(null);
 
       try {
-        const response = await api.get<HospitalReviewDetailResponse>(`/hospital-reviews/${reviewId}`, {
-          comments_page: commentsPage,
-          comments_per_page: commentsPerPage,
-          operation_histories_page: historiesPage,
-          operation_histories_per_page: HOSPITAL_REVIEW_DETAIL_HISTORY_PER_PAGE,
-        });
+        const response = await api.get<HospitalReviewDetailResponse>(`/hospital-reviews/${reviewId}`);
 
         if (!isApiSuccess(response)) {
           setLoadError(response.error.message || "후기 상세 정보를 불러오지 못했습니다.");
@@ -181,12 +180,98 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         setIsRefreshing(false);
       }
     },
-    [commentsPage, commentsPerPage, historiesPage, reviewId],
+    [reviewId],
   );
 
   React.useEffect(() => {
     void fetchReviewDetail(false);
   }, [fetchReviewDetail]);
+
+  const fetchReviewComments = React.useCallback(
+    async (manualRefresh = false) => {
+      if (!Number.isFinite(reviewId) || reviewId <= 0) return;
+
+      if (manualRefresh || hasLoadedRef.current) {
+        setIsRefreshing(true);
+      }
+
+      try {
+        const response = await api.get<HospitalReviewDetailComment[]>(`/hospital-reviews/${reviewId}/comments`, {
+          comments_page: commentsPage,
+          comments_per_page: commentsPerPage,
+        });
+
+        if (!isApiSuccess(response)) {
+          setActionError(response.error.message || "후기 댓글을 불러오지 못했습니다.");
+          return;
+        }
+
+        setCommentsBlock({
+          items: response.data,
+          meta: (response.meta as DataTableMeta | null) ?? null,
+        });
+      } catch {
+        setActionError("후기 댓글을 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [commentsPage, commentsPerPage, reviewId],
+  );
+
+  const fetchReviewOperationHistories = React.useCallback(
+    async (manualRefresh = false) => {
+      if (!Number.isFinite(reviewId) || reviewId <= 0) return;
+
+      if (manualRefresh || hasLoadedRef.current) {
+        setIsRefreshing(true);
+      }
+
+      try {
+        const response = await api.get<HospitalReviewOperationHistory[]>(
+          `/hospital-reviews/${reviewId}/operation-histories`,
+          {
+            operation_histories_page: historiesPage,
+            operation_histories_per_page: HOSPITAL_REVIEW_DETAIL_HISTORY_PER_PAGE,
+          },
+        );
+
+        if (!isApiSuccess(response)) {
+          setActionError(response.error.message || "후기 히스토리를 불러오지 못했습니다.");
+          return;
+        }
+
+        setOperationHistoriesBlock({
+          items: response.data,
+          meta: (response.meta as DataTableMeta | null) ?? null,
+        });
+      } catch {
+        setActionError("후기 히스토리를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [historiesPage, reviewId],
+  );
+
+  const refreshReviewPage = React.useCallback(
+    async (manualRefresh = false) => {
+      await Promise.all([
+        fetchReviewDetail(manualRefresh),
+        fetchReviewComments(manualRefresh),
+        fetchReviewOperationHistories(manualRefresh),
+      ]);
+    },
+    [fetchReviewComments, fetchReviewDetail, fetchReviewOperationHistories],
+  );
+
+  React.useEffect(() => {
+    void fetchReviewComments(false);
+  }, [fetchReviewComments]);
+
+  React.useEffect(() => {
+    void fetchReviewOperationHistories(false);
+  }, [fetchReviewOperationHistories]);
 
   const requestReviewVisibility = React.useCallback(
     (status: "ACTIVE" | "INACTIVE") => {
@@ -204,7 +289,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
 
   const requestCommentVisibility = React.useCallback(
     (commentId: number, status: "ACTIVE" | "INACTIVE") => {
-      const comment = detail?.comments?.items?.find((item) => item.id === commentId);
+      const comment = commentsBlock?.items?.find((item) => item.id === commentId);
       if (!comment) return;
 
       setPendingVisibilityChange({
@@ -214,7 +299,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         hiddenReason: "",
       });
     },
-    [detail],
+    [commentsBlock],
   );
 
   const closeVisibilityConfirmModal = React.useCallback(() => {
@@ -269,7 +354,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
       }
 
       setPendingVisibilityChange(null);
-      await fetchReviewDetail(true);
+      await refreshReviewPage(true);
     } catch {
       setActionError(`${isCommentChange ? "댓글" : "후기"} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
@@ -283,7 +368,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         setReviewVisibilityUpdating(false);
       }
     }
-  }, [fetchReviewDetail, pendingVisibilityChange]);
+  }, [pendingVisibilityChange, refreshReviewPage]);
 
   const changeCommentsPage = React.useCallback(
     (page: number) => {
@@ -334,7 +419,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
           <CardDescription>{loadError ?? "후기 상세 정보를 찾을 수 없습니다."}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchReviewDetail(true)}>
+          <Button type="button" variant="brand" onClick={() => void refreshReviewPage(true)}>
             다시 불러오기
           </Button>
           <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
@@ -345,10 +430,10 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
     );
   }
 
-  const commentItems = detail.comments?.items ?? [];
-  const commentsMeta = detail.comments?.meta ?? null;
-  const operationHistories = detail.operation_histories?.items ?? [];
-  const operationHistoriesMeta = detail.operation_histories?.meta ?? null;
+  const commentItems = commentsBlock?.items ?? [];
+  const commentsMeta = commentsBlock?.meta ?? null;
+  const operationHistories = operationHistoriesBlock?.items ?? [];
+  const operationHistoriesMeta = operationHistoriesBlock?.meta ?? null;
   const reviewVisibilityLocked = false;
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityMessage = pendingVisibilityChange

@@ -17,6 +17,7 @@ type AppHeaderProps = {
   mobileHomeHref?: string;
   mobileLogo?: ReactNode;
   pageTitle?: ReactNode;
+  headerActions?: ReactNode;
   searchPlaceholder?: string;
   searchShortcutLabel?: string;
   showSearch?: boolean;
@@ -29,6 +30,7 @@ export function AppHeader({
   mobileHomeHref = "/",
   mobileLogo,
   pageTitle,
+  headerActions,
   searchPlaceholder = "Search or type command...",
   searchShortcutLabel = "Ctrl K",
   showSearch = true,
@@ -154,7 +156,8 @@ export function AppHeader({
           <div
             className={`${isApplicationMenuOpen ? "flex" : "hidden"} w-full items-center justify-between gap-4 px-5 py-4 shadow-theme-md xl:flex xl:justify-end xl:px-0 xl:shadow-none`}
           >
-            <div className="flex items-center gap-2 2xsm:gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 2xsm:gap-3">
+              {headerActions ? <div className="flex min-w-0 items-center gap-2">{headerActions}</div> : null}
               {showThemeToggle ? <ThemeToggleButton /> : null}
               {notifications ? <NotificationDropdown {...notifications} /> : null}
             </div>

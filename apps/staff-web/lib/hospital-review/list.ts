@@ -66,6 +66,8 @@ export type HospitalReviewApiItem = {
   hospital?: HospitalReviewHospital | null;
   doctor?: HospitalReviewDoctor | null;
   categories?: HospitalReviewCategory[] | null;
+  first_image?: HospitalReviewMediaAsset | null;
+  image_count?: number | null;
   before_images?: HospitalReviewMediaAsset[] | null;
   after_images?: HospitalReviewMediaAsset[] | null;
   cost?: number | null;
@@ -334,6 +336,7 @@ export function normalizeHospitalReview(item: HospitalReviewApiItem): HospitalRe
   const status = item.status?.trim() || "ACTIVE";
   const beforeImages = item.before_images ?? [];
   const afterImages = item.after_images ?? [];
+  const imageCount = Number(item.image_count ?? beforeImages.length + afterImages.length);
 
   return {
     id: item.id,
@@ -342,9 +345,9 @@ export function normalizeHospitalReview(item: HospitalReviewApiItem): HospitalRe
     hospitalName: item.hospital?.name?.trim() || "-",
     doctorName: item.doctor?.name?.trim() || "-",
     categoryName: formatHospitalReviewCategories(item.categories),
-    firstImage: beforeImages[0] ?? afterImages[0] ?? null,
-    beforeImageCount: beforeImages.length,
-    afterImageCount: afterImages.length,
+    firstImage: item.first_image ?? beforeImages[0] ?? afterImages[0] ?? null,
+    beforeImageCount: imageCount,
+    afterImageCount: 0,
     cost: Number(item.cost ?? 0),
     rating: Number(item.rating ?? 0),
     status,

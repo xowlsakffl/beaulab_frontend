@@ -67,18 +67,6 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     const description = profile?.email ?? "권한 기반으로 접근이 제어됩니다.";
     const headerTitle = resolveHeaderPageTitle(pathname, activeDomain, menuByActor);
     const [pageHeaderExtra, setPageHeaderExtra] = React.useState<ReactNode | null>(null);
-    const headerTitleNode = React.useMemo(() => {
-        if (!pageHeaderExtra) {
-            return headerTitle;
-        }
-
-        return (
-            <span className="inline-flex min-w-0 max-w-full items-center gap-2 align-middle">
-                <span className="truncate">{headerTitle}</span>
-                <span className="shrink-0">{pageHeaderExtra}</span>
-            </span>
-        );
-    }, [headerTitle, pageHeaderExtra]);
 
     const handleSignOut = () => {
         logout();
@@ -185,7 +173,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                                 priority
                             />
                         }
-                        pageTitle={headerTitleNode}
+                        pageTitle={headerTitle}
+                        headerActions={pageHeaderExtra}
                         showSearch={false}
                         notifications={null}
                         userMenu={{

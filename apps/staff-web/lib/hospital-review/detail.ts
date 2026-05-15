@@ -87,7 +87,7 @@ export type HospitalReviewDetailResponse = {
 };
 
 export const HOSPITAL_REVIEW_DETAIL_COMMENT_PER_PAGE_OPTIONS = [10, 20, 50] as const;
-export const HOSPITAL_REVIEW_DETAIL_HISTORY_PER_PAGE = 15;
+export const HOSPITAL_REVIEW_DETAIL_HISTORY_PER_PAGE = 10;
 
 export function formatHospitalReviewDetailDateTime(value?: string | null) {
   if (!value) return "-";

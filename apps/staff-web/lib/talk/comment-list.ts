@@ -21,6 +21,7 @@ export type TalkCommentApiItem = {
   parent_talk_title?: string | null;
   parentTalkTitle?: string | null;
   content?: string | null;
+  content_preview?: string | null;
   status?: string | null;
   like_count?: number | null;
   likeCount?: number | null;
@@ -102,7 +103,7 @@ export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     mentionText: item.mention?.mention_text?.trim() || null,
     mentionedUserId: item.mention?.mentioned_user_id ? Number(item.mention.mentioned_user_id) : null,
-    contentPreview: buildTalkContentPreview(item.content),
+    contentPreview: item.content_preview?.trim() || buildTalkContentPreview(item.content),
     parentTalkTitle: item.parentTalkTitle?.trim() || item.parent_talk_title?.trim() || "-",
     status,
     isVisible: status === "ACTIVE",

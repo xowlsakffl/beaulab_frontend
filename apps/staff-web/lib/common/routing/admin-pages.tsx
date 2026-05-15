@@ -191,19 +191,25 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     {
         slug: ["reported-content", "surgery-reviews"],
         title: "성형후기",
-        group: "신고컨텐츠 관리",
+        group: "신고게시물 관리",
         description: "신고된 성형후기 컨텐츠를 검토하는 기본 페이지입니다.",
     },
     {
-        slug: ["reported-content", "hospital-reviews"],
-        title: "병의원 리뷰",
-        group: "신고컨텐츠 관리",
-        description: "신고된 병의원 리뷰 컨텐츠를 검토하는 기본 페이지입니다.",
+        slug: ["reported-content", "treatment-reviews"],
+        title: "시술후기",
+        group: "신고게시물 관리",
+        description: "신고된 시술후기 컨텐츠를 검토하는 기본 페이지입니다.",
+    },
+    {
+        slug: ["reported-content", "hospital-evaluations"],
+        title: "병의원 평가",
+        group: "신고게시물 관리",
+        description: "신고된 병의원 평가 컨텐츠를 검토하는 기본 페이지입니다.",
     },
     {
         slug: ["reported-content", "talks"],
         title: "토크",
-        group: "신고컨텐츠 관리",
+        group: "신고게시물 관리",
         description: "신고된 토크 컨텐츠를 검토하는 기본 페이지입니다.",
     },
     {

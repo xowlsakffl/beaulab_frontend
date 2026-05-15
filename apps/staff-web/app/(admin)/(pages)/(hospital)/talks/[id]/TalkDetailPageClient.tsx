@@ -36,6 +36,7 @@ import {
   labelTalkCommentHistoryChange,
   labelTalkHistoryChange,
   labelTalkVisibilityStatus,
+  type PaginatedBlock,
   type TalkCommentHistory,
   type TalkDetailComment,
   type TalkDetailResponse,
@@ -79,6 +80,9 @@ export default function TalkDetailPageClient() {
   const talkId = Number(rawTalkId);
 
   const [detail, setDetail] = React.useState<TalkDetailResponse | null>(null);
+  const [commentsBlock, setCommentsBlock] = React.useState<PaginatedBlock<TalkDetailComment> | null>(null);
+  const [operationHistoriesBlock, setOperationHistoriesBlock] =
+    React.useState<PaginatedBlock<TalkOperationHistory> | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -145,19 +149,14 @@ export default function TalkDetailPageClient() {
 
       if (!hasLoadedRef.current) {
         setIsLoading(true);
-      } else if (manualRefresh || commentsPage > 0 || historiesPage > 0) {
+      } else if (manualRefresh) {
         setIsRefreshing(true);
       }
 
       setLoadError(null);
 
       try {
-        const response = await api.get<TalkDetailResponse>(`/talks/${talkId}`, {
-          comments_page: commentsPage,
-          comments_per_page: commentsPerPage,
-          operation_histories_page: historiesPage,
-          operation_histories_per_page: TALK_DETAIL_HISTORY_PER_PAGE,
-        });
+        const response = await api.get<TalkDetailResponse>(`/talks/${talkId}`);
 
         if (!isApiSuccess(response)) {
           setLoadError(response.error.message || "토크 상세 정보를 불러오지 못했습니다.");
@@ -173,12 +172,95 @@ export default function TalkDetailPageClient() {
         setIsRefreshing(false);
       }
     },
-    [commentsPage, commentsPerPage, historiesPage, talkId],
+    [talkId],
   );
 
   React.useEffect(() => {
     void fetchTalkDetail(false);
   }, [fetchTalkDetail]);
+
+  const fetchTalkComments = React.useCallback(
+    async (manualRefresh = false) => {
+      if (!Number.isFinite(talkId) || talkId <= 0) return;
+
+      if (manualRefresh || hasLoadedRef.current) {
+        setIsRefreshing(true);
+      }
+
+      try {
+        const response = await api.get<TalkDetailComment[]>(`/talks/${talkId}/comments`, {
+          comments_page: commentsPage,
+          comments_per_page: commentsPerPage,
+        });
+
+        if (!isApiSuccess(response)) {
+          setActionError(response.error.message || "토크 댓글을 불러오지 못했습니다.");
+          return;
+        }
+
+        setCommentsBlock({
+          items: response.data,
+          meta: (response.meta as DataTableMeta | null) ?? null,
+        });
+      } catch {
+        setActionError("토크 댓글을 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [commentsPage, commentsPerPage, talkId],
+  );
+
+  const fetchTalkOperationHistories = React.useCallback(
+    async (manualRefresh = false) => {
+      if (!Number.isFinite(talkId) || talkId <= 0) return;
+
+      if (manualRefresh || hasLoadedRef.current) {
+        setIsRefreshing(true);
+      }
+
+      try {
+        const response = await api.get<TalkOperationHistory[]>(`/talks/${talkId}/operation-histories`, {
+          operation_histories_page: historiesPage,
+          operation_histories_per_page: TALK_DETAIL_HISTORY_PER_PAGE,
+        });
+
+        if (!isApiSuccess(response)) {
+          setActionError(response.error.message || "토크 히스토리를 불러오지 못했습니다.");
+          return;
+        }
+
+        setOperationHistoriesBlock({
+          items: response.data,
+          meta: (response.meta as DataTableMeta | null) ?? null,
+        });
+      } catch {
+        setActionError("토크 히스토리를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    [historiesPage, talkId],
+  );
+
+  const refreshTalkPage = React.useCallback(
+    async (manualRefresh = false) => {
+      await Promise.all([
+        fetchTalkDetail(manualRefresh),
+        fetchTalkComments(manualRefresh),
+        fetchTalkOperationHistories(manualRefresh),
+      ]);
+    },
+    [fetchTalkComments, fetchTalkDetail, fetchTalkOperationHistories],
+  );
+
+  React.useEffect(() => {
+    void fetchTalkComments(false);
+  }, [fetchTalkComments]);
+
+  React.useEffect(() => {
+    void fetchTalkOperationHistories(false);
+  }, [fetchTalkOperationHistories]);
 
   const requestTalkVisibility = React.useCallback(
     (status: "ACTIVE" | "INACTIVE") => {
@@ -196,7 +278,7 @@ export default function TalkDetailPageClient() {
 
   const requestCommentVisibility = React.useCallback(
     (commentId: number, status: "ACTIVE" | "INACTIVE") => {
-      const comment = detail?.comments?.items?.find((item) => item.id === commentId);
+      const comment = commentsBlock?.items?.find((item) => item.id === commentId);
       if (!comment) return;
 
       setPendingVisibilityChange({
@@ -206,7 +288,7 @@ export default function TalkDetailPageClient() {
         hiddenReason: "",
       });
     },
-    [detail],
+    [commentsBlock],
   );
 
   const closeVisibilityConfirmModal = React.useCallback(() => {
@@ -261,7 +343,7 @@ export default function TalkDetailPageClient() {
       }
 
       setPendingVisibilityChange(null);
-      await fetchTalkDetail(true);
+      await refreshTalkPage(true);
     } catch {
       setActionError(`${isCommentChange ? "댓글" : "토크"} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
@@ -275,7 +357,7 @@ export default function TalkDetailPageClient() {
         setTalkVisibilityUpdating(false);
       }
     }
-  }, [fetchTalkDetail, pendingVisibilityChange]);
+  }, [pendingVisibilityChange, refreshTalkPage]);
 
   const changeCommentsPage = React.useCallback(
     (page: number) => {
@@ -326,7 +408,7 @@ export default function TalkDetailPageClient() {
           <CardDescription>{loadError ?? "토크 상세 정보를 찾을 수 없습니다."}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchTalkDetail(true)}>
+          <Button type="button" variant="brand" onClick={() => void refreshTalkPage(true)}>
             다시 불러오기
           </Button>
           <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
@@ -337,10 +419,10 @@ export default function TalkDetailPageClient() {
     );
   }
 
-  const commentItems = detail.comments?.items ?? [];
-  const commentsMeta = detail.comments?.meta ?? null;
-  const operationHistories = detail.operation_histories?.items ?? [];
-  const operationHistoriesMeta = detail.operation_histories?.meta ?? null;
+  const commentItems = commentsBlock?.items ?? [];
+  const commentsMeta = commentsBlock?.meta ?? null;
+  const operationHistories = operationHistoriesBlock?.items ?? [];
+  const operationHistoriesMeta = operationHistoriesBlock?.meta ?? null;
   const talkVisibilityLocked = false;
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityMessage = pendingVisibilityChange

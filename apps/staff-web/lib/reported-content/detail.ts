@@ -1,0 +1,113 @@
+export type ReportedContentTargetType =
+  | "talk"
+  | "talk_comment"
+  | "hospital_review"
+  | "hospital_review_comment"
+  | "hospital_evaluation";
+
+export type ReportedContentDetailAuthor = {
+  id?: number | null;
+  name?: string | null;
+  nickname?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  created_at?: string | null;
+};
+
+export type ReportedContentAuthorStats = {
+  posts?: {
+    total?: number | null;
+    reported?: number | null;
+  } | null;
+  comments?: {
+    total?: number | null;
+    reported?: number | null;
+  } | null;
+};
+
+export type ReportedContentDetailReportState = {
+  status?: string | null;
+  label?: string | null;
+  report_count?: number | null;
+};
+
+export type ReportedContentDetailReportItem = {
+  id?: number | null;
+  reason?: string | null;
+  reason_label?: string | null;
+  reason_text?: string | null;
+  created_at?: string | null;
+  reporter?: {
+    id?: number | null;
+    name?: string | null;
+    nickname?: string | null;
+    email?: string | null;
+  } | null;
+};
+
+export type ReportedContentDetailResponse = {
+  target_type?: ReportedContentTargetType | null;
+  target_id?: number | null;
+  target?: unknown;
+  author?: ReportedContentDetailAuthor | null;
+  author_stats?: ReportedContentAuthorStats | null;
+  report?: ReportedContentDetailReportState | null;
+};
+
+export type ReportedContentReportsMeta = {
+  total?: number | null;
+  current_page?: number | null;
+  per_page?: number | null;
+  last_page?: number | null;
+};
+
+export type ReportedContentStatusUpdatePayload = {
+  target_type: ReportedContentTargetType;
+  target_id: number;
+  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
+  process_reason?: string;
+};
+
+export function formatReportedContentDetailDate(value?: string | null) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+export function formatReportedContentDetailDateTime(value?: string | null) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+export function formatReportedContentAuthorName(author?: ReportedContentDetailAuthor | null) {
+  return author?.nickname?.trim() || author?.name?.trim() || author?.email?.trim() || "-";
+}
+
+export function formatReportedContentReporterName(item: ReportedContentDetailReportItem) {
+  return item.reporter?.nickname?.trim() || item.reporter?.name?.trim() || item.reporter?.email?.trim() || "-";
+}
+
+export function formatReportedContentReason(item: ReportedContentDetailReportItem) {
+  const label = item.reason_label?.trim() || item.reason?.trim() || "-";
+  const text = item.reason_text?.trim();
+
+  return text ? `${label} - ${text}` : label;
+}
