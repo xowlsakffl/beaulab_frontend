@@ -4,6 +4,7 @@ import type { DateRange } from "react-day-picker";
 import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
+  normalizeReportStatus,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -56,6 +57,7 @@ export type TalkRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatus: string;
   reportStatusLabel: string;
   nickname: string;
   viewCount: number;
@@ -341,6 +343,7 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     status: item.status?.trim() || "ACTIVE",
     isVisible: (item.status?.trim() || "ACTIVE") === "ACTIVE",
     visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatus: normalizeReportStatus(item.report),
     reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     viewCount: Number(item.viewCount ?? item.view_count ?? 0),

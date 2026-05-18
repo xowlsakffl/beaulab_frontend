@@ -4,6 +4,7 @@ import type { DateRange } from "react-day-picker";
 import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
+  normalizeReportStatus,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -103,6 +104,7 @@ export type HospitalReviewRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatus: string;
   reportStatusLabel: string;
   isMainFeatured: boolean;
   isSubFeatured: boolean;
@@ -361,6 +363,7 @@ export function normalizeHospitalReview(item: HospitalReviewApiItem): HospitalRe
     status,
     isVisible: status === "ACTIVE",
     visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatus: normalizeReportStatus(item.report),
     reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     isMainFeatured: Boolean(item.is_main_featured),
     isSubFeatured: Boolean(item.is_sub_featured),
