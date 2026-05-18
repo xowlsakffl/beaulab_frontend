@@ -96,6 +96,16 @@ function renderReceipt(row: HospitalEvaluationRow) {
   );
 }
 
+function ReportStatusBadge({ label }: { label: string }) {
+  if (!label) return <span className="text-sm text-gray-400">-</span>;
+
+  return (
+    <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">
+      {label}
+    </span>
+  );
+}
+
 function buildHospitalEvaluationColumns({
   sortState,
   selectedIds,
@@ -233,6 +243,13 @@ function buildHospitalEvaluationColumns({
       ),
     },
     {
+      key: "reportStatus",
+      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6%]`,
+      header: "신고상태",
+      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} />,
+    },
+    {
       key: "averageRating",
       headerClassName: `${metricHeaderClass} lg:w-[54px] xl:w-[4.5%]`,
       cellClassName: `${metricCellClass} lg:w-[54px] xl:w-[4.5%]`,
@@ -332,7 +349,7 @@ export function HospitalEvaluationsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1120px] w-full lg:min-w-full lg:table-fixed"
+      tableClassName="min-w-[1180px] w-full lg:min-w-full lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

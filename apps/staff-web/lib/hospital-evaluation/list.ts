@@ -1,6 +1,12 @@
 import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  formatVisibleReportStatusLabel,
+  isVisibilityLockedByReport,
+  type ContentReportSummary,
+} from "@/lib/common/content-report";
+
 export type HospitalEvaluationAuthor = {
   id?: number | null;
   name?: string | null;
@@ -48,6 +54,7 @@ export type HospitalEvaluationApiItem = {
   status?: string | null;
   view_count?: number | null;
   receipt?: HospitalEvaluationReceipt | null;
+  report?: ContentReportSummary | null;
 };
 
 export type HospitalEvaluationRow = {
@@ -63,6 +70,7 @@ export type HospitalEvaluationRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatusLabel: string;
   viewCount: number;
   receiptStatus: string;
   receiptLabel: string;
@@ -234,7 +242,8 @@ export function normalizeHospitalEvaluation(item: HospitalEvaluationApiItem): Ho
     averageRating: Number(item.average_rating ?? 0),
     status,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: false,
+    visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     viewCount: Number(item.view_count ?? 0),
     receiptStatus: item.receipt?.status?.trim() || "NONE",
     receiptLabel: formatHospitalEvaluationReceiptLabel(item.receipt),

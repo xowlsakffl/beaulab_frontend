@@ -93,6 +93,16 @@ function FeatureBadge({ label }: { label: string }) {
   );
 }
 
+function ReportStatusBadge({ label }: { label: string }) {
+  if (!label) return <span className="text-sm text-gray-400">-</span>;
+
+  return (
+    <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">
+      {label}
+    </span>
+  );
+}
+
 function renderBestBadges(row: HospitalReviewRow) {
   if (!row.isMainFeatured && !row.isSubFeatured) {
     return "-";
@@ -293,6 +303,13 @@ function buildHospitalReviewColumns({
       ),
     },
     {
+      key: "reportStatus",
+      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6%]`,
+      header: "신고상태",
+      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} />,
+    },
+    {
       key: "featured",
       headerClassName: `${headerBaseClass} lg:w-[58px] xl:w-[4.5%]`,
       cellClassName: `${cellBaseClass} lg:w-[58px] xl:w-[4.5%]`,
@@ -406,7 +423,7 @@ export function HospitalReviewsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1080px] w-full lg:min-w-full lg:table-fixed"
+      tableClassName="min-w-[1140px] w-full lg:min-w-full lg:table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

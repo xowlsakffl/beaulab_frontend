@@ -75,6 +75,16 @@ function SelectionCheckbox({
   );
 }
 
+function ReportStatusBadge({ label }: { label: string }) {
+  if (!label) return <span className="text-sm text-gray-400">-</span>;
+
+  return (
+    <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">
+      {label}
+    </span>
+  );
+}
+
 function buildCommentColumns({
   sortState,
   selectedIds,
@@ -213,6 +223,13 @@ function buildCommentColumns({
           onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
         />
       ),
+    },
+    {
+      key: "reportStatus",
+      headerClassName: `${headerBaseClass} lg:w-[90px] xl:w-[7%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[90px] xl:w-[7%]`,
+      header: "신고상태",
+      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} />,
     },
     {
       key: "likeCount",

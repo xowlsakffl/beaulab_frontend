@@ -31,6 +31,7 @@ import {
   type ReportedContentReportsMeta,
   type ReportedContentStatusUpdatePayload,
   type ReportedContentTargetType,
+  type ReportedContentWarningStatusUpdatePayload,
 } from "@/lib/reported-content/detail";
 
 type ReportedContentDetailPanelProps = {
@@ -40,6 +41,7 @@ type ReportedContentDetailPanelProps = {
 };
 
 type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
+type WarningActionStatus = "WARNED" | "IGNORED";
 
 const panelLabelClass = "text-xs font-semibold text-gray-500 dark:text-gray-400";
 const panelValueClass = "text-sm font-medium text-gray-800 dark:text-white/90";
@@ -53,8 +55,12 @@ export function ReportedContentDetailPanel({
   const [loading, setLoading] = React.useState(true);
   const [updatingStatus, setUpdatingStatus] = React.useState<ReportActionStatus | null>(null);
   const [pendingStatus, setPendingStatus] = React.useState<ReportActionStatus | null>(null);
+  const [updatingWarningStatus, setUpdatingWarningStatus] = React.useState<WarningActionStatus | null>(null);
+  const [pendingWarningStatus, setPendingWarningStatus] = React.useState<WarningActionStatus | null>(null);
+  const [isWarningUnavailableModalOpen, setIsWarningUnavailableModalOpen] = React.useState(false);
   const [processReason, setProcessReason] = React.useState("");
   const [modalError, setModalError] = React.useState<string | null>(null);
+  const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>([]);
   const [reportsMeta, setReportsMeta] = React.useState<ReportedContentReportsMeta | null>(null);
@@ -130,6 +136,22 @@ export function ReportedContentDetailPanel({
     void fetchReports();
   }, [fetchReports]);
 
+  const author = detail?.author ?? null;
+  const authorStats = detail?.author_stats ?? null;
+  const reportState = detail?.report ?? null;
+  const reportsTotal = Number(reportsMeta?.total ?? reports.length);
+  const reportsCurrentPage = Number(reportsMeta?.current_page ?? reportsPage);
+  const reportsLastPage = Math.max(1, Number(reportsMeta?.last_page ?? 1));
+  const postTotal = Number(authorStats?.posts?.total ?? 0);
+  const reportedPostTotal = Number(authorStats?.posts?.reported ?? 0);
+  const commentTotal = Number(authorStats?.comments?.total ?? 0);
+  const reportedCommentTotal = Number(authorStats?.comments?.reported ?? 0);
+  const warningCount = Number(author?.warning_count ?? 0);
+  const reportStatus = reportState?.status?.trim() || "";
+  const warningStatus = reportState?.warning_status?.trim() || "NONE";
+  const isWarningButtonDisabled = warningStatus === "WARNED" || updatingWarningStatus !== null;
+  const isIgnoreButtonDisabled = warningStatus === "IGNORED" || updatingWarningStatus !== null;
+
   const updateReportStatus = React.useCallback(
     async (reportStatus: ReportActionStatus, reason?: string) => {
       setUpdatingStatus(reportStatus);
@@ -164,6 +186,37 @@ export function ReportedContentDetailPanel({
     [fetchDetail, onStatusUpdated, targetId, targetType],
   );
 
+  const updateWarningStatus = React.useCallback(
+    async (warningStatus: WarningActionStatus) => {
+      setUpdatingWarningStatus(warningStatus);
+      setWarningModalError(null);
+
+      const payload: ReportedContentWarningStatusUpdatePayload = {
+        target_type: targetType,
+        target_id: targetId,
+        warning_status: warningStatus,
+      };
+
+      try {
+        const response = await api.patch("/reported-contents/warning-status", payload);
+
+        if (!isApiSuccess(response)) {
+          setWarningModalError(response.error.message || "경고 처리 상태 변경에 실패했습니다.");
+          return;
+        }
+
+        await fetchDetail();
+        onStatusUpdated?.();
+        setPendingWarningStatus(null);
+      } catch {
+        setWarningModalError("경고 처리 상태 변경 중 오류가 발생했습니다.");
+      } finally {
+        setUpdatingWarningStatus(null);
+      }
+    },
+    [fetchDetail, onStatusUpdated, targetId, targetType],
+  );
+
   const openStatusModal = React.useCallback((reportStatus: ReportActionStatus) => {
     setPendingStatus(reportStatus);
     setProcessReason("");
@@ -178,6 +231,23 @@ export function ReportedContentDetailPanel({
     setModalError(null);
   }, [updatingStatus]);
 
+  const openWarningModal = React.useCallback((warningStatus: WarningActionStatus) => {
+    if (reportState?.status?.trim() !== "ADMIN_HIDDEN") {
+      setIsWarningUnavailableModalOpen(true);
+      return;
+    }
+
+    setPendingWarningStatus(warningStatus);
+    setWarningModalError(null);
+  }, [reportState?.status]);
+
+  const closeWarningModal = React.useCallback(() => {
+    if (updatingWarningStatus !== null) return;
+
+    setPendingWarningStatus(null);
+    setWarningModalError(null);
+  }, [updatingWarningStatus]);
+
   const submitStatusChange = React.useCallback(() => {
     if (!pendingStatus) return;
 
@@ -189,23 +259,30 @@ export function ReportedContentDetailPanel({
     void updateReportStatus(pendingStatus, pendingStatus === "ADMIN_HIDDEN" ? processReason : undefined);
   }, [pendingStatus, processReason, updateReportStatus]);
 
-  const author = detail?.author ?? null;
-  const authorStats = detail?.author_stats ?? null;
-  const reportState = detail?.report ?? null;
-  const reportsTotal = Number(reportsMeta?.total ?? reports.length);
-  const reportsCurrentPage = Number(reportsMeta?.current_page ?? reportsPage);
-  const reportsLastPage = Math.max(1, Number(reportsMeta?.last_page ?? 1));
-  const postTotal = Number(authorStats?.posts?.total ?? 0);
-  const reportedPostTotal = Number(authorStats?.posts?.reported ?? 0);
-  const commentTotal = Number(authorStats?.comments?.total ?? 0);
-  const reportedCommentTotal = Number(authorStats?.comments?.reported ?? 0);
-  const reportStatus = reportState?.status?.trim() || "";
+  const submitWarningStatusChange = React.useCallback(() => {
+    if (!pendingWarningStatus) return;
+
+    void updateWarningStatus(pendingWarningStatus);
+  }, [pendingWarningStatus, updateWarningStatus]);
 
   const pendingStatusLabel = pendingStatus === "ADMIN_HIDDEN" ? "노출중지" : "정상노출";
   const targetNoun = targetType.includes("comment") ? "댓글" : "게시물";
   const statusModalMessage = pendingStatus
     ? `해당 ${targetNoun}을 ${pendingStatusLabel} 하시겠습니까?`
     : "";
+  const warningModalMessage = pendingWarningStatus === "WARNED"
+    ? warningStatus === "IGNORED"
+      ? "무시를 경고로 변경하시겠습니까?"
+      : "해당 유저에게 경고하시겠습니까?"
+    : warningStatus === "WARNED"
+      ? "해당 경고를 무시로 변경하시겠습니까?"
+      : `해당 ${targetNoun}의 경고 처리를 무시하시겠습니까?`;
+  const warningDisabledTitle = warningStatus === "WARNED"
+    ? "이미 경고 처리된 신고입니다."
+    : undefined;
+  const ignoreDisabledTitle = warningStatus === "IGNORED"
+    ? "이미 무시 처리된 신고입니다."
+    : undefined;
 
   return (
     <>
@@ -327,23 +404,33 @@ export function ReportedContentDetailPanel({
 
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">경고여부</h3>
-                <div className="flex flex-wrap gap-2">
-                  <button
+                <div className="flex flex-row flex-wrap gap-2">
+                  <Button
                     type="button"
-                    disabled
-                    title="회원 경고 지급 API가 아직 없어 비활성화되어 있습니다."
-                    className="inline-flex h-12 items-center justify-center rounded-lg bg-red-500 px-6 text-base font-semibold text-white opacity-50"
+                    variant={warningStatus === "WARNED" ? "brand" : "outline"}
+                    disabled={isWarningButtonDisabled}
+                    title={warningDisabledTitle}
+                    onClick={() => openWarningModal("WARNED")}
+                    className={[
+                      "h-12 px-6 text-base font-semibold",
+                      warningStatus === "WARNED" ? "" : "text-gray-500",
+                    ].join(" ")}
                   >
-                    경고
-                  </button>
-                  <button
+                    {updatingWarningStatus === "WARNED" ? "처리 중" : "경고"}
+                  </Button>
+                  <Button
                     type="button"
-                    disabled
-                    title="회원 경고 지급 API가 아직 없어 비활성화되어 있습니다."
-                    className="inline-flex h-12 items-center justify-center rounded-lg bg-gray-200 px-6 text-base font-semibold text-gray-600 opacity-70 dark:bg-white/[0.12] dark:text-gray-300"
+                    variant={warningStatus === "IGNORED" ? "brand" : "outline"}
+                    disabled={isIgnoreButtonDisabled}
+                    title={ignoreDisabledTitle}
+                    onClick={() => openWarningModal("IGNORED")}
+                    className={[
+                      "h-12 px-6 text-base font-semibold",
+                      warningStatus === "IGNORED" ? "" : "text-gray-500",
+                    ].join(" ")}
                   >
-                    무시
-                  </button>
+                    {updatingWarningStatus === "IGNORED" ? "처리 중" : "무시"}
+                  </Button>
                 </div>
               </div>
             </section>
@@ -402,6 +489,69 @@ export function ReportedContentDetailPanel({
             </Button>
             <Button type="button" variant="brand" onClick={submitStatusChange} disabled={updatingStatus !== null}>
               {updatingStatus !== null ? "처리 중..." : "확인"}
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
+
+      <Modal
+        isOpen={isWarningUnavailableModalOpen}
+        onClose={() => setIsWarningUnavailableModalOpen(false)}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-sm"
+      >
+        <ModalPanel>
+          <ModalBody className="mt-2">
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              해당 상태에서는 경고여부를 선택할 수 없습니다.
+            </p>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button type="button" variant="brand" onClick={() => setIsWarningUnavailableModalOpen(false)}>
+              확인
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
+
+      <Modal
+        isOpen={pendingWarningStatus !== null}
+        onClose={closeWarningModal}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-md"
+      >
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>경고 처리</ModalTitle>
+          </ModalHeader>
+
+          <ModalBody className="mt-5 space-y-3">
+            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              {warningModalMessage}
+            </p>
+            {pendingWarningStatus === "WARNED" ? (
+              <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+                <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
+                <p>
+                  현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
+                </p>
+              </div>
+            ) : null}
+
+            {warningModalError ? (
+              <p className="text-sm font-medium text-rose-600 dark:text-rose-300">
+                {warningModalError}
+              </p>
+            ) : null}
+          </ModalBody>
+
+          <ModalFooter>
+            <Button type="button" variant="outline" onClick={closeWarningModal} disabled={updatingWarningStatus !== null}>
+              취소
+            </Button>
+            <Button type="button" variant="brand" onClick={submitWarningStatusChange} disabled={updatingWarningStatus !== null}>
+              {updatingWarningStatus !== null ? "처리 중..." : "확인"}
             </Button>
           </ModalFooter>
         </ModalPanel>

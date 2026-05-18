@@ -1,6 +1,12 @@
 import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  formatVisibleReportStatusLabel,
+  isVisibilityLockedByReport,
+  type ContentReportSummary,
+} from "@/lib/common/content-report";
+
 export type TalkAuthor = {
   id?: number | null;
   name?: string | null;
@@ -39,6 +45,7 @@ export type TalkApiItem = {
   updated_at?: string | null;
   updatedAt?: string | null;
   author?: TalkAuthor | null;
+  report?: ContentReportSummary | null;
 };
 
 export type TalkRow = {
@@ -49,6 +56,7 @@ export type TalkRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatusLabel: string;
   nickname: string;
   viewCount: number;
   commentCount: number;
@@ -332,7 +340,8 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     contentPreview: buildTalkContentPreview(item.content_preview ?? item.content),
     status: item.status?.trim() || "ACTIVE",
     isVisible: (item.status?.trim() || "ACTIVE") === "ACTIVE",
-    visibilityChangeLocked: false,
+    visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     viewCount: Number(item.viewCount ?? item.view_count ?? 0),
     commentCount: Number(item.commentCount ?? item.comment_count ?? 0),

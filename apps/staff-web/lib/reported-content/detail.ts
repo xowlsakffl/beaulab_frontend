@@ -11,6 +11,7 @@ export type ReportedContentDetailAuthor = {
   nickname?: string | null;
   email?: string | null;
   phone?: string | null;
+  warning_count?: number | null;
   created_at?: string | null;
 };
 
@@ -29,6 +30,11 @@ export type ReportedContentDetailReportState = {
   status?: string | null;
   label?: string | null;
   report_count?: number | null;
+  warning_status?: string | null;
+  warning_label?: string | null;
+  warning?: boolean | null;
+  warning_ignored?: boolean | null;
+  warning_processed_at?: string | null;
 };
 
 export type ReportedContentDetailReportItem = {
@@ -66,6 +72,12 @@ export type ReportedContentStatusUpdatePayload = {
   target_id: number;
   report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
   process_reason?: string;
+};
+
+export type ReportedContentWarningStatusUpdatePayload = {
+  target_type: ReportedContentTargetType;
+  target_id: number;
+  warning_status: "WARNED" | "IGNORED";
 };
 
 export function formatReportedContentDetailDate(value?: string | null) {

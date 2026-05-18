@@ -135,7 +135,12 @@ function buildColumns({
     headerClassName: `${headerBaseClass} w-[70px]`,
     cellClassName: `${nowrapCellClass} w-[70px]`,
     header: "경고",
-    render: (row) => row.hasWarning ? <StatusBadge label="경고" tone="red" /> : "-",
+    render: (row) => {
+      if (row.hasWarning) return <StatusBadge label="경고" tone="red" />;
+      if (row.hasIgnoredWarning) return <StatusBadge label="무시" tone="gray" />;
+
+      return "-";
+    },
   };
   const commonReportColumns: DataTableColumn<ReportedContentRow>[] = [
     {

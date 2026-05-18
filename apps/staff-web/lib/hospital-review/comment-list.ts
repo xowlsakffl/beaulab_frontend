@@ -12,6 +12,11 @@ import {
   type HospitalReviewMediaAsset,
   type HospitalReviewSortDirection,
 } from "@/lib/hospital-review/list";
+import {
+  formatVisibleReportStatusLabel,
+  isVisibilityLockedByReport,
+  type ContentReportSummary,
+} from "@/lib/common/content-report";
 
 export type HospitalReviewCommentParent = {
   id?: number | null;
@@ -34,6 +39,7 @@ export type HospitalReviewCommentApiItem = {
   content_preview?: string | null;
   status?: string | null;
   like_count?: number | null;
+  report?: ContentReportSummary | null;
 };
 
 export type HospitalReviewCommentRow = {
@@ -49,6 +55,7 @@ export type HospitalReviewCommentRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatusLabel: string;
   likeCount: number;
 };
 
@@ -113,7 +120,8 @@ export function normalizeHospitalReviewComment(item: HospitalReviewCommentApiIte
     imageCount: Number(item.parent?.image_count ?? beforeImages.length + afterImages.length),
     status,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: false,
+    visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     likeCount: Number(item.like_count ?? 0),
   };
 }

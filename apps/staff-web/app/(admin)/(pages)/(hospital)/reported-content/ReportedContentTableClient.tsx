@@ -92,12 +92,12 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   );
 
   const queryString = React.useMemo(() => {
-    const params = new URLSearchParams(buildReportedContentQueryString(query, appliedFilters));
+    const params = new URLSearchParams(buildReportedContentQueryString(query));
     if (activeBoard === "comments") params.set("board", "comments");
     else params.delete("board");
 
     return params.toString();
-  }, [activeBoard, appliedFilters, query]);
+  }, [activeBoard, query]);
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -127,12 +127,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         }
 
         const normalizedRows = response.data
-          .map((item) => normalizeReportedContent(item, config, activeKind))
-          .filter((row) => {
-            if (appliedFilters.warningStatus === "1") return row.hasWarning;
-            if (appliedFilters.warningStatus === "0") return !row.hasWarning;
-            return true;
-          });
+          .map((item) => normalizeReportedContent(item, config, activeKind));
         const responseMeta = (response.meta as ReportedContentMeta | null) ?? null;
 
         setRows(normalizedRows);
@@ -151,7 +146,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         setRefreshing(false);
       }
     },
-    [activeApiPath, activeKind, appliedFilters.warningStatus, config, query],
+    [activeApiPath, activeKind, config, query],
   );
 
   React.useEffect(() => {

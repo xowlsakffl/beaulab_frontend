@@ -1,5 +1,6 @@
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
+import type { ContentReportSummary } from "@/lib/common/content-report";
 import {
   formatHospitalEvaluationAuthorName,
   formatHospitalEvaluationCost,
@@ -81,6 +82,7 @@ export type HospitalEvaluationDetailResponse = {
   hospital?: HospitalEvaluationHospital | null;
   doctor?: HospitalEvaluationDoctor | null;
   categories?: HospitalEvaluationCategory[] | null;
+  report?: ContentReportSummary | null;
   category_domain?: string | null;
   content?: string | null;
   phone?: string | null;
@@ -198,6 +200,10 @@ export function labelHospitalEvaluationHistoryChange(history: HospitalEvaluation
     return labelHospitalEvaluationReceiptStatus(stringifyHistoryValue(history.after_value));
   }
 
+  if (history.field === "warning_status") {
+    return labelHospitalEvaluationWarningHistoryStatus(history);
+  }
+
   return history.action?.trim() || "-";
 }
 
@@ -226,6 +232,19 @@ export function labelHospitalEvaluationReceiptStatus(status?: string | null) {
 function getHistoryMetadataLabel(metadata: Record<string, unknown> | null | undefined, key: string) {
   const value = metadata?.[key];
   return typeof value === "string" && value.trim() !== "" ? value.trim() : "";
+}
+
+function labelHospitalEvaluationWarningHistoryStatus(history: HospitalEvaluationOperationHistory) {
+  switch (stringifyHistoryValue(history.after_value)) {
+    case "WARNED":
+      return "경고";
+    case "IGNORED":
+      return "무시";
+    case "NONE":
+      return "미처리";
+    default:
+      return "-";
+  }
 }
 
 function stringifyHistoryValue(value: unknown) {

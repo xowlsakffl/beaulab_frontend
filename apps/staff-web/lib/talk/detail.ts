@@ -1,5 +1,6 @@
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
+import type { ContentReportSummary } from "@/lib/common/content-report";
 import {
   formatTalkCategoryName,
   type TalkAuthor,
@@ -73,6 +74,7 @@ export type TalkDetailComment = {
   author_ip?: string | null;
   like_count?: number | null;
   mention?: TalkCommentMention | null;
+  report?: ContentReportSummary | null;
   operation_histories?: TalkCommentHistory[] | null;
   created_at?: string | null;
   updated_at?: string | null;
@@ -88,6 +90,7 @@ export type TalkDetailResponse = {
   id: number;
   author?: TalkAuthor | null;
   category?: TalkCategory | null;
+  report?: ContentReportSummary | null;
   title?: string | null;
   content?: string | null;
   status?: string | null;
@@ -143,6 +146,10 @@ export function labelTalkHistoryChange(history: TalkOperationHistory) {
     return labelTalkVisibilityStatus(stringifyHistoryValue(history.after_value));
   }
 
+  if (history.field === "warning_status") {
+    return labelTalkWarningHistoryStatus(history);
+  }
+
   return history.action?.trim() || "-";
 }
 
@@ -170,4 +177,25 @@ function stringifyHistoryValue(value: unknown) {
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   return "";
+}
+
+function labelTalkWarningHistoryStatus(history: TalkOperationHistory) {
+  const metadataLabel = getHistoryMetadataLabel(history.metadata, "after_label");
+  if (metadataLabel) return metadataLabel;
+
+  switch (stringifyHistoryValue(history.after_value)) {
+    case "WARNED":
+      return "경고";
+    case "IGNORED":
+      return "무시";
+    case "NONE":
+      return "미처리";
+    default:
+      return "-";
+  }
+}
+
+function getHistoryMetadataLabel(metadata: Record<string, unknown> | null | undefined, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : "";
 }

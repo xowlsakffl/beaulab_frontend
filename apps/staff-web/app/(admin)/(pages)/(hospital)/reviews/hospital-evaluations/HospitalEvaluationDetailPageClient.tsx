@@ -24,6 +24,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
+import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
@@ -284,7 +285,7 @@ export default function HospitalEvaluationDetailPageClient() {
     return (
       <VisibilityButtons
         status={detail.status}
-        disabled={visibilityUpdating}
+        disabled={visibilityUpdating || isVisibilityLockedByReport(detail.report)}
         onChange={requestVisibilityChange}
       />
     );

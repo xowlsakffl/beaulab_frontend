@@ -10,6 +10,11 @@ import {
   type TalkAuthor,
   type TalkCategory,
 } from "@/lib/talk/list";
+import {
+  formatVisibleReportStatusLabel,
+  isVisibilityLockedByReport,
+  type ContentReportSummary,
+} from "@/lib/common/content-report";
 
 export type TalkCommentApiItem = {
   id: number;
@@ -25,6 +30,7 @@ export type TalkCommentApiItem = {
   status?: string | null;
   like_count?: number | null;
   likeCount?: number | null;
+  report?: ContentReportSummary | null;
 };
 
 export type TalkCommentMention = {
@@ -47,6 +53,7 @@ export type TalkCommentRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatusLabel: string;
   likeCount: number;
 };
 
@@ -107,7 +114,8 @@ export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
     parentTalkTitle: item.parentTalkTitle?.trim() || item.parent_talk_title?.trim() || "-",
     status,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: false,
+    visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     likeCount: Number(item.likeCount ?? item.like_count ?? 0),
   };
 }

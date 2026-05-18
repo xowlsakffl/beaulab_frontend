@@ -9,7 +9,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Pagination,
   SpinnerBlock,
+  type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
@@ -25,7 +27,12 @@ import {
   type HospitalReviewCategory,
   type HospitalReviewMediaAsset,
 } from "@/lib/hospital-review/list";
-import { getHospitalReviewDetailSmallCategoryNames } from "@/lib/hospital-review/detail";
+import {
+  formatHospitalReviewHistoryReason,
+  getHospitalReviewDetailSmallCategoryNames,
+  labelHospitalReviewHistoryChange,
+  type HospitalReviewOperationHistory,
+} from "@/lib/hospital-review/detail";
 import {
   formatReportedContentDetailDateTime,
   type ReportedContentDetailResponse,
@@ -34,6 +41,11 @@ import {
 import {
   formatTalkCategoryName,
 } from "@/lib/talk/list";
+import {
+  formatTalkHistoryReason,
+  labelTalkHistoryChange,
+  type TalkOperationHistory,
+} from "@/lib/talk/detail";
 import type { TalkCommentApiItem } from "@/lib/talk/comment-list";
 
 type ReportedContentCommentDetailType =
@@ -48,6 +60,7 @@ type ReportedContentCommentDetailConfig = {
   title: string;
   listPath: string;
   targetType: ReportedContentTargetType;
+  historyApiPath: (id: number) => string;
 };
 
 type ReportedContentCommentDetailPageClientProps = {
@@ -57,6 +70,11 @@ type ReportedContentCommentDetailPageClientProps = {
 type CommentTarget = (TalkCommentApiItem | HospitalReviewCommentApiItem) & {
   author_ip?: string | null;
 };
+type CommentHistory = TalkOperationHistory | HospitalReviewOperationHistory;
+type CommentHistoryBlock = {
+  items?: CommentHistory[] | null;
+  meta?: DataTableMeta | null;
+};
 
 const COMMENT_DETAIL_CONFIGS: Record<ReportedContentCommentDetailType, ReportedContentCommentDetailConfig> = {
   "talk-comments": {
@@ -64,21 +82,25 @@ const COMMENT_DETAIL_CONFIGS: Record<ReportedContentCommentDetailType, ReportedC
     title: "토크 댓글",
     listPath: "/reported-content/talks",
     targetType: "talk_comment",
+    historyApiPath: (id) => `/talk-comments/${id}/operation-histories`,
   },
   "surgery-review-comments": {
     kind: "review-comment",
     title: "성형후기 댓글",
     listPath: "/reported-content/surgery-reviews",
     targetType: "hospital_review_comment",
+    historyApiPath: (id) => `/hospital-review-comments/${id}/operation-histories`,
   },
   "treatment-review-comments": {
     kind: "review-comment",
     title: "시술후기 댓글",
     listPath: "/reported-content/treatment-reviews",
     targetType: "hospital_review_comment",
+    historyApiPath: (id) => `/hospital-review-comments/${id}/operation-histories`,
   },
 };
 
+const COMMENT_HISTORY_PER_PAGE = 10;
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400";
 const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
@@ -93,8 +115,12 @@ export default function ReportedContentCommentDetailPageClient({
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
   const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(null);
+  const [historyBlock, setHistoryBlock] = React.useState<CommentHistoryBlock | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [historyError, setHistoryError] = React.useState<string | null>(null);
+  const [historiesPage, setHistoriesPage] = React.useState(1);
 
   const getReturnToPath = React.useCallback(
     (highlightId?: number) =>
@@ -135,9 +161,47 @@ export default function ReportedContentCommentDetailPageClient({
     }
   }, [config.targetType, targetId]);
 
+  const fetchHistories = React.useCallback(async () => {
+    if (!Number.isFinite(targetId) || targetId <= 0) return;
+
+    setRefreshing(true);
+    setHistoryError(null);
+
+    try {
+      const response = await api.get<CommentHistory[]>(config.historyApiPath(targetId), {
+        operation_histories_page: historiesPage,
+        operation_histories_per_page: COMMENT_HISTORY_PER_PAGE,
+      });
+
+      if (!isApiSuccess(response)) {
+        setHistoryBlock(null);
+        setHistoryError(response.error.message || "신고 댓글 히스토리를 불러오지 못했습니다.");
+        return;
+      }
+
+      setHistoryBlock({
+        items: response.data,
+        meta: (response.meta as DataTableMeta | null) ?? null,
+      });
+    } catch {
+      setHistoryBlock(null);
+      setHistoryError("신고 댓글 히스토리를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [config, historiesPage, targetId]);
+
+  const refreshDetail = React.useCallback(async () => {
+    await Promise.all([fetchDetail(), fetchHistories()]);
+  }, [fetchDetail, fetchHistories]);
+
   React.useEffect(() => {
     void fetchDetail();
   }, [fetchDetail]);
+
+  React.useEffect(() => {
+    void fetchHistories();
+  }, [fetchHistories]);
 
   if (loading && !detail) {
     return <SpinnerBlock label="신고 댓글 상세 정보를 불러오는 중" />;
@@ -157,6 +221,8 @@ export default function ReportedContentCommentDetailPageClient({
   }
 
   const target = detail.target as CommentTarget | null | undefined;
+  const histories = historyBlock?.items ?? [];
+  const historiesMeta = historyBlock?.meta ?? null;
 
   return (
     <div className="space-y-6">
@@ -164,13 +230,21 @@ export default function ReportedContentCommentDetailPageClient({
         <div className="space-y-6">
           {renderCommentSummary(config, target, () => router.push(getReturnToPath(Number(detail.target_id ?? targetId))))}
           {renderCommentContent(config, target)}
+          <CommentHistoryCard
+            config={config}
+            histories={histories}
+            meta={historiesMeta}
+            refreshing={refreshing}
+            error={historyError}
+            onGoPage={setHistoriesPage}
+          />
         </div>
 
         <div className="space-y-6">
           <ReportedContentDetailPanel
             targetType={config.targetType}
             targetId={targetId}
-            onStatusUpdated={() => void fetchDetail()}
+            onStatusUpdated={() => void refreshDetail()}
           />
         </div>
       </div>
@@ -250,6 +324,70 @@ function renderCommentContent(config: ReportedContentCommentDetailConfig, target
         <DetailField label="좋아요 수" value={Number(comment?.like_count ?? 0).toLocaleString()} />
         <ContentBox content={comment?.content || buildHospitalReviewCommentContentPreview(comment?.content)} />
         <ReviewImageGallery beforeImages={beforeImages} afterImages={afterImages} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommentHistoryCard({
+  config,
+  histories,
+  meta,
+  refreshing,
+  error,
+  onGoPage,
+}: {
+  config: ReportedContentCommentDetailConfig;
+  histories: CommentHistory[];
+  meta: DataTableMeta | null;
+  refreshing: boolean;
+  error: string | null;
+  onGoPage: (page: number) => void;
+}) {
+  return (
+    <Card as="section">
+      <CardHeader className="pb-4">
+        <CardTitle>히스토리</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {error ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+            {error}
+          </div>
+        ) : histories.length > 0 ? (
+          <div className="divide-y divide-gray-200 dark:divide-gray-800">
+            {histories.map((history) => (
+              <div
+                key={history.id}
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] dark:text-gray-200"
+              >
+                <span className="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                  {formatReportedContentDetailDateTime(history.created_at)}
+                </span>
+                <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
+                <span className="font-medium">{labelCommentHistoryChange(config, history)}</span>
+                <span className="min-w-0 break-words text-sm text-gray-600 dark:text-gray-300">
+                  {formatCommentHistoryReason(config, history)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+            등록된 히스토리가 없습니다.
+          </div>
+        )}
+
+        {meta ? (
+          <div className="flex justify-center pt-1">
+            <Pagination
+              currentPage={meta.current_page}
+              totalPages={Math.max(1, meta.last_page)}
+              onPageChange={onGoPage}
+              disabled={refreshing}
+            />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -378,4 +516,26 @@ function labelVisibility(status?: string | null) {
   if (!status) return "-";
 
   return status === "ACTIVE" ? "노출" : "미노출";
+}
+
+function labelCommentHistoryChange(
+  config: ReportedContentCommentDetailConfig,
+  history: CommentHistory,
+) {
+  if (config.kind === "talk-comment") {
+    return labelTalkHistoryChange(history as TalkOperationHistory);
+  }
+
+  return labelHospitalReviewHistoryChange(history as HospitalReviewOperationHistory);
+}
+
+function formatCommentHistoryReason(
+  config: ReportedContentCommentDetailConfig,
+  history: CommentHistory,
+) {
+  if (config.kind === "talk-comment") {
+    return formatTalkHistoryReason(history as TalkOperationHistory);
+  }
+
+  return formatHospitalReviewHistoryReason(history as HospitalReviewOperationHistory);
 }

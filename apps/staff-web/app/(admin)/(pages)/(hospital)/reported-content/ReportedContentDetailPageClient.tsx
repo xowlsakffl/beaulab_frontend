@@ -90,6 +90,7 @@ type ReportedContentDetailConfig = {
   targetType: ReportedContentTargetType;
   historyPerPage: number;
   sourceApiPath: (id: number) => string;
+  historyApiPath: (id: number) => string;
 };
 
 type ReportedContentDetailPageClientProps = {
@@ -98,6 +99,10 @@ type ReportedContentDetailPageClientProps = {
 
 type DetailResponse = TalkDetailResponse | HospitalReviewDetailResponse | HospitalEvaluationDetailResponse;
 type DetailHistory = TalkOperationHistory | HospitalReviewOperationHistory | HospitalEvaluationOperationHistory;
+type DetailHistoryBlock = {
+  items?: DetailHistory[] | null;
+  meta?: DataTableMeta | null;
+};
 type ReceiptUpdateResponse = {
   id: number;
   receipt?: {
@@ -144,6 +149,7 @@ const DETAIL_CONFIGS: Record<ReportedContentBoardType, ReportedContentDetailConf
     targetType: "hospital_review",
     historyPerPage: HOSPITAL_REVIEW_DETAIL_HISTORY_PER_PAGE,
     sourceApiPath: (id) => `/hospital-reviews/${id}`,
+    historyApiPath: (id) => `/hospital-reviews/${id}/operation-histories`,
   },
   "treatment-reviews": {
     boardType: "treatment-reviews",
@@ -153,6 +159,7 @@ const DETAIL_CONFIGS: Record<ReportedContentBoardType, ReportedContentDetailConf
     targetType: "hospital_review",
     historyPerPage: HOSPITAL_REVIEW_DETAIL_HISTORY_PER_PAGE,
     sourceApiPath: (id) => `/hospital-reviews/${id}`,
+    historyApiPath: (id) => `/hospital-reviews/${id}/operation-histories`,
   },
   "hospital-evaluations": {
     boardType: "hospital-evaluations",
@@ -162,6 +169,7 @@ const DETAIL_CONFIGS: Record<ReportedContentBoardType, ReportedContentDetailConf
     targetType: "hospital_evaluation",
     historyPerPage: HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE,
     sourceApiPath: (id) => `/hospital-evaluations/${id}`,
+    historyApiPath: (id) => `/hospital-evaluations/${id}/operation-histories`,
   },
   talks: {
     boardType: "talks",
@@ -171,6 +179,7 @@ const DETAIL_CONFIGS: Record<ReportedContentBoardType, ReportedContentDetailConf
     targetType: "talk",
     historyPerPage: TALK_DETAIL_HISTORY_PER_PAGE,
     sourceApiPath: (id) => `/talks/${id}`,
+    historyApiPath: (id) => `/talks/${id}/operation-histories`,
   },
 };
 
@@ -183,6 +192,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
   const [detail, setDetail] = React.useState<DetailResponse | null>(null);
+  const [historyBlock, setHistoryBlock] = React.useState<DetailHistoryBlock | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -232,17 +242,14 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
 
       if (!hasLoadedRef.current) {
         setLoading(true);
-      } else if (manualRefresh || historiesPage > 0) {
+      } else if (manualRefresh) {
         setRefreshing(true);
       }
 
       setError(null);
 
       try {
-        const response = await api.get<DetailResponse>(config.sourceApiPath(targetId), {
-          operation_histories_page: historiesPage,
-          operation_histories_per_page: config.historyPerPage,
-        });
+        const response = await api.get<DetailResponse>(config.sourceApiPath(targetId));
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "신고게시물 상세 정보를 불러오지 못했습니다.");
@@ -258,12 +265,58 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         setRefreshing(false);
       }
     },
-    [config, historiesPage, targetId],
+    [config, targetId],
   );
 
   React.useEffect(() => {
     void fetchDetail(false);
   }, [fetchDetail]);
+
+  const fetchHistories = React.useCallback(
+    async (manualRefresh = false) => {
+      if (!Number.isFinite(targetId) || targetId <= 0) return;
+
+      if (manualRefresh || hasLoadedRef.current) {
+        setRefreshing(true);
+      }
+
+      try {
+        const response = await api.get<DetailHistory[]>(config.historyApiPath(targetId), {
+          operation_histories_page: historiesPage,
+          operation_histories_per_page: config.historyPerPage,
+        });
+
+        if (!isApiSuccess(response)) {
+          setActionError(response.error.message || "신고게시물 히스토리를 불러오지 못했습니다.");
+          return;
+        }
+
+        setHistoryBlock({
+          items: response.data,
+          meta: (response.meta as DataTableMeta | null) ?? null,
+        });
+      } catch {
+        setActionError("신고게시물 히스토리를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        setRefreshing(false);
+      }
+    },
+    [config, historiesPage, targetId],
+  );
+
+  const refreshDetail = React.useCallback(
+    async (manualRefresh = false) => {
+      await Promise.all([
+        fetchDetail(manualRefresh),
+        fetchHistories(manualRefresh),
+      ]);
+    },
+    [fetchDetail, fetchHistories],
+  );
+
+  React.useEffect(() => {
+    void fetchHistories(false);
+  }, [fetchHistories]);
 
   const changeHistoriesPage = React.useCallback(
     (nextPage: number) => {
@@ -333,14 +386,14 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       }
 
       setPendingReviewVisibilityChange(null);
-      await fetchDetail(true);
+      await refreshDetail(true);
     } catch {
       const label = target === "talk" ? "토크" : "후기";
       setActionError(`${label} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
       setReviewVisibilityUpdating(false);
     }
-  }, [fetchDetail, pendingReviewVisibilityChange]);
+  }, [pendingReviewVisibilityChange, refreshDetail]);
 
   const openReceiptModal = React.useCallback(() => {
     setReceiptDecision("verify");
@@ -389,13 +442,13 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       }
 
       setIsReceiptModalOpen(false);
-      await fetchDetail(true);
+      await refreshDetail(true);
     } catch {
       setReceiptModalError("영수증 인증 상태 저장 중 오류가 발생했습니다.");
     } finally {
       setReceiptUpdating(false);
     }
-  }, [config.kind, detail, fetchDetail, receiptDecision, receiptRejectReason, receiptRejectReasonText]);
+  }, [config.kind, detail, receiptDecision, receiptRejectReason, receiptRejectReasonText, refreshDetail]);
 
   if (loading && !detail) {
     return <SpinnerBlock label="신고게시물 상세 정보를 불러오는 중" />;
@@ -414,8 +467,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     );
   }
 
-  const histories = detail.operation_histories?.items ?? [];
-  const historiesMeta = detail.operation_histories?.meta ?? null;
+  const histories = historyBlock?.items ?? [];
+  const historiesMeta = historyBlock?.meta ?? null;
 
   if (config.kind === "talk") {
     const talk = detail as TalkDetailResponse;
@@ -454,7 +507,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedContentDetailPanel
               targetType={config.targetType}
               targetId={targetId}
-              onStatusUpdated={() => void fetchDetail(true)}
+              onStatusUpdated={() => void refreshDetail(true)}
             />
           </div>
         </div>
@@ -557,7 +610,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedContentDetailPanel
               targetType={config.targetType}
               targetId={targetId}
-              onStatusUpdated={() => void fetchDetail(true)}
+              onStatusUpdated={() => void refreshDetail(true)}
             />
           </div>
         </div>
@@ -668,7 +721,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedContentDetailPanel
               targetType={config.targetType}
               targetId={targetId}
-              onStatusUpdated={() => void fetchDetail(true)}
+              onStatusUpdated={() => void refreshDetail(true)}
             />
           </div>
         </div>
@@ -719,7 +772,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         <ReportedContentDetailPanel
           targetType={config.targetType}
           targetId={targetId}
-          onStatusUpdated={() => void fetchDetail(true)}
+          onStatusUpdated={() => void refreshDetail(true)}
         />
       </div>
     </div>

@@ -74,7 +74,10 @@ export type ReportedContentReport = {
   normal_visible_at?: string | null;
   latest_report?: ReportedContentLatestReport | null;
   reason_counts?: ReportedContentReasonCount[] | null;
+  warning_status?: string | null;
+  warning_label?: string | null;
   warning?: boolean | null;
+  warning_ignored?: boolean | null;
 };
 
 export type ReportedContentApiItem = {
@@ -110,6 +113,7 @@ export type ReportedContentRow = {
   isVisible: boolean;
   visibilityLabel: string;
   hasWarning: boolean;
+  hasIgnoredWarning: boolean;
   detailPath: string;
 };
 
@@ -138,6 +142,7 @@ export type ReportedContentQuery = {
   report_count_max?: string;
   target_status?: string;
   report_status?: string;
+  warning_status?: string;
   sort: ReportedContentSortField;
   direction: ReportedContentSortDirection;
   per_page: number;
@@ -265,8 +270,9 @@ export const REPORTED_CONTENT_STATUS_OPTIONS = [
 
 export const REPORTED_CONTENT_WARNING_OPTIONS = [
   { value: "", label: "전체" },
-  { value: "1", label: "경고" },
-  { value: "0", label: "미경고" },
+  { value: "WARNED", label: "경고" },
+  { value: "IGNORED", label: "무시" },
+  { value: "NONE", label: "미처리" },
 ];
 
 export const REPORTED_CONTENT_DATE_PRESET_OPTIONS = [
@@ -331,7 +337,7 @@ export function parseReportedContentTableState(searchParams: URLSearchParams) {
   const reportReason = searchParams.get("report_reason") ?? "";
   const visibilityStatus = searchParams.get("target_status") ?? "";
   const reportStatus = searchParams.get("report_status") ?? "";
-  const warningStatus = searchParams.get("warning") ?? "";
+  const warningStatus = searchParams.get("warning_status") ?? searchParams.get("warning") ?? "";
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const sortField = sortFieldParam && REPORTED_CONTENT_SORT_FIELDS.has(sortFieldParam as ReportedContentSortField)
@@ -401,11 +407,12 @@ export function buildReportedContentQuery({
   if (appliedFilters.reportCountMax) query.report_count_max = normalizeNumberBound(appliedFilters.reportCountMax);
   if (appliedFilters.visibilityStatus) query.target_status = appliedFilters.visibilityStatus;
   if (appliedFilters.reportStatus) query.report_status = appliedFilters.reportStatus;
+  if (appliedFilters.warningStatus) query.warning_status = appliedFilters.warningStatus;
 
   return query;
 }
 
-export function buildReportedContentQueryString(query: ReportedContentQuery, filters: ReportedContentFilters) {
+export function buildReportedContentQueryString(query: ReportedContentQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
@@ -420,7 +427,7 @@ export function buildReportedContentQueryString(query: ReportedContentQuery, fil
   if (query.report_count_max) params.set("report_count_max", query.report_count_max);
   if (query.target_status) params.set("target_status", query.target_status);
   if (query.report_status) params.set("report_status", query.report_status);
-  if (filters.warningStatus) params.set("warning", filters.warningStatus);
+  if (query.warning_status) params.set("warning_status", query.warning_status);
   if (query.sort !== DEFAULT_REPORTED_CONTENT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_REPORTED_CONTENT_SORT.direction) params.set("direction", query.direction);
   if (query.page !== 1) params.set("page", String(query.page));
@@ -498,6 +505,7 @@ function normalizeReportedReview(
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
+    hasIgnoredWarning: Boolean(report?.warning_ignored),
     detailPath: config.detailPath(id),
   };
 }
@@ -536,6 +544,7 @@ function normalizeReportedReviewComment(
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
+    hasIgnoredWarning: Boolean(report?.warning_ignored),
     detailPath: config.commentDetailPath?.(id) ?? "",
   };
 }
@@ -568,6 +577,7 @@ function normalizeReportedEvaluation(
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
+    hasIgnoredWarning: Boolean(report?.warning_ignored),
     detailPath: config.detailPath(id),
   };
 }
@@ -600,6 +610,7 @@ function normalizeReportedTalk(
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
+    hasIgnoredWarning: Boolean(report?.warning_ignored),
     detailPath: config.detailPath(id),
   };
 }
@@ -632,6 +643,7 @@ function normalizeReportedTalkComment(
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
+    hasIgnoredWarning: Boolean(report?.warning_ignored),
     detailPath: config.commentDetailPath?.(id) ?? "",
   };
 }

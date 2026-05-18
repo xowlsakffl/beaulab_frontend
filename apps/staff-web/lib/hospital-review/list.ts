@@ -1,6 +1,12 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  formatVisibleReportStatusLabel,
+  isVisibilityLockedByReport,
+  type ContentReportSummary,
+} from "@/lib/common/content-report";
+
 export type HospitalReviewBoardType = "surgery" | "treatment";
 
 export type HospitalReviewBoardConfig = {
@@ -79,6 +85,7 @@ export type HospitalReviewApiItem = {
   save_count?: number | null;
   comment_count?: number | null;
   view_count?: number | null;
+  report?: ContentReportSummary | null;
 };
 
 export type HospitalReviewRow = {
@@ -96,6 +103,7 @@ export type HospitalReviewRow = {
   status: string;
   isVisible: boolean;
   visibilityChangeLocked: boolean;
+  reportStatusLabel: string;
   isMainFeatured: boolean;
   isSubFeatured: boolean;
   likeCount: number;
@@ -352,7 +360,8 @@ export function normalizeHospitalReview(item: HospitalReviewApiItem): HospitalRe
     rating: Number(item.rating ?? 0),
     status,
     isVisible: status === "ACTIVE",
-    visibilityChangeLocked: false,
+    visibilityChangeLocked: isVisibilityLockedByReport(item.report),
+    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
     isMainFeatured: Boolean(item.is_main_featured),
     isSubFeatured: Boolean(item.is_sub_featured),
     likeCount: Number(item.like_count ?? 0),

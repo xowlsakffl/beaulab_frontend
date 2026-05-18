@@ -23,6 +23,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
+import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   HOSPITAL_REVIEW_BOARD_CONFIGS,
@@ -434,7 +435,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
   const commentsMeta = commentsBlock?.meta ?? null;
   const operationHistories = operationHistoriesBlock?.items ?? [];
   const operationHistoriesMeta = operationHistoriesBlock?.meta ?? null;
-  const reviewVisibilityLocked = false;
+  const reviewVisibilityLocked = isVisibilityLockedByReport(detail.report);
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityMessage = pendingVisibilityChange
     ? `해당 ${pendingVisibilityChange.target === "comment" ? "댓글을" : "후기를"} ${pendingVisibilityLabel} 하시겠습니까?`
@@ -817,7 +818,7 @@ function CommentItem({
 }) {
   const histories = comment.operation_histories ?? [];
   const visibleHistories = expanded ? histories : histories.slice(0, 1);
-  const visibilityLocked = false;
+  const visibilityLocked = isVisibilityLockedByReport(comment.report);
 
   return (
     <article

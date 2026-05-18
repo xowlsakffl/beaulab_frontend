@@ -1,5 +1,6 @@
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
+import type { ContentReportSummary } from "@/lib/common/content-report";
 import {
   formatHospitalReviewAuthorName,
   formatHospitalReviewCategories,
@@ -48,6 +49,7 @@ export type HospitalReviewDetailComment = {
   author_ip?: string | null;
   like_count?: number | null;
   mention?: HospitalReviewCommentMention | null;
+  report?: ContentReportSummary | null;
   operation_histories?: HospitalReviewCommentHistory[] | null;
   created_at?: string | null;
   updated_at?: string | null;
@@ -65,6 +67,7 @@ export type HospitalReviewDetailResponse = {
   hospital?: HospitalReviewHospital | null;
   doctor?: HospitalReviewDoctor | null;
   categories?: HospitalReviewCategory[] | null;
+  report?: ContentReportSummary | null;
   title?: string | null;
   content?: string | null;
   author_ip?: string | null;
@@ -158,6 +161,10 @@ export function labelHospitalReviewHistoryChange(history: HospitalReviewOperatio
     return labelHospitalReviewVisibilityStatus(stringifyHistoryValue(history.after_value));
   }
 
+  if (history.field === "warning_status") {
+    return labelHospitalReviewWarningHistoryStatus(history);
+  }
+
   if (history.field === "is_main_featured") {
     return stringifyHistoryValue(history.after_value) === "true" || stringifyHistoryValue(history.after_value) === "1"
       ? "메인 베스트"
@@ -197,4 +204,25 @@ function stringifyHistoryValue(value: unknown) {
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   return "";
+}
+
+function labelHospitalReviewWarningHistoryStatus(history: HospitalReviewOperationHistory) {
+  const metadataLabel = getHistoryMetadataLabel(history.metadata, "after_label");
+  if (metadataLabel) return metadataLabel;
+
+  switch (stringifyHistoryValue(history.after_value)) {
+    case "WARNED":
+      return "경고";
+    case "IGNORED":
+      return "무시";
+    case "NONE":
+      return "미처리";
+    default:
+      return "-";
+  }
+}
+
+function getHistoryMetadataLabel(metadata: Record<string, unknown> | null | undefined, key: string) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : "";
 }
