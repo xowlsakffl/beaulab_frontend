@@ -314,6 +314,7 @@ export default function TalksTableClient() {
     setAppliedFilters({
       categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
+      reportStatus: draftFilters.reportStatus,
       metricField: draftFilters.metricField,
       metricMin: normalizeMetricBound(draftFilters.metricMin),
       metricMax: normalizeMetricBound(draftFilters.metricMax),
@@ -366,6 +367,15 @@ export default function TalksTableClient() {
     setDraftFilters((prev) => ({
       ...prev,
       visibilityStatus: value,
+    }));
+  }, []);
+
+  const changeReportStatus = React.useCallback((value: string) => {
+    setIsCategoryDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setDraftFilters((prev) => ({
+      ...prev,
+      reportStatus: value,
     }));
   }, []);
 
@@ -612,6 +622,7 @@ export default function TalksTableClient() {
     const excelFilters: Filters = {
       categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
+      reportStatus: draftFilters.reportStatus,
       metricField: draftFilters.metricField,
       metricMin: normalizeMetricBound(draftFilters.metricMin),
       metricMax: normalizeMetricBound(draftFilters.metricMax),
@@ -724,6 +735,7 @@ export default function TalksTableClient() {
         onToggleCategory={toggleCategory}
         onToggleAllCategory={toggleAllCategory}
         onVisibilityChange={changeVisibility}
+        onReportStatusChange={changeReportStatus}
         onMetricFieldChange={changeMetricField}
         onMetricMinChange={changeMetricMin}
         onMetricMaxChange={changeMetricMax}

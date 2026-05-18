@@ -5,6 +5,8 @@ import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
   normalizeReportStatus,
+  VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
+  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -89,6 +91,7 @@ export type SortState = {
 export type Filters = {
   categoryIds: string[];
   visibilityStatus: string;
+  reportStatus: string;
   metricField: TalkMetricField;
   metricMin: string;
   metricMax: string;
@@ -102,6 +105,7 @@ export type TalkMetricField = "" | "like_count" | "save_count" | "comment_count"
 export type TalksQuery = {
   q?: string;
   status?: string;
+  report_status?: string;
   category_ids?: string;
   metric?: TalkMetricField;
   metric_min?: string;
@@ -123,6 +127,8 @@ export const TALK_VISIBILITY_OPTIONS = [
   { value: "INACTIVE", label: "미노출" },
 ];
 
+export const TALK_REPORT_STATUS_OPTIONS = VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS;
+
 export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = [
   { value: "", label: "선택" },
   { value: "like_count", label: "좋아요수" },
@@ -134,6 +140,7 @@ export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = 
 export const DEFAULT_FILTERS: Filters = {
   categoryIds: [],
   visibilityStatus: "",
+  reportStatus: "",
   metricField: "",
   metricMin: "",
   metricMax: "",
@@ -374,6 +381,7 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     searchParams.get("category_ids") ?? searchParams.get("category_id"),
   );
   const visibilityStatus = searchParams.get("status") ?? "";
+  const reportStatus = searchParams.get("report_status") ?? "";
   const metricParam = searchParams.get("metric");
   const metricField = metricParam && TALK_METRIC_VALUE_SET.has(metricParam as TalkMetricField)
     ? (metricParam as TalkMetricField)
@@ -397,6 +405,7 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     filters: {
       categoryIds,
       visibilityStatus: TALK_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
+      reportStatus: VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
       metricField,
       metricMin: normalizeMetricBound(searchParams.get("metric_min")),
       metricMax: normalizeMetricBound(searchParams.get("metric_max")),
@@ -438,6 +447,9 @@ export function buildTalksQuery({
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
+  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+    query.report_status = appliedFilters.reportStatus;
+  }
   const normalizedCategoryIds = appliedFilters.categoryIds
     .map((value) => value.trim())
     .filter((value) => /^[1-9]\d*$/.test(value));
@@ -474,6 +486,7 @@ function buildTalksQuerySearchParams(query: TalksQuery, { includePage }: { inclu
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
+  if (query.report_status) params.set("report_status", query.report_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric) params.set("metric", query.metric);
   if (query.metric_min) params.set("metric_min", query.metric_min);

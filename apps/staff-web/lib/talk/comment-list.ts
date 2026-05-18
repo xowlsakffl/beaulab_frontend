@@ -14,6 +14,7 @@ import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
   normalizeReportStatus,
+  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -74,6 +75,7 @@ export type TalkCommentSortState = {
 export type TalkCommentsQuery = {
   q?: string;
   status?: string;
+  report_status?: string;
   category_ids?: string;
   metric_min?: string;
   metric_max?: string;
@@ -178,6 +180,9 @@ export function buildTalkCommentsQuery({
   if (TALK_COMMENT_VISIBILITY_SET.has(appliedFilters.visibilityStatus) && appliedFilters.visibilityStatus) {
     query.status = appliedFilters.visibilityStatus;
   }
+  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+    query.report_status = appliedFilters.reportStatus;
+  }
 
   const normalizedCategoryIds = appliedFilters.categoryIds
     .map((value) => value.trim())
@@ -202,6 +207,7 @@ export function buildTalkCommentsQueryString(query: TalkCommentsQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
+  if (query.report_status) params.set("report_status", query.report_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);

@@ -12,6 +12,7 @@ import {
 
 import {
   HOSPITAL_REVIEW_DATE_PRESET_OPTIONS,
+  HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS,
   HOSPITAL_REVIEW_VISIBILITY_OPTIONS,
   type HospitalReviewDatePresetKey,
   type HospitalReviewFilters,
@@ -37,6 +38,7 @@ type HospitalReviewCommentsFilterPanelProps = {
   onMiddleCategoryChange: (value: string) => void;
   onSmallCategoryChange: (value: string) => void;
   onVisibilityChange: (value: string) => void;
+  onReportStatusChange: (value: string) => void;
   onMetricMinChange: (value: string) => void;
   onMetricMaxChange: (value: string) => void;
   onApplyDateRange: (nextRange?: DateRange) => void;
@@ -60,6 +62,7 @@ export function HospitalReviewCommentsFilterPanel({
   onMiddleCategoryChange,
   onSmallCategoryChange,
   onVisibilityChange,
+  onReportStatusChange,
   onMetricMinChange,
   onMetricMaxChange,
   onApplyDateRange,
@@ -79,7 +82,7 @@ export function HospitalReviewCommentsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)_minmax(0,0.7fr)_minmax(0,1fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.75fr)_minmax(0,0.7fr)_minmax(0,0.95fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -165,6 +168,19 @@ export function HospitalReviewCommentsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="500"
                 className="bg-white px-3 dark:bg-gray-800"
+              />
+            </div>
+          </div>
+
+          <div className={filterRowClass}>
+            <span className={inlineLabelClass}>상태</span>
+            <div className="min-w-0 flex-1">
+              <Select
+                value={draftFilters.reportStatus}
+                options={HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS}
+                showPlaceholderOption={false}
+                onChange={onReportStatusChange}
+                className="h-11 px-3"
               />
             </div>
           </div>

@@ -149,8 +149,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         appliedFilters,
         sortState,
         page,
+        categoryDomain: config.categoryDomain,
       }),
-    [appliedFilters, page, searchKeyword, sortState],
+    [appliedFilters, config.categoryDomain, page, searchKeyword, sortState],
   );
 
   const commentQuery = React.useMemo(
@@ -361,7 +362,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       setError(null);
 
       try {
-        const response = await api.get<HospitalReviewApiItem[]>(config.apiPath, query);
+        const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", query);
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "후기 목록 조회에 실패했습니다.");
@@ -378,7 +379,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         setRefreshing(false);
       }
     },
-    [config.apiPath, query, type],
+    [query, type],
   );
 
   const fetchComments = React.useCallback(
@@ -858,6 +859,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onToggleRating={(value) => toggleDraftArrayValue("ratings", value)}
           onToggleAllRating={() => toggleAllDraftArrayValues("ratings", HOSPITAL_REVIEW_RATING_OPTIONS)}
           onVisibilityChange={(value) => setDraftFilters((prev) => ({ ...prev, visibilityStatus: value }))}
+          onReportStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, reportStatus: value }))}
           onBestChange={(value) => setDraftFilters((prev) => ({ ...prev, best: value }))}
           onMetricFieldChange={changeMetricField}
           onMetricMinChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMin: normalizeMetricBound(value) }))}
@@ -886,6 +888,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onMiddleCategoryChange={changeMiddleCategory}
           onSmallCategoryChange={changeSmallCategory}
           onVisibilityChange={(value) => setDraftFilters((prev) => ({ ...prev, visibilityStatus: value }))}
+          onReportStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, reportStatus: value }))}
           onMetricMinChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMin: normalizeMetricBound(value) }))}
           onMetricMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMax: normalizeMetricBound(value) }))}
           onApplyDateRange={applyDateRange}

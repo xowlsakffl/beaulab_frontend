@@ -30,9 +30,15 @@ import {
   type TalkApiItem,
 } from "@/lib/talk/list";
 
-export type ReportedContentBoardType = "surgery-reviews" | "treatment-reviews" | "hospital-evaluations" | "talks";
-export type ReportedContentKind = "review" | "review-comment" | "evaluation" | "talk" | "talk-comment";
+export type ReportedContentBoardType = "surgery-reviews" | "treatment-reviews" | "hospital-evaluations" | "talks" | "chats";
+export type ReportedContentKind = "review" | "review-comment" | "evaluation" | "talk" | "talk-comment" | "chat";
 export type ReportedContentBoardMode = "posts" | "comments";
+export type ReportedContentDateType = "created_at" | "first_reported_at" | "last_message_at";
+export type ReportedContentSearchType = "id" | "nickname" | "hospital_name" | "content";
+export type ReportedContentOption<T extends string = string> = {
+  value: T;
+  label: string;
+};
 
 export type ReportedContentBoardConfig = {
   type: ReportedContentBoardType;
@@ -44,6 +50,15 @@ export type ReportedContentBoardConfig = {
   commentApiPath?: string;
   detailPath: (id: number) => string;
   commentDetailPath?: (id: number) => string;
+  dateTypeOptions?: ReportedContentOption<ReportedContentDateType>[];
+  statusOptions?: ReportedContentOption[];
+  defaultDateType?: ReportedContentDateType;
+  searchInputPlaceholder?: string;
+  statusLabel?: string;
+  dateTypeInline?: boolean;
+  showVisibilityFilter?: boolean;
+  showWarningFilter?: boolean;
+  showSummaryCards?: boolean;
 };
 
 export type ReportedContentReasonCount = {
@@ -57,6 +72,12 @@ export type ReportedContentLatestReport = {
   reason?: string | null;
   reason_label?: string | null;
   reason_text?: string | null;
+  reporter?: {
+    id?: number | null;
+    name?: string | null;
+    nickname?: string | null;
+    email?: string | null;
+  } | null;
   created_at?: string | null;
 };
 
@@ -82,8 +103,24 @@ export type ReportedContentReport = {
 
 export type ReportedContentApiItem = {
   target_type?: string | null;
-  target?: HospitalReviewApiItem | HospitalReviewCommentApiItem | HospitalEvaluationApiItem | TalkApiItem | TalkCommentApiItem | null;
+  target?: HospitalReviewApiItem | HospitalReviewCommentApiItem | HospitalEvaluationApiItem | TalkApiItem | TalkCommentApiItem | ReportedChatMessageApiItem | null;
   report?: ReportedContentReport | null;
+};
+
+export type ReportedChatMessageApiItem = {
+  id?: number | null;
+  chat_id?: number | null;
+  created_at?: string | null;
+  last_message_at?: string | null;
+  sender?: {
+    id?: number | null;
+    name?: string | null;
+    nickname?: string | null;
+    email?: string | null;
+  } | null;
+  body?: string | null;
+  body_preview?: string | null;
+  message_type?: string | null;
 };
 
 export type ReportedContentSummary = {
@@ -95,6 +132,7 @@ export type ReportedContentSummary = {
 
 export type ReportedContentRow = {
   id: number;
+  chatRoomId: number | null;
   createdAt: string;
   categoryLabel: string;
   image: HospitalReviewMediaAsset | null;
@@ -105,6 +143,7 @@ export type ReportedContentRow = {
   parentTitle: string;
   hospitalName: string;
   phone: string;
+  reporterNickname: string;
   reportReason: string;
   reportCount: number;
   firstReportedAt: string;
@@ -149,8 +188,6 @@ export type ReportedContentQuery = {
   page: number;
 };
 
-export type ReportedContentDateType = "created_at" | "first_reported_at";
-export type ReportedContentSearchType = "id" | "nickname" | "hospital_name" | "content";
 export type ReportedContentSortField =
   | "target_id"
   | "report_status"
@@ -211,6 +248,31 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     detailPath: (id) => `/reported-content/talks/${id}`,
     commentDetailPath: (id) => `/reported-content/talks/comments/${id}`,
   },
+  chats: {
+    type: "chats",
+    kind: "chat",
+    title: "채팅",
+    listPath: "/reported-content/chats",
+    apiPath: "/reported-contents/chats",
+    detailPath: () => "",
+    dateTypeOptions: [
+      { value: "last_message_at", label: "대화일" },
+      { value: "first_reported_at", label: "신고일" },
+    ],
+    statusOptions: [
+      { value: "", label: "전체" },
+      { value: "REPORTED", label: "신고접수" },
+      { value: "ADMIN_HIDDEN", label: "적합" },
+      { value: "NORMAL_VISIBLE", label: "부적합" },
+    ],
+    defaultDateType: "last_message_at",
+    searchInputPlaceholder: "채팅방ID, 작성자 닉네임, 채팅 내용을 입력해주세요",
+    statusLabel: "적합여부",
+    dateTypeInline: true,
+    showVisibilityFilter: false,
+    showWarningFilter: false,
+    showSummaryCards: false,
+  },
 };
 
 export const DEFAULT_REPORTED_CONTENT_FILTERS: ReportedContentFilters = {
@@ -233,12 +295,12 @@ export const DEFAULT_REPORTED_CONTENT_SORT: ReportedContentSortState = {
   enabled: true,
 };
 
-export const REPORTED_CONTENT_DATE_TYPE_OPTIONS = [
+export const REPORTED_CONTENT_DATE_TYPE_OPTIONS: ReportedContentOption<ReportedContentDateType>[] = [
   { value: "created_at", label: "등록일" },
   { value: "first_reported_at", label: "최초신고일" },
 ];
 
-export const REPORTED_CONTENT_SEARCH_TYPE_OPTIONS = [
+export const REPORTED_CONTENT_SEARCH_TYPE_OPTIONS: ReportedContentOption<ReportedContentSearchType>[] = [
   { value: "id", label: "ID" },
   { value: "nickname", label: "닉네임" },
   { value: "hospital_name", label: "병의원명" },
@@ -260,7 +322,7 @@ export const REPORTED_CONTENT_VISIBILITY_OPTIONS = [
   { value: "INACTIVE", label: "미노출" },
 ];
 
-export const REPORTED_CONTENT_STATUS_OPTIONS = [
+export const REPORTED_CONTENT_STATUS_OPTIONS: ReportedContentOption[] = [
   { value: "", label: "전체" },
   { value: "REPORTED", label: "신고접수" },
   { value: "AUTO_BLOCKED", label: "자동차단" },
@@ -293,12 +355,24 @@ const REPORTED_CONTENT_SORT_FIELDS = new Set<ReportedContentSortField>([
   "last_reported_at",
   "updated_at",
 ]);
-const REPORTED_CONTENT_DATE_TYPE_SET = new Set(REPORTED_CONTENT_DATE_TYPE_OPTIONS.map((option) => option.value));
-const REPORTED_CONTENT_SEARCH_TYPE_SET = new Set(REPORTED_CONTENT_SEARCH_TYPE_OPTIONS.map((option) => option.value));
 const REPORTED_CONTENT_REASON_SET = new Set(REPORTED_CONTENT_REASON_OPTIONS.map((option) => option.value));
 const REPORTED_CONTENT_VISIBILITY_SET = new Set(REPORTED_CONTENT_VISIBILITY_OPTIONS.map((option) => option.value));
-const REPORTED_CONTENT_STATUS_SET = new Set(REPORTED_CONTENT_STATUS_OPTIONS.map((option) => option.value));
 const REPORTED_CONTENT_WARNING_SET = new Set(REPORTED_CONTENT_WARNING_OPTIONS.map((option) => option.value));
+
+export function defaultReportedContentFilters(config?: ReportedContentBoardConfig): ReportedContentFilters {
+  return {
+    ...DEFAULT_REPORTED_CONTENT_FILTERS,
+    dateType: config?.defaultDateType ?? DEFAULT_REPORTED_CONTENT_FILTERS.dateType,
+  };
+}
+
+export function reportedContentDateTypeOptions(config?: ReportedContentBoardConfig) {
+  return config?.dateTypeOptions ?? REPORTED_CONTENT_DATE_TYPE_OPTIONS;
+}
+
+export function reportedContentStatusOptions(config?: ReportedContentBoardConfig) {
+  return config?.statusOptions ?? REPORTED_CONTENT_STATUS_OPTIONS;
+}
 
 export function buildReportedContentPresetDateRange(preset: ReportedContentDatePresetKey): DateRange {
   const today = normalizeRangeDate(new Date());
@@ -328,12 +402,14 @@ export function mapDateRangeToReportedContentFilter(range?: DateRange) {
   };
 }
 
-export function parseReportedContentTableState(searchParams: URLSearchParams) {
+export function parseReportedContentTableState(searchParams: URLSearchParams, config?: ReportedContentBoardConfig) {
+  const defaultFilters = defaultReportedContentFilters(config);
+  const dateTypeSet = new Set<string>(reportedContentDateTypeOptions(config).map((option) => option.value));
+  const statusSet = new Set<string>(reportedContentStatusOptions(config).map((option) => option.value));
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
   const dateRange = buildReportedContentDateState(startDate, endDate);
-  const dateTypeParam = searchParams.get("date_type") ?? DEFAULT_REPORTED_CONTENT_FILTERS.dateType;
-  const searchTypeParam = searchParams.get("search_type") ?? DEFAULT_REPORTED_CONTENT_FILTERS.searchType;
+  const dateTypeParam = searchParams.get("date_type") ?? defaultFilters.dateType;
   const reportReason = searchParams.get("report_reason") ?? "";
   const visibilityStatus = searchParams.get("target_status") ?? "";
   const reportStatus = searchParams.get("report_status") ?? "";
@@ -350,12 +426,10 @@ export function parseReportedContentTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      dateType: REPORTED_CONTENT_DATE_TYPE_SET.has(dateTypeParam)
+      dateType: dateTypeSet.has(dateTypeParam)
         ? (dateTypeParam as ReportedContentDateType)
-        : DEFAULT_REPORTED_CONTENT_FILTERS.dateType,
-      searchType: REPORTED_CONTENT_SEARCH_TYPE_SET.has(searchTypeParam)
-        ? (searchTypeParam as ReportedContentSearchType)
-        : DEFAULT_REPORTED_CONTENT_FILTERS.searchType,
+        : defaultFilters.dateType,
+      searchType: defaultFilters.searchType,
       dateRange: dateRange.label,
       startDate,
       endDate,
@@ -363,7 +437,7 @@ export function parseReportedContentTableState(searchParams: URLSearchParams) {
       reportCountMin: normalizeNumberBound(searchParams.get("report_count_min")),
       reportCountMax: normalizeNumberBound(searchParams.get("report_count_max")),
       visibilityStatus: REPORTED_CONTENT_VISIBILITY_SET.has(visibilityStatus) ? visibilityStatus : "",
-      reportStatus: REPORTED_CONTENT_STATUS_SET.has(reportStatus) ? reportStatus : "",
+      reportStatus: statusSet.has(reportStatus) ? reportStatus : "",
       warningStatus: REPORTED_CONTENT_WARNING_SET.has(warningStatus) ? warningStatus : "",
     },
     draftDateRange: dateRange.range,
@@ -397,7 +471,6 @@ export function buildReportedContentQuery({
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) {
     query.q = trimmedSearch;
-    query.search_type = appliedFilters.searchType;
   }
   if (appliedFilters.dateType) query.date_type = appliedFilters.dateType;
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
@@ -416,9 +489,6 @@ export function buildReportedContentQueryString(query: ReportedContentQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
-  if (query.search_type && query.search_type !== DEFAULT_REPORTED_CONTENT_FILTERS.searchType) {
-    params.set("search_type", query.search_type);
-  }
   if (query.date_type && query.date_type !== DEFAULT_REPORTED_CONTENT_FILTERS.dateType) params.set("date_type", query.date_type);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
@@ -467,6 +537,10 @@ export function normalizeReportedContent(
     return normalizeReportedTalkComment(item.target as TalkCommentApiItem | null | undefined, item.report, config);
   }
 
+  if (kind === "chat") {
+    return normalizeReportedChatMessage(item.target as ReportedChatMessageApiItem | null | undefined, item.report, config);
+  }
+
   return normalizeReportedTalk(item.target as TalkApiItem | null | undefined, item.report, config);
 }
 
@@ -487,6 +561,7 @@ function normalizeReportedReview(
 
   return {
     id,
+    chatRoomId: null,
     createdAt: formatHospitalReviewDate(target?.created_at),
     categoryLabel: formatHospitalReviewCategories(target?.categories),
     image: target?.first_image ?? beforeImages[0] ?? afterImages[0] ?? null,
@@ -497,6 +572,7 @@ function normalizeReportedReview(
     parentTitle: "",
     hospitalName: target?.hospital?.name?.trim() || "-",
     phone: "-",
+    reporterNickname: latestReporterNickname(report),
     reportReason: dominantReportReason(report),
     reportCount: Number(report?.report_count ?? 0),
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
@@ -526,6 +602,7 @@ function normalizeReportedReviewComment(
 
   return {
     id,
+    chatRoomId: null,
     createdAt: formatHospitalReviewDate(target?.created_at),
     categoryLabel: formatHospitalReviewCategories(categories, 3),
     image: target?.parent?.first_image ?? beforeImages[0] ?? afterImages[0] ?? null,
@@ -536,6 +613,7 @@ function normalizeReportedReviewComment(
     parentTitle: target?.parent?.title?.trim() || "-",
     hospitalName: "-",
     phone: "-",
+    reporterNickname: latestReporterNickname(report),
     reportReason: dominantReportReason(report),
     reportCount: Number(report?.report_count ?? 0),
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
@@ -559,6 +637,7 @@ function normalizeReportedEvaluation(
 
   return {
     id,
+    chatRoomId: null,
     createdAt: formatHospitalEvaluationDate(target?.created_at),
     categoryLabel: labelHospitalEvaluationReviewType(target?.category_domain),
     image: null,
@@ -569,6 +648,7 @@ function normalizeReportedEvaluation(
     parentTitle: "",
     hospitalName: target?.hospital?.name?.trim() || "-",
     phone: target?.phone?.trim() || "-",
+    reporterNickname: latestReporterNickname(report),
     reportReason: dominantReportReason(report),
     reportCount: Number(report?.report_count ?? 0),
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
@@ -592,6 +672,7 @@ function normalizeReportedTalk(
 
   return {
     id,
+    chatRoomId: null,
     createdAt: formatTalkDate(target?.created_at ?? target?.createdAt),
     categoryLabel: target?.category?.name?.trim() || target?.category_name?.trim() || target?.categoryName?.trim() || "-",
     image: null,
@@ -602,6 +683,7 @@ function normalizeReportedTalk(
     parentTitle: "",
     hospitalName: "-",
     phone: "-",
+    reporterNickname: latestReporterNickname(report),
     reportReason: dominantReportReason(report),
     reportCount: Number(report?.report_count ?? 0),
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
@@ -625,6 +707,7 @@ function normalizeReportedTalkComment(
 
   return {
     id,
+    chatRoomId: null,
     createdAt: formatTalkDate(target?.created_at ?? target?.createdAt),
     categoryLabel: target?.category?.name?.trim() || target?.category?.full_path?.trim() || "-",
     image: null,
@@ -635,6 +718,7 @@ function normalizeReportedTalkComment(
     parentTitle: target?.parentTalkTitle?.trim() || target?.parent_talk_title?.trim() || "-",
     hospitalName: "-",
     phone: "-",
+    reporterNickname: latestReporterNickname(report),
     reportReason: dominantReportReason(report),
     reportCount: Number(report?.report_count ?? 0),
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
@@ -648,12 +732,60 @@ function normalizeReportedTalkComment(
   };
 }
 
+function normalizeReportedChatMessage(
+  target: ReportedChatMessageApiItem | null | undefined,
+  report: ReportedContentReport | null | undefined,
+  config: ReportedContentBoardConfig,
+): ReportedContentRow {
+  const id = Number(target?.id ?? 0);
+  const chatRoomId = Number(target?.chat_id ?? 0) || null;
+
+  return {
+    id,
+    chatRoomId,
+    createdAt: formatReportedDate(target?.last_message_at ?? target?.created_at),
+    categoryLabel: "-",
+    image: null,
+    imageCount: 0,
+    nickname: target?.sender?.nickname?.trim() || target?.sender?.name?.trim() || "-",
+    title: "",
+    content: target?.body_preview?.trim() || target?.body?.trim() || "-",
+    parentTitle: "",
+    hospitalName: "-",
+    phone: "-",
+    reporterNickname: latestReporterNickname(report),
+    reportReason: dominantReportReason(report),
+    reportCount: Number(report?.report_count ?? 0),
+    firstReportedAt: formatReportedDate(report?.latest_report?.created_at ?? report?.last_reported_at ?? report?.first_reported_at),
+    status: report?.status?.trim() || "REPORTED",
+    statusLabel: labelChatReportStatus(report?.status),
+    isVisible: false,
+    visibilityLabel: "-",
+    hasWarning: Boolean(report?.warning),
+    hasIgnoredWarning: Boolean(report?.warning_ignored),
+    detailPath: config.detailPath(id),
+  };
+}
+
 function dominantReportReason(report?: ReportedContentReport | null) {
   const reason = report?.reason_counts?.[0]?.label?.trim()
     || report?.latest_report?.reason_label?.trim()
     || report?.latest_report?.reason?.trim();
 
   return reason || "-";
+}
+
+function latestReporterNickname(report?: ReportedContentReport | null) {
+  const reporter = report?.latest_report?.reporter;
+
+  return reporter?.nickname?.trim() || reporter?.name?.trim() || "-";
+}
+
+function labelChatReportStatus(status?: string | null) {
+  if (status === "ADMIN_HIDDEN") return "적합";
+  if (status === "NORMAL_VISIBLE") return "부적합";
+
+  return "신고접수";
 }
 
 function labelReportStatus(status?: string | null) {

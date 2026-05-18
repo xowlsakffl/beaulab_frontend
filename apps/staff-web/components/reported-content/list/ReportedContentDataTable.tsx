@@ -94,6 +94,13 @@ function reportStatusTone(status: string): "yellow" | "orange" | "red" | "green"
   return "gray";
 }
 
+function chatStatusTone(status: string): "yellow" | "orange" | "red" | "green" | "blue" | "gray" {
+  if (status === "ADMIN_HIDDEN") return "green";
+  if (status === "NORMAL_VISIBLE") return "red";
+
+  return "yellow";
+}
+
 function renderImagePreview(row: ReportedContentRow) {
   const imageUrl = resolveReportedReviewImageUrl(row.image);
 
@@ -184,6 +191,76 @@ function buildColumns({
     },
     warningColumn,
   ];
+
+  if (kind === "chat") {
+    return [
+      {
+        key: "chatRoomId",
+        headerClassName: `${headerBaseClass} w-[92px]`,
+        cellClassName: `${nowrapCellClass} w-[92px]`,
+        header: "채팅방ID",
+        render: (row) => row.chatRoomId ?? "-",
+      },
+      {
+        key: "lastMessageAt",
+        headerClassName: `${headerBaseClass} w-[132px]`,
+        cellClassName: `${nowrapCellClass} w-[132px]`,
+        header: "대화일",
+        render: (row) => row.createdAt,
+      },
+      {
+        key: "nickname",
+        headerClassName: `${headerBaseClass} w-[128px]`,
+        cellClassName: `${cellBaseClass} w-[128px]`,
+        header: "작성자",
+        render: (row) => row.nickname,
+      },
+      {
+        key: "content",
+        headerClassName: `${headerBaseClass} min-w-[280px]`,
+        cellClassName: `${cellBaseClass} min-w-[280px]`,
+        header: "채팅내용",
+        render: (row) => (
+          <span className="block line-clamp-2 break-words" title={row.content}>
+            {row.content}
+          </span>
+        ),
+      },
+      {
+        key: "reporterNickname",
+        headerClassName: `${headerBaseClass} w-[128px]`,
+        cellClassName: `${cellBaseClass} w-[128px]`,
+        header: "신고자",
+        render: (row) => row.reporterNickname,
+      },
+      {
+        key: "reportReason",
+        headerClassName: `${headerBaseClass} w-[130px]`,
+        cellClassName: `${cellBaseClass} w-[130px]`,
+        header: "신고사유",
+        render: (row) => (
+          <span className="block line-clamp-2 break-words" title={row.reportReason}>
+            {row.reportReason}
+          </span>
+        ),
+      },
+      {
+        key: "firstReportedAt",
+        headerClassName: `${headerBaseClass} w-[104px]`,
+        cellClassName: `${nowrapCellClass} w-[104px]`,
+        header: "신고일",
+        render: (row) => row.firstReportedAt,
+      },
+      {
+        key: "reportStatus",
+        headerClassName: `${headerBaseClass} w-[92px]`,
+        cellClassName: `${nowrapCellClass} w-[92px]`,
+        header: "적합여부",
+        render: (row) => <StatusBadge label={row.statusLabel} tone={chatStatusTone(row.status)} />,
+      },
+      warningColumn,
+    ];
+  }
 
   if (kind === "talk") {
     return [

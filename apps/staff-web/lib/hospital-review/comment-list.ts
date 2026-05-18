@@ -16,6 +16,7 @@ import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
   normalizeReportStatus,
+  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -77,6 +78,7 @@ export type HospitalReviewCommentSortState = {
 export type HospitalReviewCommentsQuery = {
   q?: string;
   status?: string;
+  report_status?: string;
   category_domain: string;
   category_ids?: string;
   metric_min?: string;
@@ -214,6 +216,9 @@ export function buildHospitalReviewCommentsQuery({
   if (HOSPITAL_REVIEW_COMMENT_VISIBILITY_SET.has(appliedFilters.visibilityStatus) && appliedFilters.visibilityStatus) {
     query.status = appliedFilters.visibilityStatus;
   }
+  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+    query.report_status = appliedFilters.reportStatus;
+  }
 
   const selectedCategoryId = appliedFilters.smallCategoryId
     || appliedFilters.middleCategoryId
@@ -240,6 +245,7 @@ export function buildHospitalReviewCommentsQueryString(query: HospitalReviewComm
   params.set("board", "comments");
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
+  if (query.report_status) params.set("report_status", query.report_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.metric_min) params.set("metric_min", query.metric_min);
   if (query.metric_max) params.set("metric_max", query.metric_max);

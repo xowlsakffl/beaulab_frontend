@@ -11,12 +11,12 @@ import { ReportedContentFilterPanel } from "@/components/reported-content/list/R
 import { ReportedContentStatsCards } from "@/components/reported-content/list/ReportedContentStatsCards";
 import { api } from "@/lib/common/api";
 import {
-  DEFAULT_REPORTED_CONTENT_FILTERS,
   DEFAULT_REPORTED_CONTENT_SORT,
   REPORTED_CONTENT_BOARD_CONFIGS,
   buildReportedContentPresetDateRange,
   buildReportedContentQuery,
   buildReportedContentQueryString,
+  defaultReportedContentFilters,
   mapDateRangeToReportedContentFilter,
   nextReportedContentSortState,
   normalizeReportedContent,
@@ -54,7 +54,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseReportedContentTableState(new URLSearchParams(searchParams.toString()));
+    initialTableStateRef.current = parseReportedContentTableState(new URLSearchParams(searchParams.toString()), config);
   }
 
   if (!initialBoardRef.current) {
@@ -173,25 +173,29 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
+    const defaultFilters = defaultReportedContentFilters(config);
+
     setSearchInput("");
     setSearchKeyword("");
     setDraftDateRange(undefined);
-    setDraftFilters(DEFAULT_REPORTED_CONTENT_FILTERS);
-    setAppliedFilters(DEFAULT_REPORTED_CONTENT_FILTERS);
+    setDraftFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
     setSortState(DEFAULT_REPORTED_CONTENT_SORT);
     setIsDatePickerOpen(false);
     setPage(1);
-  }, []);
+  }, [config]);
 
   const changeBoard = React.useCallback((nextBoard: ReportedContentBoardMode) => {
     if (nextBoard === activeBoard || (nextBoard === "comments" && !supportsComments)) return;
+
+    const defaultFilters = defaultReportedContentFilters(config);
 
     setActiveBoard(nextBoard);
     setSearchInput("");
     setSearchKeyword("");
     setDraftDateRange(undefined);
-    setDraftFilters(DEFAULT_REPORTED_CONTENT_FILTERS);
-    setAppliedFilters(DEFAULT_REPORTED_CONTENT_FILTERS);
+    setDraftFilters(defaultFilters);
+    setAppliedFilters(defaultFilters);
     setSortState(DEFAULT_REPORTED_CONTENT_SORT);
     setIsDatePickerOpen(false);
     setPage(1);
@@ -201,7 +205,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     setError(null);
     hasFetchedRef.current = false;
     requestKeyRef.current = "";
-  }, [activeBoard, supportsComments]);
+  }, [activeBoard, config, supportsComments]);
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToReportedContentFilter(nextRange);
@@ -267,7 +271,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
           </Button>
         </div>
       ) : null}
-      <ReportedContentStatsCards summary={summary} />
+      {config.showSummaryCards === false ? null : <ReportedContentStatsCards summary={summary} />}
       <ReportedContentFilterPanel
         searchInput={searchInput}
         draftFilters={draftFilters}
@@ -275,7 +279,6 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         isDatePickerOpen={isDatePickerOpen}
         datePickerRef={datePickerRef}
         onSearchChange={setSearchInput}
-        onSearchTypeChange={(value) => changeDraftFilter("searchType", value as ReportedContentFilters["searchType"])}
         onDateTypeChange={(value) => changeDraftFilter("dateType", value as ReportedContentDateType)}
         onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
         onApplyDateRange={applyDateRange}
@@ -288,6 +291,13 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         onWarningStatusChange={(value) => changeDraftFilter("warningStatus", value)}
         onApplyFilters={applyFilters}
         onResetFilters={resetFilters}
+        dateTypeOptions={config.dateTypeOptions}
+        reportStatusOptions={config.statusOptions}
+        searchInputPlaceholder={config.searchInputPlaceholder}
+        reportStatusLabel={config.statusLabel}
+        dateTypeInline={config.dateTypeInline}
+        showVisibilityFilter={config.showVisibilityFilter ?? true}
+        showWarningFilter={config.showWarningFilter ?? true}
       />
       <ReportedContentDataTable
         kind={activeKind}
@@ -300,7 +310,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         onToggleSort={toggleSort}
         onGoPage={setPage}
         onRefresh={() => void fetchRows(true)}
-        onOpenDetail={openDetail}
+        onOpenDetail={activeKind === "chat" ? undefined : openDetail}
       />
     </div>
   );

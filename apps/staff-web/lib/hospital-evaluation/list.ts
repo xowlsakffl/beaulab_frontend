@@ -5,6 +5,8 @@ import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
   normalizeReportStatus,
+  VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
+  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -99,6 +101,7 @@ export type HospitalEvaluationSortState = {
 export type HospitalEvaluationFilters = {
   reviewType: string;
   visibilityStatus: string;
+  reportStatus: string;
   rating: string;
   costMin: string;
   costMax: string;
@@ -112,6 +115,7 @@ export type HospitalEvaluationFilters = {
 export type HospitalEvaluationsQuery = {
   q?: string;
   status?: string;
+  report_status?: string;
   category_domain?: string;
   ratings?: string;
   cost_min?: string;
@@ -137,6 +141,7 @@ export const DEFAULT_HOSPITAL_EVALUATION_SORT: HospitalEvaluationSortState = {
 export const DEFAULT_HOSPITAL_EVALUATION_FILTERS: HospitalEvaluationFilters = {
   reviewType: "",
   visibilityStatus: "",
+  reportStatus: "",
   rating: "",
   costMin: "",
   costMax: "",
@@ -159,6 +164,8 @@ export const HOSPITAL_EVALUATION_VISIBILITY_OPTIONS = [
   { value: "ACTIVE", label: "노출" },
   { value: "INACTIVE", label: "미노출" },
 ];
+
+export const HOSPITAL_EVALUATION_REPORT_STATUS_OPTIONS = VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS;
 
 export const HOSPITAL_EVALUATION_RATING_OPTIONS = [
   { value: "", label: "전체" },
@@ -363,6 +370,7 @@ export function nextHospitalEvaluationSortState(
 export function parseHospitalEvaluationsTableState(searchParams: URLSearchParams) {
   const reviewType = searchParams.get("category_domain") ?? "";
   const visibilityStatus = searchParams.get("status") ?? "";
+  const reportStatus = searchParams.get("report_status") ?? "";
   const rating = searchParams.get("ratings") ?? searchParams.get("rating") ?? "";
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
@@ -381,6 +389,7 @@ export function parseHospitalEvaluationsTableState(searchParams: URLSearchParams
     filters: {
       reviewType: HOSPITAL_EVALUATION_REVIEW_TYPE_VALUE_SET.has(reviewType) ? reviewType : "",
       visibilityStatus: HOSPITAL_EVALUATION_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
+      reportStatus: VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
       rating: HOSPITAL_EVALUATION_RATING_VALUE_SET.has(rating) ? rating : "",
       costMin: normalizeMetricBound(searchParams.get("cost_min")),
       costMax: normalizeMetricBound(searchParams.get("cost_max")),
@@ -423,6 +432,9 @@ export function buildHospitalEvaluationsQuery({
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
+  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+    query.report_status = appliedFilters.reportStatus;
+  }
   if (appliedFilters.reviewType) query.category_domain = appliedFilters.reviewType;
   if (appliedFilters.rating) query.ratings = appliedFilters.rating;
 
@@ -447,6 +459,7 @@ export function buildHospitalEvaluationsQueryString(query: HospitalEvaluationsQu
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
+  if (query.report_status) params.set("report_status", query.report_status);
   if (query.category_domain) params.set("category_domain", query.category_domain);
   if (query.ratings) params.set("ratings", query.ratings);
   if (query.cost_min) params.set("cost_min", query.cost_min);

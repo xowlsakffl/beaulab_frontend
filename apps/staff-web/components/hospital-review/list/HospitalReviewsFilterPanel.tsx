@@ -16,6 +16,7 @@ import {
   HOSPITAL_REVIEW_DATE_PRESET_OPTIONS,
   HOSPITAL_REVIEW_METRIC_OPTIONS,
   HOSPITAL_REVIEW_RATING_OPTIONS,
+  HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS,
   HOSPITAL_REVIEW_VISIBILITY_OPTIONS,
   type HospitalReviewDatePresetKey,
   type HospitalReviewFilters,
@@ -39,6 +40,7 @@ type HospitalReviewsFilterPanelProps = {
   onToggleRating: (value: string) => void;
   onToggleAllRating: () => void;
   onVisibilityChange: (value: string) => void;
+  onReportStatusChange: (value: string) => void;
   onBestChange: (value: string) => void;
   onMetricFieldChange: (value: string) => void;
   onMetricMinChange: (value: string) => void;
@@ -72,6 +74,7 @@ export function HospitalReviewsFilterPanel({
   onToggleRating,
   onToggleAllRating,
   onVisibilityChange,
+  onReportStatusChange,
   onBestChange,
   onMetricFieldChange,
   onMetricMinChange,
@@ -93,7 +96,7 @@ export function HospitalReviewsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.55fr)_minmax(0,0.75fr)_minmax(0,1.9fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.45fr)_minmax(0,0.7fr)_minmax(0,1.55fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -185,6 +188,19 @@ export function HospitalReviewsFilterPanel({
                   className="bg-white px-3 dark:bg-gray-800"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className={filterRowClass}>
+            <span className={inlineLabelClass}>상태</span>
+            <div className="min-w-0 flex-1">
+              <Select
+                value={draftFilters.reportStatus}
+                options={HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS}
+                showPlaceholderOption={false}
+                onChange={onReportStatusChange}
+                className="h-11 px-3"
+              />
             </div>
           </div>
         </div>

@@ -30,6 +30,7 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/reported-content/treatment-reviews": ["common.access"],
   "/reported-content/hospital-evaluations": ["common.access"],
   "/reported-content/talks": ["common.access"],
+  "/reported-content/chats": ["common.access"],
   "/beauty-wallet/beauties": ["common.access"],
   "/beauty-wallet/usages": ["common.access"],
   "/beauty-customer-db/remote-consultations": ["common.access"],

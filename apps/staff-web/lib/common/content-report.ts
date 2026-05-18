@@ -5,22 +5,32 @@ export type ContentReportSummary = {
   report_label?: string | null;
 };
 
-const VISIBILITY_LOCKING_REPORT_STATUS_LABELS: Record<string, string> = {
+export const VISIBILITY_LOCKING_REPORT_STATUS_LABELS: Record<string, string> = {
   AUTO_BLOCKED: "자동차단",
   ADMIN_HIDDEN: "노출중지",
 };
+
+export const VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "전체" },
+  { value: "AUTO_BLOCKED", label: VISIBILITY_LOCKING_REPORT_STATUS_LABELS.AUTO_BLOCKED },
+  { value: "ADMIN_HIDDEN", label: VISIBILITY_LOCKING_REPORT_STATUS_LABELS.ADMIN_HIDDEN },
+];
+
+export const VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET = new Set(
+  Object.keys(VISIBILITY_LOCKING_REPORT_STATUS_LABELS),
+);
 
 export function normalizeReportStatus(report?: ContentReportSummary | null) {
   return (report?.status ?? report?.report_status ?? "").trim();
 }
 
 export function isVisibilityLockedByReport(report?: ContentReportSummary | null) {
-  return Object.prototype.hasOwnProperty.call(VISIBILITY_LOCKING_REPORT_STATUS_LABELS, normalizeReportStatus(report));
+  return VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(normalizeReportStatus(report));
 }
 
 export function formatVisibleReportStatusLabel(report?: ContentReportSummary | null) {
   const status = normalizeReportStatus(report);
-  if (!Object.prototype.hasOwnProperty.call(VISIBILITY_LOCKING_REPORT_STATUS_LABELS, status)) return "";
+  if (!VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(status)) return "";
 
   return report?.label?.trim()
     || report?.report_label?.trim()

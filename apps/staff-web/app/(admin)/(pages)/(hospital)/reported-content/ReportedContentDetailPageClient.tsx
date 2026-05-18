@@ -93,8 +93,10 @@ type ReportedContentDetailConfig = {
   historyApiPath: (id: number) => string;
 };
 
+type ReportedContentDetailBoardType = Exclude<ReportedContentBoardType, "chats">;
+
 type ReportedContentDetailPageClientProps = {
-  type: ReportedContentBoardType;
+  type: ReportedContentDetailBoardType;
 };
 
 type DetailResponse = TalkDetailResponse | HospitalReviewDetailResponse | HospitalEvaluationDetailResponse;
@@ -140,7 +142,7 @@ const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400";
 const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
 
-const DETAIL_CONFIGS: Record<ReportedContentBoardType, ReportedContentDetailConfig> = {
+const DETAIL_CONFIGS: Record<ReportedContentDetailBoardType, ReportedContentDetailConfig> = {
   "surgery-reviews": {
     boardType: "surgery-reviews",
     kind: "review",

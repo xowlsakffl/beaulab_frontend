@@ -213,6 +213,12 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         description: "신고된 토크 컨텐츠를 검토하는 기본 페이지입니다.",
     },
     {
+        slug: ["reported-content", "chats"],
+        title: "채팅",
+        group: "신고게시물 관리",
+        description: "신고된 채팅 메시지를 검토하는 기본 페이지입니다.",
+    },
+    {
         slug: ["notices"],
         title: "공지사항",
         description: "공지사항 운영을 위한 기본 페이지입니다.",

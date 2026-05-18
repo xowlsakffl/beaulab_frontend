@@ -13,6 +13,7 @@ import {
 import {
   HOSPITAL_EVALUATION_DATE_PRESET_OPTIONS,
   HOSPITAL_EVALUATION_RATING_OPTIONS,
+  HOSPITAL_EVALUATION_REPORT_STATUS_OPTIONS,
   HOSPITAL_EVALUATION_REVIEW_TYPE_OPTIONS,
   HOSPITAL_EVALUATION_VISIBILITY_OPTIONS,
   type HospitalEvaluationDatePresetKey,
@@ -28,6 +29,7 @@ type HospitalEvaluationsFilterPanelProps = {
   onSearchChange: (value: string) => void;
   onToggleDatePicker: () => void;
   onVisibilityChange: (value: string) => void;
+  onReportStatusChange: (value: string) => void;
   onRatingChange: (value: string) => void;
   onReviewTypeChange: (value: string) => void;
   onCostMinChange: (value: string) => void;
@@ -49,6 +51,7 @@ export function HospitalEvaluationsFilterPanel({
   onSearchChange,
   onToggleDatePicker,
   onVisibilityChange,
+  onReportStatusChange,
   onRatingChange,
   onReviewTypeChange,
   onCostMinChange,
@@ -74,7 +77,7 @@ export function HospitalEvaluationsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,1.35fr)_minmax(0,1.35fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.75fr)_minmax(0,0.75fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -169,6 +172,19 @@ export function HospitalEvaluationsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="1000"
                 className="bg-white px-3 dark:bg-gray-800"
+              />
+            </div>
+          </div>
+
+          <div className={filterRowClass}>
+            <span className={inlineLabelClass}>상태</span>
+            <div className="min-w-0 flex-1">
+              <Select
+                value={draftFilters.reportStatus}
+                options={HOSPITAL_EVALUATION_REPORT_STATUS_OPTIONS}
+                showPlaceholderOption={false}
+                onChange={onReportStatusChange}
+                className="h-11 px-3"
               />
             </div>
           </div>

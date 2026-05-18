@@ -13,6 +13,7 @@ import type { DateRange } from "react-day-picker";
 import {
   DATE_PRESET_OPTIONS,
   TALK_METRIC_OPTIONS,
+  TALK_REPORT_STATUS_OPTIONS,
   TALK_VISIBILITY_OPTIONS,
   type DatePresetKey,
   type Filters,
@@ -35,6 +36,7 @@ type TalksFilterPanelProps = {
   onToggleCategory: (value: string) => void;
   onToggleAllCategory: () => void;
   onVisibilityChange: (value: string) => void;
+  onReportStatusChange: (value: string) => void;
   onMetricFieldChange: (value: string) => void;
   onMetricMinChange: (value: string) => void;
   onMetricMaxChange: (value: string) => void;
@@ -60,6 +62,7 @@ export function TalksFilterPanel({
   onToggleCategory,
   onToggleAllCategory,
   onVisibilityChange,
+  onReportStatusChange,
   onMetricFieldChange,
   onMetricMinChange,
   onMetricMaxChange,
@@ -81,7 +84,7 @@ export function TalksFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.8fr)_minmax(0,0.7fr)_minmax(0,1.55fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.65fr)_minmax(0,1.35fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -171,6 +174,19 @@ export function TalksFilterPanel({
                   className="bg-white px-3 dark:bg-gray-800"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className={filterRowClass}>
+            <span className={inlineLabelClass}>상태</span>
+            <div className="min-w-0 flex-1">
+              <Select
+                value={draftFilters.reportStatus}
+                options={TALK_REPORT_STATUS_OPTIONS}
+                showPlaceholderOption={false}
+                onChange={onReportStatusChange}
+                className="h-11 px-3"
+              />
             </div>
           </div>
         </div>

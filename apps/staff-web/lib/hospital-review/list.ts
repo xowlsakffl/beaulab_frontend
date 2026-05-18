@@ -5,6 +5,8 @@ import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
   normalizeReportStatus,
+  VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
+  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -14,7 +16,6 @@ export type HospitalReviewBoardConfig = {
   type: HospitalReviewBoardType;
   title: string;
   listPath: string;
-  apiPath: string;
   categoryDomain: string;
 };
 
@@ -142,6 +143,7 @@ export type HospitalReviewFilters = {
   middleCategoryId: string;
   smallCategoryId: string;
   visibilityStatus: string;
+  reportStatus: string;
   ratings: string[];
   best: string;
   metricField: HospitalReviewMetricField;
@@ -155,6 +157,8 @@ export type HospitalReviewFilters = {
 export type HospitalReviewsQuery = {
   q?: string;
   status?: string;
+  report_status?: string;
+  category_domain: string;
   category_ids?: string;
   ratings?: string;
   is_main_featured?: "1";
@@ -175,14 +179,12 @@ export const HOSPITAL_REVIEW_BOARD_CONFIGS: Record<HospitalReviewBoardType, Hosp
     type: "surgery",
     title: "성형후기",
     listPath: "/reviews/surgery-reviews",
-    apiPath: "/hospital-reviews/surgery",
     categoryDomain: "HOSPITAL_REVIEW_SURGERY",
   },
   treatment: {
     type: "treatment",
     title: "시술후기",
     listPath: "/reviews/treatment-reviews",
-    apiPath: "/hospital-reviews/treatment",
     categoryDomain: "HOSPITAL_REVIEW_TREATMENT",
   },
 };
@@ -200,6 +202,7 @@ export const DEFAULT_HOSPITAL_REVIEW_FILTERS: HospitalReviewFilters = {
   middleCategoryId: "",
   smallCategoryId: "",
   visibilityStatus: "",
+  reportStatus: "",
   ratings: [],
   best: "",
   metricField: "",
@@ -215,6 +218,8 @@ export const HOSPITAL_REVIEW_VISIBILITY_OPTIONS = [
   { value: "ACTIVE", label: "노출" },
   { value: "INACTIVE", label: "미노출" },
 ];
+
+export const HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS = VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS;
 
 export const HOSPITAL_REVIEW_RATING_OPTIONS: CheckboxFilterOption[] = [
   { value: "1", label: "1점" },
@@ -486,6 +491,7 @@ export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
     searchParams.get("category_ids") ?? searchParams.get("category_id"),
   );
   const visibilityStatus = searchParams.get("status") ?? "";
+  const reportStatus = searchParams.get("report_status") ?? "";
   const ratings = normalizeListParam(searchParams.get("ratings") ?? searchParams.get("rating"))
     .filter((value) => HOSPITAL_REVIEW_RATING_VALUE_SET.has(value));
   const metricParam = searchParams.get("metric");
@@ -519,6 +525,7 @@ export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
       middleCategoryId: "",
       smallCategoryId: "",
       visibilityStatus: HOSPITAL_REVIEW_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
+      reportStatus: VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
       ratings,
       best,
       metricField,
@@ -543,13 +550,16 @@ export function buildHospitalReviewsQuery({
   appliedFilters,
   sortState,
   page,
+  categoryDomain,
 }: {
   searchKeyword: string;
   appliedFilters: HospitalReviewFilters;
   sortState: HospitalReviewSortState;
   page: number;
+  categoryDomain: string;
 }): HospitalReviewsQuery {
   const query: HospitalReviewsQuery = {
+    category_domain: categoryDomain,
     sort: sortState.enabled ? sortState.field : DEFAULT_HOSPITAL_REVIEW_SORT.field,
     direction: sortState.enabled ? sortState.direction : DEFAULT_HOSPITAL_REVIEW_SORT.direction,
     per_page: HOSPITAL_REVIEWS_PER_PAGE,
@@ -560,6 +570,9 @@ export function buildHospitalReviewsQuery({
   if (trimmedSearch) query.q = trimmedSearch;
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
+  }
+  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+    query.report_status = appliedFilters.reportStatus;
   }
 
   const selectedCategoryId = appliedFilters.smallCategoryId
@@ -595,6 +608,8 @@ export function buildHospitalReviewsQueryString(query: HospitalReviewsQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
+  if (query.report_status) params.set("report_status", query.report_status);
+  params.set("category_domain", query.category_domain);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.ratings) params.set("ratings", query.ratings);
   if (query.is_main_featured) params.set("is_main_featured", query.is_main_featured);

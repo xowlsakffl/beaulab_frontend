@@ -364,6 +364,7 @@ export function HospitalEvaluationsTableClient() {
           setIsDatePickerOpen((value) => !value);
         }}
         onVisibilityChange={(value) => setDraftFilters((prev) => ({ ...prev, visibilityStatus: value }))}
+        onReportStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, reportStatus: value }))}
         onRatingChange={(value) => setDraftFilters((prev) => ({ ...prev, rating: value }))}
         onReviewTypeChange={(value) => setDraftFilters((prev) => ({ ...prev, reviewType: value }))}
         onCostMinChange={(value) => setDraftFilters((prev) => ({ ...prev, costMin: normalizeMetricBound(value) }))}
