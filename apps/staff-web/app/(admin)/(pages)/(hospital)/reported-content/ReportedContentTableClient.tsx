@@ -310,7 +310,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         onToggleSort={toggleSort}
         onGoPage={setPage}
         onRefresh={() => void fetchRows(true)}
-        onOpenDetail={activeKind === "chat" ? undefined : openDetail}
+        onOpenDetail={openDetail}
       />
     </div>
   );

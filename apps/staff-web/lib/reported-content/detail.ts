@@ -3,7 +3,8 @@ export type ReportedContentTargetType =
   | "talk_comment"
   | "hospital_review"
   | "hospital_review_comment"
-  | "hospital_evaluation";
+  | "hospital_evaluation"
+  | "chat_message";
 
 export type ReportedContentDetailAuthor = {
   id?: number | null;
@@ -35,6 +36,7 @@ export type ReportedContentDetailReportState = {
   warning?: boolean | null;
   warning_ignored?: boolean | null;
   warning_processed_at?: string | null;
+  latest_report?: ReportedContentDetailReportItem | null;
 };
 
 export type ReportedContentDetailReportItem = {
@@ -42,13 +44,45 @@ export type ReportedContentDetailReportItem = {
   reason?: string | null;
   reason_label?: string | null;
   reason_text?: string | null;
+  reporter_ip?: string | null;
+  items?: ReportedContentDetailReportSubItem[] | null;
   created_at?: string | null;
   reporter?: {
     id?: number | null;
     name?: string | null;
     nickname?: string | null;
     email?: string | null;
+    phone?: string | null;
+    warning_count?: number | null;
+    created_at?: string | null;
   } | null;
+};
+
+export type ReportedContentDetailReportSubItem = {
+  id?: number | null;
+  target_type?: string | null;
+  target_id?: number | null;
+  target_author_id?: number | null;
+  content_snapshot?: string | null;
+  target?: ReportedChatMessageDetailTarget | null;
+  created_at?: string | null;
+};
+
+export type ReportedChatMessageDetailTarget = {
+  id?: number | null;
+  chat_id?: number | null;
+  created_at?: string | null;
+  last_message_at?: string | null;
+  author_ip?: string | null;
+  sender?: {
+    id?: number | null;
+    name?: string | null;
+    nickname?: string | null;
+    email?: string | null;
+  } | null;
+  body?: string | null;
+  body_preview?: string | null;
+  message_type?: string | null;
 };
 
 export type ReportedContentDetailResponse = {
@@ -57,6 +91,7 @@ export type ReportedContentDetailResponse = {
   target?: unknown;
   author?: ReportedContentDetailAuthor | null;
   author_stats?: ReportedContentAuthorStats | null;
+  reporter_stats?: ReportedContentAuthorStats | null;
   report?: ReportedContentDetailReportState | null;
 };
 
@@ -70,7 +105,7 @@ export type ReportedContentReportsMeta = {
 export type ReportedContentStatusUpdatePayload = {
   target_type: ReportedContentTargetType;
   target_id: number;
-  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
+  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE" | "VALID" | "INVALID";
   process_reason?: string;
 };
 

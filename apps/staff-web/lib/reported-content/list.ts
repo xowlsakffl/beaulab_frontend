@@ -254,7 +254,7 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     title: "채팅",
     listPath: "/reported-content/chats",
     apiPath: "/reported-contents/chats",
-    detailPath: () => "",
+    detailPath: (id) => `/reported-content/chats/${id}`,
     dateTypeOptions: [
       { value: "last_message_at", label: "대화일" },
       { value: "first_reported_at", label: "신고일" },
@@ -262,8 +262,8 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     statusOptions: [
       { value: "", label: "전체" },
       { value: "REPORTED", label: "신고접수" },
-      { value: "ADMIN_HIDDEN", label: "적합" },
-      { value: "NORMAL_VISIBLE", label: "부적합" },
+      { value: "VALID", label: "적합" },
+      { value: "INVALID", label: "부적합" },
     ],
     defaultDateType: "last_message_at",
     searchInputPlaceholder: "채팅방ID, 작성자 닉네임, 채팅 내용을 입력해주세요",
@@ -782,8 +782,8 @@ function latestReporterNickname(report?: ReportedContentReport | null) {
 }
 
 function labelChatReportStatus(status?: string | null) {
-  if (status === "ADMIN_HIDDEN") return "적합";
-  if (status === "NORMAL_VISIBLE") return "부적합";
+  if (status === "VALID" || status === "ADMIN_HIDDEN") return "적합";
+  if (status === "INVALID" || status === "NORMAL_VISIBLE") return "부적합";
 
   return "신고접수";
 }

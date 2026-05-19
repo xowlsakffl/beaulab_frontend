@@ -251,11 +251,6 @@ export function ReportedContentDetailPanel({
   const submitStatusChange = React.useCallback(() => {
     if (!pendingStatus) return;
 
-    if (pendingStatus === "ADMIN_HIDDEN" && processReason.trim() === "") {
-      setModalError("노출중지 사유를 입력해주세요.");
-      return;
-    }
-
     void updateReportStatus(pendingStatus, pendingStatus === "ADMIN_HIDDEN" ? processReason : undefined);
   }, [pendingStatus, processReason, updateReportStatus]);
 

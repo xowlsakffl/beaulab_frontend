@@ -75,14 +75,14 @@ export function ReportedContentFilterPanel({
   reportStatusOptions = REPORTED_CONTENT_STATUS_OPTIONS,
   searchInputPlaceholder,
   reportStatusLabel = "신고상태",
-  dateTypeInline = false,
+  dateTypeInline = true,
   showVisibilityFilter = true,
   showWarningFilter = true,
 }: ReportedContentFilterPanelProps) {
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
   const firstGridClass = showVisibilityFilter
-    ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]"
+    ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]"
     : "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -97,7 +97,7 @@ export function ReportedContentFilterPanel({
         <div className={firstGridClass}>
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
-            <div className={dateTypeInline ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-6" : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2"}>
+            <div className={dateTypeInline ? "flex min-w-0 flex-1 flex-col gap-3 xl:flex-row xl:items-center xl:gap-6" : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2"}>
               {dateTypeInline ? null : (
                 <Select
                   value={draftFilters.dateType}

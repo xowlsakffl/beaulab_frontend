@@ -95,8 +95,8 @@ function reportStatusTone(status: string): "yellow" | "orange" | "red" | "green"
 }
 
 function chatStatusTone(status: string): "yellow" | "orange" | "red" | "green" | "blue" | "gray" {
-  if (status === "ADMIN_HIDDEN") return "green";
-  if (status === "NORMAL_VISIBLE") return "red";
+  if (status === "VALID" || status === "ADMIN_HIDDEN") return "green";
+  if (status === "INVALID" || status === "NORMAL_VISIBLE") return "red";
 
   return "yellow";
 }
