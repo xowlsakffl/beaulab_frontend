@@ -6,7 +6,7 @@ import {
   isVisibilityLockedByReport,
   normalizeReportStatus,
   VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
-  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
+  VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -405,7 +405,7 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
     filters: {
       categoryIds,
       visibilityStatus: TALK_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
-      reportStatus: VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
+      reportStatus: VISIBLE_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
       metricField,
       metricMin: normalizeMetricBound(searchParams.get("metric_min")),
       metricMax: normalizeMetricBound(searchParams.get("metric_max")),
@@ -447,7 +447,7 @@ export function buildTalksQuery({
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
-  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+  if (VISIBLE_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
     query.report_status = appliedFilters.reportStatus;
   }
   const normalizedCategoryIds = appliedFilters.categoryIds

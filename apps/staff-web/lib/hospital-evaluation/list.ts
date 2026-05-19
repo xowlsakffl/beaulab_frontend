@@ -6,7 +6,7 @@ import {
   isVisibilityLockedByReport,
   normalizeReportStatus,
   VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
-  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
+  VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -389,7 +389,7 @@ export function parseHospitalEvaluationsTableState(searchParams: URLSearchParams
     filters: {
       reviewType: HOSPITAL_EVALUATION_REVIEW_TYPE_VALUE_SET.has(reviewType) ? reviewType : "",
       visibilityStatus: HOSPITAL_EVALUATION_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
-      reportStatus: VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
+      reportStatus: VISIBLE_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
       rating: HOSPITAL_EVALUATION_RATING_VALUE_SET.has(rating) ? rating : "",
       costMin: normalizeMetricBound(searchParams.get("cost_min")),
       costMax: normalizeMetricBound(searchParams.get("cost_max")),
@@ -432,7 +432,7 @@ export function buildHospitalEvaluationsQuery({
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
-  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+  if (VISIBLE_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
     query.report_status = appliedFilters.reportStatus;
   }
   if (appliedFilters.reviewType) query.category_domain = appliedFilters.reviewType;

@@ -16,7 +16,7 @@ import {
   formatVisibleReportStatusLabel,
   isVisibilityLockedByReport,
   normalizeReportStatus,
-  VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET,
+  VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
 
@@ -216,7 +216,7 @@ export function buildHospitalReviewCommentsQuery({
   if (HOSPITAL_REVIEW_COMMENT_VISIBILITY_SET.has(appliedFilters.visibilityStatus) && appliedFilters.visibilityStatus) {
     query.status = appliedFilters.visibilityStatus;
   }
-  if (VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
+  if (VISIBLE_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
     query.report_status = appliedFilters.reportStatus;
   }
 

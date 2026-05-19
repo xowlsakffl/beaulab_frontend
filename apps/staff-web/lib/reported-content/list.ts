@@ -328,6 +328,7 @@ export const REPORTED_CONTENT_STATUS_OPTIONS: ReportedContentOption[] = [
   { value: "AUTO_BLOCKED", label: "자동차단" },
   { value: "ADMIN_HIDDEN", label: "노출중지" },
   { value: "NORMAL_VISIBLE", label: "정상노출" },
+  { value: "REEXPOSED", label: "재노출" },
 ];
 
 export const REPORTED_CONTENT_WARNING_OPTIONS = [

@@ -90,6 +90,7 @@ function reportStatusTone(status: string): "yellow" | "orange" | "red" | "green"
   if (status === "AUTO_BLOCKED") return "red";
   if (status === "ADMIN_HIDDEN") return "orange";
   if (status === "NORMAL_VISIBLE") return "green";
+  if (status === "REEXPOSED") return "blue";
 
   return "gray";
 }

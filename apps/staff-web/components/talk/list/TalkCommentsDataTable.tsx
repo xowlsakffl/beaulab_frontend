@@ -77,9 +77,13 @@ function SelectionCheckbox({
 
 function ReportStatusBadge({ label, status }: { label: string; status: string }) {
   if (!label) return <span className="text-sm text-gray-400">-</span>;
-  const toneClassName = status === "ADMIN_HIDDEN"
-    ? "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300"
-    : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300";
+  const toneClassNames: Record<string, string> = {
+    AUTO_BLOCKED: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+    ADMIN_HIDDEN: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
+    NORMAL_VISIBLE: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300",
+    REEXPOSED: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+  };
+  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-200";
 
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${toneClassName}`}>

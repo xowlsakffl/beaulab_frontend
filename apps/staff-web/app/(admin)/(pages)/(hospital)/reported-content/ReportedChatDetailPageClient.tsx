@@ -25,7 +25,6 @@ import {
   formatReportedContentDetailDate,
   formatReportedContentDetailDateTime,
   type ReportedChatMessageDetailTarget,
-  type ReportedContentAuthorStats,
   type ReportedContentDetailAuthor,
   type ReportedContentDetailReportItem,
   type ReportedContentDetailReportSubItem,
@@ -39,7 +38,6 @@ type WarningActionStatus = "WARNED" | "IGNORED";
 
 type ReportedChatDetailResponse = ReportedContentDetailResponse & {
   target?: ReportedChatMessageDetailTarget | null;
-  reporter_stats?: ReportedContentAuthorStats | null;
   report?: ReportedContentDetailResponse["report"] & {
     latest_report?: ReportedContentDetailReportItem | null;
   } | null;
@@ -49,6 +47,7 @@ type ReportedChatMessageDisplay = {
   key: string;
   body: string;
 };
+type ChatReportMember = ReportedContentDetailAuthor | NonNullable<ReportedContentDetailReportItem["reporter"]>;
 
 const targetType = "chat_message";
 const listPath = "/reported-content/chats";
@@ -258,7 +257,6 @@ export default function ReportedChatDetailPageClient() {
             ip={target?.author_ip}
             dateLabel="작성일"
             date={target?.created_at}
-            stats={detail.author_stats}
             onBack={() => router.push(getReturnToPath())}
           />
           <ChatMemberInfoCard
@@ -267,12 +265,14 @@ export default function ReportedChatDetailPageClient() {
             ip={latestReport?.reporter_ip}
             dateLabel="신고일"
             date={latestReport?.created_at}
-            stats={detail.reporter_stats}
           />
         </div>
 
         <div className="space-y-6">
-          <ReportedChatMessagesCard messages={messages} />
+          <ReportedChatMessagesCard
+            messages={messages}
+            reportCount={Number(reportState?.report_count ?? 0)}
+          />
           <ChatReportActionCard
             isValidReport={isValidReport}
             isInvalidReport={isInvalidReport}
@@ -399,60 +399,34 @@ function ChatMemberInfoCard({
   ip,
   dateLabel,
   date,
-  stats,
   onBack,
 }: {
   title: string;
-  user?: ReportedContentDetailAuthor | null;
+  user?: ChatReportMember | null;
   ip?: string | null;
   dateLabel: string;
   date?: string | null;
-  stats?: ReportedContentAuthorStats | null;
   onBack?: () => void;
 }) {
-  const posts = stats?.posts ?? null;
-  const comments = stats?.comments ?? null;
-
   return (
     <Card>
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>{title}</CardTitle>
           {onBack ? (
-            <div className="flex w-full flex-row gap-2 sm:w-auto">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 sm:flex-none"
-                onClick={onBack}
-              >
-                목록으로
-              </Button>
-            </div>
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onBack}>
+              목록으로
+            </Button>
           ) : null}
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent>
         <div className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
           <InfoValue label={title.startsWith("신고자") ? "신고자" : "작성자"} value={formatReportedContentAuthorName(user)} />
           <InfoValue label="전화번호" value={user?.phone?.trim() || "-"} />
           <InfoValue label={title.startsWith("신고자") ? "신고 IP" : "작성 IP"} value={ip?.trim() || "-"} />
           <InfoValue label={dateLabel} value={formatReportedContentDetailDateTime(date)} />
           <InfoValue label="가입일" value={formatReportedContentDetailDate(user?.created_at)} />
-        </div>
-
-        <div className="border-t border-gray-200 pt-5 dark:border-white/[0.08]">
-          <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">활동게시물</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <ActivityBox
-              label="게시글/댓글"
-              value={`${Number(posts?.total ?? 0).toLocaleString()}/${Number(comments?.total ?? 0).toLocaleString()}`}
-            />
-            <ActivityBox
-              label="신고된 게시글/댓글"
-              value={`${Number(posts?.reported ?? 0).toLocaleString()}/${Number(comments?.reported ?? 0).toLocaleString()}`}
-            />
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -468,20 +442,24 @@ function InfoValue({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
-function ActivityBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-gray-300 bg-white px-4 py-4 text-center dark:border-white/[0.1] dark:bg-white/[0.04]">
-      <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">{label}</p>
-      <p className="mt-1 text-sm font-bold text-gray-900 dark:text-white">{value}</p>
-    </div>
-  );
-}
-
-function ReportedChatMessagesCard({ messages }: { messages: ReportedChatMessageDisplay[] }) {
+function ReportedChatMessagesCard({
+  messages,
+  reportCount,
+}: {
+  messages: ReportedChatMessageDisplay[];
+  reportCount: number;
+}) {
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle>신고내용</CardTitle>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <CardTitle>신고 내용 상세</CardTitle>
+            <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
+              {reportCount.toLocaleString()}회
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {messages.length > 0 ? (

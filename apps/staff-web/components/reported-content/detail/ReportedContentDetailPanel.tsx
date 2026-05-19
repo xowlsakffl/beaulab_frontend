@@ -21,8 +21,6 @@ import {
 
 import { api } from "@/lib/common/api";
 import {
-  formatReportedContentAuthorName,
-  formatReportedContentDetailDate,
   formatReportedContentDetailDateTime,
   formatReportedContentReason,
   formatReportedContentReporterName,
@@ -42,9 +40,6 @@ type ReportedContentDetailPanelProps = {
 
 type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
 type WarningActionStatus = "WARNED" | "IGNORED";
-
-const panelLabelClass = "text-xs font-semibold text-gray-500 dark:text-gray-400";
-const panelValueClass = "text-sm font-medium text-gray-800 dark:text-white/90";
 
 export function ReportedContentDetailPanel({
   targetType,
@@ -136,17 +131,10 @@ export function ReportedContentDetailPanel({
     void fetchReports();
   }, [fetchReports]);
 
-  const author = detail?.author ?? null;
-  const authorStats = detail?.author_stats ?? null;
   const reportState = detail?.report ?? null;
   const reportsTotal = Number(reportsMeta?.total ?? reports.length);
   const reportsCurrentPage = Number(reportsMeta?.current_page ?? reportsPage);
   const reportsLastPage = Math.max(1, Number(reportsMeta?.last_page ?? 1));
-  const postTotal = Number(authorStats?.posts?.total ?? 0);
-  const reportedPostTotal = Number(authorStats?.posts?.reported ?? 0);
-  const commentTotal = Number(authorStats?.comments?.total ?? 0);
-  const reportedCommentTotal = Number(authorStats?.comments?.reported ?? 0);
-  const warningCount = Number(author?.warning_count ?? 0);
   const reportStatus = reportState?.status?.trim() || "";
   const warningStatus = reportState?.warning_status?.trim() || "NONE";
   const isWarningButtonDisabled = warningStatus === "WARNED" || updatingWarningStatus !== null;
@@ -283,7 +271,14 @@ export function ReportedContentDetailPanel({
     <>
       <Card as="aside" className="min-w-0">
         <CardHeader className="pb-4">
-          <CardTitle>작성자 정보</CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle>신고 내용 상세</CardTitle>
+            {!loading && !error ? (
+              <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
+                {reportsTotal.toLocaleString()}회
+              </span>
+            ) : null}
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-8">
@@ -295,32 +290,7 @@ export function ReportedContentDetailPanel({
             </div>
           ) : (
             <>
-            <section className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <DetailValue label="작성자" value={formatReportedContentAuthorName(author)} />
-                <DetailValue label="가입일" value={formatReportedContentDetailDate(author?.created_at)} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <AuthorStatBox
-                  label="게시글/댓글"
-                  value={`${postTotal.toLocaleString()}/${commentTotal.toLocaleString()}`}
-                />
-                <AuthorStatBox
-                  label="신고된 게시글/댓글"
-                  value={`${reportedPostTotal.toLocaleString()}/${reportedCommentTotal.toLocaleString()}`}
-                />
-              </div>
-            </section>
-
             <section className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">신고 내용 상세</h3>
-                <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                  {reportsTotal.toLocaleString()}회
-                </span>
-              </div>
-
               <div className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
                 <span>신고자목록</span>
                 <span>신고 사유</span>
@@ -528,9 +498,6 @@ export function ReportedContentDetailPanel({
             {pendingWarningStatus === "WARNED" ? (
               <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
                 <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
-                <p>
-                  현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
-                </p>
               </div>
             ) : null}
 
@@ -552,23 +519,5 @@ export function ReportedContentDetailPanel({
         </ModalPanel>
       </Modal>
     </>
-  );
-}
-
-function DetailValue({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <p className={panelLabelClass}>{label}</p>
-      <div className={panelValueClass}>{value}</div>
-    </div>
-  );
-}
-
-function AuthorStatBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-center dark:border-white/[0.08] dark:bg-white/[0.04]">
-      <p className="text-xs font-semibold text-gray-600 dark:text-gray-300">{label}</p>
-      <p className="mt-1 text-sm font-bold text-gray-900 dark:text-white">{value}</p>
-    </div>
   );
 }

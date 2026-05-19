@@ -16,17 +16,6 @@ export type ReportedContentDetailAuthor = {
   created_at?: string | null;
 };
 
-export type ReportedContentAuthorStats = {
-  posts?: {
-    total?: number | null;
-    reported?: number | null;
-  } | null;
-  comments?: {
-    total?: number | null;
-    reported?: number | null;
-  } | null;
-};
-
 export type ReportedContentDetailReportState = {
   status?: string | null;
   label?: string | null;
@@ -90,8 +79,6 @@ export type ReportedContentDetailResponse = {
   target_id?: number | null;
   target?: unknown;
   author?: ReportedContentDetailAuthor | null;
-  author_stats?: ReportedContentAuthorStats | null;
-  reporter_stats?: ReportedContentAuthorStats | null;
   report?: ReportedContentDetailReportState | null;
 };
 
@@ -105,7 +92,7 @@ export type ReportedContentReportsMeta = {
 export type ReportedContentStatusUpdatePayload = {
   target_type: ReportedContentTargetType;
   target_id: number;
-  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE" | "VALID" | "INVALID";
+  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE" | "REEXPOSED" | "VALID" | "INVALID";
   process_reason?: string;
 };
 
