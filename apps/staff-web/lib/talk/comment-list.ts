@@ -2,7 +2,7 @@ import {
   TALK_VISIBILITY_OPTIONS,
   TALKS_PER_PAGE,
   buildTalkContentPreview,
-  formatLocalDate,
+  formatLocalDateTime,
   formatTalkCategoryName,
   normalizeMetricBound,
   type Filters,
@@ -11,9 +11,9 @@ import {
   type TalkCategory,
 } from "@/lib/talk/list";
 import {
-  formatVisibleReportStatusLabel,
+  formatPostManagementStatusLabel,
   isVisibilityLockedByReport,
-  normalizeReportStatus,
+  normalizePostManagementStatus,
   VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
@@ -109,7 +109,7 @@ export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
 
   return {
     id: item.id,
-    createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
+    createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDateTime(createdDate) : "-",
     categoryName,
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     mentionText: item.mention?.mention_text?.trim() || null,
@@ -119,8 +119,8 @@ export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
     status,
     isVisible: status === "ACTIVE",
     visibilityChangeLocked: isVisibilityLockedByReport(item.report),
-    reportStatus: normalizeReportStatus(item.report),
-    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
+    reportStatus: normalizePostManagementStatus(item.report, status),
+    reportStatusLabel: formatPostManagementStatusLabel(item.report, status),
     likeCount: Number(item.likeCount ?? item.like_count ?? 0),
   };
 }

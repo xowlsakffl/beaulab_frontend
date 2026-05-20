@@ -45,3 +45,23 @@ export function formatVisibleReportStatusLabel(report?: ContentReportSummary | n
     || VISIBLE_REPORT_STATUS_LABELS[status]
     || "";
 }
+
+export function normalizePostManagementStatus(
+  report?: ContentReportSummary | null,
+  contentStatus?: string | null,
+) {
+  const reportStatus = normalizeReportStatus(report);
+  if (VISIBLE_REPORT_STATUS_VALUE_SET.has(reportStatus)) return reportStatus;
+
+  return contentStatus?.trim() === "INACTIVE" ? "INACTIVE" : "";
+}
+
+export function formatPostManagementStatusLabel(
+  report?: ContentReportSummary | null,
+  contentStatus?: string | null,
+) {
+  const reportLabel = formatVisibleReportStatusLabel(report);
+  if (reportLabel) return reportLabel;
+
+  return contentStatus?.trim() === "INACTIVE" ? "미노출" : "";
+}

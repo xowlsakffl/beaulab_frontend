@@ -13,9 +13,9 @@ import {
   type HospitalReviewSortDirection,
 } from "@/lib/hospital-review/list";
 import {
-  formatVisibleReportStatusLabel,
+  formatPostManagementStatusLabel,
   isVisibilityLockedByReport,
-  normalizeReportStatus,
+  normalizePostManagementStatus,
   VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
@@ -125,8 +125,8 @@ export function normalizeHospitalReviewComment(item: HospitalReviewCommentApiIte
     status,
     isVisible: status === "ACTIVE",
     visibilityChangeLocked: isVisibilityLockedByReport(item.report),
-    reportStatus: normalizeReportStatus(item.report),
-    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
+    reportStatus: normalizePostManagementStatus(item.report, status),
+    reportStatusLabel: formatPostManagementStatusLabel(item.report, status),
     likeCount: Number(item.like_count ?? 0),
   };
 }

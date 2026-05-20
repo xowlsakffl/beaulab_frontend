@@ -26,6 +26,7 @@ import {
   buildTalkContentPreview,
   formatDateRange,
   formatLocalDate,
+  formatLocalDateTime,
   normalizeRangeDate,
   type TalkApiItem,
 } from "@/lib/talk/list";
@@ -803,7 +804,7 @@ function formatReportedDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
 
-  return formatLocalDate(date);
+  return formatLocalDateTime(date);
 }
 
 function formatTalkDate(value?: string | null) {

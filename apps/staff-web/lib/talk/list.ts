@@ -2,9 +2,9 @@ import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import {
-  formatVisibleReportStatusLabel,
+  formatPostManagementStatusLabel,
   isVisibilityLockedByReport,
-  normalizeReportStatus,
+  normalizePostManagementStatus,
   VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
   VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
@@ -187,6 +187,13 @@ export function formatLocalDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+export function formatLocalDateTime(date: Date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${formatLocalDate(date)} ${hours}:${minutes}`;
+}
+
 function formatFilterDisplayDate(date: Date) {
   const year = String(date.getFullYear() % 100).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -350,15 +357,15 @@ export function normalizeTalk(item: TalkApiItem): TalkRow {
     status: item.status?.trim() || "ACTIVE",
     isVisible: (item.status?.trim() || "ACTIVE") === "ACTIVE",
     visibilityChangeLocked: isVisibilityLockedByReport(item.report),
-    reportStatus: normalizeReportStatus(item.report),
-    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
+    reportStatus: normalizePostManagementStatus(item.report, item.status),
+    reportStatusLabel: formatPostManagementStatusLabel(item.report, item.status),
     nickname: item.author?.nickname?.trim() || item.author?.name?.trim() || "-",
     viewCount: Number(item.viewCount ?? item.view_count ?? 0),
     commentCount: Number(item.commentCount ?? item.comment_count ?? 0),
     likeCount: Number(item.likeCount ?? item.like_count ?? 0),
     saveCount: Number(item.saveCount ?? item.save_count ?? 0),
-    updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
-    createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
+    updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDateTime(updatedDate) : "-",
+    createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDateTime(createdDate) : "-",
   };
 }
 

@@ -237,8 +237,8 @@ function buildHospitalReviewColumns({
     },
     {
       key: "createdAt",
-      headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6.5%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6.5%]`,
+      headerClassName: `${headerBaseClass} lg:w-[132px] xl:w-[9%]`,
+      cellClassName: `${nowrapCellClass} lg:w-[132px] xl:w-[9%]`,
       header: <SortHeader field="created_at" label="작성일" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.createdAt,
     },

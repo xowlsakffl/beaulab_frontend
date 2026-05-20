@@ -2,9 +2,9 @@ import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import {
-  formatVisibleReportStatusLabel,
+  formatPostManagementStatusLabel,
   isVisibilityLockedByReport,
-  normalizeReportStatus,
+  normalizePostManagementStatus,
   VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS,
   VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
@@ -217,7 +217,7 @@ export function formatHospitalEvaluationDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
 
-  return formatLocalDate(date);
+  return formatLocalDateTime(date);
 }
 
 export function formatHospitalEvaluationCost(value: number) {
@@ -252,8 +252,8 @@ export function normalizeHospitalEvaluation(item: HospitalEvaluationApiItem): Ho
     status,
     isVisible: status === "ACTIVE",
     visibilityChangeLocked: isVisibilityLockedByReport(item.report),
-    reportStatus: normalizeReportStatus(item.report),
-    reportStatusLabel: formatVisibleReportStatusLabel(item.report),
+    reportStatus: normalizePostManagementStatus(item.report, status),
+    reportStatusLabel: formatPostManagementStatusLabel(item.report, status),
     viewCount: Number(item.view_count ?? 0),
     receiptStatus: item.receipt?.status?.trim() || "NONE",
     receiptLabel: formatHospitalEvaluationReceiptLabel(item.receipt),
@@ -266,6 +266,13 @@ export function formatLocalDate(date: Date) {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+export function formatLocalDateTime(date: Date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${formatLocalDate(date)} ${hours}:${minutes}`;
 }
 
 function formatFilterDisplayDate(date: Date) {
