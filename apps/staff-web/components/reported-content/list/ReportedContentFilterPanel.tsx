@@ -80,7 +80,7 @@ export function ReportedContentFilterPanel({
   showWarningFilter = true,
 }: ReportedContentFilterPanelProps) {
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
+  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
   const firstGridClass = showVisibilityFilter
     ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]"
     : "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]";
@@ -92,7 +92,7 @@ export function ReportedContentFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
+    <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
         <div className={firstGridClass}>
           <div className={filterRowClass}>
@@ -132,7 +132,7 @@ export function ReportedContentFilterPanel({
                       key={option.value}
                       type="button"
                       onClick={() => onDateTypeChange(option.value)}
-                      className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-gray-800 transition hover:text-brand-600 dark:text-gray-100 dark:hover:text-brand-300"
+                      className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-gray-800 transition hover:text-brand-600  "
                     >
                       <CircleCheck
                         className={draftFilters.dateType === option.value ? "size-5 text-brand-500" : "size-5 text-gray-400"}
@@ -169,7 +169,7 @@ export function ReportedContentFilterPanel({
                 onChange={(event) => onReportCountMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
-                className="bg-white px-3 dark:bg-gray-800"
+                className="bg-white px-3 "
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -179,7 +179,7 @@ export function ReportedContentFilterPanel({
                 onChange={(event) => onReportCountMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="100"
-                className="bg-white px-3 dark:bg-gray-800"
+                className="bg-white px-3 "
               />
             </div>
           </div>
@@ -238,7 +238,7 @@ export function ReportedContentFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder={searchInputPlaceholder ?? "ID, 닉네임, 병의원명, 내용 등을 입력해주세요"}
-                  className="bg-white dark:bg-gray-800"
+                  className="bg-white "
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ export function ReportedContentFilterPanel({
                 variant="outline"
                 size="sm"
                 onClick={onResetFilters}
-                className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+                className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
               >
                 검색 초기화
               </Button>

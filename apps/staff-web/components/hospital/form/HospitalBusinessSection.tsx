@@ -51,8 +51,8 @@ export function HospitalBusinessSection({
   return (
     <section className="space-y-6">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">사업자 정보</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <h3 className="text-sm font-semibold text-gray-800 ">사업자 정보</h3>
+        <p className="text-xs text-gray-500 ">
           {isCreate ? "사업자등록증과 필수 사업자 정보를 등록합니다." : "사업자등록증과 필수 사업자 정보를 수정합니다."}
         </p>
       </div>
@@ -154,18 +154,18 @@ export function HospitalBusinessSection({
         onChange={(files) => onBusinessRegistrationFileChange(files?.[0] ?? null)}
       />
       {onExistingCertificateChange && existingCertificateName && existingCertificateUrl ? (
-        <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60">
+        <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2  ">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{existingCertificateName}</p>
+            <p className="truncate text-sm font-medium text-gray-800 ">{existingCertificateName}</p>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 ">
                 {[existingCertificateSizeText, "현재 파일"].filter(Boolean).join(" · ")}
               </p>
               <a
                 href={existingCertificateUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-medium text-brand-600 underline underline-offset-2 dark:text-brand-400"
+                className="text-xs font-medium text-brand-600 underline underline-offset-2 "
               >
                 파일 보기
               </a>
@@ -222,8 +222,8 @@ export function HospitalBusinessSection({
               }}
               className={
                 isBusinessAddressSameAsHospital
-                  ? "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-                  : "cursor-pointer bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                  ? "bg-gray-100 text-gray-500  "
+                  : "cursor-pointer bg-gray-50 text-gray-600  "
               }
               disabled={isBusinessAddressSameAsHospital}
               error={Boolean(errors.business_address)}

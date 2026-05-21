@@ -7,7 +7,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
     return (
         <html lang="ko">
-        <body className="dark:bg-gray-900">
+        <body className="">
           <GlobalAlertProvider>{children}</GlobalAlertProvider>
         </body>
         </html>

@@ -899,7 +899,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       )}
 
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
           {actionError}
         </div>
       ) : null}
@@ -957,7 +957,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {pendingVisibilityMessage}
             </p>
 
@@ -965,7 +965,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
               <div className="mt-4">
                 <label
                   htmlFor="hospital-review-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                  className="mb-1.5 block text-sm font-medium text-gray-700 "
                 >
                   미노출 사유
                 </label>

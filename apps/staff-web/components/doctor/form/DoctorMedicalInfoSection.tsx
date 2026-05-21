@@ -92,7 +92,7 @@ export function DoctorMedicalInfoSection({
               id="career_period"
               value={formatCareerPeriod(form.career_started_at)}
               readOnly
-              className="bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+              className="bg-gray-50 text-gray-600  "
             />
           </div>
         </div>
@@ -261,7 +261,7 @@ function DoctorOptionButtonGroup<T extends string | boolean>({
                 "h-11 w-full rounded-xl border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                 isSelected
                   ? "border-[#f58bb6] bg-[#f58bb6] text-white focus-visible:ring-[#f58bb6]"
-                  : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700",
+                  : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300    ",
               ].join(" ")}
             >
               {option.label}
@@ -351,7 +351,7 @@ function DoctorRepeaterField({
           </div>
         ))}
       </div>
-      <p className="text-xs text-gray-500 dark:text-gray-400">최대 10개까지 입력할 수 있습니다.</p>
+      <p className="text-xs text-gray-500 ">최대 10개까지 입력할 수 있습니다.</p>
       {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </div>
   );
@@ -415,19 +415,19 @@ function DoctorFileCollectionField({
           onChange([incomingFiles[0]]);
         }}
       />
-      <p className={`text-xs ${error ? "text-error-500" : "text-gray-500 dark:text-gray-400"}`}>{error || description}</p>
+      <p className={`text-xs ${error ? "text-error-500" : "text-gray-500 "}`}>{error || description}</p>
 
       {existingFiles.length > 0 && (!files.length || multiple) ? (
         <div className="space-y-2">
           {existingFiles.map((file, index) => (
             <div
               key={String(file.id)}
-              className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60"
+              className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2  "
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{file.name}</p>
+                <p className="truncate text-sm font-medium text-gray-800 ">{file.name}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-gray-500 ">
                     {[file.size ? formatBytes(file.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
                   </p>
                   <a
@@ -462,11 +462,11 @@ function DoctorFileCollectionField({
           {files.map((file, index) => (
             <div
               key={`${file.name}-${file.size}-${index}`}
-              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900/60 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2   sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-gray-800 dark:text-white/90">{file.name}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(file.size)}</p>
+                <p className="truncate text-sm font-medium text-gray-800 ">{file.name}</p>
+                <p className="text-xs text-gray-500 ">{formatBytes(file.size)}</p>
               </div>
               <Button
                 type="button"

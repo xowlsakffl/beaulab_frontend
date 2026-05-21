@@ -77,7 +77,7 @@ export function VideoPublishSection({
             value={form.external_video_id}
             readOnly
             placeholder="외부 영상 URL 입력 시 자동 반영됩니다."
-            className="bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            className="bg-gray-50 text-gray-700  "
             error={Boolean(errors.external_video_id)}
             hint={errors.external_video_id}
           />
@@ -99,7 +99,7 @@ export function VideoPublishSection({
 
         <div className="space-y-3">
           <Label>게시 기간</Label>
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-900/50">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80  ">
             <FormSettingToggleRow
               title="무기한 게시"
               description="게시 종료 없이 계속 노출합니다."

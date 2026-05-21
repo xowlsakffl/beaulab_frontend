@@ -90,7 +90,7 @@ function renderReceipt(row: HospitalEvaluationRow) {
   }
 
   return (
-    <span className="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-200">
+    <span className="whitespace-nowrap text-sm font-medium text-gray-700 ">
       {row.receiptLabel}
     </span>
   );
@@ -99,12 +99,12 @@ function renderReceipt(row: HospitalEvaluationRow) {
 function ReportStatusBadge({ label, status }: { label: string; status: string }) {
   if (!label) return <span className="text-sm text-gray-400">-</span>;
   const toneClassNames: Record<string, string> = {
-    AUTO_BLOCKED: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
-    ADMIN_HIDDEN: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
-    NORMAL_VISIBLE: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300",
-    REEXPOSED: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    AUTO_BLOCKED: "bg-red-100 text-red-700  ",
+    ADMIN_HIDDEN: "bg-orange-100 text-orange-800  ",
+    NORMAL_VISIBLE: "bg-green-100 text-green-700  ",
+    REEXPOSED: "bg-blue-100 text-blue-700  ",
   };
-  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-200";
+  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600  ";
 
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${toneClassName}`}>
@@ -136,11 +136,11 @@ function buildHospitalEvaluationColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (row: HospitalEvaluationRow, status: "ACTIVE" | "INACTIVE") => void;
 }): DataTableColumn<HospitalEvaluationRow>[] {
-  const headerBaseClass = "px-1.5 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-1.5 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-1.5 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-1.5 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
-  const metricHeaderClass = "px-1.5 py-3 text-center font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const metricCellClass = "px-1.5 py-4 text-center align-top whitespace-nowrap dark:text-gray-200";
+  const metricHeaderClass = "px-1.5 py-3 text-center font-semibold text-theme-xs text-gray-600 ";
+  const metricCellClass = "px-1.5 py-4 text-center align-top whitespace-nowrap ";
 
   return [
     {
@@ -191,7 +191,7 @@ function buildHospitalEvaluationColumns({
       cellClassName: `${cellBaseClass} lg:w-[130px] xl:w-[10.5%]`,
       header: "병의원명",
       render: (row) => (
-        <span className="block line-clamp-2 font-medium text-gray-800 dark:text-white/90" title={row.hospitalName}>
+        <span className="block line-clamp-2 font-medium text-gray-800 " title={row.hospitalName}>
           {row.hospitalName}
         </span>
       ),

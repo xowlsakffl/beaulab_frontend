@@ -29,7 +29,7 @@ type CheckboxFilterDropdownProps = {
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
 const filterTriggerClass =
-  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300";
+  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700  ";
 
 export function CheckboxFilterDropdown({
   label,
@@ -79,7 +79,7 @@ export function CheckboxFilterDropdown({
         </Button>
 
         {isOpen ? (
-          <Card className="absolute z-20 mt-1 w-full rounded-lg p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+          <Card className="absolute z-20 mt-1 w-full rounded-lg p-2 shadow-lg  ">
             <div className="px-1 py-1 text-sm">
               <Checkbox label={allLabel} checked={isAllSelected} onChange={onToggleAll} />
             </div>

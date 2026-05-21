@@ -30,7 +30,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
           id={id}
           type="checkbox"
           aria-label={ariaLabel}
-          className={`w-5 h-5 appearance-none cursor-pointer dark:border-gray-700 border border-gray-300 checked:border-transparent rounded-md checked:bg-brand-500 disabled:cursor-default disabled:border-gray-300 disabled:bg-gray-200 disabled:checked:bg-gray-300 dark:disabled:border-gray-700 dark:disabled:bg-gray-800 dark:disabled:checked:bg-gray-600 
+          className={`w-5 h-5 appearance-none cursor-pointer  border border-gray-300 checked:border-transparent rounded-md checked:bg-brand-500 disabled:cursor-default disabled:border-gray-300 disabled:bg-gray-200 disabled:checked:bg-gray-300
           ${className}`}
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
@@ -56,7 +56,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
         )}
       </div>
       {label && (
-        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+        <span className="text-sm font-medium text-gray-800 ">
           {label}
         </span>
       )}

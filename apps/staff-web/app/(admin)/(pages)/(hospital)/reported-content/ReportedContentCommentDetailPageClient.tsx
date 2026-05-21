@@ -102,8 +102,8 @@ const COMMENT_DETAIL_CONFIGS: Record<ReportedContentCommentDetailType, ReportedC
 
 const COMMENT_HISTORY_PER_PAGE = 10;
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 export default function ReportedContentCommentDetailPageClient({
   type,
@@ -211,7 +211,7 @@ export default function ReportedContentCommentDetailPageClient({
     return (
       <Card>
         <CardContent className="space-y-4 py-10">
-          <p className="text-sm text-rose-600 dark:text-rose-300">{error || "신고 댓글 상세 정보가 없습니다."}</p>
+          <p className="text-sm text-rose-600 ">{error || "신고 댓글 상세 정보가 없습니다."}</p>
           <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
             목록으로
           </Button>
@@ -351,29 +351,29 @@ function CommentHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
             {error}
           </div>
         ) : histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 dark:divide-gray-800">
+          <div className="divide-y divide-gray-200 ">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] dark:text-gray-200"
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                <span className="whitespace-nowrap text-xs text-gray-500 ">
                   {formatReportedContentDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span className="font-medium">{labelCommentHistoryChange(config, history)}</span>
-                <span className="min-w-0 break-words text-sm text-gray-600 dark:text-gray-300">
+                <span className="min-w-0 break-words text-sm text-gray-600 ">
                   {formatCommentHistoryReason(config, history)}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
             등록된 히스토리가 없습니다.
           </div>
         )}
@@ -405,8 +405,8 @@ function DetailField({ label, value }: { label: string; value: React.ReactNode }
 function ContentBox({ content }: { content?: string | null }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">댓글 내용</p>
-      <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+      <p className="text-xs font-semibold text-gray-500 ">댓글 내용</p>
+      <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
         {content?.trim() || "-"}
       </div>
     </section>
@@ -423,7 +423,7 @@ function CategoryBadges({ categories }: { categories: HospitalReviewCategory[] }
       {categoryNames.map((category) => (
         <span
           key={category}
-          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100 dark:bg-brand-500/15 dark:text-brand-300 dark:ring-brand-500/20"
+          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100   "
         >
           #{category}
         </span>
@@ -447,8 +447,8 @@ function ReviewImageGallery({
   if (images.length === 0) {
     return (
       <section className="space-y-2">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">게시글 이미지</p>
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+        <p className="text-xs font-semibold text-gray-500 ">게시글 이미지</p>
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
           등록된 이미지가 없습니다.
         </div>
       </section>
@@ -457,7 +457,7 @@ function ReviewImageGallery({
 
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">게시글 이미지</p>
+      <p className="text-xs font-semibold text-gray-500 ">게시글 이미지</p>
       <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="flex min-w-full gap-3">
           {images.map(({ image, label }, index) => {
@@ -469,10 +469,10 @@ function ReviewImageGallery({
                 href={imageUrl ?? undefined}
                 target={imageUrl ? "_blank" : undefined}
                 rel={imageUrl ? "noreferrer" : undefined}
-                className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30"
+                className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
                 style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
               >
-                <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm dark:bg-gray-900/90 dark:text-gray-200">
+                <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm  ">
                   {label}
                 </span>
                 {imageUrl ? (
@@ -483,7 +483,7 @@ function ReviewImageGallery({
                     className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="px-3 text-center text-xs text-gray-500 dark:text-gray-400">미리보기 없음</span>
+                  <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
                 )}
               </a>
             );

@@ -413,7 +413,7 @@ function MediaImagePreview({
 
   if (dimensions) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-900">
+      <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 ">
         <Image
           src={url}
           alt={alt}
@@ -427,7 +427,7 @@ function MediaImagePreview({
   }
 
   return (
-    <div className="relative h-full w-full rounded-xl bg-gray-50 dark:bg-gray-900">
+    <div className="relative h-full w-full rounded-xl bg-gray-50 ">
       <Image src={url} alt={alt} fill unoptimized className="object-contain" />
     </div>
   );
@@ -444,7 +444,7 @@ function MediaPreview({
 
   if (!url) {
     return (
-      <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+      <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500  ">
         <ImageIcon className="size-10" />
       </div>
     );
@@ -483,10 +483,10 @@ function Dropzone({
         "min-h-[240px] p-6",
         disabled ? "pointer-events-none opacity-60" : "cursor-pointer",
         error
-          ? "border-error-500 bg-error-50/40 dark:bg-error-500/5"
+          ? "border-error-500 bg-error-50/40 "
           : isDragOver
-            ? "border-gray-400 bg-gray-100/80 dark:border-gray-500 dark:bg-gray-900/60"
-            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40",
+            ? "border-gray-400 bg-gray-100/80  "
+            : "border-gray-300 bg-gray-50  ",
       ].join(" ")}
       onDragEnter={(event) => {
         event.preventDefault();
@@ -532,19 +532,19 @@ function Dropzone({
 
       {isDragOver ? (
         <div className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-brand-500">
-          <div className="absolute inset-0 rounded-2xl bg-white/30 backdrop-blur-[2px] dark:bg-black/20" />
+          <div className="absolute inset-0 rounded-2xl bg-white/30 backdrop-blur-[2px] " />
         </div>
       ) : null}
 
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
         <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <div className="grid size-12 place-items-center rounded-xl bg-black/5 dark:bg-white/10">
-            <UploadCloud className="size-5 text-gray-700 dark:text-gray-200" />
+          <div className="grid size-12 place-items-center rounded-xl bg-black/5 ">
+            <UploadCloud className="size-5 text-gray-700 " />
           </div>
 
           <div className="mx-auto w-full max-w-[220px] space-y-1 text-center">
-            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{primaryText}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-sm font-semibold text-gray-900 ">{primaryText}</div>
+            <div className="text-xs text-gray-500 ">
               {secondaryText ?? (multiple ? "여러 파일 업로드 가능" : "1개 파일만 업로드 가능")}
             </div>
           </div>
@@ -553,7 +553,7 @@ function Dropzone({
 
       {footerText ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 px-6 pb-5">
-          <p className="text-center text-xs text-gray-500 dark:text-gray-400">{footerText}</p>
+          <p className="text-center text-xs text-gray-500 ">{footerText}</p>
         </div>
       ) : null}
     </label>
@@ -592,7 +592,7 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
     return (
       <div
         ref={ref}
-        className={`flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 lg:max-w-none dark:border-gray-800 dark:bg-gray-900 ${
+        className={`flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 lg:max-w-none   ${
           isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""
         }`}
       >
@@ -601,8 +601,8 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{file.name}</p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{formatBytes(file.size)}</p>
+          <p className="truncate text-sm font-semibold text-gray-900 ">{file.name}</p>
+          <p className="mt-1 text-xs text-gray-500 ">{formatBytes(file.size)}</p>
         </div>
 
         <Button
@@ -626,11 +626,11 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
     <div
       ref={ref}
       data-media-card="true"
-      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 dark:border-gray-800 dark:bg-gray-900 ${
+      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200   ${
         ""
       } w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 ">
         {multiple ? (
           <div
             draggable
@@ -647,7 +647,7 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
               clearDragPreview();
               onDragEnd?.();
             }}
-            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none dark:bg-gray-900/90 dark:text-gray-300"
+            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none  "
           >
             <GripVertical className="size-3.5" />
             순서 이동
@@ -661,10 +661,10 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
         <MediaPreview file={file} previewBehavior={previewBehavior} />
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 dark:border-gray-800">
+      <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 ">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{file.name}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{formatBytes(file.size)}</p>
+          <p className="truncate text-sm font-semibold text-gray-900 ">{file.name}</p>
+          <p className="text-xs text-gray-500 ">{formatBytes(file.size)}</p>
         </div>
 
         <div className="flex items-center gap-1">
@@ -730,10 +730,10 @@ function ExistingMediaCard({
 }) {
   if (!multiple && previewBehavior === "natural-center") {
     return (
-      <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none  ">
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           {item.isImage === false ? (
-            <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+            <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500  ">
               <ImageIcon className="size-8" />
             </div>
           ) : (
@@ -742,8 +742,8 @@ function ExistingMediaCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="truncate text-sm font-semibold text-gray-900 ">{item.name}</p>
+          <p className="mt-1 text-xs text-gray-500 ">
             {[item.size ? formatBytes(item.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
           </p>
         </div>
@@ -770,11 +770,11 @@ function ExistingMediaCard({
   return (
     <div
       data-media-card="true"
-      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 dark:border-gray-800 dark:bg-gray-900 ${
+      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200   ${
         ""
       } w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50 ">
         {multiple && onDragStart ? (
           <div
             draggable
@@ -791,7 +791,7 @@ function ExistingMediaCard({
               clearDragPreview();
               onDragEnd?.();
             }}
-            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none dark:bg-gray-900/90 dark:text-gray-300"
+            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none  "
           >
             <GripVertical className="size-3.5" />
             순서 이동
@@ -803,7 +803,7 @@ function ExistingMediaCard({
           </div>
         ) : null}
         {item.isImage === false ? (
-          <div className="flex h-full items-center justify-center text-gray-500 dark:text-gray-400">
+          <div className="flex h-full items-center justify-center text-gray-500 ">
             <ImageIcon className="size-10" />
           </div>
         ) : (
@@ -811,10 +811,10 @@ function ExistingMediaCard({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 dark:border-gray-800">
+      <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 ">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="truncate text-sm font-semibold text-gray-900 ">{item.name}</p>
+          <p className="text-xs text-gray-500 ">
             {[item.size ? formatBytes(item.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
           </p>
         </div>
@@ -1525,11 +1525,11 @@ export function MediaUploader<T extends string = string>({
         key={String(collection.key)}
         data-media-collection={String(collection.key)}
         tabIndex={-1}
-        className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8 dark:border-gray-800"}`}
+        className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8 "}`}
       >
         {shouldShowLabel ? (
           <div className="space-y-1.5">
-            <h4 className={`text-sm font-semibold ${error ? "text-error-600 dark:text-error-400" : "text-gray-800 dark:text-white/90"}`}>
+            <h4 className={`text-sm font-semibold ${error ? "text-error-600 " : "text-gray-800 "}`}>
               {collection.label}
             </h4>
           </div>

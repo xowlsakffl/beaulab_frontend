@@ -33,8 +33,8 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 export default function HospitalDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -147,11 +147,11 @@ export default function HospitalDetailPageClient() {
           </div>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="space-y-10 divide-y divide-gray-200 ">
           <section className="space-y-6 pb-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">병의원의 기본 정보를 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
+              <p className="text-xs text-gray-500 ">병의원의 기본 정보를 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -182,8 +182,8 @@ export default function HospitalDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">사업자 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">사업자 등록 정보와 등록증 파일을 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800 ">사업자 정보</h3>
+              <p className="text-xs text-gray-500 ">사업자 등록 정보와 등록증 파일을 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -297,13 +297,13 @@ function TagField({ label, items, className }: { label: string; items: string[];
           items.map((item) => (
             <span
               key={item}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 break-all dark:bg-brand-500/10 dark:text-brand-300"
+              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 break-all  "
             >
               {item}
             </span>
           ))
         ) : (
-          <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+          <span className="text-sm text-gray-500 ">-</span>
         )}
       </div>
     </div>
@@ -334,7 +334,7 @@ function FileSummaryField({
           />
         </div>
       ) : (
-        <div className="text-sm text-gray-500 dark:text-gray-400">-</div>
+        <div className="text-sm text-gray-500 ">-</div>
       )}
     </div>
   );
@@ -354,7 +354,7 @@ function MediaSection({
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">{label}</h3>
+        <h3 className="text-sm font-semibold text-gray-800 ">{label}</h3>
       </div>
 
       {items.length > 0 ? (

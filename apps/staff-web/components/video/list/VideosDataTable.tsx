@@ -39,8 +39,8 @@ function buildVideoColumns({
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<VideoRow>[] {
   const headerBaseClass =
-    "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
-  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+    "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
+  const cellBaseClass = "px-3 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
 
   return [
@@ -61,7 +61,7 @@ function buildVideoColumns({
       cellClassName: `${cellBaseClass} lg:w-[160px]`,
       header: "병의원명",
       render: (row) => (
-        <span className="block truncate font-medium text-gray-800 dark:text-white/90" title={row.hospitalName}>
+        <span className="block truncate font-medium text-gray-800 " title={row.hospitalName}>
           {row.hospitalName}
         </span>
       ),
@@ -93,14 +93,14 @@ function buildVideoColumns({
             <img
               src={row.thumbnailUrl}
               alt={row.title}
-              className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover dark:border-white/[0.08]"
+              className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover "
             />
           ) : (
-            <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
+            <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400  ">
               없음
             </div>
           )}
-          <span className="block min-w-0 truncate font-medium text-gray-800 dark:text-white/90" title={row.title}>
+          <span className="block min-w-0 truncate font-medium text-gray-800 " title={row.title}>
             {row.title}
           </span>
         </div>
@@ -249,7 +249,7 @@ export function VideosDataTable({
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
         row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 dark:bg-emerald-500/10"
+          ? "bg-emerald-50/90 transition-colors duration-500 "
           : undefined
       }
       loadingVariant="spinner"

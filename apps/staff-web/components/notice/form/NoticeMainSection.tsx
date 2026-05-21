@@ -90,7 +90,7 @@ export function NoticeMainSection({
 
           <div className="space-y-3">
             <Label>게시 옵션</Label>
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-900/50">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80  ">
               <FormSettingToggleRow
                 title="상단 공지"
                 description="공지 목록 상단에 우선 노출합니다."

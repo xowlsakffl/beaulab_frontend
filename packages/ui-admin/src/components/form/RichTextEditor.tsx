@@ -86,13 +86,13 @@ export function RichTextEditor({
         id: id ?? "",
         "data-editor-name": name ?? "",
         class: cn(
-          "min-h-[280px] w-full px-4 py-3 text-sm leading-6 text-gray-800 focus:outline-none dark:text-white/90",
+          "min-h-[280px] w-full px-4 py-3 text-sm leading-6 text-gray-800 focus:outline-none ",
           "[&_h2]:my-3 [&_h2]:text-lg [&_h2]:font-semibold",
           "[&_h3]:my-3 [&_h3]:text-base [&_h3]:font-semibold",
           "[&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0",
           "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
           "[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6",
-          "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-300 [&_blockquote]:pl-4 [&_blockquote]:text-gray-600 dark:[&_blockquote]:text-gray-300",
+          "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-300 [&_blockquote]:pl-4 [&_blockquote]:text-gray-600 ",
           "[&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-xl",
           "[&_.is-editor-empty:first-child::before]:pointer-events-none",
           "[&_.is-editor-empty:first-child::before]:float-left",
@@ -169,11 +169,11 @@ export function RichTextEditor({
     <div className={cn("space-y-2", className)}>
       <div
         className={cn(
-          "overflow-hidden rounded-xl border bg-white dark:bg-gray-900",
-          error ? "border-error-500" : "border-gray-300 dark:border-gray-700",
+          "overflow-hidden rounded-xl border bg-white ",
+          error ? "border-error-500" : "border-gray-300 ",
         )}
       >
-        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2 dark:border-gray-800">
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2 ">
           <ToolbarButton
             active={Boolean(editor?.isActive("heading", { level: 2 }))}
             disabled={disabled || !editor}
@@ -241,7 +241,7 @@ export function RichTextEditor({
 
           {onUploadImage ? (
             <>
-              <div className="mx-1 h-5 w-px bg-gray-200 dark:bg-gray-800" />
+              <div className="mx-1 h-5 w-px bg-gray-200 " />
               <ToolbarButton
                 active={false}
                 disabled={disabled || isUploading}
@@ -253,7 +253,7 @@ export function RichTextEditor({
             </>
           ) : null}
 
-          <div className="mx-1 h-5 w-px bg-gray-200 dark:bg-gray-800" />
+          <div className="mx-1 h-5 w-px bg-gray-200 " />
 
           <ToolbarButton
             active={false}
@@ -273,7 +273,7 @@ export function RichTextEditor({
           </ToolbarButton>
 
           {isUploading ? (
-            <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">이미지 업로드 중...</span>
+            <span className="ml-auto text-xs text-gray-500 ">이미지 업로드 중...</span>
           ) : null}
         </div>
 
@@ -291,7 +291,7 @@ export function RichTextEditor({
       </div>
 
       {uploadError ? <p className="text-xs text-error-500">{uploadError}</p> : null}
-      {hint ? <p className={cn("text-xs", error ? "text-error-500" : "text-gray-500 dark:text-gray-400")}>{hint}</p> : null}
+      {hint ? <p className={cn("text-xs", error ? "text-error-500" : "text-gray-500 ")}>{hint}</p> : null}
     </div>
   );
 }
@@ -308,7 +308,7 @@ function ToolbarButton({
       type="button"
       variant={active ? "brand" : "outline"}
       size="sm"
-      className={cn(active ? "border-brand-500" : "border-gray-200 dark:border-gray-800", className)}
+      className={cn(active ? "border-brand-500" : "border-gray-200 ", className)}
       {...props}
     />
   );

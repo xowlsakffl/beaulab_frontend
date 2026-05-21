@@ -38,8 +38,8 @@ import {
 
 type VideoViewResponse = Omit<VideoDetailResponse, "hospital_business_number">;
 const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 export default function VideoDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -159,11 +159,11 @@ export default function VideoDetailPageClient() {
           </div>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="space-y-10 divide-y divide-gray-200 ">
           <section className="space-y-6 pb-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
+              <p className="text-xs text-gray-500 ">
                 동영상의 병의원, 의료진, 상태 정보를 확인합니다.
               </p>
             </div>
@@ -190,8 +190,8 @@ export default function VideoDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">배포 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <h3 className="text-sm font-semibold text-gray-800 ">배포 정보</h3>
+              <p className="text-xs text-gray-500 ">
                 외부 영상 연동과 게시 기간 정보를 확인합니다.
               </p>
             </div>
@@ -263,7 +263,7 @@ function LinkField({
           href={trimmedHref}
           target="_blank"
           rel="noreferrer"
-          className="break-all text-sm leading-6 text-brand-600 underline underline-offset-2 dark:text-brand-400"
+          className="break-all text-sm leading-6 text-brand-600 underline underline-offset-2 "
         >
           {trimmedHref}
         </a>
@@ -317,7 +317,7 @@ function TagField({
           {values.map((value) => (
             <span
               key={value}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
+              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700  "
               title={value}
             >
               <span className="truncate">{value}</span>
@@ -350,7 +350,7 @@ function ThumbnailSection({ media }: { media?: VideoMediaAsset | null }) {
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">썸네일</h3>
+        <h3 className="text-sm font-semibold text-gray-800 ">썸네일</h3>
       </div>
 
       {fileUrl && fileName ? (
@@ -383,7 +383,7 @@ function FileSummaryField({
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">{label}</h3>
+        <h3 className="text-sm font-semibold text-gray-800 ">{label}</h3>
       </div>
 
       {fileUrl && fileName ? (

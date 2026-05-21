@@ -51,8 +51,8 @@ type ChatReportMember = ReportedContentDetailAuthor | NonNullable<ReportedConten
 
 const targetType = "chat_message";
 const listPath = "/reported-content/chats";
-const labelClassName = "text-xs font-semibold text-gray-500 dark:text-gray-400";
-const valueClassName = "text-sm font-medium text-gray-800 dark:text-white/90";
+const labelClassName = "text-xs font-semibold text-gray-500 ";
+const valueClassName = "text-sm font-medium text-gray-800 ";
 
 export default function ReportedChatDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -226,7 +226,7 @@ export default function ReportedChatDetailPageClient() {
     return (
       <Card>
         <CardContent className="space-y-4 py-10">
-          <p className="text-sm text-rose-600 dark:text-rose-300">{error || "신고 채팅 상세 정보가 없습니다."}</p>
+          <p className="text-sm text-rose-600 ">{error || "신고 채팅 상세 정보가 없습니다."}</p>
           <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
             목록으로
           </Button>
@@ -297,11 +297,11 @@ export default function ReportedChatDetailPageClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {statusModalMessage}
             </p>
             {modalError ? (
-              <p className="text-sm font-medium text-rose-600 dark:text-rose-300">
+              <p className="text-sm font-medium text-rose-600 ">
                 {modalError}
               </p>
             ) : null}
@@ -331,7 +331,7 @@ export default function ReportedChatDetailPageClient() {
       >
         <ModalPanel>
           <ModalBody className="mt-2">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               해당 상태에서는 경고여부를 선택할 수 없습니다.
             </p>
           </ModalBody>
@@ -356,11 +356,11 @@ export default function ReportedChatDetailPageClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-3">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {warningModalMessage}
             </p>
             {pendingWarningStatus === "WARNED" ? (
-              <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+              <div className="space-y-1 text-sm text-gray-500 ">
                 <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
                 <p>
                   현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
@@ -368,7 +368,7 @@ export default function ReportedChatDetailPageClient() {
               </div>
             ) : null}
             {warningModalError ? (
-              <p className="text-sm font-medium text-rose-600 dark:text-rose-300">
+              <p className="text-sm font-medium text-rose-600 ">
                 {warningModalError}
               </p>
             ) : null}
@@ -455,7 +455,7 @@ function ReportedChatMessagesCard({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <CardTitle>신고 내용 상세</CardTitle>
-            <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
+            <span className="text-sm font-semibold text-gray-800 ">
               {reportCount.toLocaleString()}회
             </span>
           </div>
@@ -466,7 +466,7 @@ function ReportedChatMessagesCard({
           <div className="space-y-4">
             {messages.map((message, index) => (
               <div key={message.key} className="flex items-start gap-4">
-                <span className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-700 ring-1 ring-gray-200 dark:bg-white/[0.08] dark:text-gray-100 dark:ring-white/[0.12]">
+                <span className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-700 ring-1 ring-gray-200   ">
                   {index + 1}
                 </span>
                 <div className="min-w-0 rounded-lg bg-[#FA6FA9] px-4 py-2.5 text-sm font-semibold leading-6 text-white">
@@ -476,7 +476,7 @@ function ReportedChatMessagesCard({
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500   ">
             신고된 채팅 메시지가 없습니다.
           </div>
         )}
@@ -506,7 +506,7 @@ function ChatReportActionCard({
     <Card>
       <CardContent className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">적합여부</h3>
+          <h3 className="text-sm font-semibold text-gray-900 ">적합여부</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"
@@ -536,7 +536,7 @@ function ChatReportActionCard({
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">경고여부</h3>
+          <h3 className="text-sm font-semibold text-gray-900 ">경고여부</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"

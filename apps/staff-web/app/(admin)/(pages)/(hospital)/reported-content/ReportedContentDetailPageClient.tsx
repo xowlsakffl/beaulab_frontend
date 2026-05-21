@@ -139,8 +139,8 @@ type PendingReviewVisibilityChange = {
 
 const historiesDefaultPage = 1;
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 const DETAIL_CONFIGS: Record<ReportedContentDetailBoardType, ReportedContentDetailConfig> = {
   "surgery-reviews": {
@@ -460,7 +460,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     return (
       <Card>
         <CardContent className="space-y-4 py-10">
-          <p className="text-sm text-rose-600 dark:text-rose-300">{error || "신고게시물 상세 정보가 없습니다."}</p>
+          <p className="text-sm text-rose-600 ">{error || "신고게시물 상세 정보가 없습니다."}</p>
           <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
             목록으로
           </Button>
@@ -483,7 +483,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     return (
       <div className="space-y-6">
         {actionError ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
             {actionError}
           </div>
         ) : null}
@@ -526,7 +526,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             </ModalHeader>
 
             <ModalBody className="mt-5">
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              <p className="text-sm font-medium text-gray-800 ">
                 {pendingVisibilityMessage}
               </p>
 
@@ -534,7 +534,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
                 <div className="mt-4">
                   <label
                     htmlFor="reported-talk-detail-hidden-reason"
-                    className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                    className="mb-1.5 block text-sm font-medium text-gray-700 "
                   >
                     미노출 사유
                   </label>
@@ -584,7 +584,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     return (
       <div className="space-y-6">
         {actionError ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
             {actionError}
           </div>
         ) : null}
@@ -629,7 +629,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             </ModalHeader>
 
             <ModalBody className="mt-5">
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+              <p className="text-sm font-medium text-gray-800 ">
                 {pendingVisibilityMessage}
               </p>
 
@@ -637,7 +637,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
                 <div className="mt-4">
                   <label
                     htmlFor="reported-hospital-review-detail-hidden-reason"
-                    className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                    className="mb-1.5 block text-sm font-medium text-gray-700 "
                   >
                     미노출 사유
                   </label>
@@ -686,7 +686,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     return (
       <div className="space-y-6">
         {actionError ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
             {actionError}
           </div>
         ) : null}
@@ -849,8 +849,8 @@ function ReportedTalkContentCard({
         </div>
 
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">내용</p>
-          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+          <p className="text-xs font-semibold text-gray-500 ">내용</p>
+          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -859,9 +859,9 @@ function ReportedTalkContentCard({
 
         <section className="space-y-3">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">투표</p>
+            <p className="text-xs font-semibold text-gray-500 ">투표</p>
             {detail.poll?.allow_multiple ? (
-              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
+              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600  ">
                 중복가능
               </span>
             ) : null}
@@ -877,7 +877,7 @@ function ReportedTalkContentCard({
               ))}
             </div>
           ) : (
-            <p className="text-sm font-semibold text-gray-800 dark:text-white/90">등록된 투표가 없습니다.</p>
+            <p className="text-sm font-semibold text-gray-800 ">등록된 투표가 없습니다.</p>
           )}
         </section>
       </CardContent>
@@ -888,7 +888,7 @@ function ReportedTalkContentCard({
 function ReportedTalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">이미지</p>
+      <p className="text-xs font-semibold text-gray-500 ">이미지</p>
       {images.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {images.map((image) => {
@@ -900,7 +900,7 @@ function ReportedTalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
                 href={imageUrl ?? undefined}
                 target={imageUrl ? "_blank" : undefined}
                 rel={imageUrl ? "noreferrer" : undefined}
-                className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30"
+                className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
               >
                 {imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
@@ -910,7 +910,7 @@ function ReportedTalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
                     className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="px-3 text-center text-xs text-gray-500 dark:text-gray-400">미리보기 없음</span>
+                  <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
                 )}
               </a>
             );
@@ -930,7 +930,7 @@ function ReportedTalkPollBar({ option, totalVotes }: { option: TalkPollOption; t
   const optionContent = option.content?.trim() || "-";
 
   return (
-    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900">
+    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100 ">
       <div className="absolute inset-0">
         {fillWidth > 0 ? (
           <div
@@ -939,7 +939,7 @@ function ReportedTalkPollBar({ option, totalVotes }: { option: TalkPollOption; t
           />
         ) : null}
       </div>
-      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900 dark:text-white">
+      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900 ">
         <span className="min-w-0 truncate">{optionContent}</span>
         <span className="shrink-0 text-xs">
           {votes.toLocaleString()}명 ({percentage}%)
@@ -1034,8 +1034,8 @@ function ReportedReviewContentCard({
         <ReportedReviewImageGallery beforeImages={detail.before_images ?? []} afterImages={detail.after_images ?? []} />
 
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">내용</p>
-          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+          <p className="text-xs font-semibold text-gray-500 ">내용</p>
+          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -1056,7 +1056,7 @@ function ReportedReviewCategoryBadges({ detail }: { detail: HospitalReviewDetail
       {categoryNames.map((categoryName) => (
         <span
           key={categoryName}
-          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100 dark:bg-brand-500/15 dark:text-brand-300 dark:ring-brand-500/20"
+          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100   "
         >
           #{categoryName}
         </span>
@@ -1079,7 +1079,7 @@ function ReportedReviewImageGallery({
 
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">이미지</p>
+      <p className="text-xs font-semibold text-gray-500 ">이미지</p>
       {images.length > 0 ? (
         <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="flex min-w-full gap-3">
@@ -1092,10 +1092,10 @@ function ReportedReviewImageGallery({
                   href={imageUrl ?? undefined}
                   target={imageUrl ? "_blank" : undefined}
                   rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30"
+                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
                   style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
                 >
-                  <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm dark:bg-gray-900/90 dark:text-gray-200">
+                  <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm  ">
                     {label}
                   </span>
                   {imageUrl ? (
@@ -1106,7 +1106,7 @@ function ReportedReviewImageGallery({
                       className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                     />
                   ) : (
-                    <span className="px-3 text-center text-xs text-gray-500 dark:text-gray-400">미리보기 없음</span>
+                    <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
                   )}
                 </a>
               );
@@ -1247,8 +1247,8 @@ function ReportedEvaluationContentCard({
 
       <CardContent className="space-y-6">
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">내용</p>
-          <div className="min-h-48 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+          <p className="text-xs font-semibold text-gray-500 ">내용</p>
+          <div className="min-h-48 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -1274,7 +1274,7 @@ function ReportedEvaluationRatingScoreCard({ detail }: { detail: HospitalEvaluat
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between gap-3">
           <CardTitle>평가점수</CardTitle>
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">
+          <span className="text-sm font-semibold text-gray-900 ">
             {formatHospitalEvaluationAverageRating(ratings.average)}점
           </span>
         </div>
@@ -1282,9 +1282,9 @@ function ReportedEvaluationRatingScoreCard({ detail }: { detail: HospitalEvaluat
       <CardContent className="space-y-4">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-[5.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-200">{row.label}</span>
+            <span className="font-medium text-gray-700 ">{row.label}</span>
             <ReportedEvaluationStarRating value={Number(row.value ?? 0)} />
-            <span className="text-right font-semibold text-gray-700 dark:text-gray-200">
+            <span className="text-right font-semibold text-gray-700 ">
               {formatHospitalEvaluationDetailRating(row.value)}점
             </span>
           </div>
@@ -1338,7 +1338,7 @@ function ReportedEvaluationAssessmentCard({ assessment }: { assessment?: Hospita
       <CardContent className="space-y-3">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2 text-sm">
-            <span className="font-semibold text-gray-700 dark:text-gray-200">{row.label}</span>
+            <span className="font-semibold text-gray-700 ">{row.label}</span>
             <div className="grid grid-cols-2 gap-2">
               {row.options.map((option) => (
                 <span
@@ -1347,7 +1347,7 @@ function ReportedEvaluationAssessmentCard({ assessment }: { assessment?: Hospita
                     "inline-flex h-10 w-full items-center justify-center rounded-lg px-3 text-sm font-semibold ring-1",
                     option.value === row.value
                       ? "bg-brand-500 text-white ring-brand-500"
-                      : "bg-white text-gray-600 ring-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:ring-gray-700",
+                      : "bg-white text-gray-600 ring-gray-200   ",
                   ].join(" ")}
                 >
                   {option.label}
@@ -1398,7 +1398,7 @@ function ReportedEvaluationReceiptVerificationModal({
         </ModalHeader>
 
         <ModalBody className="mt-6 space-y-6">
-          <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+          <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500  ">
             {imageUrl ? (
               <a href={imageUrl} target="_blank" rel="noreferrer" className="block h-full w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
@@ -1428,7 +1428,7 @@ function ReportedEvaluationReceiptVerificationModal({
             <div className="space-y-3">
               <label
                 htmlFor="reported-hospital-evaluation-receipt-reject-reason"
-                className="block text-sm font-semibold text-gray-800 dark:text-white/90"
+                className="block text-sm font-semibold text-gray-800 "
               >
                 인증 부적합 사유
               </label>
@@ -1437,7 +1437,7 @@ function ReportedEvaluationReceiptVerificationModal({
                 value={rejectReason}
                 onChange={(event) => onRejectReasonChange(event.target.value)}
                 disabled={updating}
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400   "
               >
                 <option value="">없음</option>
                 {HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS.map((option) => (
@@ -1461,7 +1461,7 @@ function ReportedEvaluationReceiptVerificationModal({
           ) : null}
 
           {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700   ">
               {error}
             </div>
           ) : null}
@@ -1496,7 +1496,7 @@ function ReportedReceiptDecisionOption({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 transition disabled:opacity-60 dark:text-gray-100"
+      className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 transition disabled:opacity-60 "
     >
       <CircleCheck
         className={checked ? "size-5 text-brand-500" : "size-5 text-gray-400"}
@@ -1510,7 +1510,7 @@ function ReportedReceiptDecisionOption({
 function ReportedEvaluationImageGallery({ title, images }: { title: string; images: HospitalEvaluationMediaAsset[] }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{title}</p>
+      <p className="text-xs font-semibold text-gray-500 ">{title}</p>
       {images.length > 0 ? (
         <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="flex min-w-full gap-3">
@@ -1523,7 +1523,7 @@ function ReportedEvaluationImageGallery({ title, images }: { title: string; imag
                   href={imageUrl ?? undefined}
                   target={imageUrl ? "_blank" : undefined}
                   rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30"
+                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
                   style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
                 >
                   {imageUrl ? (
@@ -1534,7 +1534,7 @@ function ReportedEvaluationImageGallery({ title, images }: { title: string; imag
                       className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                     />
                   ) : (
-                    <span className="px-3 text-center text-xs text-gray-500 dark:text-gray-400">미리보기 없음</span>
+                    <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
                   )}
                 </a>
               );
@@ -1556,7 +1556,7 @@ function ReportedEvaluationStarRating({ value }: { value: number }) {
       {Array.from({ length: 5 }).map((_, index) => (
         <span
           key={index}
-          className={index < normalizedValue ? "text-brand-500" : "text-gray-300 dark:text-gray-700"}
+          className={index < normalizedValue ? "text-brand-500" : "text-gray-300 "}
         >
           ★
         </span>
@@ -1735,18 +1735,18 @@ function ReportedOriginalHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 dark:divide-gray-800">
+          <div className="divide-y divide-gray-200 ">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] dark:text-gray-200"
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                <span className="whitespace-nowrap text-xs text-gray-500 ">
                   {formatHistoryDate(kind, history)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span className="font-medium">{labelHistoryChange(kind, history)}</span>
-                <span className="min-w-0 break-words text-sm text-gray-600 dark:text-gray-300">
+                <span className="min-w-0 break-words text-sm text-gray-600 ">
                   {formatHistoryReason(kind, history)}
                 </span>
               </div>
@@ -1791,8 +1791,8 @@ function DetailField({
 function ContentBox({ content }: { content?: string | null }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">내용</p>
-      <div className="min-h-44 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+      <p className="text-xs font-semibold text-gray-500 ">내용</p>
+      <div className="min-h-44 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
         {content?.trim() || "-"}
       </div>
     </section>
@@ -1803,7 +1803,7 @@ function ImageStrip<TImage>({ images, resolveUrl }: { images: TImage[]; resolveU
   if (images.length === 0) {
     return (
       <section className="space-y-2">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">이미지</p>
+        <p className="text-xs font-semibold text-gray-500 ">이미지</p>
         <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
       </section>
     );
@@ -1811,7 +1811,7 @@ function ImageStrip<TImage>({ images, resolveUrl }: { images: TImage[]; resolveU
 
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">이미지</p>
+      <p className="text-xs font-semibold text-gray-500 ">이미지</p>
       <div className="flex gap-3 overflow-x-auto pb-2">
         {images.map((image, index) => {
           const imageUrl = resolveUrl(image);
@@ -1819,7 +1819,7 @@ function ImageStrip<TImage>({ images, resolveUrl }: { images: TImage[]; resolveU
           return (
             <div
               key={getImageKey(image, index)}
-              className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 dark:border-white/[0.08] dark:bg-white/[0.04]"
+              className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100  "
             >
               {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- backend returns storage URLs
@@ -1847,7 +1847,7 @@ function TalkPollSummary({
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">투표</p>
+        <p className="text-xs font-semibold text-gray-500 ">투표</p>
         {allowMultiple ? <span className="text-xs font-semibold text-brand-500">중복가능</span> : null}
       </div>
       <div className="space-y-2">
@@ -1856,12 +1856,12 @@ function TalkPollSummary({
           const percent = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
 
           return (
-            <div key={option.id} className="overflow-hidden rounded-xl bg-gray-100 dark:bg-white/[0.08]">
+            <div key={option.id} className="overflow-hidden rounded-xl bg-gray-100 ">
               <div
                 className="min-h-9 rounded-xl bg-brand-500/70 px-3 py-2 text-sm font-semibold text-white"
                 style={{ width: totalVotes > 0 ? `${percent}%` : "0%" }}
               >
-                <span className="text-gray-900 dark:text-white">{option.content?.trim() || "-"} {voteCount.toLocaleString()}명</span>
+                <span className="text-gray-900 ">{option.content?.trim() || "-"} {voteCount.toLocaleString()}명</span>
               </div>
             </div>
           );
@@ -1882,17 +1882,17 @@ function EvaluationRatingsCard({ detail }: { detail: HospitalEvaluationDetailRes
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-white/[0.08] dark:bg-white/[0.04]">
+    <div className="rounded-2xl border border-gray-200 bg-white p-4  ">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">평가점수</p>
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+        <p className="text-sm font-semibold text-gray-900 ">평가점수</p>
+        <span className="text-sm font-semibold text-gray-900 ">
           {formatHospitalEvaluationAverageRating(ratings.average)}점
         </span>
       </div>
       <div className="space-y-3">
         {rows.map((row) => (
           <div key={row.label} className="flex items-center justify-between gap-3 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-200">{row.label}</span>
+            <span className="font-medium text-gray-700 ">{row.label}</span>
             <span className="font-semibold text-brand-500">
               {"★".repeat(Number(row.value ?? 0)).padEnd(5, "☆")} {formatHospitalEvaluationDetailRating(row.value)}점
             </span>
@@ -1912,13 +1912,13 @@ function EvaluationAssessmentCard({ assessment }: { assessment?: HospitalEvaluat
   ];
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-white/[0.08] dark:bg-white/[0.04]">
-      <p className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">평가 항목</p>
+    <div className="rounded-2xl border border-gray-200 bg-white p-4  ">
+      <p className="mb-4 text-sm font-semibold text-gray-900 ">평가 항목</p>
       <div className="grid grid-cols-2 gap-2">
         {rows.map((row) => (
-          <div key={row.label} className="rounded-xl bg-gray-100 px-3 py-2 text-sm dark:bg-white/[0.08]">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{row.label}</p>
-            <p className="mt-1 font-semibold text-gray-900 dark:text-white">{row.value?.trim() || "-"}</p>
+          <div key={row.label} className="rounded-xl bg-gray-100 px-3 py-2 text-sm ">
+            <p className="text-xs font-semibold text-gray-500 ">{row.label}</p>
+            <p className="mt-1 font-semibold text-gray-900 ">{row.value?.trim() || "-"}</p>
           </div>
         ))}
       </div>
@@ -1928,7 +1928,7 @@ function EvaluationAssessmentCard({ assessment }: { assessment?: HospitalEvaluat
 
 function EmptyDetailState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
       {children}
     </div>
   );

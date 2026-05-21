@@ -385,7 +385,7 @@ export default function HospitalsCreateFormClient() {
           <CardTitle>병의원 정보 입력</CardTitle>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="space-y-10 divide-y divide-gray-200 ">
           <HospitalBasicSection
             mode="create"
             form={form}

@@ -140,7 +140,7 @@ const CategoryColumn = React.memo(function CategoryColumn({
 }: CategoryColumnProps) {
   return (
     <Card className="flex h-[320px] flex-col p-3">
-      <p className="mb-3 text-xs font-semibold text-gray-500 dark:text-gray-400">{title}</p>
+      <p className="mb-3 text-xs font-semibold text-gray-500 ">{title}</p>
 
       {isLoading ? (
         <SpinnerBlock className="min-h-0 flex-1" spinnerClassName="size-5" label={loadingText} />
@@ -155,8 +155,8 @@ const CategoryColumn = React.memo(function CategoryColumn({
                 key={item.id}
                 className={`flex items-center gap-2 rounded-xl border px-2 py-1.5 ${
                   isActive
-                    ? "border-brand-200 bg-brand-50/70 dark:border-brand-500/40 dark:bg-brand-500/10"
-                    : "border-transparent hover:border-gray-200 hover:bg-gray-50 dark:hover:border-gray-700 dark:hover:bg-white/[0.04]"
+                    ? "border-brand-200 bg-brand-50/70  "
+                    : "border-transparent hover:border-gray-200 hover:bg-gray-50  "
                 }`}
               >
                 <button
@@ -165,7 +165,7 @@ const CategoryColumn = React.memo(function CategoryColumn({
                   className={`flex size-6 shrink-0 items-center justify-center rounded-md border ${
                     isSelected
                       ? "border-brand-500 bg-brand-500 text-white"
-                      : "border-gray-300 bg-white text-transparent dark:border-gray-700 dark:bg-gray-900"
+                      : "border-gray-300 bg-white text-transparent  "
                   }`}
                   aria-label={isSelected ? `${item.name} 선택 해제` : `${item.name} 선택`}
                 >
@@ -180,8 +180,8 @@ const CategoryColumn = React.memo(function CategoryColumn({
                   <span
                     className={`truncate text-sm ${
                       isSelected
-                        ? "font-semibold text-brand-700 dark:text-brand-300"
-                        : "text-gray-700 dark:text-gray-200"
+                        ? "font-semibold text-brand-700 "
+                        : "text-gray-700 "
                     }`}
                   >
                     {item.name}
@@ -189,7 +189,7 @@ const CategoryColumn = React.memo(function CategoryColumn({
                   {item.has_children ? (
                     <ChevronRight
                       className={`size-4 shrink-0 ${
-                        isActive ? "text-brand-500 dark:text-brand-300" : "text-gray-300 dark:text-gray-600"
+                        isActive ? "text-brand-500 " : "text-gray-300 "
                       }`}
                     />
                   ) : null}
@@ -199,7 +199,7 @@ const CategoryColumn = React.memo(function CategoryColumn({
           })}
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 items-center justify-center text-center text-sm text-gray-400 dark:text-gray-500">
+        <div className="flex min-h-0 flex-1 items-center justify-center text-center text-sm text-gray-400 ">
           {emptyMessage}
         </div>
       )}
@@ -570,7 +570,7 @@ export function HierarchicalCategorySelector({
       />
 
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-gray-800 dark:text-white/90">{mergedText.searchTitle}</p>
+        <p className="text-sm font-semibold text-gray-800 ">{mergedText.searchTitle}</p>
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <InputField
@@ -599,8 +599,8 @@ export function HierarchicalCategorySelector({
                       onClick={() => onToggleCategory(node.id, !isSelected)}
                       className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-sm ${
                         isSelected
-                          ? "border-brand-200 bg-brand-50 text-brand-700 dark:border-brand-500/40 dark:bg-brand-500/10 dark:text-brand-300"
-                          : "border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.04]"
+                          ? "border-brand-200 bg-brand-50 text-brand-700   "
+                          : "border-gray-200 text-gray-700 hover:bg-gray-50   "
                       }`}
                     >
                       <span className="truncate">{getNodeLabel(node)}</span>
@@ -610,14 +610,14 @@ export function HierarchicalCategorySelector({
                 })}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400">{mergedText.noResultsText}</p>
+              <p className="text-sm text-gray-500 ">{mergedText.noResultsText}</p>
             )}
           </Card>
         ) : null}
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-gray-800 dark:text-white/90">{mergedText.directTitle}</p>
+        <p className="text-sm font-semibold text-gray-800 ">{mergedText.directTitle}</p>
 
         {activeSectionState.loadError ? <p className="text-sm text-error-500">{activeSectionState.loadError}</p> : null}
 
@@ -706,14 +706,14 @@ export function HierarchicalCategorySelector({
 
       {selectedNodes.length > 0 ? (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{mergedText.selectedTitle}</p>
+          <p className="text-xs font-medium text-gray-500 ">{mergedText.selectedTitle}</p>
           <div className="flex flex-wrap gap-2">
             {selectedNodes.map((node) => (
               <button
                 key={node.id}
                 type="button"
                 onClick={() => onToggleCategory(node.id, false)}
-                className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
+                className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700  "
               >
                 <span className="max-w-[220px] truncate">{getNodeLabel(node)}</span>
                 <X className="size-3.5" />

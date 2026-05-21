@@ -87,10 +87,10 @@ export function DoctorsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: DoctorsFilterPanelProps) {
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
+  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   return (
-    <Card className="rounded-xl p-3 dark:border-white/[0.05]">
+    <Card className="rounded-xl p-3 ">
       <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)]">
         <div className="flex min-w-0 items-center gap-4 py-1.5">
           <span className={inlineLabelClass}>운영 상태</span>
@@ -190,7 +190,7 @@ export function DoctorsFilterPanel({
                   }
                 }}
                 placeholder="소속 병의원, 의료진명, 직책 검색"
-                className="bg-white dark:bg-gray-800"
+                className="bg-white "
               />
             </div>
           </div>
@@ -204,7 +204,7 @@ export function DoctorsFilterPanel({
               variant="outline"
               size="sm"
               onClick={onResetFilters}
-              className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+              className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
             >
               필터 초기화
             </Button>

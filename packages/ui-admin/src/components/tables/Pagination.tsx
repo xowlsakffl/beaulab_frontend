@@ -53,7 +53,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
           return (
             <span
               key={`ellipsis-${index}`}
-              className="flex h-9 min-w-9 select-none items-center justify-center rounded-lg border border-gray-200 px-3 text-sm text-gray-500 dark:border-white/[0.05] dark:text-gray-400"
+              className="flex h-9 min-w-9 select-none items-center justify-center rounded-lg border border-gray-200 px-3 text-sm text-gray-500  "
             >
               …
             </span>
@@ -71,7 +71,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
               "h-9 min-w-9 rounded-lg border px-3 text-sm font-medium",
               active
                 ? "border-brand-500 bg-brand-500 text-white"
-                : "border-gray-200 text-gray-800 hover:bg-gray-50 dark:border-white/[0.05] dark:text-white/90 dark:hover:bg-white/[0.06]",
+                : "border-gray-200 text-gray-800 hover:bg-gray-50   ",
             ].join(" ")}
           >
             {page}

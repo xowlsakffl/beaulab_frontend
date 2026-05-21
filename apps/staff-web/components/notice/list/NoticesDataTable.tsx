@@ -37,8 +37,8 @@ function buildNoticeColumns({
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<NoticeRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
-  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
+  const cellBaseClass = "px-3 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
 
   return [
@@ -74,7 +74,7 @@ function buildNoticeColumns({
         </Button>
       ),
       render: (row) => (
-        <span className="block truncate font-medium text-gray-800 dark:text-white/90" title={row.title}>
+        <span className="block truncate font-medium text-gray-800 " title={row.title}>
           {row.title}
         </span>
       ),
@@ -183,7 +183,7 @@ export function NoticesDataTable({
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
         row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 dark:bg-emerald-500/10"
+          ? "bg-emerald-50/90 transition-colors duration-500 "
           : undefined
       }
       loadingVariant="spinner"

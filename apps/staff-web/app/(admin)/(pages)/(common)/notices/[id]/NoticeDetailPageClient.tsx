@@ -21,8 +21,8 @@ import {
 } from "@/lib/notice/detail";
 
 const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 export default function NoticeDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -132,11 +132,11 @@ export default function NoticeDetailPageClient() {
           </div>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="space-y-10 divide-y divide-gray-200 ">
           <section className="space-y-6 pb-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">공지 채널과 작성 정보를 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
+              <p className="text-xs text-gray-500 ">공지 채널과 작성 정보를 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -153,8 +153,8 @@ export default function NoticeDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">게시 옵션</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">현재 게시 설정과 노출 기간을 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800 ">게시 옵션</h3>
+              <p className="text-xs text-gray-500 ">현재 게시 설정과 노출 기간을 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -167,14 +167,14 @@ export default function NoticeDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">내용</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">공지사항 본문을 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800 ">내용</h3>
+              <p className="text-xs text-gray-500 ">공지사항 본문을 확인합니다.</p>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+            <div className="rounded-2xl border border-gray-200 bg-white p-5  ">
               {detail.content?.trim() ? (
                 <div
-                  className="notice-content-view break-words text-sm leading-7 text-gray-800 dark:text-gray-100 [&_a]:text-brand-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-300 [&_blockquote]:pl-4 [&_h2]:my-4 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:my-3 [&_h3]:text-base [&_h3]:font-semibold [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-xl [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+                  className="notice-content-view break-words text-sm leading-7 text-gray-800  [&_a]:text-brand-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-300 [&_blockquote]:pl-4 [&_h2]:my-4 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:my-3 [&_h3]:text-base [&_h3]:font-semibold [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-xl [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
                   dangerouslySetInnerHTML={{ __html: detail.content }}
                 />
               ) : (

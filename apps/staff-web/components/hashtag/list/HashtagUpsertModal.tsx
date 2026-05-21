@@ -103,14 +103,14 @@ export function HashtagUpsertModal({
                 placeholder="예: 강남성형외과"
                 error={Boolean(displayError)}
                 hint={displayError ?? undefined}
-                className="bg-white dark:bg-gray-800"
+                className="bg-white "
               />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-xs text-gray-500 ">
                 허용 문자: 영문, 숫자, 한글, 밑줄(_) / 최대 20자
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">고유 검색 키</span>
-                <code className="inline-flex min-h-7 items-center rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                <span className="text-xs font-medium text-gray-500 ">고유 검색 키</span>
+                <code className="inline-flex min-h-7 items-center rounded bg-gray-100 px-2 py-1 text-xs text-gray-700  ">
                   {normalizedPreview || "-"}
                 </code>
               </div>

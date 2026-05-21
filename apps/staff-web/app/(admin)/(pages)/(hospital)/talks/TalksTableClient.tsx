@@ -800,7 +800,7 @@ export default function TalksTableClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium leading-6 text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium leading-6 text-gray-800 ">
               {excelValidationMessage}
             </p>
           </ModalBody>
@@ -829,7 +829,7 @@ export default function TalksTableClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {pendingVisibilityMessage}
             </p>
 
@@ -837,7 +837,7 @@ export default function TalksTableClient() {
               <div className="mt-4">
                 <label
                   htmlFor="visibility-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                  className="mb-1.5 block text-sm font-medium text-gray-700 "
                 >
                   미노출 사유
                 </label>

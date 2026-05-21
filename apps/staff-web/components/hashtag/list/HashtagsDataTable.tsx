@@ -37,8 +37,8 @@ function buildHashtagColumns({
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<HashtagRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
-  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
+  const cellBaseClass = "px-3 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
 
   return [
@@ -62,7 +62,7 @@ function buildHashtagColumns({
           해시태그명 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
         </Button>
       ),
-      render: (row) => <span className="font-medium text-gray-800 dark:text-white/90">#{row.name}</span>,
+      render: (row) => <span className="font-medium text-gray-800 ">#{row.name}</span>,
     },
     {
       key: "normalizedName",
@@ -74,7 +74,7 @@ function buildHashtagColumns({
         </Button>
       ),
       render: (row) => (
-        <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+        <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700  ">
           {row.normalizedName}
         </code>
       ),
@@ -172,7 +172,7 @@ export function HashtagsDataTable({
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
         row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 dark:bg-emerald-500/10"
+          ? "bg-emerald-50/90 transition-colors duration-500 "
           : undefined
       }
       loadingVariant="spinner"

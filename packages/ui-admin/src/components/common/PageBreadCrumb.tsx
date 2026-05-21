@@ -22,7 +22,7 @@ export function PageBreadcrumb({
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90">{pageTitle}</h2>
+      <h2 className="text-xl font-semibold text-gray-800 ">{pageTitle}</h2>
       <nav>
         <ol className="flex items-center gap-1.5">
           {crumbs.map((crumb, index) => {
@@ -31,10 +31,10 @@ export function PageBreadcrumb({
             return (
               <li key={`${crumb.label}-${index}`} className="flex items-center gap-1.5">
                 {isLast || !crumb.href ? (
-                  <span className="text-sm text-gray-800 dark:text-white/90">{crumb.label}</span>
+                  <span className="text-sm text-gray-800 ">{crumb.label}</span>
                 ) : (
                   <Link
-                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 "
                     href={crumb.href}
                   >
                     {crumb.label}
@@ -42,7 +42,7 @@ export function PageBreadcrumb({
                 )}
                 {!isLast ? (
                   <svg
-                    className="stroke-current text-gray-400 dark:text-gray-500"
+                    className="stroke-current text-gray-400 "
                     width="17"
                     height="16"
                     viewBox="0 0 17 16"

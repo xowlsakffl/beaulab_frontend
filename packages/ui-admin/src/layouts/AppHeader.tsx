@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-import { ThemeToggleButton } from "../components/common";
 import {
   NotificationDropdown,
   type NotificationDropdownProps,
@@ -21,7 +20,6 @@ type AppHeaderProps = {
   searchPlaceholder?: string;
   searchShortcutLabel?: string;
   showSearch?: boolean;
-  showThemeToggle?: boolean;
   notifications?: NotificationDropdownProps | null;
   userMenu?: UserDropdownProps | null;
 };
@@ -34,7 +32,6 @@ export function AppHeader({
   searchPlaceholder = "Search or type command...",
   searchShortcutLabel = "Ctrl K",
   showSearch = true,
-  showThemeToggle = true,
   notifications = null,
   userMenu = null,
 }: AppHeaderProps) {
@@ -60,14 +57,14 @@ export function AppHeader({
   }, []);
 
   return (
-    <header className="sticky top-0 z-99999 flex w-full border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 xl:border-b">
+    <header className="sticky top-0 z-99999 flex w-full border-gray-200 bg-white   xl:border-b">
       <div className="grow xl:px-6">
         <div className="flex flex-col items-center justify-between xl:flex-row">
-          <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3 dark:border-gray-800 sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 xl:py-4">
+          <div className="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-3 py-3  sm:gap-4 xl:justify-normal xl:border-b-0 xl:px-0 xl:py-4">
             <button
               type="button"
               onClick={toggleMobileSidebar}
-              className="z-99999 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 xl:hidden"
+              className="z-99999 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100    xl:hidden"
               aria-label={isMobileOpen ? "Close Sidebar" : "Open Sidebar"}
             >
               {isMobileOpen ? (
@@ -93,7 +90,7 @@ export function AppHeader({
 
             {pageTitle ? (
               <div className="hidden min-w-0 flex-1 xl:block xl:flex-none">
-                <h1 className="truncate text-base font-semibold tracking-[-0.02em] text-gray-900 dark:text-white xl:text-xl">
+                <h1 className="truncate text-base font-semibold tracking-[-0.02em] text-gray-900  xl:text-xl">
                   {pageTitle}
                 </h1>
               </div>
@@ -107,7 +104,7 @@ export function AppHeader({
 
             <button
               onClick={toggleApplicationMenu}
-              className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 xl:hidden"
+              className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100   xl:hidden"
               aria-label="Toggle Header Menu"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -125,7 +122,7 @@ export function AppHeader({
                 <form>
                   <div className="relative">
                     <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-                      <svg className="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="fill-gray-500 " width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                           fillRule="evenodd"
                           clipRule="evenodd"
@@ -139,10 +136,10 @@ export function AppHeader({
                       ref={inputRef}
                       type="text"
                       placeholder={searchPlaceholder}
-                      className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+                      className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10      xl:w-[430px]"
                     />
 
-                    <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+                    <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500   ">
                       <span>{searchShortcutLabel}</span>
                     </button>
                   </div>
@@ -158,7 +155,6 @@ export function AppHeader({
           >
             <div className="flex min-w-0 flex-wrap items-center gap-2 2xsm:gap-3">
               {headerActions ? <div className="flex min-w-0 items-center gap-2">{headerActions}</div> : null}
-              {showThemeToggle ? <ThemeToggleButton /> : null}
               {notifications ? <NotificationDropdown {...notifications} /> : null}
             </div>
 

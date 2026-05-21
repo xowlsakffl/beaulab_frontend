@@ -70,12 +70,12 @@ function SortHeader({
 
 function StatusBadge({ label, tone }: { label: string; tone: "yellow" | "orange" | "red" | "green" | "blue" | "gray" }) {
   const toneClassName = {
-    yellow: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
-    orange: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
-    red: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
-    green: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300",
-    blue: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
-    gray: "bg-gray-100 text-gray-700 dark:bg-white/[0.08] dark:text-gray-200",
+    yellow: "bg-yellow-100 text-yellow-800  ",
+    orange: "bg-orange-100 text-orange-800  ",
+    red: "bg-red-100 text-red-700  ",
+    green: "bg-green-100 text-green-700  ",
+    blue: "bg-blue-100 text-blue-700  ",
+    gray: "bg-gray-100 text-gray-700  ",
   }[tone];
 
   return (
@@ -107,14 +107,14 @@ function renderImagePreview(row: ReportedContentRow) {
 
   if (!imageUrl) {
     return (
-      <div className="flex h-[86px] w-[86px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
+      <div className="flex h-[86px] w-[86px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400  ">
         {row.imageCount > 0 ? `${row.imageCount}+` : "0"}
       </div>
     );
   }
 
   return (
-    <div className="relative h-[86px] w-[86px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-white/[0.04]">
+    <div className="relative h-[86px] w-[86px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50  ">
       {/* eslint-disable-next-line @next/next/no-img-element -- image URL is provided by backend storage configuration */}
       <img src={imageUrl} alt={`신고 후기 ${row.id} 이미지`} loading="lazy" className="h-full w-full object-cover" />
       {row.imageCount > 0 ? (
@@ -135,8 +135,8 @@ function buildColumns({
   sortState: ReportedContentSortState;
   onToggleSort: (field: ReportedContentSortField) => void;
 }): DataTableColumn<ReportedContentRow>[] {
-  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-2 py-4 text-start align-top text-sm dark:text-gray-200";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-2 py-4 text-start align-top text-sm ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const warningColumn: DataTableColumn<ReportedContentRow> = {
     key: "warning",
@@ -181,7 +181,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[86px]`,
       cellClassName: `${nowrapCellClass} w-[86px]`,
       header: "노출여부",
-      render: (row) => <span className={row.isVisible ? "font-semibold text-gray-900 dark:text-white" : "font-semibold text-gray-500"}>{row.visibilityLabel}</span>,
+      render: (row) => <span className={row.isVisible ? "font-semibold text-gray-900 " : "font-semibold text-gray-500"}>{row.visibilityLabel}</span>,
     },
     {
       key: "reportStatus",
@@ -299,7 +299,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[260px]`,
         header: "제목",
         render: (row) => (
-          <span className="block line-clamp-2 break-words font-medium text-gray-800 dark:text-white/90" title={row.title}>
+          <span className="block line-clamp-2 break-words font-medium text-gray-800 " title={row.title}>
             {row.title}
           </span>
         ),
@@ -355,7 +355,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[180px]`,
         header: "토크 제목",
         render: (row) => (
-          <span className="block line-clamp-2 break-words font-medium text-gray-800 dark:text-white/90" title={row.parentTitle}>
+          <span className="block line-clamp-2 break-words font-medium text-gray-800 " title={row.parentTitle}>
             {row.parentTitle}
           </span>
         ),
@@ -438,7 +438,7 @@ function buildColumns({
             {row.categoryLabel.split("\n").filter(Boolean).map((category) => (
               <span
                 key={category}
-                className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200 dark:bg-white/[0.06] dark:text-gray-200 dark:ring-white/[0.08]"
+                className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200   "
               >
                 <span className="line-clamp-1 break-all">{category}</span>
               </span>
@@ -500,7 +500,7 @@ function buildColumns({
           {row.categoryLabel.split("\n").filter(Boolean).map((category) => (
             <span
               key={category}
-              className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200 dark:bg-white/[0.06] dark:text-gray-200 dark:ring-white/[0.08]"
+              className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200   "
             >
               <span className="line-clamp-1 break-all">{category}</span>
             </span>

@@ -83,8 +83,8 @@ type PendingVisibilityChange = {
 const historiesDefaultPage = 1;
 const detailListPath = "/reviews/hospital-evaluations";
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 export default function HospitalEvaluationDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -391,7 +391,7 @@ export default function HospitalEvaluationDetailPageClient() {
   return (
     <div className="space-y-6">
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
           {actionError}
         </div>
       ) : null}
@@ -457,7 +457,7 @@ export default function HospitalEvaluationDetailPageClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {pendingVisibilityMessage}
             </p>
 
@@ -465,7 +465,7 @@ export default function HospitalEvaluationDetailPageClient() {
               <div className="mt-4">
                 <label
                   htmlFor="hospital-evaluation-detail-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                  className="mb-1.5 block text-sm font-medium text-gray-700 "
                 >
                   미노출 사유
                 </label>
@@ -587,8 +587,8 @@ function HospitalEvaluationContentCard({
 
       <CardContent className="space-y-6">
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">내용</p>
-          <div className="min-h-48 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+          <p className="text-xs font-semibold text-gray-500 ">내용</p>
+          <div className="min-h-48 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -614,7 +614,7 @@ function RatingScoreCard({ detail }: { detail: HospitalEvaluationDetailResponse 
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between gap-3">
           <CardTitle>평가점수</CardTitle>
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">
+          <span className="text-sm font-semibold text-gray-900 ">
             {formatHospitalEvaluationAverageRating(ratings.average)}점
           </span>
         </div>
@@ -622,9 +622,9 @@ function RatingScoreCard({ detail }: { detail: HospitalEvaluationDetailResponse 
       <CardContent className="space-y-4">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-[5.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
-            <span className="font-medium text-gray-700 dark:text-gray-200">{row.label}</span>
+            <span className="font-medium text-gray-700 ">{row.label}</span>
             <StarRating value={Number(row.value ?? 0)} />
-            <span className="text-right font-semibold text-gray-700 dark:text-gray-200">
+            <span className="text-right font-semibold text-gray-700 ">
               {formatHospitalEvaluationDetailRating(row.value)}점
             </span>
           </div>
@@ -678,7 +678,7 @@ function AssessmentCard({ assessment }: { assessment?: HospitalEvaluationAssessm
       <CardContent className="space-y-3">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2 text-sm">
-            <span className="font-semibold text-gray-700 dark:text-gray-200">{row.label}</span>
+            <span className="font-semibold text-gray-700 ">{row.label}</span>
             <div className="grid grid-cols-2 gap-2">
               {row.options.map((option) => (
                 <span
@@ -687,7 +687,7 @@ function AssessmentCard({ assessment }: { assessment?: HospitalEvaluationAssessm
                     "inline-flex h-10 w-full items-center justify-center rounded-lg px-3 text-sm font-semibold ring-1",
                     option.value === row.value
                       ? "bg-brand-500 text-white ring-brand-500"
-                      : "bg-white text-gray-600 ring-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:ring-gray-700",
+                      : "bg-white text-gray-600 ring-gray-200   ",
                   ].join(" ")}
                 >
                   {option.label}
@@ -719,18 +719,18 @@ function HospitalEvaluationHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 dark:divide-gray-800">
+          <div className="divide-y divide-gray-200 ">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] dark:text-gray-200"
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                <span className="whitespace-nowrap text-xs text-gray-500 ">
                   {formatHospitalEvaluationDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span className="font-medium">{labelHospitalEvaluationHistoryChange(history)}</span>
-                <span className="min-w-0 break-words text-sm text-gray-600 dark:text-gray-300">
+                <span className="min-w-0 break-words text-sm text-gray-600 ">
                   {formatHospitalEvaluationHistoryReason(history)}
                 </span>
               </div>
@@ -792,7 +792,7 @@ function ReceiptVerificationModal({
         </ModalHeader>
 
         <ModalBody className="mt-6 space-y-6">
-          <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+          <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500  ">
             {imageUrl ? (
               <a href={imageUrl} target="_blank" rel="noreferrer" className="block h-full w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
@@ -822,7 +822,7 @@ function ReceiptVerificationModal({
             <div className="space-y-3">
               <label
                 htmlFor="hospital-evaluation-receipt-reject-reason"
-                className="block text-sm font-semibold text-gray-800 dark:text-white/90"
+                className="block text-sm font-semibold text-gray-800 "
               >
                 인증 부적합 사유
               </label>
@@ -831,7 +831,7 @@ function ReceiptVerificationModal({
                 value={rejectReason}
                 onChange={(event) => onRejectReasonChange(event.target.value)}
                 disabled={updating}
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400   "
               >
                 <option value="">없음</option>
                 {HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS.map((option) => (
@@ -855,7 +855,7 @@ function ReceiptVerificationModal({
           ) : null}
 
           {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700   ">
               {error}
             </div>
           ) : null}
@@ -927,7 +927,7 @@ function ReceiptDecisionOption({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 transition disabled:opacity-60 dark:text-gray-100"
+      className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 transition disabled:opacity-60 "
     >
       <CircleCheck
         className={checked ? "size-5 text-brand-500" : "size-5 text-gray-400"}
@@ -941,7 +941,7 @@ function ReceiptDecisionOption({
 function ImageGallery({ title, images }: { title: string; images: HospitalEvaluationMediaAsset[] }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{title}</p>
+      <p className="text-xs font-semibold text-gray-500 ">{title}</p>
       {images.length > 0 ? (
         <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="flex min-w-full gap-3">
@@ -954,7 +954,7 @@ function ImageGallery({ title, images }: { title: string; images: HospitalEvalua
                   href={imageUrl ?? undefined}
                   target={imageUrl ? "_blank" : undefined}
                   rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30"
+                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
                   style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
                 >
                   {imageUrl ? (
@@ -965,7 +965,7 @@ function ImageGallery({ title, images }: { title: string; images: HospitalEvalua
                       className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                     />
                   ) : (
-                    <span className="px-3 text-center text-xs text-gray-500 dark:text-gray-400">미리보기 없음</span>
+                    <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
                   )}
                 </a>
               );
@@ -987,7 +987,7 @@ function StarRating({ value }: { value: number }) {
       {Array.from({ length: 5 }).map((_, index) => (
         <span
           key={index}
-          className={index < normalizedValue ? "text-brand-500" : "text-gray-300 dark:text-gray-700"}
+          className={index < normalizedValue ? "text-brand-500" : "text-gray-300 "}
         >
           ★
         </span>
@@ -1022,7 +1022,7 @@ function DetailField({
 
 function EmptyDetailState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
       {children}
     </div>
   );

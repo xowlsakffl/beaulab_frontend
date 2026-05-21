@@ -42,7 +42,7 @@ export function SegmentedTabs<T extends string = string>({
   return (
     <div
       role="tablist"
-      className={cn("grid gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900", className, listClassName)}
+      className={cn("grid gap-1 rounded-xl bg-gray-100 p-1 ", className, listClassName)}
       style={{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }}
     >
       {items.map((item) => {
@@ -60,8 +60,8 @@ export function SegmentedTabs<T extends string = string>({
             className={cn(
               "w-full rounded-lg px-4 py-2 text-sm font-medium transition",
               isActive
-                ? "bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white"
-                : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white",
+                ? "bg-white text-gray-900 shadow-sm  "
+                : "text-gray-500 hover:text-gray-800  ",
               item.isInvalid && "ring-1 ring-error-500/60",
               item.disabled && "cursor-not-allowed opacity-60",
               tabClassName,

@@ -27,7 +27,7 @@ export function FormSettingToggleRow({
     <div
       className={[
         "px-4 py-4",
-        !isLast ? "border-b border-gray-200 dark:border-gray-800" : "",
+        !isLast ? "border-b border-gray-200 " : "",
         className,
       ]
         .filter(Boolean)
@@ -35,8 +35,8 @@ export function FormSettingToggleRow({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
-          <p className="text-sm font-semibold text-gray-800 dark:text-white/90">{title}</p>
-          <p className="text-xs leading-5 text-gray-500 dark:text-gray-400">{description}</p>
+          <p className="text-sm font-semibold text-gray-800 ">{title}</p>
+          <p className="text-xs leading-5 text-gray-500 ">{description}</p>
         </div>
 
         <button
@@ -51,10 +51,10 @@ export function FormSettingToggleRow({
           className={[
             "relative mt-0.5 inline-flex h-7 w-12 shrink-0 rounded-full transition-colors",
             disabled
-              ? "cursor-not-allowed bg-gray-200 dark:bg-gray-700"
+              ? "cursor-not-allowed bg-gray-200 "
               : checked
                 ? "bg-brand-500"
-                : "bg-gray-200 dark:bg-gray-700",
+                : "bg-gray-200 ",
           ].join(" ")}
         >
           <span

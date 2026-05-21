@@ -64,8 +64,8 @@ export function HospitalEvaluationsFilterPanel({
   onResetFilters,
 }: HospitalEvaluationsFilterPanelProps) {
   const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
-  const wideInlineLabelClass = "w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 dark:text-gray-300";
+  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const wideInlineLabelClass = "w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -75,7 +75,7 @@ export function HospitalEvaluationsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 dark:border-white/[0.05]">
+    <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.75fr)_minmax(0,0.75fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
@@ -136,7 +136,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onCostMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
-                className="bg-white px-3 dark:bg-gray-800"
+                className="bg-white px-3 "
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -146,7 +146,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onCostMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="500"
-                className="bg-white px-3 dark:bg-gray-800"
+                className="bg-white px-3 "
               />
             </div>
           </div>
@@ -161,7 +161,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onViewCountMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
-                className="bg-white px-3 dark:bg-gray-800"
+                className="bg-white px-3 "
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -171,7 +171,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onViewCountMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="1000"
-                className="bg-white px-3 dark:bg-gray-800"
+                className="bg-white px-3 "
               />
             </div>
           </div>
@@ -213,7 +213,7 @@ export function HospitalEvaluationsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="후기ID, 병의원명, 전화번호 등을 입력해주세요"
-                  className="bg-white dark:bg-gray-800"
+                  className="bg-white "
                 />
               </div>
             </div>
@@ -227,7 +227,7 @@ export function HospitalEvaluationsFilterPanel({
                 variant="outline"
                 size="sm"
                 onClick={onResetFilters}
-                className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+                className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
               >
                 검색 초기화
               </Button>

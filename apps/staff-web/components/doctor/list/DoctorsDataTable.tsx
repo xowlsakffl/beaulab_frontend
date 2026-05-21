@@ -41,8 +41,8 @@ function buildDoctorColumns({
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<DoctorRow>[] {
   const headerBaseClass =
-    "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-3 py-4 text-start align-top dark:text-gray-200";
+    "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-3 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
 
   return [
@@ -70,7 +70,7 @@ function buildDoctorColumns({
       header: "소속 병의원",
       render: (row) => (
         <span
-          className="block truncate font-medium text-gray-800 dark:text-white/90"
+          className="block truncate font-medium text-gray-800 "
           title={row.hospitalName}
         >
           {row.hospitalName}
@@ -87,10 +87,10 @@ function buildDoctorColumns({
         <img
           src={row.profileImageUrl}
           alt={row.name}
-          className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover dark:border-white/[0.08]"
+          className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover "
         />
       ) : (
-        <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500">
+        <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400  ">
           없음
         </div>
       ),
@@ -112,7 +112,7 @@ function buildDoctorColumns({
       ),
       render: (row) => (
         <span
-          className="block line-clamp-2 break-words font-medium text-gray-800 dark:text-white/90"
+          className="block line-clamp-2 break-words font-medium text-gray-800 "
           title={row.name}
         >
           {row.name}
@@ -341,7 +341,7 @@ export function DoctorsDataTable({
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
         row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 dark:bg-emerald-500/10"
+          ? "bg-emerald-50/90 transition-colors duration-500 "
           : undefined
       }
       loadingVariant="spinner"
@@ -368,7 +368,7 @@ export function DoctorsDataTable({
           type="button"
           variant="outline"
           size="sm"
-          className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+          className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
         >
           <Download className="size-5" />
           <span>다운로드</span>

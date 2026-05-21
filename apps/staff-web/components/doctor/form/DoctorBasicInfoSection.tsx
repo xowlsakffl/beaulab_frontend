@@ -222,7 +222,7 @@ function DoctorHospitalPicker({
                 readOnly
                 error={Boolean(error)}
                 hint={error}
-                className="bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                className="bg-gray-50 text-gray-700  "
               />
             </div>
             <Button
@@ -244,7 +244,7 @@ function DoctorHospitalPicker({
             readOnly
             error={Boolean(error)}
             hint={error}
-            className="bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            className="bg-gray-50 text-gray-700  "
           />
         )}
 
@@ -253,7 +253,7 @@ function DoctorHospitalPicker({
           value={selectedHospital?.business_number ?? ""}
           placeholder="선택한 병의원의 사업자번호가 표시됩니다."
           readOnly
-          className="bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+          className="bg-gray-50 text-gray-600  "
         />
 
         {mode === "search" && isOpen ? (
@@ -262,7 +262,7 @@ function DoctorHospitalPicker({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="ID, 병의원명, 사업자번호 검색"
-              className="bg-white dark:bg-gray-900"
+              className="bg-white "
             />
 
             {isLoading ? (
@@ -270,10 +270,10 @@ function DoctorHospitalPicker({
             ) : loadError ? (
               <p className="text-sm text-error-500">{loadError}</p>
             ) : options.length === 0 ? (
-              <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">검색 결과가 없습니다.</p>
+              <p className="py-6 text-center text-sm text-gray-500 ">검색 결과가 없습니다.</p>
             ) : (
               <div className="space-y-2">
-                <div className="hidden grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] gap-2 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-300 sm:grid">
+                <div className="hidden grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] gap-2 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500   sm:grid">
                   <span>ID</span>
                   <span>병의원명</span>
                   <span>사업자등록번호</span>
@@ -295,14 +295,14 @@ function DoctorHospitalPicker({
                       className={[
                         "w-full rounded-xl border px-4 py-3 text-left transition-colors",
                         isSelected
-                          ? "border-brand-200 bg-brand-50 dark:border-brand-500/30 dark:bg-brand-500/10"
-                          : "border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800",
+                          ? "border-brand-200 bg-brand-50  "
+                          : "border-gray-200 bg-white hover:bg-gray-50   ",
                       ].join(" ")}
                     >
                       <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-1 sm:grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] sm:items-center sm:gap-2">
-                        <span className="truncate text-sm font-medium text-gray-900 dark:text-white/90">{hospital.id}</span>
-                        <span className="truncate text-sm font-medium text-gray-900 dark:text-white/90 sm:col-auto">{hospital.name}</span>
-                        <span className="col-span-2 truncate text-xs text-gray-500 dark:text-gray-400 sm:col-auto sm:text-sm">
+                        <span className="truncate text-sm font-medium text-gray-900 ">{hospital.id}</span>
+                        <span className="truncate text-sm font-medium text-gray-900  sm:col-auto">{hospital.name}</span>
+                        <span className="col-span-2 truncate text-xs text-gray-500  sm:col-auto sm:text-sm">
                           {hospital.business_number || "사업자번호 없음"}
                         </span>
                         {isSelected ? <span className="hidden shrink-0 text-xs font-semibold text-brand-500 sm:block">선택됨</span> : null}
@@ -363,7 +363,7 @@ function DoctorOptionButtonGroup<T extends string | boolean>({
                 "h-11 w-full rounded-xl border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                 isSelected
                   ? "border-[#f58bb6] bg-[#f58bb6] text-white focus-visible:ring-[#f58bb6]"
-                  : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700",
+                  : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300    ",
               ].join(" ")}
             >
               {option.label}

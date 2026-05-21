@@ -69,8 +69,8 @@ const commentsDefaultPage = 1;
 const historiesDefaultPage = 1;
 const commentsDefaultPerPage = 10;
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 dark:text-gray-100";
+const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
 export default function TalkDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -438,7 +438,7 @@ export default function TalkDetailPageClient() {
   return (
     <div className="space-y-6">
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
           {actionError}
         </div>
       ) : null}
@@ -487,7 +487,7 @@ export default function TalkDetailPageClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {pendingVisibilityMessage}
             </p>
 
@@ -495,7 +495,7 @@ export default function TalkDetailPageClient() {
               <div className="mt-4">
                 <label
                   htmlFor="detail-visibility-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                  className="mb-1.5 block text-sm font-medium text-gray-700 "
                 >
                   미노출 사유
                 </label>
@@ -604,8 +604,8 @@ function TalkContentCard({
         </div>
 
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">내용</p>
-          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800 dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-100">
+          <p className="text-xs font-semibold text-gray-500 ">내용</p>
+          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -614,9 +614,9 @@ function TalkContentCard({
 
         <section className="space-y-3">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">투표</p>
+            <p className="text-xs font-semibold text-gray-500 ">투표</p>
             {detail.poll?.allow_multiple ? (
-              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
+              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600  ">
                 중복가능
               </span>
             ) : null}
@@ -632,7 +632,7 @@ function TalkContentCard({
               ))}
             </div>
           ) : (
-            <p className="text-sm font-semibold text-gray-800 dark:text-white/90">등록된 투표가 없습니다.</p>
+            <p className="text-sm font-semibold text-gray-800 ">등록된 투표가 없습니다.</p>
           )}
         </section>
       </CardContent>
@@ -658,18 +658,18 @@ function TalkHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 dark:divide-gray-800">
+          <div className="divide-y divide-gray-200 ">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] dark:text-gray-200"
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                <span className="whitespace-nowrap text-xs text-gray-500 ">
                   {formatTalkDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span className="font-medium">{labelTalkHistoryChange(history)}</span>
-                <span className="min-w-0 break-words text-sm text-gray-600 dark:text-gray-300">
+                <span className="min-w-0 break-words text-sm text-gray-600 ">
                   {formatTalkHistoryReason(history)}
                 </span>
               </div>
@@ -726,11 +726,11 @@ function CommentsCard({
           <div>
             <CardTitle>댓글 {commentCount.toLocaleString()}개</CardTitle>
           </div>
-          <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+          <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 ">
             <select
               value={perPage}
               onChange={(event) => onChangePerPage(Number(event.target.value))}
-              className="h-9 rounded-lg border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-800 outline-none transition focus:border-brand-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+              className="h-9 rounded-lg border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-800 outline-none transition focus:border-brand-400   "
             >
               {TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
@@ -799,32 +799,32 @@ function CommentItem({
     <article
       className={[
         "space-y-4 py-5 first:pt-0 last:pb-0",
-        showSeparator ? "border-t border-gray-200 dark:border-gray-800" : "",
+        showSeparator ? "border-t border-gray-200 " : "",
         comment.is_reply
-          ? "ml-8 border-l-2 border-gray-200 pl-5 dark:border-gray-800"
+          ? "ml-8 border-l-2 border-gray-200 pl-5 "
           : "",
       ].filter(Boolean).join(" ")}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+        <p className="text-sm font-semibold text-gray-900 ">
           {formatTalkAuthorName(comment.author)}
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-500 ">
           {formatTalkDetailDateTime(comment.created_at)} | {comment.author_ip?.trim() || "-"}
         </p>
       </div>
 
       <div className="space-y-3">
-        <div className="space-y-1 text-sm leading-6 text-gray-800 dark:text-gray-100">
+        <div className="space-y-1 text-sm leading-6 text-gray-800 ">
           {comment.mention?.mention_text?.trim() ? (
-            <span className="mr-1 font-semibold text-brand-500 dark:text-brand-400">
+            <span className="mr-1 font-semibold text-brand-500 ">
               @{comment.mention.mention_text}
             </span>
           ) : null}
           <span className="whitespace-pre-wrap">{comment.content?.trim() || "-"}</span>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <p className="text-sm text-gray-700 dark:text-gray-200">
+          <p className="text-sm text-gray-700 ">
             좋아요 <span className="font-semibold">{Number(comment.like_count ?? 0).toLocaleString()}</span>
           </p>
           <VisibilityButtons
@@ -836,7 +836,7 @@ function CommentItem({
       </div>
 
       {histories.length > 0 ? (
-        <div className="rounded-2xl bg-gray-50 px-4 py-3 dark:bg-gray-950/40">
+        <div className="rounded-2xl bg-gray-50 px-4 py-3 ">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1 space-y-2">
               {visibleHistories.map((history, index) => (
@@ -847,7 +847,7 @@ function CommentItem({
               <button
                 type="button"
                 onClick={onToggleHistory}
-                className="-mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white p-0 text-xs font-semibold leading-none text-gray-600 transition hover:border-brand-400 hover:text-brand-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                className="-mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white p-0 text-xs font-semibold leading-none text-gray-600 transition hover:border-brand-400 hover:text-brand-600   "
                 aria-label={expanded ? "댓글 히스토리 접기" : "댓글 히스토리 펼치기"}
               >
                 {expanded ? "-" : "+"}
@@ -862,8 +862,8 @@ function CommentItem({
 
 function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   return (
-    <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)] dark:text-gray-300">
-      <span className="whitespace-nowrap text-gray-500 dark:text-gray-400">
+    <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)] ">
+      <span className="whitespace-nowrap text-gray-500 ">
         {formatTalkDetailDateTime(history.created_at)}
       </span>
       <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
@@ -876,7 +876,7 @@ function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
 function TalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">이미지</p>
+      <p className="text-xs font-semibold text-gray-500 ">이미지</p>
       {images.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {images.map((image) => {
@@ -888,7 +888,7 @@ function TalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
                 href={imageUrl ?? undefined}
                 target={imageUrl ? "_blank" : undefined}
                 rel={imageUrl ? "noreferrer" : undefined}
-                className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950/30"
+                className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
               >
                 {imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
@@ -898,7 +898,7 @@ function TalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
                     className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="px-3 text-center text-xs text-gray-500 dark:text-gray-400">미리보기 없음</span>
+                  <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
                 )}
               </a>
             );
@@ -918,7 +918,7 @@ function PollBar({ option, totalVotes }: { option: TalkPollOption; totalVotes: n
   const optionContent = option.content?.trim() || "-";
 
   return (
-    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900">
+    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100 ">
       <div className="absolute inset-0">
         {fillWidth > 0 ? (
           <div
@@ -927,7 +927,7 @@ function PollBar({ option, totalVotes }: { option: TalkPollOption; totalVotes: n
           />
         ) : null}
       </div>
-      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900 dark:text-white">
+      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900 ">
         <span className="min-w-0 truncate">{optionContent}</span>
         <span className="shrink-0 text-xs">
           {votes.toLocaleString()}명 ({percentage}%)
@@ -993,7 +993,7 @@ function DetailField({
 
 function EmptyDetailState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
       {children}
     </div>
   );

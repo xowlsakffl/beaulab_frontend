@@ -68,8 +68,8 @@ export function HospitalBasicSection({
       <input type="hidden" name="longitude" value={form.longitude} readOnly />
 
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-white/90">기본 정보</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
+        <p className="text-xs text-gray-500 ">
           {isCreate ? "병의원의 기본 정보를 입력해 주세요." : "병의원의 기본 정보를 수정합니다."}
         </p>
       </div>
@@ -90,7 +90,7 @@ export function HospitalBasicSection({
           hint={errors.name}
           readOnly={!isCreate}
           disabled={!isCreate}
-          className={!isCreate ? "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400" : undefined}
+          className={!isCreate ? "bg-gray-100 text-gray-500  " : undefined}
         />
       </div>
 
@@ -155,8 +155,8 @@ export function HospitalBasicSection({
 
       <div className="space-y-2">
         <div className="space-y-1">
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">카테고리</h4>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <h4 className="text-sm font-medium text-gray-700 ">카테고리</h4>
+          <p className="text-xs text-gray-500 ">
             카테고리를 선택해 주세요. 복수 선택과 하위 분류 지정이 가능합니다.
           </p>
         </div>
@@ -200,7 +200,7 @@ export function HospitalBasicSection({
               }}
               error={Boolean(errors.address)}
               hint={errors.address}
-              className="cursor-pointer bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+              className="cursor-pointer bg-gray-50 text-gray-600  "
             />
           </div>
           <Button
@@ -298,7 +298,7 @@ function HospitalFeatureSelector({
   return (
     <div className="space-y-2" data-field-target="feature_ids" tabIndex={-1}>
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
+        <p className="text-sm font-semibold text-gray-800 ">
           병의원정보 <span className="text-error-500">*</span>
         </p>
       </div>
@@ -309,7 +309,7 @@ function HospitalFeatureSelector({
         ) : loadError ? (
           <p className="text-sm text-error-500">{loadError}</p>
         ) : features.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">등록된 병의원 특징이 없습니다.</p>
+          <p className="text-sm text-gray-500 ">등록된 병의원 특징이 없습니다.</p>
         ) : (
           <TogglePillGroup
             options={featureOptions}

@@ -77,8 +77,8 @@ export function SingleDatePickerField({
           onClick={() => setIsOpen((prev) => !prev)}
           className={`flex h-11 w-full items-center justify-between rounded-lg border px-3 text-sm ${
             error
-              ? "border-error-500 text-error-800 dark:text-error-400"
-              : "border-gray-300 text-gray-700 dark:border-gray-700 dark:text-gray-300"
+              ? "border-error-500 text-error-800 "
+              : "border-gray-300 text-gray-700  "
           }`}
         >
           <span>{value || placeholder}</span>
@@ -86,7 +86,7 @@ export function SingleDatePickerField({
         </Button>
 
         {isOpen ? (
-          <Card className="absolute left-0 z-20 mt-2 rounded-xl p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+          <Card className="absolute left-0 z-20 mt-2 rounded-xl p-3 shadow-lg  ">
             <DayPicker
               mode="single"
               locale={ko}
@@ -100,14 +100,14 @@ export function SingleDatePickerField({
                 setIsOpen(false);
               }}
             />
-            <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-white/[0.06]">
+            <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 ">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => onChange("")}
                 disabled={!value}
-                className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 "
               >
                 초기화
               </Button>

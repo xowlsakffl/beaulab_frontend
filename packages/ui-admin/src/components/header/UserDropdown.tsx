@@ -29,7 +29,7 @@ function InitialAvatar({ name }: { name: string }) {
     .join("");
 
   return (
-    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700  ">
       {initials || "U"}
     </span>
   );
@@ -59,7 +59,7 @@ export function UserDropdown({
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
+        className="dropdown-toggle flex items-center text-gray-700 "
         aria-label="사용자 메뉴"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
@@ -73,7 +73,7 @@ export function UserDropdown({
         <span className="mr-1 block font-medium text-theme-sm">{name}</span>
 
         <svg
-          className={`stroke-gray-500 transition-transform duration-200 dark:stroke-gray-400 ${isOpen ? "rotate-180" : ""}`}
+          className={`stroke-gray-500 transition-transform duration-200  ${isOpen ? "rotate-180" : ""}`}
           width="18"
           height="20"
           viewBox="0 0 18 20"
@@ -93,15 +93,15 @@ export function UserDropdown({
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg  "
       >
         <div>
-          {subtitle ? <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">{subtitle}</span> : null}
-          {description ? <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">{description}</span> : null}
+          {subtitle ? <span className="block font-medium text-gray-700 text-theme-sm ">{subtitle}</span> : null}
+          {description ? <span className="mt-0.5 block text-theme-xs text-gray-500 ">{description}</span> : null}
         </div>
 
         {actionItems.length > 0 ? (
-          <ul className="flex flex-col gap-1 border-b border-gray-200 pb-3 pt-4 dark:border-gray-800">
+          <ul className="flex flex-col gap-1 border-b border-gray-200 pb-3 pt-4 ">
             {actionItems.map((item, index) => (
               <li key={`${item.label}-${index}`}>
                 <DropdownItem
@@ -109,7 +109,7 @@ export function UserDropdown({
                   onClick={item.onClick}
                   tag={item.href ? "a" : "button"}
                   href={item.href}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100 hover:text-gray-700   "
                 >
                   {item.label}
                 </DropdownItem>
@@ -124,7 +124,7 @@ export function UserDropdown({
             onClick={signOutItem.onClick}
             tag={signOutItem.href ? "a" : "button"}
             href={signOutItem.href}
-            className="mt-3 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+            className="mt-3 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100 hover:text-gray-700   "
           >
             {signOutItem.label}
           </DropdownItem>

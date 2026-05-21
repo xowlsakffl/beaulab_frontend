@@ -403,7 +403,7 @@ export default function HospitalEditFormClient() {
           <CardTitle>{pageTitle}</CardTitle>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 dark:divide-gray-800">
+        <div className="space-y-10 divide-y divide-gray-200 ">
           <HospitalBasicSection
             mode="edit"
             form={form}

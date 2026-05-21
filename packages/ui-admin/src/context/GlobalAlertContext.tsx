@@ -123,7 +123,7 @@ export function GlobalAlertProvider({ children }: { children: ReactNode }) {
               title={alert.title}
               message={alert.message}
               onDismiss={() => dismissAlert(alert.id)}
-              className="border shadow-lg shadow-black/10 backdrop-blur-sm dark:shadow-black/30"
+              className="border shadow-lg shadow-black/10 backdrop-blur-sm "
             />
           </div>
         ))}

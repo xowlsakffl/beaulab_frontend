@@ -78,12 +78,12 @@ function SelectionCheckbox({
 function ReportStatusBadge({ label, status }: { label: string; status: string }) {
   if (!label) return <span className="text-sm text-gray-400">-</span>;
   const toneClassNames: Record<string, string> = {
-    AUTO_BLOCKED: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
-    ADMIN_HIDDEN: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
-    NORMAL_VISIBLE: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300",
-    REEXPOSED: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    AUTO_BLOCKED: "bg-red-100 text-red-700  ",
+    ADMIN_HIDDEN: "bg-orange-100 text-orange-800  ",
+    NORMAL_VISIBLE: "bg-green-100 text-green-700  ",
+    REEXPOSED: "bg-blue-100 text-blue-700  ",
   };
-  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-200";
+  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600  ";
 
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${toneClassName}`}>
@@ -115,8 +115,8 @@ function buildCommentColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (id: number, status: string) => void;
 }): DataTableColumn<TalkCommentRow>[] {
-  const headerBaseClass = "px-2 py-3 text-left font-semibold text-gray-600 text-theme-xs dark:text-gray-300";
-  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
+  const cellBaseClass = "px-2 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const twoLineClampStyle: React.CSSProperties = {
     display: "-webkit-box",
@@ -167,7 +167,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} min-w-[170px] lg:min-w-0 lg:w-[132px] xl:w-[11%]`,
       header: "토크유형",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-700 dark:text-gray-200">
+        <div className="whitespace-normal break-words text-sm leading-6 text-gray-700 ">
           {row.categoryName}
         </div>
       ),
@@ -178,7 +178,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[116px] xl:w-[9%]`,
       header: "댓글 닉네임",
       render: (row) => (
-        <span className="block whitespace-normal break-words text-sm text-gray-700 dark:text-gray-200">
+        <span className="block whitespace-normal break-words text-sm text-gray-700 ">
           {row.nickname}
         </span>
       ),
@@ -190,11 +190,11 @@ function buildCommentColumns({
       header: "댓글 내용",
       render: (row) => (
         <div
-          className="whitespace-normal break-words text-sm leading-6 text-gray-600 dark:text-gray-300"
+          className="whitespace-normal break-words text-sm leading-6 text-gray-600 "
           style={twoLineClampStyle}
         >
           {row.mentionText && (
-            <span className="mr-1 font-semibold text-brand-500 dark:text-brand-400">
+            <span className="mr-1 font-semibold text-brand-500 ">
               @{row.mentionText}
             </span>
           )}
@@ -209,7 +209,7 @@ function buildCommentColumns({
       header: "토크 제목",
       render: (row) => (
         <span
-          className="block whitespace-normal break-words font-medium text-gray-800 dark:text-white/90"
+          className="block whitespace-normal break-words font-medium text-gray-800 "
           style={twoLineClampStyle}
         >
           {row.parentTalkTitle}

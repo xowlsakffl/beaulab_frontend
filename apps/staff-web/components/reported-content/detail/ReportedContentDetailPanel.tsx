@@ -274,7 +274,7 @@ export function ReportedContentDetailPanel({
           <div className="flex items-center justify-between gap-3">
             <CardTitle>신고 내용 상세</CardTitle>
             {!loading && !error ? (
-              <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
+              <span className="text-sm font-semibold text-gray-800 ">
                 {reportsTotal.toLocaleString()}회
               </span>
             ) : null}
@@ -285,13 +285,13 @@ export function ReportedContentDetailPanel({
           {loading ? (
             <SpinnerBlock label="신고 상세 불러오는 중" />
           ) : error ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
               {error}
             </div>
           ) : (
             <>
             <section className="space-y-4">
-              <div className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
+              <div className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-xs font-semibold text-gray-500 ">
                 <span>신고자목록</span>
                 <span>신고 사유</span>
                 <span>신고일</span>
@@ -300,7 +300,7 @@ export function ReportedContentDetailPanel({
               {reportsLoading ? (
                 <SpinnerBlock label="신고 내역 불러오는 중" />
               ) : reportsError ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
                   {reportsError}
                 </div>
               ) : reports.length > 0 ? (
@@ -308,18 +308,18 @@ export function ReportedContentDetailPanel({
                   {reports.map((report) => (
                     <div
                       key={report.id ?? `${report.created_at}-${report.reason}`}
-                      className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-sm text-gray-800 dark:text-gray-100"
+                      className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-sm text-gray-800 "
                     >
                       <span className="min-w-0 truncate">{formatReportedContentReporterName(report)}</span>
                       <span className="min-w-0 break-words">{formatReportedContentReason(report)}</span>
-                      <span className="whitespace-nowrap text-xs text-gray-600 dark:text-gray-300">
+                      <span className="whitespace-nowrap text-xs text-gray-600 ">
                         {formatReportedContentDetailDateTime(report.created_at)}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/30 dark:text-gray-400">
+                <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
                   신고 내역이 없습니다.
                 </div>
               )}
@@ -338,7 +338,7 @@ export function ReportedContentDetailPanel({
 
             <section className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">조치유형</h3>
+                <h3 className="text-sm font-semibold text-gray-900 ">조치유형</h3>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -368,7 +368,7 @@ export function ReportedContentDetailPanel({
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">경고여부</h3>
+                <h3 className="text-sm font-semibold text-gray-900 ">경고여부</h3>
                 <div className="flex flex-row flex-wrap gap-2">
                   <Button
                     type="button"
@@ -416,7 +416,7 @@ export function ReportedContentDetailPanel({
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {statusModalMessage}
             </p>
 
@@ -424,7 +424,7 @@ export function ReportedContentDetailPanel({
               <div>
                 <label
                   htmlFor="reported-content-admin-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                  className="mb-1.5 block text-sm font-medium text-gray-700 "
                 >
                   노출중지 사유
                 </label>
@@ -442,7 +442,7 @@ export function ReportedContentDetailPanel({
             ) : null}
 
             {modalError ? (
-              <p className="text-sm font-medium text-rose-600 dark:text-rose-300">
+              <p className="text-sm font-medium text-rose-600 ">
                 {modalError}
               </p>
             ) : null}
@@ -467,7 +467,7 @@ export function ReportedContentDetailPanel({
       >
         <ModalPanel>
           <ModalBody className="mt-2">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               해당 상태에서는 경고여부를 선택할 수 없습니다.
             </p>
           </ModalBody>
@@ -492,17 +492,17 @@ export function ReportedContentDetailPanel({
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-3">
-            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+            <p className="text-sm font-medium text-gray-800 ">
               {warningModalMessage}
             </p>
             {pendingWarningStatus === "WARNED" ? (
-              <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+              <div className="space-y-1 text-sm text-gray-500 ">
                 <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
               </div>
             ) : null}
 
             {warningModalError ? (
-              <p className="text-sm font-medium text-rose-600 dark:text-rose-300">
+              <p className="text-sm font-medium text-rose-600 ">
                 {warningModalError}
               </p>
             ) : null}
