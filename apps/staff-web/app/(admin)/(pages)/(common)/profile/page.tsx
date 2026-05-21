@@ -5,7 +5,6 @@ import ProfilePageClient from "./ProfilePageClient";
 
 export const metadata: Metadata = {
   title: "내 프로필 | 뷰랩 관리자",
-  description: "뷰랩 관리자 프로필 페이지입니다.",
 };
 
 export default function ProfilePage() {

@@ -5,7 +5,6 @@ import NoticeEditFormClient from "./NoticeEditFormClient";
 
 export const metadata: Metadata = {
   title: "공지사항 수정 | 뷰랩 관리자",
-  description: "뷰랩 관리자 공지사항 수정 페이지입니다.",
 };
 
 export default function NoticeEditPage() {

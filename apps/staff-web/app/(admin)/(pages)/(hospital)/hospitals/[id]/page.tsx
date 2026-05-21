@@ -5,7 +5,6 @@ import HospitalDetailPageClient from "./HospitalDetailPageClient";
 
 export const metadata: Metadata = {
   title: "병의원 상세 | 뷰랩 관리자",
-  description: "뷰랩 관리자 병의원 상세 페이지입니다.",
 };
 
 export default function HospitalDetailPage() {

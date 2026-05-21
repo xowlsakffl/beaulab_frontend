@@ -17,7 +17,6 @@ import {
     AppSidebar,
     Backdrop,
     SidebarProvider,
-    ThemeProvider,
 } from "@beaulab/ui-admin";
 import { resolveAdminPageByPath } from "@/lib/common/routing/admin-pages";
 import { PageHeaderExtraProvider } from "@/lib/common/routing/page-header-extra";
@@ -29,11 +28,9 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <Guard>
-            <ThemeProvider storageKey="beaulab.staff.theme">
-                <SidebarProvider>
-                    <AdminLayoutInner>{children}</AdminLayoutInner>
-                </SidebarProvider>
-            </ThemeProvider>
+            <SidebarProvider>
+                <AdminLayoutInner>{children}</AdminLayoutInner>
+            </SidebarProvider>
         </Guard>
     );
 }
@@ -100,7 +97,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     }, [pathname]);
 
     const sidebarTopContent = availableDomains.length > 1 ? (
-        <div className="rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+        <div className="rounded-xl bg-white/10 p-1">
             <div className="grid grid-cols-2 gap-1">
                 {availableDomains.map((domain) => {
                     const isActive = domain.key === activeDomain;
@@ -112,8 +109,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                             onClick={() => setActiveDomain(domain.key)}
                             className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                                 isActive
-                                    ? "bg-white text-gray-900 shadow-sm dark:bg-gray-900 dark:text-white"
-                                    : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"
+                                    ? "bg-white text-[#302E3F] shadow-sm"
+                                    : "text-white/65 hover:text-white"
                             }`}
                         >
                             {domain.label}
@@ -126,7 +123,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
 
     return (
         <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
-            <div className="min-h-dvh bg-gray-50 dark:bg-gray-900 xl:flex">
+            <div className="min-h-dvh bg-gray-50 xl:flex">
                 <AppSidebar
                     menu={menuByActor}
                     topContent={sidebarTopContent}
@@ -139,19 +136,11 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                         expandedLogo: (
                             <div className="flex items-center">
                                 <Image
-                                    src="/images/logo/board_logo.png"
-                                    alt="뷰랩 관리자"
-                                    width={160}
-                                    height={36}
-                                    className="block h-auto dark:hidden"
-                                    priority
-                                />
-                                <Image
                                     src="/images/logo/board_logo_dark.png"
                                     alt="뷰랩 관리자"
                                     width={160}
                                     height={36}
-                                    className="hidden h-auto dark:block"
+                                    className="block h-auto"
                                     priority
                                 />
                             </div>

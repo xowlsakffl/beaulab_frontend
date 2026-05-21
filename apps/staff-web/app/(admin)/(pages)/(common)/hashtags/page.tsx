@@ -5,7 +5,6 @@ import HashtagsPageClient from "./HashtagsPageClient";
 
 export const metadata: Metadata = {
   title: "해시태그 | 뷰랩 관리자",
-  description: "뷰랩 관리자 해시태그 페이지입니다.",
 };
 
 export default function HashtagsPage() {

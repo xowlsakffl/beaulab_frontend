@@ -5,7 +5,6 @@ import HospitalEditFormClient from "./HospitalEditFormClient";
 
 export const metadata: Metadata = {
   title: "병의원 수정 | 뷰랩 관리자",
-  description: "뷰랩 관리자 병의원 수정 페이지입니다.",
 };
 
 export default function HospitalEditPage() {

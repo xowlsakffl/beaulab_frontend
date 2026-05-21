@@ -5,7 +5,6 @@ import DoctorsCreateFormClient from "./DoctorsCreateFormClient";
 
 export const metadata: Metadata = {
   title: "의료진 등록 | 뷰랩 관리자",
-  description: "뷰랩 관리자 의료진 등록 페이지입니다.",
 };
 
 export default function DoctorsCreatePage() {

@@ -5,7 +5,6 @@ import TalkDetailPageClient from "./TalkDetailPageClient";
 
 export const metadata: Metadata = {
   title: "토크 상세 | 뷰랩 관리자",
-  description: "뷰랩 관리자 토크 상세 페이지입니다.",
 };
 
 export default function TalkDetailPage() {

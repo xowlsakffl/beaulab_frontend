@@ -5,7 +5,6 @@ import VideoEditFormClient from "./VideoEditFormClient";
 
 export const metadata: Metadata = {
   title: "동영상 수정 | 뷰랩 관리자",
-  description: "뷰랩 관리자 동영상 수정 페이지입니다.",
 };
 
 export default function VideoEditPage() {

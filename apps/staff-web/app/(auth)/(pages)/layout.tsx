@@ -1,7 +1,5 @@
 import { GridShape } from "@beaulab/ui-admin";
-import { ThemeTogglerTwo } from "@beaulab/ui-admin";
 
-import { ThemeProvider } from "@beaulab/ui-admin";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -12,11 +10,10 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
-      <ThemeProvider storageKey="beaulab.staff.theme">
-        <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col  dark:bg-gray-900 sm:p-0">
+    <div className="relative p-6 bg-white z-1 sm:p-0">
+        <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col sm:p-0">
           {children}
-          <div className="lg:w-1/2 w-full h-full bg-brand-950 dark:bg-white/5 lg:grid items-center hidden">
+          <div className="lg:w-1/2 w-full h-full bg-brand-950 lg:grid items-center hidden">
             <div className="relative items-center justify-center  flex z-1">
               {/* <!-- ===== Common Grid Shape Start ===== --> */}
               <GridShape />
@@ -29,17 +26,13 @@ export default function AuthLayout({
                     alt="뷰랩 관리자"
                   />
                 </Link>
-                <p className="text-center text-gray-400 dark:text-white/60">
+                <p className="text-center text-gray-400 ">
                   병의원 운영 뷰랩 관리자입니다.
                 </p>
               </div>
             </div>
           </div>
-          <div className="fixed bottom-6 right-6 z-50 hidden sm:block">
-            <ThemeTogglerTwo />
-          </div>
         </div>
-      </ThemeProvider>
     </div>
   );
 }

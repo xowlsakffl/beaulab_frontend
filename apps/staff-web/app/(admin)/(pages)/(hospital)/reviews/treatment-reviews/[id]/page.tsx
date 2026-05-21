@@ -5,7 +5,6 @@ import HospitalReviewDetailPageClient from "../../HospitalReviewDetailPageClient
 
 export const metadata: Metadata = {
   title: "시술후기 상세 | 뷰랩 관리자",
-  description: "뷰랩 관리자 시술후기 상세 페이지입니다.",
 };
 
 export default function TreatmentReviewDetailPage() {

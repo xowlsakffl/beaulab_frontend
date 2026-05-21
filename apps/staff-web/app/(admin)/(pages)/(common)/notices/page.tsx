@@ -5,7 +5,6 @@ import NoticesTableClient from "./NoticesTableClient";
 
 export const metadata: Metadata = {
   title: "공지사항 | 뷰랩 관리자",
-  description: "뷰랩 관리자 공지사항 페이지입니다.",
 };
 
 export default function NoticesPage() {

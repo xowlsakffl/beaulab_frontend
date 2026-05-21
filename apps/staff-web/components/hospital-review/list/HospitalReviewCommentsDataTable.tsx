@@ -93,7 +93,7 @@ function renderCategoryBadges(row: HospitalReviewCommentRow) {
       {categories.map((categoryName) => (
         <span
           key={categoryName}
-          className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200 dark:bg-white/[0.06] dark:text-gray-200 dark:ring-white/[0.08]"
+          className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200   "
         >
           <span className="line-clamp-1 break-all">{categoryName}</span>
         </span>
@@ -108,14 +108,14 @@ function renderParentImage(row: HospitalReviewCommentRow) {
 
   if (!imageUrl) {
     return (
-      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400 dark:border-white/[0.08] dark:text-gray-500`}>
+      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}>
         {row.imageCount > 0 ? `${row.imageCount}+` : "0"}
       </div>
     );
   }
 
   return (
-    <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-white/[0.04]`}>
+    <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
       <img
         src={imageUrl}
@@ -135,12 +135,12 @@ function renderParentImage(row: HospitalReviewCommentRow) {
 function ReportStatusBadge({ label, status }: { label: string; status: string }) {
   if (!label) return <span className="text-sm text-gray-400">-</span>;
   const toneClassNames: Record<string, string> = {
-    AUTO_BLOCKED: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
-    ADMIN_HIDDEN: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
-    NORMAL_VISIBLE: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300",
-    REEXPOSED: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    AUTO_BLOCKED: "bg-red-100 text-red-700  ",
+    ADMIN_HIDDEN: "bg-orange-100 text-orange-800  ",
+    NORMAL_VISIBLE: "bg-green-100 text-green-700  ",
+    REEXPOSED: "bg-blue-100 text-blue-700  ",
   };
-  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-200";
+  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600  ";
 
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${toneClassName}`}>
@@ -172,11 +172,11 @@ function buildCommentColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => void;
 }): DataTableColumn<HospitalReviewCommentRow>[] {
-  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const cellBaseClass = "px-2 py-4 text-start align-top dark:text-gray-200";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-2 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
-  const imageHeaderClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 dark:text-gray-300";
-  const imageCellClass = "px-2 py-4 text-start align-top dark:text-gray-200";
+  const imageHeaderClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const imageCellClass = "px-2 py-4 text-start align-top ";
   const twoLineClampStyle: React.CSSProperties = {
     display: "-webkit-box",
     WebkitLineClamp: 2,
@@ -233,7 +233,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[120px] xl:w-[10%]`,
       header: "댓글작성자",
       render: (row) => (
-        <span className="block line-clamp-2 break-words text-sm text-gray-700 dark:text-gray-200" title={row.authorName}>
+        <span className="block line-clamp-2 break-words text-sm text-gray-700 " title={row.authorName}>
           {row.authorName}
         </span>
       ),
@@ -244,7 +244,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[260px] xl:w-[23%]`,
       header: "댓글내용",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 dark:text-gray-300" style={twoLineClampStyle}>
+        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 " style={twoLineClampStyle}>
           {row.contentPreview}
         </div>
       ),
