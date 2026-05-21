@@ -57,6 +57,18 @@ export type ReportedContentDetailReportSubItem = {
   created_at?: string | null;
 };
 
+export type ReportedContentOperationHistory = {
+  id?: number | null;
+  actor_label?: string | null;
+  action?: string | null;
+  field?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  reason?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+};
+
 export type ReportedChatMessageDetailTarget = {
   id?: number | null;
   chat_id?: number | null;
@@ -80,6 +92,7 @@ export type ReportedContentDetailResponse = {
   target?: unknown;
   author?: ReportedContentDetailAuthor | null;
   report?: ReportedContentDetailReportState | null;
+  operation_histories?: ReportedContentOperationHistory[] | null;
 };
 
 export type ReportedContentReportsMeta = {

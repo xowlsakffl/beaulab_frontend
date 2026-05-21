@@ -24,8 +24,10 @@ import {
   formatReportedContentAuthorName,
   formatReportedContentDetailDate,
   formatReportedContentDetailDateTime,
+  formatReportedContentReason,
   type ReportedChatMessageDetailTarget,
   type ReportedContentDetailAuthor,
+  type ReportedContentOperationHistory,
   type ReportedContentDetailReportItem,
   type ReportedContentDetailReportSubItem,
   type ReportedContentDetailResponse,
@@ -184,6 +186,8 @@ export default function ReportedChatDetailPageClient() {
   const isValidReport = reportStatus === "VALID" || reportStatus === "ADMIN_HIDDEN";
   const isInvalidReport = reportStatus === "INVALID" || reportStatus === "NORMAL_VISIBLE";
   const warningCount = Number(author?.warning_count ?? 0);
+  const histories = detail?.operation_histories ?? [];
+  const latestReportReason = latestReport ? formatReportedContentReason(latestReport) : "-";
   const messages = React.useMemo(
     () => buildReportedMessages(latestReport?.items, target),
     [latestReport?.items, target],
@@ -266,12 +270,13 @@ export default function ReportedChatDetailPageClient() {
             dateLabel="신고일"
             date={latestReport?.created_at}
           />
+          <ChatOperationHistoryCard histories={histories} />
         </div>
 
         <div className="space-y-6">
           <ReportedChatMessagesCard
             messages={messages}
-            reportCount={Number(reportState?.report_count ?? 0)}
+            reportReason={latestReportReason}
           />
           <ChatReportActionCard
             isValidReport={isValidReport}
@@ -444,22 +449,19 @@ function InfoValue({ label, value }: { label: string; value: React.ReactNode }) 
 
 function ReportedChatMessagesCard({
   messages,
-  reportCount,
+  reportReason,
 }: {
   messages: ReportedChatMessageDisplay[];
-  reportCount: number;
+  reportReason: string;
 }) {
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <CardTitle>신고 내용 상세</CardTitle>
-            <span className="text-sm font-semibold text-gray-800 ">
-              {reportCount.toLocaleString()}회
-            </span>
-          </div>
-        </div>
+      <CardHeader className="space-y-4 pb-4">
+        <section className="flex flex-wrap items-center gap-x-8 gap-y-2">
+          <CardTitle>신고 사유</CardTitle>
+          <p className="text-sm font-medium text-gray-800 ">{reportReason}</p>
+        </section>
+        <CardTitle>신고 내용</CardTitle>
       </CardHeader>
       <CardContent>
         {messages.length > 0 ? (
@@ -483,6 +485,52 @@ function ReportedChatMessagesCard({
       </CardContent>
     </Card>
   );
+}
+
+function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOperationHistory[] }) {
+  return (
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle>히스토리</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {histories.length > 0 ? (
+          <div className="divide-y divide-gray-200 ">
+            {histories.map((history, index) => (
+              <div
+                key={history.id ?? `${history.created_at ?? "history"}-${index}`}
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
+              >
+                <span className="whitespace-nowrap text-xs text-gray-500 ">
+                  {formatReportedContentDetailDateTime(history.created_at)}
+                </span>
+                <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
+                <span className="font-medium">{labelChatHistoryChange(history)}</span>
+                <span className="min-w-0 break-words text-sm text-gray-600 ">
+                  {history.reason?.trim() || "-"}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
+            등록된 히스토리가 없습니다.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function labelChatHistoryChange(history: ReportedContentOperationHistory) {
+  const metadata = history.metadata ?? {};
+  const afterLabel = typeof metadata.after_label === "string" ? metadata.after_label.trim() : "";
+
+  if (afterLabel) {
+    return afterLabel;
+  }
+
+  return history.field === "warning_status" ? "경고여부" : "적합여부";
 }
 
 function ChatReportActionCard({
