@@ -137,6 +137,7 @@ export function ReportedContentDetailPanel({
   const reportsLastPage = Math.max(1, Number(reportsMeta?.last_page ?? 1));
   const reportStatus = reportState?.status?.trim() || "";
   const warningStatus = reportState?.warning_status?.trim() || "NONE";
+  const warningCount = Number(detail?.author?.warning_count ?? 0);
   const isWarningButtonDisabled = warningStatus === "WARNED" || updatingWarningStatus !== null;
   const isIgnoreButtonDisabled = warningStatus === "IGNORED" || updatingWarningStatus !== null;
 
@@ -498,6 +499,9 @@ export function ReportedContentDetailPanel({
             {pendingWarningStatus === "WARNED" ? (
               <div className="space-y-1 text-sm text-gray-500 ">
                 <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
+                <p>
+                  현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
+                </p>
               </div>
             ) : null}
 
