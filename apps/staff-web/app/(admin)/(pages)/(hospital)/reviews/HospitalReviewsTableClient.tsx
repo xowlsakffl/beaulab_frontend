@@ -128,6 +128,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
+  const [isMetricRequiredModalOpen, setIsMetricRequiredModalOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
@@ -480,11 +481,23 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   );
 
   const applyFilters = React.useCallback(() => {
+    const metricMin = normalizeMetricBound(draftFilters.metricMin);
+    const metricMax = normalizeMetricBound(draftFilters.metricMax);
+
+    if (activeBoard === "posts" && (metricMin !== "" || metricMax !== "") && draftFilters.metricField === "") {
+      setIsMetricRequiredModalOpen(true);
+      return;
+    }
+
     setSearchKeyword(searchInput.trim());
-    setAppliedFilters(draftFilters);
+    setAppliedFilters({
+      ...draftFilters,
+      metricMin,
+      metricMax,
+    });
     setPage(1);
     setSelectedIds(new Set());
-  }, [draftFilters, searchInput]);
+  }, [activeBoard, draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
     setSearchInput("");
@@ -944,6 +957,35 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onRowVisibilityChange={requestCommentRowVisibilityChange}
         />
       )}
+
+      <Modal
+        isOpen={isMetricRequiredModalOpen}
+        onClose={() => setIsMetricRequiredModalOpen(false)}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-md"
+      >
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>검색 조건 확인</ModalTitle>
+          </ModalHeader>
+
+          <ModalBody className="mt-5">
+            <p className="text-sm font-medium leading-6 text-gray-800 ">
+              지표 기준을 선택해주세요.
+            </p>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="brand"
+              onClick={() => setIsMetricRequiredModalOpen(false)}
+            >
+              확인
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
 
       <Modal
         isOpen={Boolean(pendingVisibilityChange)}

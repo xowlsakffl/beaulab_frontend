@@ -122,6 +122,7 @@ export default function TalksTableClient() {
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
   const [excelDownloading, setExcelDownloading] = React.useState(false);
   const [excelValidationMessage, setExcelValidationMessage] = React.useState<string | null>(null);
+  const [isMetricRequiredModalOpen, setIsMetricRequiredModalOpen] = React.useState(false);
   const [categoryOptions, setCategoryOptions] = React.useState<CheckboxFilterOption[]>([]);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
@@ -309,6 +310,14 @@ export default function TalksTableClient() {
   }, []);
 
   const applyFilters = React.useCallback(() => {
+    const metricMin = normalizeMetricBound(draftFilters.metricMin);
+    const metricMax = normalizeMetricBound(draftFilters.metricMax);
+
+    if (activeBoard === "talks" && (metricMin !== "" || metricMax !== "") && draftFilters.metricField === "") {
+      setIsMetricRequiredModalOpen(true);
+      return;
+    }
+
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
@@ -316,13 +325,13 @@ export default function TalksTableClient() {
       visibilityStatus: draftFilters.visibilityStatus,
       reportStatus: draftFilters.reportStatus,
       metricField: draftFilters.metricField,
-      metricMin: normalizeMetricBound(draftFilters.metricMin),
-      metricMax: normalizeMetricBound(draftFilters.metricMax),
+      metricMin,
+      metricMax,
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
     });
-  }, [draftFilters, searchInput]);
+  }, [activeBoard, draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
     setSearchInput("");
@@ -787,6 +796,35 @@ export default function TalksTableClient() {
           onGoPage={setPage}
         />
       )}
+
+      <Modal
+        isOpen={isMetricRequiredModalOpen}
+        onClose={() => setIsMetricRequiredModalOpen(false)}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-md"
+      >
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>검색 조건 확인</ModalTitle>
+          </ModalHeader>
+
+          <ModalBody className="mt-5">
+            <p className="text-sm font-medium leading-6 text-gray-800 ">
+              지표 기준을 선택해주세요.
+            </p>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="brand"
+              onClick={() => setIsMetricRequiredModalOpen(false)}
+            >
+              확인
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
 
       <Modal
         isOpen={Boolean(excelValidationMessage)}

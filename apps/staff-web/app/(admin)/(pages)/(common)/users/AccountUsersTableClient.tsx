@@ -58,7 +58,6 @@ export default function AccountUsersTableClient() {
   const [summary, setSummary] = React.useState<AccountUserSummary | null>(null);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [summaryError, setSummaryError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -83,19 +82,16 @@ export default function AccountUsersTableClient() {
   }, [pathname, queryString, router, searchParams]);
 
   const fetchSummary = React.useCallback(async () => {
-    setSummaryError(null);
-
     try {
       const response = await api.get<AccountUserSummary>("/users/summary");
 
       if (!isApiSuccess(response)) {
-        setSummaryError(response.error.message || "회원 통계를 불러오지 못했습니다.");
         return;
       }
 
       setSummary(response.data);
     } catch {
-      setSummaryError("회원 통계를 불러오는 중 오류가 발생했습니다.");
+      setSummary(null);
     }
   }, []);
 
@@ -216,12 +212,6 @@ export default function AccountUsersTableClient() {
       <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0 space-y-4">
           <AccountUsersSummaryCards summary={summary} />
-
-          {summaryError ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 ">
-              {summaryError}
-            </div>
-          ) : null}
 
           <AccountUsersFilterPanel
             searchInput={searchInput}
