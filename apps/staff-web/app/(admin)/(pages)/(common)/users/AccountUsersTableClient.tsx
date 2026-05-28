@@ -207,6 +207,13 @@ export default function AccountUsersTableClient() {
     void Promise.all([fetchSummary(), fetchUsers(true)]);
   }, [fetchSummary, fetchUsers]);
 
+  const openDetail = React.useCallback((row: AccountUserRow) => {
+    const currentQueryString = searchParams.toString();
+    const returnTo = currentQueryString ? `${pathname}?${currentQueryString}` : pathname;
+
+    router.push(`/users/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [pathname, router, searchParams]);
+
   return (
     <div className="min-w-0 space-y-4">
       <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_16rem]">
@@ -246,6 +253,7 @@ export default function AccountUsersTableClient() {
         onToggleSort={toggleSort}
         onRefresh={refresh}
         onGoPage={setPage}
+        onOpenDetail={openDetail}
       />
     </div>
   );

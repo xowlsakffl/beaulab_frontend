@@ -28,6 +28,7 @@ type AccountUsersDataTableProps = {
   onToggleSort: (field: AccountUserSortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
+  onOpenDetail?: (row: AccountUserRow) => void;
 };
 
 function renderSortMark(field: AccountUserSortField, sortState: AccountUserSortState) {
@@ -174,6 +175,7 @@ export function AccountUsersDataTable({
   onToggleSort,
   onRefresh,
   onGoPage,
+  onOpenDetail,
 }: AccountUsersDataTableProps) {
   const columns = React.useMemo(
     () => buildColumns({ sortState, onToggleSort }),
@@ -182,7 +184,6 @@ export function AccountUsersDataTable({
 
   return (
     <DataTable
-      title="일반회원 목록"
       tableClassName="min-w-[1370px] w-full xl:table-fixed"
       columns={columns}
       rows={rows}
@@ -194,6 +195,8 @@ export function AccountUsersDataTable({
       error={error}
       meta={meta}
       onRefresh={onRefresh}
+      refreshPlacement="left"
+      onRowClick={onOpenDetail}
       onGoPage={onGoPage}
       footerCenter={
         meta ? (
