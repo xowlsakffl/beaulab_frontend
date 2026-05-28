@@ -58,8 +58,11 @@ export type ReportedContentBoardConfig = {
   statusLabel?: string;
   dateTypeInline?: boolean;
   showVisibilityFilter?: boolean;
+  showReportStatusFilter?: boolean;
+  showReportCountFilter?: boolean;
   showWarningFilter?: boolean;
   showSummaryCards?: boolean;
+  singleLineFilters?: boolean;
 };
 
 export type ReportedContentReasonCount = {
@@ -260,19 +263,15 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
       { value: "last_message_at", label: "대화일" },
       { value: "first_reported_at", label: "신고일" },
     ],
-    statusOptions: [
-      { value: "", label: "전체" },
-      { value: "REPORTED", label: "신고접수" },
-      { value: "VALID", label: "적합" },
-      { value: "INVALID", label: "부적합" },
-    ],
     defaultDateType: "last_message_at",
     searchInputPlaceholder: "채팅방ID, 작성자 닉네임, 채팅 내용을 입력해주세요",
-    statusLabel: "적합여부",
     dateTypeInline: true,
     showVisibilityFilter: false,
-    showWarningFilter: false,
+    showReportStatusFilter: false,
+    showReportCountFilter: false,
+    showWarningFilter: true,
     showSummaryCards: false,
+    singleLineFilters: true,
   },
 };
 
@@ -336,7 +335,7 @@ export const REPORTED_CONTENT_WARNING_OPTIONS = [
   { value: "", label: "전체" },
   { value: "WARNED", label: "경고" },
   { value: "IGNORED", label: "무시" },
-  { value: "NONE", label: "미처리" },
+  { value: "NONE", label: "미경고" },
 ];
 
 export const REPORTED_CONTENT_DATE_PRESET_OPTIONS = [
@@ -373,6 +372,8 @@ export function reportedContentDateTypeOptions(config?: ReportedContentBoardConf
 }
 
 export function reportedContentStatusOptions(config?: ReportedContentBoardConfig) {
+  if (config?.showReportStatusFilter === false) return [];
+
   return config?.statusOptions ?? REPORTED_CONTENT_STATUS_OPTIONS;
 }
 
@@ -414,8 +415,8 @@ export function parseReportedContentTableState(searchParams: URLSearchParams, co
   const dateTypeParam = searchParams.get("date_type") ?? defaultFilters.dateType;
   const reportReason = searchParams.get("report_reason") ?? "";
   const visibilityStatus = searchParams.get("target_status") ?? "";
-  const reportStatus = searchParams.get("report_status") ?? "";
-  const warningStatus = searchParams.get("warning_status") ?? searchParams.get("warning") ?? "";
+  const reportStatus = config?.showReportStatusFilter === false ? "" : searchParams.get("report_status") ?? "";
+  const warningStatus = config?.showWarningFilter === false ? "" : searchParams.get("warning_status") ?? searchParams.get("warning") ?? "";
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const sortField = sortFieldParam && REPORTED_CONTENT_SORT_FIELDS.has(sortFieldParam as ReportedContentSortField)
@@ -436,9 +437,11 @@ export function parseReportedContentTableState(searchParams: URLSearchParams, co
       startDate,
       endDate,
       reportReason: REPORTED_CONTENT_REASON_SET.has(reportReason) ? reportReason : "",
-      reportCountMin: normalizeNumberBound(searchParams.get("report_count_min")),
-      reportCountMax: normalizeNumberBound(searchParams.get("report_count_max")),
-      visibilityStatus: REPORTED_CONTENT_VISIBILITY_SET.has(visibilityStatus) ? visibilityStatus : "",
+      reportCountMin: config?.showReportCountFilter === false ? "" : normalizeNumberBound(searchParams.get("report_count_min")),
+      reportCountMax: config?.showReportCountFilter === false ? "" : normalizeNumberBound(searchParams.get("report_count_max")),
+      visibilityStatus: config?.showVisibilityFilter === false
+        ? ""
+        : REPORTED_CONTENT_VISIBILITY_SET.has(visibilityStatus) ? visibilityStatus : "",
       reportStatus: statusSet.has(reportStatus) ? reportStatus : "",
       warningStatus: REPORTED_CONTENT_WARNING_SET.has(warningStatus) ? warningStatus : "",
     },
@@ -760,7 +763,7 @@ function normalizeReportedChatMessage(
     reportCount: Number(report?.report_count ?? 0),
     firstReportedAt: formatReportedDate(report?.latest_report?.created_at ?? report?.last_reported_at ?? report?.first_reported_at),
     status: report?.status?.trim() || "REPORTED",
-    statusLabel: labelChatReportStatus(report?.status),
+    statusLabel: labelChatReportStatus(),
     isVisible: false,
     visibilityLabel: "-",
     hasWarning: Boolean(report?.warning),
@@ -783,10 +786,7 @@ function latestReporterNickname(report?: ReportedContentReport | null) {
   return reporter?.nickname?.trim() || reporter?.name?.trim() || "-";
 }
 
-function labelChatReportStatus(status?: string | null) {
-  if (status === "VALID" || status === "ADMIN_HIDDEN") return "적합";
-  if (status === "INVALID" || status === "NORMAL_VISIBLE") return "부적합";
-
+function labelChatReportStatus() {
   return "신고접수";
 }
 

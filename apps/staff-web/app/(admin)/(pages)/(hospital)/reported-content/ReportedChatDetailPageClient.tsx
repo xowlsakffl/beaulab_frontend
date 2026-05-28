@@ -31,11 +31,9 @@ import {
   type ReportedContentDetailReportItem,
   type ReportedContentDetailReportSubItem,
   type ReportedContentDetailResponse,
-  type ReportedContentStatusUpdatePayload,
   type ReportedContentWarningStatusUpdatePayload,
 } from "@/lib/reported-content/detail";
 
-type ReportActionStatus = "VALID" | "INVALID";
 type WarningActionStatus = "WARNED" | "IGNORED";
 
 type ReportedChatDetailResponse = ReportedContentDetailResponse & {
@@ -65,12 +63,8 @@ export default function ReportedChatDetailPageClient() {
   const [detail, setDetail] = React.useState<ReportedChatDetailResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [updatingStatus, setUpdatingStatus] = React.useState<ReportActionStatus | null>(null);
-  const [pendingStatus, setPendingStatus] = React.useState<ReportActionStatus | null>(null);
   const [updatingWarningStatus, setUpdatingWarningStatus] = React.useState<WarningActionStatus | null>(null);
   const [pendingWarningStatus, setPendingWarningStatus] = React.useState<WarningActionStatus | null>(null);
-  const [isWarningUnavailableModalOpen, setIsWarningUnavailableModalOpen] = React.useState(false);
-  const [modalError, setModalError] = React.useState<string | null>(null);
   const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
 
   const getReturnToPath = React.useCallback(
@@ -116,36 +110,6 @@ export default function ReportedChatDetailPageClient() {
     void fetchDetail();
   }, [fetchDetail]);
 
-  const updateReportStatus = React.useCallback(
-    async (reportStatus: ReportActionStatus) => {
-      setUpdatingStatus(reportStatus);
-      setModalError(null);
-
-      const payload: ReportedContentStatusUpdatePayload = {
-        target_type: targetType,
-        target_id: targetId,
-        report_status: reportStatus,
-      };
-
-      try {
-        const response = await api.patch("/reported-contents/status", payload);
-
-        if (!isApiSuccess(response)) {
-          setModalError(response.error.message || "적합여부 변경에 실패했습니다.");
-          return;
-        }
-
-        setPendingStatus(null);
-        await fetchDetail();
-      } catch {
-        setModalError("적합여부 변경 중 오류가 발생했습니다.");
-      } finally {
-        setUpdatingStatus(null);
-      }
-    },
-    [fetchDetail, targetId],
-  );
-
   const updateWarningStatus = React.useCallback(
     async (warningStatus: WarningActionStatus) => {
       setUpdatingWarningStatus(warningStatus);
@@ -181,10 +145,7 @@ export default function ReportedChatDetailPageClient() {
   const target = detail?.target ?? null;
   const author = detail?.author ?? null;
   const reporter = latestReport?.reporter ?? null;
-  const reportStatus = reportState?.status?.trim() || "";
   const warningStatus = reportState?.warning_status?.trim() || "NONE";
-  const isValidReport = reportStatus === "VALID" || reportStatus === "ADMIN_HIDDEN";
-  const isInvalidReport = reportStatus === "INVALID" || reportStatus === "NORMAL_VISIBLE";
   const warningCount = Number(author?.warning_count ?? 0);
   const histories = detail?.operation_histories ?? [];
   const latestReportReason = latestReport ? formatReportedContentReason(latestReport) : "-";
@@ -193,27 +154,10 @@ export default function ReportedChatDetailPageClient() {
     [latestReport?.items, target],
   );
 
-  const openStatusModal = React.useCallback((nextStatus: ReportActionStatus) => {
-    setPendingStatus(nextStatus);
-    setModalError(null);
-  }, []);
-
-  const closeStatusModal = React.useCallback(() => {
-    if (updatingStatus !== null) return;
-
-    setPendingStatus(null);
-    setModalError(null);
-  }, [updatingStatus]);
-
   const openWarningModal = React.useCallback((nextStatus: WarningActionStatus) => {
-    if (!isInvalidReport) {
-      setIsWarningUnavailableModalOpen(true);
-      return;
-    }
-
     setPendingWarningStatus(nextStatus);
     setWarningModalError(null);
-  }, [isInvalidReport]);
+  }, []);
 
   const closeWarningModal = React.useCallback(() => {
     if (updatingWarningStatus !== null) return;
@@ -239,10 +183,6 @@ export default function ReportedChatDetailPageClient() {
     );
   }
 
-  const pendingStatusLabel = pendingStatus === "VALID" ? "적합" : "부적합";
-  const statusModalMessage = pendingStatus
-    ? `해당 채팅 신고를 ${pendingStatusLabel} 처리하시겠습니까?`
-    : "";
   const warningModalMessage = pendingWarningStatus === "WARNED"
     ? warningStatus === "IGNORED"
       ? "무시를 경고로 변경하시겠습니까?"
@@ -279,75 +219,12 @@ export default function ReportedChatDetailPageClient() {
             reportReason={latestReportReason}
           />
           <ChatReportActionCard
-            isValidReport={isValidReport}
-            isInvalidReport={isInvalidReport}
             warningStatus={warningStatus}
-            updatingStatus={updatingStatus}
             updatingWarningStatus={updatingWarningStatus}
-            onOpenStatusModal={openStatusModal}
             onOpenWarningModal={openWarningModal}
           />
         </div>
       </div>
-
-      <Modal
-        isOpen={pendingStatus !== null}
-        onClose={closeStatusModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>적합여부 변경</ModalTitle>
-          </ModalHeader>
-
-          <ModalBody className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-gray-800 ">
-              {statusModalMessage}
-            </p>
-            {modalError ? (
-              <p className="text-sm font-medium text-rose-600 ">
-                {modalError}
-              </p>
-            ) : null}
-          </ModalBody>
-
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeStatusModal} disabled={updatingStatus !== null}>
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => pendingStatus ? void updateReportStatus(pendingStatus) : undefined}
-              disabled={updatingStatus !== null}
-            >
-              {updatingStatus !== null ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
-
-      <Modal
-        isOpen={isWarningUnavailableModalOpen}
-        onClose={() => setIsWarningUnavailableModalOpen(false)}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-sm"
-      >
-        <ModalPanel>
-          <ModalBody className="mt-2">
-            <p className="text-sm font-medium text-gray-800 ">
-              해당 상태에서는 경고여부를 선택할 수 없습니다.
-            </p>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button type="button" variant="brand" onClick={() => setIsWarningUnavailableModalOpen(false)}>
-              확인
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
 
       <Modal
         isOpen={pendingWarningStatus !== null}
@@ -530,59 +407,21 @@ function labelChatHistoryChange(history: ReportedContentOperationHistory) {
     return afterLabel;
   }
 
-  return history.field === "warning_status" ? "경고여부" : "적합여부";
+  return history.field === "warning_status" ? "경고여부" : "신고처리";
 }
 
 function ChatReportActionCard({
-  isValidReport,
-  isInvalidReport,
   warningStatus,
-  updatingStatus,
   updatingWarningStatus,
-  onOpenStatusModal,
   onOpenWarningModal,
 }: {
-  isValidReport: boolean;
-  isInvalidReport: boolean;
   warningStatus: string;
-  updatingStatus: ReportActionStatus | null;
   updatingWarningStatus: WarningActionStatus | null;
-  onOpenStatusModal: (status: ReportActionStatus) => void;
   onOpenWarningModal: (status: WarningActionStatus) => void;
 }) {
   return (
     <Card>
-      <CardContent className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900 ">적합여부</h3>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              type="button"
-              variant={isValidReport ? "brand" : "outline"}
-              disabled={updatingStatus !== null}
-              onClick={() => onOpenStatusModal("VALID")}
-              className={[
-                "h-12 px-6 text-base font-semibold",
-                isValidReport ? "" : "text-gray-500",
-              ].join(" ")}
-            >
-              {updatingStatus === "VALID" ? "처리 중" : "적합"}
-            </Button>
-            <Button
-              type="button"
-              variant={isInvalidReport ? "brand" : "outline"}
-              disabled={updatingStatus !== null}
-              onClick={() => onOpenStatusModal("INVALID")}
-              className={[
-                "h-12 px-6 text-base font-semibold",
-                isInvalidReport ? "" : "text-gray-500",
-              ].join(" ")}
-            >
-              {updatingStatus === "INVALID" ? "처리 중" : "부적합"}
-            </Button>
-          </div>
-        </div>
-
+      <CardContent>
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900 ">경고여부</h3>
           <div className="flex flex-wrap gap-3">

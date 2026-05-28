@@ -95,13 +95,6 @@ function reportStatusTone(status: string): "yellow" | "orange" | "red" | "green"
   return "gray";
 }
 
-function chatStatusTone(status: string): "yellow" | "orange" | "red" | "green" | "blue" | "gray" {
-  if (status === "VALID" || status === "ADMIN_HIDDEN") return "green";
-  if (status === "INVALID" || status === "NORMAL_VISIBLE") return "red";
-
-  return "yellow";
-}
-
 function renderImagePreview(row: ReportedContentRow) {
   const imageUrl = resolveReportedReviewImageUrl(row.image);
 
@@ -251,13 +244,6 @@ function buildColumns({
         cellClassName: `${nowrapCellClass} w-[132px]`,
         header: "신고일",
         render: (row) => row.firstReportedAt,
-      },
-      {
-        key: "reportStatus",
-        headerClassName: `${headerBaseClass} w-[92px]`,
-        cellClassName: `${nowrapCellClass} w-[92px]`,
-        header: "적합여부",
-        render: (row) => <StatusBadge label={row.statusLabel} tone={chatStatusTone(row.status)} />,
       },
       warningColumn,
     ];

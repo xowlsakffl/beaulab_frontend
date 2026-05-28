@@ -49,7 +49,10 @@ type ReportedContentFilterPanelProps = {
   reportStatusLabel?: string;
   dateTypeInline?: boolean;
   showVisibilityFilter?: boolean;
+  showReportStatusFilter?: boolean;
+  showReportCountFilter?: boolean;
   showWarningFilter?: boolean;
+  singleLineFilters?: boolean;
 };
 
 export function ReportedContentFilterPanel({
@@ -77,19 +80,102 @@ export function ReportedContentFilterPanel({
   reportStatusLabel = "신고상태",
   dateTypeInline = true,
   showVisibilityFilter = true,
+  showReportStatusFilter = true,
+  showReportCountFilter = true,
   showWarningFilter = true,
+  singleLineFilters = false,
 }: ReportedContentFilterPanelProps) {
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
-  const firstGridClass = showVisibilityFilter
+  const firstGridClass = singleLineFilters
+    ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,2.6fr)]"
+    : showVisibilityFilter && showReportStatusFilter
     ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]"
-    : "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]";
+    : showVisibilityFilter || showReportStatusFilter
+      ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]"
+      : "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)]";
+  const dateControlsClass = dateTypeInline
+    ? singleLineFilters
+      ? "flex min-w-0 flex-1 flex-col gap-2 2xl:flex-row 2xl:items-center 2xl:gap-3"
+      : "flex min-w-0 flex-1 flex-col gap-3 xl:flex-row xl:items-center xl:gap-6"
+    : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
       onApplyFilters();
     }
   };
+  const reportCountFilter = showReportCountFilter ? (
+    <div className={filterRowClass}>
+      <span className={inlineLabelClass}>신고횟수</span>
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <InputField
+          type="number"
+          min="0"
+          value={draftFilters.reportCountMin}
+          onChange={(event) => onReportCountMinChange(event.target.value)}
+          onKeyDown={handleEnterToSearch}
+          placeholder="0"
+          className="bg-white px-3 "
+        />
+        <span className="text-sm text-gray-400">~</span>
+        <InputField
+          type="number"
+          min="0"
+          value={draftFilters.reportCountMax}
+          onChange={(event) => onReportCountMaxChange(event.target.value)}
+          onKeyDown={handleEnterToSearch}
+          placeholder="100"
+          className="bg-white px-3 "
+        />
+      </div>
+    </div>
+  ) : null;
+  const warningFilter = showWarningFilter ? (
+    <div className={filterRowClass}>
+      <span className={inlineLabelClass}>경고</span>
+      <div className="min-w-0 flex-1">
+        <Select
+          value={draftFilters.warningStatus}
+          options={REPORTED_CONTENT_WARNING_OPTIONS}
+          showPlaceholderOption={false}
+          onChange={onWarningStatusChange}
+          className="h-11 px-3"
+        />
+      </div>
+    </div>
+  ) : null;
+  const searchFilter = (
+    <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <span className={inlineLabelClass}>검색</span>
+        <div className="min-w-0 flex-1">
+          <InputField
+            value={searchInput}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onKeyDown={handleEnterToSearch}
+            placeholder={searchInputPlaceholder ?? "ID, 닉네임, 병의원명, 내용 등을 입력해주세요"}
+            className="bg-white "
+          />
+        </div>
+      </div>
+
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+        <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 shrink-0 px-5">
+          검색
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onResetFilters}
+          className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
+        >
+          검색 초기화
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
@@ -97,7 +183,7 @@ export function ReportedContentFilterPanel({
         <div className={firstGridClass}>
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
-            <div className={dateTypeInline ? "flex min-w-0 flex-1 flex-col gap-3 xl:flex-row xl:items-center xl:gap-6" : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2"}>
+            <div className={dateControlsClass}>
               {dateTypeInline ? null : (
                 <Select
                   value={draftFilters.dateType}
@@ -159,30 +245,7 @@ export function ReportedContentFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>신고횟수</span>
-            <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-              <InputField
-                type="number"
-                min="0"
-                value={draftFilters.reportCountMin}
-                onChange={(event) => onReportCountMinChange(event.target.value)}
-                onKeyDown={handleEnterToSearch}
-                placeholder="0"
-                className="bg-white px-3 "
-              />
-              <span className="text-sm text-gray-400">~</span>
-              <InputField
-                type="number"
-                min="0"
-                value={draftFilters.reportCountMax}
-                onChange={(event) => onReportCountMaxChange(event.target.value)}
-                onKeyDown={handleEnterToSearch}
-                placeholder="100"
-                className="bg-white px-3 "
-              />
-            </div>
-          </div>
+          {reportCountFilter}
 
           {showVisibilityFilter ? (
           <div className={filterRowClass}>
@@ -199,6 +262,7 @@ export function ReportedContentFilterPanel({
           </div>
           ) : null}
 
+          {showReportStatusFilter ? (
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>{reportStatusLabel}</span>
             <div className="min-w-0 flex-1">
@@ -211,54 +275,18 @@ export function ReportedContentFilterPanel({
               />
             </div>
           </div>
-        </div>
-
-        <div className={showWarningFilter ? "grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 xl:grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)]" : "grid min-w-0 grid-cols-1 gap-x-4 gap-y-3"}>
-          {showWarningFilter ? (
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>경고</span>
-            <div className="min-w-0 flex-1">
-              <Select
-                value={draftFilters.warningStatus}
-                options={REPORTED_CONTENT_WARNING_OPTIONS}
-                showPlaceholderOption={false}
-                onChange={onWarningStatusChange}
-                className="h-11 px-3"
-              />
-            </div>
-          </div>
           ) : null}
 
-          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <span className={inlineLabelClass}>검색</span>
-              <div className="min-w-0 flex-1">
-                <InputField
-                  value={searchInput}
-                  onChange={(event) => onSearchChange(event.target.value)}
-                  onKeyDown={handleEnterToSearch}
-                  placeholder={searchInputPlaceholder ?? "ID, 닉네임, 병의원명, 내용 등을 입력해주세요"}
-                  className="bg-white "
-                />
-              </div>
-            </div>
-
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 shrink-0 px-5">
-                검색
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onResetFilters}
-                className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
-              >
-                검색 초기화
-              </Button>
-            </div>
-          </div>
+          {singleLineFilters ? warningFilter : null}
+          {singleLineFilters ? searchFilter : null}
         </div>
+
+        {singleLineFilters ? null : (
+          <div className={showWarningFilter ? "grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 xl:grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)]" : "grid min-w-0 grid-cols-1 gap-x-4 gap-y-3"}>
+            {warningFilter}
+            {searchFilter}
+          </div>
+        )}
       </div>
     </Card>
   );

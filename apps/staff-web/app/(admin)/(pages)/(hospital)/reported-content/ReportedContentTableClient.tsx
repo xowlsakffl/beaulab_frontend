@@ -297,7 +297,10 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         reportStatusLabel={config.statusLabel}
         dateTypeInline={config.dateTypeInline}
         showVisibilityFilter={config.showVisibilityFilter ?? true}
+        showReportStatusFilter={config.showReportStatusFilter ?? true}
+        showReportCountFilter={config.showReportCountFilter ?? true}
         showWarningFilter={config.showWarningFilter ?? true}
+        singleLineFilters={config.singleLineFilters ?? false}
       />
       <ReportedContentDataTable
         kind={activeKind}
