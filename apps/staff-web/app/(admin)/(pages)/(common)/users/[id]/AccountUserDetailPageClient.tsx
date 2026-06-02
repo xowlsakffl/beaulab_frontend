@@ -474,6 +474,7 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
   const nicknameQuery = user.nickname ? `?q=${encodeURIComponent(user.nickname)}` : "";
   const activity = user.activity_info;
   const reported = user.reported_info;
+  const warningCount = Number(reported?.warnings?.count ?? user.warning_count ?? 0);
 
   return (
     <Card>
@@ -501,30 +502,36 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold text-gray-800">신고게시물</h3>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <ClickableCountBox
-              label="성형후기/댓글"
-              value={compactPostCommentCount(reported?.hospital_reviews)}
-              onClick={() => router.push(`/reported-content/surgery-reviews${nicknameQuery}`)}
-            />
-            <ClickableCountBox
-              label="토크/댓글"
-              value={compactPostCommentCount(reported?.talks)}
-              onClick={() => router.push(`/reported-content/talks${nicknameQuery}`)}
-            />
-            <ClickableCountBox
-              label="병의원평가"
-              value={totalCount(reported?.hospital_evaluations)}
-              onClick={() => router.push(`/reported-content/hospital-evaluations${nicknameQuery}`)}
-            />
-            <ClickableCountBox
-              label="채팅"
-              value={totalCount(reported?.chats)}
-              onClick={() => router.push(`/reported-content/chats${nicknameQuery}`)}
-            />
-            <CountBox label="경고" value={Number(reported?.warnings?.count ?? user.warning_count ?? 0)} />
+        <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_8.5rem]">
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-800">신고게시물</h3>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <ClickableCountBox
+                label="성형후기/댓글"
+                value={compactPostCommentCount(reported?.hospital_reviews)}
+                onClick={() => router.push(`/reported-content/surgery-reviews${nicknameQuery}`)}
+              />
+              <ClickableCountBox
+                label="토크/댓글"
+                value={compactPostCommentCount(reported?.talks)}
+                onClick={() => router.push(`/reported-content/talks${nicknameQuery}`)}
+              />
+              <ClickableCountBox
+                label="병의원평가"
+                value={totalCount(reported?.hospital_evaluations)}
+                onClick={() => router.push(`/reported-content/hospital-evaluations${nicknameQuery}`)}
+              />
+              <ClickableCountBox
+                label="채팅"
+                value={totalCount(reported?.chats)}
+                onClick={() => router.push(`/reported-content/chats${nicknameQuery}`)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-800">경고횟수</h3>
+            <CountBox label="경고" value={warningCount} />
           </div>
         </div>
       </CardContent>
