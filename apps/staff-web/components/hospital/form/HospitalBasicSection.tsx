@@ -3,19 +3,17 @@ import React from "react";
 import {
   Button,
   FormTextArea,
-  HierarchicalCategorySelector,
   InputField,
   Label,
   Select,
   SpinnerBlock,
-  TogglePillGroup,
   type CategorySelectorItem,
   type CategorySelectorLoadParams,
-  type TogglePillOption,
 } from "@beaulab/ui-admin";
 
 import {
   CATEGORY_SECTIONS,
+  HOSPITAL_CATEGORY_MAX_SELECTION,
   HOSPITAL_ALLOW_STATUS_OPTIONS,
   HOSPITAL_STATUS_OPTIONS,
   type HospitalAddressDetailField,
@@ -153,24 +151,36 @@ export function HospitalBasicSection({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="space-y-1">
-          <h4 className="text-sm font-medium text-gray-700 ">카테고리</h4>
-          <p className="text-xs text-gray-500 ">
-            카테고리를 선택해 주세요. 복수 선택과 하위 분류 지정이 가능합니다.
-          </p>
-        </div>
-        <div data-field-target="category_ids" tabIndex={-1}>
-          <HierarchicalCategorySelector
-            sections={CATEGORY_SECTIONS}
-            selectedIds={form.category_ids}
-            selectedItems={selectedCategoryItems}
-            onToggleCategory={onToggleCategory}
-            loadCategories={loadCategories}
-            error={errors.category_ids}
-            initialSectionKey="surgery"
+      {form.status === "SUSPENDED" || form.status === "WITHDRAWN" ? (
+        <div className="space-y-2">
+          <Label htmlFor="status_change_reason">운영중지/탈퇴 사유 *</Label>
+          <FormTextArea
+            id="status_change_reason"
+            name="status_change_reason"
+            placeholder="운영중지 또는 탈퇴 사유를 입력해 주세요."
+            rows={3}
+            value={form.statusChangeReason}
+            onChange={(value) => onFieldChange("statusChangeReason", value)}
+            error={Boolean(errors.statusChangeReason)}
+            hint={errors.statusChangeReason}
           />
         </div>
+      ) : null}
+
+      <div className="space-y-2">
+        <div className="space-y-1">
+          <h4 className="text-sm font-medium text-gray-700 ">진료과목</h4>
+          <p className="text-xs text-gray-500 ">
+            성형/시술 대분류만 최대 5개까지 선택할 수 있습니다.
+          </p>
+        </div>
+        <HospitalCategoryBadgeSelector
+          selectedIds={form.category_ids}
+          selectedItems={selectedCategoryItems}
+          error={errors.category_ids}
+          loadCategories={loadCategories}
+          onToggleCategory={onToggleCategory}
+        />
       </div>
 
       <HospitalFeatureSelector
@@ -286,15 +296,6 @@ function HospitalFeatureSelector({
   loadError?: string | null;
   onToggleFeature: (featureId: number, checked: boolean) => void;
 }) {
-  const featureOptions = React.useMemo<readonly TogglePillOption[]>(
-    () =>
-      features.map((feature) => ({
-        value: feature.id,
-        label: feature.name,
-      })),
-    [features],
-  );
-
   return (
     <div className="space-y-2" data-field-target="feature_ids" tabIndex={-1}>
       <div className="space-y-1">
@@ -311,16 +312,174 @@ function HospitalFeatureSelector({
         ) : features.length === 0 ? (
           <p className="text-sm text-gray-500 ">등록된 병의원 특징이 없습니다.</p>
         ) : (
-          <TogglePillGroup
-            options={featureOptions}
-            selectedValues={selectedIds}
-            size="sm"
-            onToggle={(value, checked) => onToggleFeature(Number(value), checked)}
-          />
+          <div className="flex flex-wrap gap-2">
+            {features.map((feature) => (
+              <BadgeToggleButton
+                key={feature.id}
+                label={feature.name}
+                selected={selectedIds.includes(feature.id)}
+                onClick={() => onToggleFeature(feature.id, !selectedIds.includes(feature.id))}
+              />
+            ))}
+          </div>
         )}
       </div>
 
       {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </div>
+  );
+}
+
+function HospitalCategoryBadgeSelector({
+  selectedIds,
+  selectedItems,
+  error,
+  loadCategories,
+  onToggleCategory,
+}: {
+  selectedIds: number[];
+  selectedItems?: HospitalCategoryItem[];
+  error?: string;
+  loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
+  onToggleCategory: (categoryId: number, checked: boolean) => void;
+}) {
+  const [sections, setSections] = React.useState<
+    Array<{
+      key: string;
+      label: string;
+      items: CategorySelectorItem[];
+      isLoading: boolean;
+      error: string | null;
+    }>
+  >(() =>
+    CATEGORY_SECTIONS.map((section) => ({
+      key: section.key,
+      label: section.label,
+      items: [],
+      isLoading: true,
+      error: null,
+    })),
+  );
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    setSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        isLoading: true,
+        error: null,
+      })),
+    );
+
+    void Promise.all(
+      CATEGORY_SECTIONS.map(async (section) => {
+        try {
+          const items = await loadCategories({ section });
+
+          return {
+            key: section.key,
+            label: section.label,
+            items,
+            isLoading: false,
+            error: null,
+          };
+        } catch (nextError) {
+          return {
+            key: section.key,
+            label: section.label,
+            items: [],
+            isLoading: false,
+            error: nextError instanceof Error && nextError.message ? nextError.message : "진료과목을 불러오지 못했습니다.",
+          };
+        }
+      }),
+    ).then((nextSections) => {
+      if (!isMounted) return;
+      setSections(nextSections);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loadCategories]);
+
+  const fallbackSelectedItems = React.useMemo(() => {
+    const loadedIds = new Set(sections.flatMap((section) => section.items.map((item) => item.id)));
+
+    return selectedItems?.filter((item) => selectedIds.includes(item.id) && !loadedIds.has(item.id)) ?? [];
+  }, [sections, selectedIds, selectedItems]);
+
+  return (
+    <div className="space-y-3" data-field-target="category_ids" tabIndex={-1}>
+      {sections.map((section) => (
+        <div key={section.key} className="space-y-2">
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold text-gray-500">{section.label}</p>
+            {section.isLoading ? <span className="text-xs text-gray-400">불러오는 중</span> : null}
+          </div>
+
+          {section.error ? (
+            <p className="text-sm text-error-500">{section.error}</p>
+          ) : section.items.length === 0 && !section.isLoading ? (
+            <p className="text-sm text-gray-500">선택 가능한 대분류가 없습니다.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {section.items.map((item) => (
+                <BadgeToggleButton
+                  key={item.id}
+                  label={item.name}
+                  selected={selectedIds.includes(item.id)}
+                  onClick={() => onToggleCategory(item.id, !selectedIds.includes(item.id))}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {fallbackSelectedItems.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {fallbackSelectedItems.map((item) => (
+            <BadgeToggleButton
+              key={item.id}
+              label={item.name}
+              selected
+              onClick={() => onToggleCategory(item.id, false)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      <p className="text-xs text-gray-500">
+        선택 {selectedIds.length}/{HOSPITAL_CATEGORY_MAX_SELECTION}
+      </p>
+      {error ? <p className="text-xs text-error-500">{error}</p> : null}
+    </div>
+  );
+}
+
+function BadgeToggleButton({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={`inline-flex min-h-8 items-center rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+        selected
+          ? "bg-brand-50 text-brand-700 ring-brand-200 hover:bg-brand-100 focus-visible:ring-brand-300"
+          : "bg-gray-100 text-gray-700 ring-gray-200 hover:bg-gray-200 focus-visible:ring-gray-300"
+      }`}
+    >
+      {label}
+    </button>
   );
 }

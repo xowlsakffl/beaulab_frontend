@@ -1,25 +1,18 @@
 "use client";
 
-import { HospitalBasicSection } from "@/components/hospital/form/HospitalBasicSection";
-import { HospitalBusinessSection } from "@/components/hospital/form/HospitalBusinessSection";
-import { HospitalMediaPanel } from "@/components/hospital/form/HospitalMediaPanel";
-import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
+import { HospitalFormLayout } from "@/components/hospital/form/HospitalFormLayout";
 import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
 import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSearch";
+import { useHospitalCategorySelectorLoader } from "@/hooks/hospital/useHospitalCategorySelectorLoader";
 import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
 import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
 import { api } from "@/lib/common/api";
-import {
-  formatBytes,
-  getMediaFilename,
-  resolveMediaUrl,
-  type HospitalCategoryItem,
-  type HospitalDetailResponse,
-  type MediaAsset,
-} from "@/lib/hospital/detail";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
+import type { HospitalCategoryItem, HospitalDetailResponse, MediaAsset } from "@/lib/hospital/detail";
 import {
   buildHospitalExistingMediaItems,
   extractFieldErrors,
+  HOSPITAL_CATEGORY_MAX_SELECTION,
   INITIAL_HOSPITAL_FORM,
   mapHospitalDetailToForm,
   normalizeBusinessNumber,
@@ -43,14 +36,16 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 
+const HOSPITAL_EDIT_FORM_ID = "hospital-edit-form";
+
 export default function HospitalEditFormClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
-  const { error: daumPostcodeError, openPostcode, geocodeAddress } = useDaumPostcode();
+  const { openPostcode, geocodeAddress } = useDaumPostcode();
   const { focusField, focusFirstErrorField } = useHospitalFieldFocus();
-  const loadCategories = useCategorySelectorLoader();
+  const loadCategories = useHospitalCategorySelectorLoader();
   const {
     features: hospitalFeatures,
     isLoading: isHospitalFeaturesLoading,
@@ -79,8 +74,6 @@ export default function HospitalEditFormClient() {
   const [galleryOrder, setGalleryOrder] = React.useState<string[]>([]);
   const [existingCertificate, setExistingCertificate] = React.useState<MediaAsset | null>(null);
   const [selectedCategoryItems, setSelectedCategoryItems] = React.useState<HospitalCategoryItem[]>([]);
-  const [pageTitle, setPageTitle] = React.useState("병의원 수정");
-  const [isBusinessAddressSameAsHospital, setIsBusinessAddressSameAsHospital] = React.useState(false);
   const [errors, setErrors] = React.useState<HospitalFormErrors>({});
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -100,7 +93,7 @@ export default function HospitalEditFormClient() {
     clearError(key);
   };
 
-  const { guideHospitalAddressSelection, openAddressSearch } = useHospitalAddressSearch({
+  const { openAddressSearch } = useHospitalAddressSearch({
     openPostcode,
     geocodeAddress,
     clearError,
@@ -111,10 +104,20 @@ export default function HospitalEditFormClient() {
   });
 
   const toggleCategory = (categoryId: number, checked: boolean) => {
+    if (checked && !form.category_ids.includes(categoryId) && form.category_ids.length >= HOSPITAL_CATEGORY_MAX_SELECTION) {
+      setErrors((prev) => ({
+        ...prev,
+        category_ids: `진료과목은 최대 ${HOSPITAL_CATEGORY_MAX_SELECTION}개까지 선택할 수 있습니다.`,
+      }));
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       category_ids: checked
-        ? [...prev.category_ids, categoryId]
+        ? prev.category_ids.includes(categoryId)
+          ? prev.category_ids
+          : [...prev.category_ids, categoryId]
         : prev.category_ids.filter((item) => item !== categoryId),
     }));
     clearError("category_ids");
@@ -132,49 +135,6 @@ export default function HospitalEditFormClient() {
     clearError("feature_ids");
   };
 
-  React.useEffect(() => {
-    if (!isBusinessAddressSameAsHospital) return;
-
-    if (!form.address.trim()) {
-      setIsBusinessAddressSameAsHospital(false);
-      return;
-    }
-
-    setForm((prev) => {
-      if (prev.business_address === prev.address && prev.business_address_detail === prev.address_detail) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        business_address: prev.address,
-        business_address_detail: prev.address_detail,
-      };
-    });
-
-    clearError("business_address");
-    clearError("business_address_detail");
-  }, [clearError, form.address, form.address_detail, isBusinessAddressSameAsHospital]);
-
-  const handleBusinessAddressSameAsHospitalChange = React.useCallback(
-    (checked: boolean) => {
-      setIsBusinessAddressSameAsHospital(checked);
-
-      if (!checked) {
-        return;
-      }
-
-      setForm((prev) => ({
-        ...prev,
-        business_address: prev.address,
-        business_address_detail: prev.address_detail,
-      }));
-      clearError("business_address");
-      clearError("business_address_detail");
-    },
-    [clearError],
-  );
-
   const fetchHospital = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) {
       setLoadError("잘못된 병의원 경로입니다.");
@@ -187,7 +147,7 @@ export default function HospitalEditFormClient() {
 
     try {
       const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}`, {
-        include: "business_registration,categories,features",
+        include: "business_registration,categories,features,account_hospital",
       });
 
       if (!isApiSuccess(response)) {
@@ -208,12 +168,6 @@ export default function HospitalEditFormClient() {
           .filter((token): token is string => Boolean(token)),
       );
       setExistingCertificate(data.business_registration?.certificate_media ?? null);
-      setPageTitle(data.name ? `${data.name} 수정` : "병의원 수정");
-      setIsBusinessAddressSameAsHospital(
-        Boolean(nextForm.address.trim()) &&
-          nextForm.address === nextForm.business_address &&
-          nextForm.address_detail === nextForm.business_address_detail,
-      );
     } catch {
       setLoadError("병의원 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -254,6 +208,7 @@ export default function HospitalEditFormClient() {
 
     const formData = new FormData();
     formData.append("_method", "PATCH");
+    formData.append("department", form.department);
     formData.append("description", form.description.trim());
     formData.append("consulting_hours", form.consulting_hours.trim());
     formData.append("direction", form.direction.trim());
@@ -262,16 +217,30 @@ export default function HospitalEditFormClient() {
     formData.append("latitude", form.latitude.trim());
     formData.append("longitude", form.longitude.trim());
     formData.append("tel", form.tel.trim());
+    formData.append("ad_reception_phone_1", form.ad_reception_phone_1.trim());
+    formData.append("ad_reception_phone_2", form.ad_reception_phone_2.trim());
+    formData.append("ad_reception_phone_3", form.ad_reception_phone_3.trim());
     formData.append("email", form.email.trim());
     formData.append("allow_status", form.allow_status);
     formData.append("status", form.status);
+    formData.append("status_change_reason", form.statusChangeReason.trim());
     formData.append("business_number", normalizeBusinessNumber(form.business_number));
-    formData.append("company_name", form.company_name.trim());
+    formData.append("company_name", form.company_name.trim() || form.name.trim());
     formData.append("ceo_name", form.ceo_name.trim());
     formData.append("business_type", form.business_type.trim());
     formData.append("business_item", form.business_item.trim());
     formData.append("business_address", form.business_address.trim());
     formData.append("business_address_detail", form.business_address_detail.trim());
+    formData.append("settlement_bank_name", form.settlement_bank_name.trim());
+    formData.append("settlement_account_number", form.settlement_account_number.trim());
+    formData.append("settlement_account_holder", form.settlement_account_holder.trim());
+    formData.append("tax_invoice_email", form.tax_invoice_email.trim());
+
+    Object.entries(form.operation_hours).forEach(([dayKey, item]) => {
+      formData.append(`operation_hours[${dayKey}][is_closed]`, item.is_closed ? "1" : "0");
+      formData.append(`operation_hours[${dayKey}][start]`, item.start);
+      formData.append(`operation_hours[${dayKey}][end]`, item.end);
+    });
 
     if (form.issued_at) {
       formData.append("issued_at", form.issued_at);
@@ -364,12 +333,26 @@ export default function HospitalEditFormClient() {
     }
   };
 
-  const currentCertificateLabel = businessRegistrationFile ? `선택된 파일: ${businessRegistrationFile.name}` : "jpg, png, pdf / 최대 10MB";
-  const existingCertificateUrl = resolveMediaUrl(existingCertificate);
   const existingMediaByCollection = React.useMemo(
     () => buildHospitalExistingMediaItems(existingLogo, existingGallery),
     [existingGallery, existingLogo],
   );
+
+  const headerActions = React.useMemo(
+    () => (
+      <>
+        <Button type="button" variant="outline" size="sm" onClick={() => router.push(getReturnToPath())} disabled={isSubmitting}>
+          취소
+        </Button>
+        <Button type="submit" form={HOSPITAL_EDIT_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
+          {isSubmitting ? "저장 중..." : "저장하기"}
+        </Button>
+      </>
+    ),
+    [getReturnToPath, isSubmitting, router],
+  );
+
+  usePageHeaderExtra(isLoading || loadError ? null : headerActions);
 
   if (isLoading) {
     return (
@@ -397,114 +380,59 @@ export default function HospitalEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
-      <Card as="section" className="min-w-0">
-        <CardHeader className="pb-6">
-          <CardTitle>{pageTitle}</CardTitle>
-        </CardHeader>
+    <HospitalFormLayout
+      mode="edit"
+      formId={HOSPITAL_EDIT_FORM_ID}
+      form={form}
+      errors={errors}
+      logo={logo}
+      gallery={gallery}
+      existingLogo={existingLogo}
+      existingMediaByCollection={existingMediaByCollection}
+      galleryOrder={galleryOrder}
+      businessRegistrationFile={businessRegistrationFile}
+      existingCertificate={existingCertificate}
+      selectedCategoryItems={selectedCategoryItems}
+      hospitalFeatures={hospitalFeatures}
+      isHospitalFeaturesLoading={isHospitalFeaturesLoading}
+      hospitalFeaturesError={hospitalFeaturesError}
+      onSubmit={handleSubmit}
+      onFieldChange={setField}
+      onLogoChange={(file) => {
+        setLogo(file);
+        clearError("logo");
+      }}
+      onGalleryChange={(files) => {
+        setGallery(files);
+        clearError("gallery");
+      }}
+      onExistingItemsChange={(key, items) => {
+        if (key !== "gallery") return;
 
-        <div className="space-y-10 divide-y divide-gray-200 ">
-          <HospitalBasicSection
-            mode="edit"
-            form={form}
-            errors={errors}
-              daumPostcodeError={daumPostcodeError}
-              hospitalFeatures={hospitalFeatures}
-              selectedCategoryItems={selectedCategoryItems}
-              isHospitalFeaturesLoading={isHospitalFeaturesLoading}
-              hospitalFeaturesError={hospitalFeaturesError}
-              loadCategories={loadCategories}
-            onToggleCategory={toggleCategory}
-            onToggleFeature={toggleFeature}
-            onOpenAddressSearch={openAddressSearch}
-            onFieldChange={setField}
-          />
+        const galleryById = new Map(existingGallery.map((media, index) => [String(media.id ?? `gallery-${index}`), media]));
+        const nextGallery = items
+          .map((item) => galleryById.get(String(item.id)))
+          .filter((media): media is MediaAsset => Boolean(media));
 
-          <HospitalBusinessSection
-            mode="edit"
-            form={form}
-            errors={errors}
-            isBusinessAddressSameAsHospital={isBusinessAddressSameAsHospital}
-            businessRegistrationLabel={existingCertificate ? "사업자등록증 파일" : "사업자등록증 파일 *"}
-            businessRegistrationDescription={currentCertificateLabel}
-            existingCertificateName={!businessRegistrationFile && existingCertificate ? getMediaFilename(existingCertificate) : undefined}
-            existingCertificateSizeText={!businessRegistrationFile && existingCertificate ? formatBytes(existingCertificate.size) : undefined}
-            existingCertificateUrl={!businessRegistrationFile ? existingCertificateUrl : undefined}
-            onFieldChange={setField}
-            onBusinessRegistrationFileChange={(file) => {
-              setBusinessRegistrationFile(file);
-              clearError("business_registration_file");
-            }}
-            onExistingCertificateChange={(hasFile) => {
-              setExistingCertificate(hasFile ? existingCertificate : null);
-              clearError("business_registration_file");
-            }}
-            onBusinessAddressSameAsHospitalChange={handleBusinessAddressSameAsHospitalChange}
-            onGuideHospitalAddressSelection={guideHospitalAddressSelection}
-            onOpenAddressSearch={openAddressSearch}
-          />
-        </div>
-
-      </Card>
-
-      <div className="min-w-0 space-y-6">
-        <HospitalMediaPanel
-          filesByCollection={{
-            logo: logo ? [logo] : [],
-            gallery,
-          }}
-          existingItemsByCollection={existingMediaByCollection}
-          orderByCollection={{
-            gallery: galleryOrder,
-          }}
-          errors={{
-            logo: errors.logo,
-            gallery: errors.gallery,
-          }}
-          onExistingItemsChange={(key, items) => {
-            if (key === "logo") {
-              setExistingLogo((prev) => (items[0] && prev ? prev : null));
-              clearError("logo");
-              return;
-            }
-
-            if (key !== "gallery") return;
-
-            const galleryById = new Map(existingGallery.map((media, index) => [String(media.id ?? `gallery-${index}`), media]));
-            const nextGallery = items
-              .map((item) => galleryById.get(String(item.id)))
-              .filter((media): media is MediaAsset => Boolean(media));
-
-            setExistingGallery(nextGallery);
-            clearError("gallery");
-          }}
-          onOrderChange={(key, order) => {
-            if (key !== "gallery") return;
-
-            setGalleryOrder(order);
-            clearError("gallery");
-          }}
-          onChange={(key, files) => {
-            if (key === "logo") {
-              setLogo(files[0] ?? null);
-              clearError("logo");
-              return;
-            }
-
-            setGallery(files);
-            clearError("gallery");
-          }}
-        />
-
-        <div className="flex flex-col gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "저장 중..." : "수정 저장"}
-          </Button>
-        </div>
-      </div>
-    </form>
+        setExistingGallery(nextGallery);
+        clearError("gallery");
+      }}
+      onGalleryOrderChange={(order) => {
+        setGalleryOrder(order);
+        clearError("gallery");
+      }}
+      onBusinessRegistrationFileChange={(file) => {
+        setBusinessRegistrationFile(file);
+        clearError("business_registration_file");
+      }}
+      onExistingCertificateChange={(hasFile) => {
+        setExistingCertificate(hasFile ? existingCertificate : null);
+        clearError("business_registration_file");
+      }}
+      onOpenAddressSearch={openAddressSearch}
+      loadCategories={loadCategories}
+      onToggleCategory={toggleCategory}
+      onToggleFeature={toggleFeature}
+    />
   );
 }

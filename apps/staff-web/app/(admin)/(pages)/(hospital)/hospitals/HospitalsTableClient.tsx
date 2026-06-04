@@ -2,6 +2,10 @@
 
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
+import {
+  HospitalsRegistrationSummaryCard,
+  HospitalsSummaryCards,
+} from "@/components/hospital/list/HospitalsSummaryCards";
 import { api } from "@/lib/common/api";
 import {
   ACCOUNT_STATUS_OPTIONS,
@@ -24,6 +28,7 @@ import {
   type Filters,
   type HospitalApiItem,
   type HospitalRow,
+  type HospitalSummary,
   type SortField,
   type SortState,
 } from "@/lib/hospital/list";
@@ -66,6 +71,7 @@ export default function HospitalsTableClient() {
   const [page, setPage] = React.useState(initialTableState.page);
 
   const [rows, setRows] = React.useState<HospitalRow[]>([]);
+  const [summary, setSummary] = React.useState<HospitalSummary | null>(null);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -92,6 +98,17 @@ export default function HospitalsTableClient() {
   const buildReturnToPath = React.useCallback(() => {
     return buildHospitalsReturnToPath(pathname, query);
   }, [pathname, query]);
+
+  const fetchHospitalSummary = React.useCallback(async () => {
+    try {
+      const response = await api.get<HospitalSummary>("/hospitals/summary");
+      if (!isApiSuccess(response)) return;
+
+      setSummary(response.data);
+    } catch {
+      setSummary(null);
+    }
+  }, []);
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -135,6 +152,10 @@ export default function HospitalsTableClient() {
   React.useEffect(() => {
     fetchHospitals(false);
   }, [fetchHospitals]);
+
+  React.useEffect(() => {
+    void fetchHospitalSummary();
+  }, [fetchHospitalSummary]);
 
   React.useEffect(() => {
     rows.slice(0, HOSPITALS_PER_PAGE).forEach((row) => {
@@ -335,43 +356,56 @@ export default function HospitalsTableClient() {
     setSortState((prev) => nextSortState(prev, field));
   }, []);
 
+  const refreshHospitals = React.useCallback(() => {
+    void Promise.all([
+      fetchHospitals(true),
+      fetchHospitalSummary(),
+    ]);
+  }, [fetchHospitalSummary, fetchHospitals]);
+
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalsFilterPanel
-        draftFilters={draftFilters}
-        draftDateRange={draftDateRange}
-        isStatusDropdownOpen={isStatusDropdownOpen}
-        isHospitalStatusDropdownOpen={isHospitalStatusDropdownOpen}
-        isReviewDropdownOpen={isReviewDropdownOpen}
-        isDepartmentDropdownOpen={isDepartmentDropdownOpen}
-        isDatePickerOpen={isDatePickerOpen}
-        statusDropdownRef={statusDropdownRef}
-        hospitalStatusDropdownRef={hospitalStatusDropdownRef}
-        reviewDropdownRef={reviewDropdownRef}
-        departmentDropdownRef={departmentDropdownRef}
-        datePickerRef={datePickerRef}
-        searchInput={searchInput}
-        onSearchChange={setSearchInput}
-        onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
-        onToggleHospitalStatusDropdown={() => setIsHospitalStatusDropdownOpen((prev) => !prev)}
-        onToggleReviewDropdown={() => setIsReviewDropdownOpen((prev) => !prev)}
-        onToggleDepartmentDropdown={() => setIsDepartmentDropdownOpen((prev) => !prev)}
-        onToggleDatePicker={() => {
-          setIsDatePickerOpen((prev) => !prev);
-        }}
-        onToggleApprovalStatus={toggleApprovalStatus}
-        onToggleAllApprovalStatus={toggleAllApprovalStatus}
-        onToggleHospitalStatus={toggleHospitalStatus}
-        onToggleAllHospitalStatus={toggleAllHospitalStatus}
-        onToggleReviewStatus={toggleReviewStatus}
-        onToggleAllReviewStatus={toggleAllReviewStatus}
-        onToggleDepartment={toggleDepartment}
-        onToggleAllDepartments={toggleAllDepartments}
-        onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
-        onApplyDatePreset={applyDatePreset}
-        onApplyFilters={applyFilters}
-        onResetFilters={resetFilters}
-      />
+      <HospitalsSummaryCards summary={summary} />
+
+      <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_17rem]">
+        <HospitalsFilterPanel
+          draftFilters={draftFilters}
+          draftDateRange={draftDateRange}
+          isStatusDropdownOpen={isStatusDropdownOpen}
+          isHospitalStatusDropdownOpen={isHospitalStatusDropdownOpen}
+          isReviewDropdownOpen={isReviewDropdownOpen}
+          isDepartmentDropdownOpen={isDepartmentDropdownOpen}
+          isDatePickerOpen={isDatePickerOpen}
+          statusDropdownRef={statusDropdownRef}
+          hospitalStatusDropdownRef={hospitalStatusDropdownRef}
+          reviewDropdownRef={reviewDropdownRef}
+          departmentDropdownRef={departmentDropdownRef}
+          datePickerRef={datePickerRef}
+          searchInput={searchInput}
+          onSearchChange={setSearchInput}
+          onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
+          onToggleHospitalStatusDropdown={() => setIsHospitalStatusDropdownOpen((prev) => !prev)}
+          onToggleReviewDropdown={() => setIsReviewDropdownOpen((prev) => !prev)}
+          onToggleDepartmentDropdown={() => setIsDepartmentDropdownOpen((prev) => !prev)}
+          onToggleDatePicker={() => {
+            setIsDatePickerOpen((prev) => !prev);
+          }}
+          onToggleApprovalStatus={toggleApprovalStatus}
+          onToggleAllApprovalStatus={toggleAllApprovalStatus}
+          onToggleHospitalStatus={toggleHospitalStatus}
+          onToggleAllHospitalStatus={toggleAllHospitalStatus}
+          onToggleReviewStatus={toggleReviewStatus}
+          onToggleAllReviewStatus={toggleAllReviewStatus}
+          onToggleDepartment={toggleDepartment}
+          onToggleAllDepartments={toggleAllDepartments}
+          onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
+          onApplyDatePreset={applyDatePreset}
+          onApplyFilters={applyFilters}
+          onResetFilters={resetFilters}
+        />
+
+        <HospitalsRegistrationSummaryCard summary={summary} />
+      </div>
 
       <HospitalsDataTable
         rows={rows}
@@ -382,7 +416,7 @@ export default function HospitalsTableClient() {
         highlightedRowId={highlightedRowId}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={() => fetchHospitals(true)}
+        onRefresh={refreshHospitals}
         onGoPage={(nextPage) => setPage(nextPage)}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();

@@ -10,17 +10,23 @@ import {
 
 export type HospitalFormValues = {
   name: string;
+  department: string;
   company_name: string;
   tel: string;
+  ad_reception_phone_1: string;
+  ad_reception_phone_2: string;
+  ad_reception_phone_3: string;
   email: string;
   allow_status: string;
   status: string;
+  statusChangeReason: string;
   address: string;
   address_detail: string;
   latitude: string;
   longitude: string;
   description: string;
   consulting_hours: string;
+  operation_hours: HospitalOperationHoursFormValues;
   direction: string;
   business_number: string;
   ceo_name: string;
@@ -28,10 +34,25 @@ export type HospitalFormValues = {
   business_item: string;
   business_address: string;
   business_address_detail: string;
+  settlement_bank_name: string;
+  settlement_account_number: string;
+  settlement_account_holder: string;
+  tax_invoice_email: string;
   issued_at: string;
   category_ids: number[];
   feature_ids: number[];
 };
+
+export type HospitalOperationDayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export type HospitalOperationHoursFormValues = Record<
+  HospitalOperationDayKey,
+  {
+    start: string;
+    end: string;
+    is_closed: boolean;
+  }
+>;
 
 export type HospitalFieldName = keyof HospitalFormValues | "logo" | "gallery" | "business_registration_file";
 export type HospitalMediaField = "logo" | "gallery";
@@ -53,16 +74,22 @@ export type DuplicateCheckResponse = {
 
 export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "name",
+  "department",
   "tel",
+  "ad_reception_phone_1",
+  "ad_reception_phone_2",
+  "ad_reception_phone_3",
   "email",
   "allow_status",
   "status",
+  "statusChangeReason",
   "address",
   "address_detail",
   "latitude",
   "longitude",
   "description",
   "consulting_hours",
+  "operation_hours",
   "direction",
   "business_number",
   "ceo_name",
@@ -70,6 +97,10 @@ export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "business_item",
   "business_address",
   "business_address_detail",
+  "settlement_bank_name",
+  "settlement_account_number",
+  "settlement_account_holder",
+  "tax_invoice_email",
   "issued_at",
   "category_ids",
   "feature_ids",
@@ -79,19 +110,35 @@ export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "business_registration_file",
 ] as const;
 
+export const INITIAL_OPERATION_HOURS: HospitalOperationHoursFormValues = {
+  mon: { start: "10:00", end: "19:00", is_closed: false },
+  tue: { start: "10:00", end: "19:00", is_closed: false },
+  wed: { start: "10:00", end: "19:00", is_closed: false },
+  thu: { start: "10:00", end: "19:00", is_closed: false },
+  fri: { start: "10:00", end: "19:00", is_closed: false },
+  sat: { start: "10:00", end: "19:00", is_closed: false },
+  sun: { start: "10:00", end: "19:00", is_closed: false },
+};
+
 export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
   name: "",
+  department: "OTHER",
   company_name: "",
   tel: "",
+  ad_reception_phone_1: "",
+  ad_reception_phone_2: "",
+  ad_reception_phone_3: "",
   email: "",
   allow_status: "PENDING",
   status: "SUSPENDED",
+  statusChangeReason: "",
   address: "",
   address_detail: "",
   latitude: "",
   longitude: "",
   description: "",
   consulting_hours: "",
+  operation_hours: INITIAL_OPERATION_HOURS,
   direction: "",
   business_number: "",
   ceo_name: "",
@@ -99,23 +146,29 @@ export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
   business_item: "",
   business_address: "",
   business_address_detail: "",
+  settlement_bank_name: "",
+  settlement_account_number: "",
+  settlement_account_holder: "",
+  tax_invoice_email: "",
   issued_at: "",
   category_ids: [],
   feature_ids: [],
 };
+
+export const HOSPITAL_CATEGORY_MAX_SELECTION = 5;
 
 export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
     key: "surgery",
     label: "성형",
     domain: "HOSPITAL_REVIEW_SURGERY",
-    searchPlaceholder: "카테고리명을 입력해주세요. (ex. 눈, 코)",
+    searchPlaceholder: "대분류명을 입력해주세요. (ex. 눈, 코)",
   },
   {
     key: "treatment",
     label: "쁘띠/피부",
     domain: "HOSPITAL_REVIEW_TREATMENT",
-    searchPlaceholder: "카테고리명을 입력해주세요. (ex. 인모드)",
+    searchPlaceholder: "대분류명을 입력해주세요. (ex. 인모드)",
   },
 ];
 
@@ -144,7 +197,7 @@ export const MEDIA_COLLECTIONS: readonly MediaCollectionConfig<HospitalMediaFiel
 
 export const HOSPITAL_STATUS_OPTIONS = [
   { value: "ACTIVE", label: "정상" },
-  { value: "SUSPENDED", label: "정지" },
+  { value: "SUSPENDED", label: "운영중지" },
   { value: "WITHDRAWN", label: "탈퇴" },
 ] as const;
 
@@ -156,9 +209,12 @@ export const HOSPITAL_ALLOW_STATUS_OPTIONS = [
 
 export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "name",
+  "department",
   "status",
+  "statusChangeReason",
   "allow_status",
   "tel",
+  "ad_reception_phone_1",
   "email",
   "category_ids",
   "feature_ids",
@@ -166,6 +222,7 @@ export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "address_detail",
   "description",
   "consulting_hours",
+  "operation_hours",
   "direction",
   "business_number",
   "company_name",
@@ -176,6 +233,10 @@ export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "business_registration_file",
   "business_address",
   "business_address_detail",
+  "tax_invoice_email",
+  "settlement_bank_name",
+  "settlement_account_number",
+  "settlement_account_holder",
   "logo",
   "gallery",
 ] as const;
@@ -193,6 +254,8 @@ export function normalizeErrorField(key: string): HospitalFieldName | null {
   if (key.startsWith("gallery")) return "gallery";
   if (key.startsWith("category_ids")) return "category_ids";
   if (key.startsWith("feature_ids")) return "feature_ids";
+  if (key.startsWith("operation_hours")) return "operation_hours";
+  if (key === "status_change_reason") return "statusChangeReason";
   if (isFieldName(key)) return key;
   return null;
 }
@@ -233,21 +296,28 @@ export function normalizeBusinessNumber(value: string): string {
 
 export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalFormValues {
   const businessRegistration = data.business_registration;
+  const settlementAccount = businessRegistration?.settlement_account;
 
   return {
     ...INITIAL_HOSPITAL_FORM,
     name: data.name ?? "",
+    department: data.department ?? INITIAL_HOSPITAL_FORM.department,
     company_name: businessRegistration?.company_name ?? "",
     tel: data.tel ?? "",
+    ad_reception_phone_1: data.ad_reception_phones?.phone_1 ?? "",
+    ad_reception_phone_2: data.ad_reception_phones?.phone_2 ?? "",
+    ad_reception_phone_3: data.ad_reception_phones?.phone_3 ?? "",
     email: data.email ?? "",
     allow_status: data.allow_status ?? INITIAL_HOSPITAL_FORM.allow_status,
     status: data.status ?? INITIAL_HOSPITAL_FORM.status,
+    statusChangeReason: data.latest_status_history?.reason ?? "",
     address: data.address ?? "",
     address_detail: data.address_detail ?? "",
     latitude: data.latitude !== null && data.latitude !== undefined ? String(data.latitude) : "",
     longitude: data.longitude !== null && data.longitude !== undefined ? String(data.longitude) : "",
     description: data.description ?? "",
     consulting_hours: data.consulting_hours ?? "",
+    operation_hours: normalizeOperationHours(data.operation_hours),
     direction: data.direction ?? "",
     business_number: businessRegistration?.business_number ?? "",
     ceo_name: businessRegistration?.ceo_name ?? "",
@@ -255,10 +325,31 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     business_item: businessRegistration?.business_item ?? "",
     business_address: businessRegistration?.business_address ?? "",
     business_address_detail: businessRegistration?.business_address_detail ?? "",
+    settlement_bank_name: settlementAccount?.bank_name ?? "",
+    settlement_account_number: settlementAccount?.account_number ?? "",
+    settlement_account_holder: settlementAccount?.account_holder ?? "",
+    tax_invoice_email: settlementAccount?.tax_invoice_email ?? "",
     issued_at: businessRegistration?.issued_at ?? "",
-    category_ids: data.categories?.map((category) => category.id) ?? [],
+    category_ids: data.categories
+      ?.filter((category) => category.depth === undefined || category.depth === null || category.depth === 1)
+      .map((category) => category.id) ?? [],
     feature_ids: data.features?.map((feature) => feature.id) ?? [],
   };
+}
+
+export function normalizeOperationHours(value: HospitalDetailResponse["operation_hours"]): HospitalOperationHoursFormValues {
+  const nextHours: HospitalOperationHoursFormValues = { ...INITIAL_OPERATION_HOURS };
+
+  for (const key of Object.keys(INITIAL_OPERATION_HOURS) as HospitalOperationDayKey[]) {
+    const item = value?.[key];
+    nextHours[key] = {
+      start: item?.start ?? INITIAL_OPERATION_HOURS[key].start,
+      end: item?.end ?? INITIAL_OPERATION_HOURS[key].end,
+      is_closed: Boolean(item?.is_closed),
+    };
+  }
+
+  return nextHours;
 }
 
 export function buildHospitalExistingMediaItems(existingLogo: MediaAsset | null, existingGallery: MediaAsset[]) {
@@ -290,31 +381,77 @@ export function buildHospitalExistingMediaItems(existingLogo: MediaAsset | null,
 function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormErrors {
   const nextErrors: HospitalFormErrors = {};
 
-  if (form.tel && !/^[0-9+\-().\s]{6,50}$/.test(form.tel)) {
+  if (!form.department) {
+    nextErrors.department = "분과는 필수 항목입니다.";
+  }
+
+  if (!form.tel.trim()) {
+    nextErrors.tel = "대표 번호는 필수 항목입니다.";
+  } else if (!/^[0-9+\-().\s]{6,50}$/.test(form.tel)) {
     nextErrors.tel = "대표 번호 형식이 올바르지 않습니다.";
+  }
+
+  if (!form.ad_reception_phone_1.trim()) {
+    nextErrors.ad_reception_phone_1 = "필수 담당자 전화번호를 입력해주세요.";
+  } else if (!/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_1)) {
+    nextErrors.ad_reception_phone_1 = "필수 담당자 전화번호 형식이 올바르지 않습니다.";
+  }
+
+  if (form.ad_reception_phone_2 && !/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_2)) {
+    nextErrors.ad_reception_phone_2 = "담당자2 전화번호 형식이 올바르지 않습니다.";
+  }
+
+  if (form.ad_reception_phone_3 && !/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_3)) {
+    nextErrors.ad_reception_phone_3 = "담당자3 전화번호 형식이 올바르지 않습니다.";
   }
 
   if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     nextErrors.email = "올바른 이메일 형식이 아닙니다.";
   }
 
+  if (form.tax_invoice_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.tax_invoice_email)) {
+    nextErrors.tax_invoice_email = "세금계산서 이메일 형식이 올바르지 않습니다.";
+  }
+
+  if (form.settlement_account_number && !/^[0-9\-\s]{2,50}$/.test(form.settlement_account_number)) {
+    nextErrors.settlement_account_number = "정산 계좌번호 형식이 올바르지 않습니다.";
+  }
+
   if (!form.status) {
     nextErrors.status = "상태는 필수 항목입니다.";
+  }
+
+  if ((form.status === "SUSPENDED" || form.status === "WITHDRAWN") && !form.statusChangeReason.trim()) {
+    nextErrors.statusChangeReason = "운영중지 또는 탈퇴 상태에서는 사유를 입력해주세요.";
   }
 
   if (!form.allow_status) {
     nextErrors.allow_status = "검수 상태는 필수 항목입니다.";
   }
 
-  if (form.address.trim() && (!form.latitude.trim() || !form.longitude.trim())) {
+  if (!form.address.trim()) {
+    nextErrors.address = "병의원 주소는 필수 항목입니다.";
+  } else if (!form.latitude.trim() || !form.longitude.trim()) {
     nextErrors.address = "병의원 주소 좌표를 확인하지 못했습니다. 주소를 다시 선택해주세요.";
+  }
+
+  if (!form.address_detail.trim()) {
+    nextErrors.address_detail = "상세 주소는 필수 항목입니다.";
+  }
+
+  for (const item of Object.values(form.operation_hours)) {
+    if (item.is_closed) continue;
+    if (!item.start || !item.end) {
+      nextErrors.operation_hours = "진료하는 요일은 시작/종료 시간을 입력해주세요.";
+      break;
+    }
   }
 
   if (!form.business_number.trim()) {
     nextErrors.business_number = "사업자 등록번호는 필수 항목입니다.";
   }
 
-  if (!form.company_name.trim()) {
+  if (!form.company_name.trim() && !form.name.trim()) {
     nextErrors.company_name = "상호명은 필수 항목입니다.";
   }
 
@@ -336,6 +473,10 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (form.feature_ids.length === 0) {
     nextErrors.feature_ids = "병의원정보는 최소 1개 이상 선택해야 합니다.";
+  }
+
+  if (form.category_ids.length > HOSPITAL_CATEGORY_MAX_SELECTION) {
+    nextErrors.category_ids = `진료과목은 최대 ${HOSPITAL_CATEGORY_MAX_SELECTION}개까지 선택할 수 있습니다.`;
   }
 
   return nextErrors;

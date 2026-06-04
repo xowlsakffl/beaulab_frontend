@@ -18,13 +18,41 @@ export type BusinessRegistrationAsset = {
   business_item?: string | null;
   business_address?: string | null;
   business_address_detail?: string | null;
+  settlement_account?: {
+    bank_name?: string | null;
+    account_number?: string | null;
+    account_holder?: string | null;
+    tax_invoice_email?: string | null;
+  } | null;
   issued_at?: string | null;
   certificate_media?: MediaAsset | null;
+};
+
+export type HospitalOperationHours = Record<
+  "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun",
+  {
+    start?: string | null;
+    end?: string | null;
+    is_closed?: boolean | null;
+  }
+>;
+
+export type AccountHospitalAsset = {
+  id?: number | null;
+  name?: string | null;
+  nickname?: string | null;
+  email?: string | null;
+  status?: string | null;
+  last_login_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type HospitalCategoryItem = {
   id: number;
   domain?: string | null;
+  parent_id?: number | null;
+  depth?: number | null;
   name: string;
   full_path?: string | null;
   is_primary?: boolean;
@@ -38,25 +66,44 @@ export type HospitalFeatureItem = {
   status?: string;
 };
 
+export type HospitalStatusHistory = {
+  id?: number | null;
+  actor_label?: string | null;
+  before_value?: string | null;
+  after_value?: string | null;
+  reason?: string | null;
+  created_at?: string | null;
+};
+
 export type HospitalDetailResponse = {
   id: number;
   name: string;
+  department?: string | null;
+  department_label?: string | null;
   description?: string | null;
   address?: string | null;
   address_detail?: string | null;
   latitude?: string | number | null;
   longitude?: string | number | null;
   tel?: string | null;
+  ad_reception_phones?: {
+    phone_1?: string | null;
+    phone_2?: string | null;
+    phone_3?: string | null;
+  } | null;
   email?: string | null;
   consulting_hours?: string | null;
+  operation_hours?: HospitalOperationHours | null;
   direction?: string | null;
   allow_status?: string | null;
   status?: string | null;
+  latest_status_history?: HospitalStatusHistory | null;
   logo?: MediaAsset | null;
   gallery?: MediaAsset[] | null;
   categories?: HospitalCategoryItem[] | null;
   features?: HospitalFeatureItem[] | null;
   business_registration?: BusinessRegistrationAsset | null;
+  account_hospital?: AccountHospitalAsset | null;
   view_count?: number | null;
   created_at?: string | null;
   updated_at?: string | null;

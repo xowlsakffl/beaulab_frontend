@@ -22,7 +22,7 @@ export function AccountUsersSummaryCards({ summary }: AccountUsersSummaryCardsPr
   return (
     <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
       {cards.map((card) => (
-        <Card key={card.label} className="rounded-2xl border-none bg-white px-5 py-4 shadow-sm ">
+        <Card key={card.label} className="rounded-xl bg-white px-5 py-4 ">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-medium text-gray-700 ">{card.label}</span>
             <span className="text-base font-semibold text-gray-900 ">
@@ -37,7 +37,7 @@ export function AccountUsersSummaryCards({ summary }: AccountUsersSummaryCardsPr
 
 export function AccountUsersSignupChannelCard({ summary }: AccountUsersSummaryCardsProps) {
   return (
-    <Card className="h-full rounded-2xl border-none bg-white p-5 shadow-sm ">
+    <Card className="h-full rounded-xl bg-white p-5 ">
       <h3 className="text-sm font-semibold text-gray-900 ">가입경로상세</h3>
       <div className="mt-4 space-y-2">
         {(summary?.signup_channels ?? []).map((item) => (

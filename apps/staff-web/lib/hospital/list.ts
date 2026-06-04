@@ -72,6 +72,21 @@ export type HospitalRow = {
   logoUrl: string | null;
 };
 
+export type HospitalSummary = {
+  daily_visitors?: number | null;
+  monthly_visitors?: number | null;
+  today_registered_hospitals?: number | null;
+  registered_within_7_days?: number | null;
+  registered_within_30_days?: number | null;
+  registered_within_1_year?: number | null;
+  dormant_hospitals?: number | null;
+  total_hospitals?: number | null;
+  pending_review_hospitals?: number | null;
+  rejected_review_hospitals?: number | null;
+  suspended_hospitals?: number | null;
+  withdrawn_hospitals?: number | null;
+};
+
 export type SortField =
   | "id"
   | "name"
@@ -137,7 +152,7 @@ export const ACCOUNT_STATUS_OPTIONS: CheckboxFilterOption[] = [
 
 export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "ACTIVE", label: "정상" },
-  { value: "SUSPENDED", label: "정지" },
+  { value: "SUSPENDED", label: "운영중지" },
   { value: "WITHDRAWN", label: "탈퇴" },
 ];
 
@@ -424,7 +439,7 @@ export function labelHospitalDepartment(department: string) {
 
 export function labelApprovalStatus(status: string) {
   if (status === "ACTIVE") return "정상";
-  if (status === "SUSPENDED") return "정지";
+  if (status === "SUSPENDED") return "운영중지";
   if (status === "WITHDRAWN") return "탈퇴";
   return status;
 }

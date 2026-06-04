@@ -92,10 +92,6 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
         }
     }, [activeDomain, availableDomains]);
 
-    React.useEffect(() => {
-        setPageHeaderExtra(null);
-    }, [pathname]);
-
     const sidebarTopContent = availableDomains.length > 1 ? (
         <div className="rounded-xl bg-white/10 p-1">
             <div className="grid grid-cols-2 gap-1">
