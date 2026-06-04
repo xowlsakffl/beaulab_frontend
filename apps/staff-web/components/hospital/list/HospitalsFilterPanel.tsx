@@ -14,8 +14,10 @@ import {
 
 import {
   ALLOW_STATUS_OPTIONS,
-  APPROVAL_STATUS_OPTIONS,
+  ACCOUNT_STATUS_OPTIONS,
   DATE_PRESET_OPTIONS,
+  HOSPITAL_DEPARTMENT_OPTIONS,
+  HOSPITAL_STATUS_OPTIONS,
   type DateFilterKey,
   type DatePresetKey,
   type Filters,
@@ -24,25 +26,31 @@ import {
 type HospitalsFilterPanelProps = {
   draftFilters: Filters;
   draftDateRange?: DateRange;
-  draftUpdatedDateRange?: DateRange;
   isStatusDropdownOpen: boolean;
+  isHospitalStatusDropdownOpen: boolean;
   isReviewDropdownOpen: boolean;
+  isDepartmentDropdownOpen: boolean;
   isDatePickerOpen: boolean;
-  isUpdatedDatePickerOpen: boolean;
   statusDropdownRef: React.RefObject<HTMLDivElement | null>;
+  hospitalStatusDropdownRef: React.RefObject<HTMLDivElement | null>;
   reviewDropdownRef: React.RefObject<HTMLDivElement | null>;
+  departmentDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
-  updatedDatePickerRef: React.RefObject<HTMLDivElement | null>;
   searchInput: string;
   onSearchChange: (value: string) => void;
   onToggleStatusDropdown: () => void;
+  onToggleHospitalStatusDropdown: () => void;
   onToggleReviewDropdown: () => void;
+  onToggleDepartmentDropdown: () => void;
   onToggleDatePicker: () => void;
-  onToggleUpdatedDatePicker: () => void;
   onToggleApprovalStatus: (value: string) => void;
   onToggleAllApprovalStatus: () => void;
+  onToggleHospitalStatus: (value: string) => void;
+  onToggleAllHospitalStatus: () => void;
   onToggleReviewStatus: (value: string) => void;
   onToggleAllReviewStatus: () => void;
+  onToggleDepartment: (value: string) => void;
+  onToggleAllDepartments: () => void;
   onApplyDateRange: (key: DateFilterKey, nextRange?: DateRange) => void;
   onApplyDatePreset: (key: DateFilterKey, preset: DatePresetKey) => void;
   onApplyFilters: () => void;
@@ -52,25 +60,31 @@ type HospitalsFilterPanelProps = {
 export function HospitalsFilterPanel({
   draftFilters,
   draftDateRange,
-  draftUpdatedDateRange,
   isStatusDropdownOpen,
+  isHospitalStatusDropdownOpen,
   isReviewDropdownOpen,
+  isDepartmentDropdownOpen,
   isDatePickerOpen,
-  isUpdatedDatePickerOpen,
   statusDropdownRef,
+  hospitalStatusDropdownRef,
   reviewDropdownRef,
+  departmentDropdownRef,
   datePickerRef,
-  updatedDatePickerRef,
   searchInput,
   onSearchChange,
   onToggleStatusDropdown,
+  onToggleHospitalStatusDropdown,
   onToggleReviewDropdown,
+  onToggleDepartmentDropdown,
   onToggleDatePicker,
-  onToggleUpdatedDatePicker,
   onToggleApprovalStatus,
   onToggleAllApprovalStatus,
+  onToggleHospitalStatus,
+  onToggleAllHospitalStatus,
   onToggleReviewStatus,
   onToggleAllReviewStatus,
+  onToggleDepartment,
+  onToggleAllDepartments,
   onApplyDateRange,
   onApplyDatePreset,
   onApplyFilters,
@@ -80,43 +94,15 @@ export function HospitalsFilterPanel({
 
   return (
     <Card className="rounded-xl p-3 ">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)]">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(15rem,1fr)_minmax(15rem,1fr)_minmax(15rem,1fr)_minmax(15rem,1fr)_minmax(15rem,1fr)]">
         <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>운영 상태</span>
-          <CheckboxFilterDropdown
-            label="운영 상태"
-            hideLabel
-            containerRef={statusDropdownRef}
-            selectedValues={draftFilters.approvalStatuses}
-            options={APPROVAL_STATUS_OPTIONS}
-            isOpen={isStatusDropdownOpen}
-            onToggleOpen={onToggleStatusDropdown}
-            onToggleValue={onToggleApprovalStatus}
-            onToggleAll={onToggleAllApprovalStatus}
-          />
-        </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>검수 상태</span>
-          <CheckboxFilterDropdown
-            label="검수 상태"
-            hideLabel
-            containerRef={reviewDropdownRef}
-            selectedValues={draftFilters.reviewStatuses}
-            options={ALLOW_STATUS_OPTIONS}
-            isOpen={isReviewDropdownOpen}
-            onToggleOpen={onToggleReviewDropdown}
-            onToggleValue={onToggleReviewStatus}
-            onToggleAll={onToggleAllReviewStatus}
-          />
-        </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>등록일</span>
+          <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
-            label="등록일"
+            label="기간"
             hideLabel
             containerRef={datePickerRef}
             value={draftFilters.dateRange}
-            placeholder="등록일 기간 선택"
+            placeholder="가입일 기간 선택"
             selected={draftDateRange}
             isOpen={isDatePickerOpen}
             presetOptions={DATE_PRESET_OPTIONS}
@@ -131,24 +117,59 @@ export function HospitalsFilterPanel({
           />
         </div>
         <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>수정일</span>
-          <DateRangeFilterDropdown
-            label="수정일"
+          <span className={inlineLabelClass}>분과</span>
+          <CheckboxFilterDropdown
+            label="분과"
             hideLabel
-            containerRef={updatedDatePickerRef}
-            value={draftFilters.updatedDateRange}
-            placeholder="수정일 기간 선택"
-            selected={draftUpdatedDateRange}
-            isOpen={isUpdatedDatePickerOpen}
-            presetOptions={DATE_PRESET_OPTIONS}
-            onToggleOpen={onToggleUpdatedDatePicker}
-            onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
-            onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
-            onReset={() => {
-              onApplyDateRange("updated", undefined);
-              onToggleUpdatedDatePicker();
-            }}
-            onConfirm={onToggleUpdatedDatePicker}
+            containerRef={departmentDropdownRef}
+            selectedValues={draftFilters.departments}
+            options={HOSPITAL_DEPARTMENT_OPTIONS}
+            isOpen={isDepartmentDropdownOpen}
+            onToggleOpen={onToggleDepartmentDropdown}
+            onToggleValue={onToggleDepartment}
+            onToggleAll={onToggleAllDepartments}
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>회원상태</span>
+          <CheckboxFilterDropdown
+            label="회원상태"
+            hideLabel
+            containerRef={statusDropdownRef}
+            selectedValues={draftFilters.accountStatuses}
+            options={ACCOUNT_STATUS_OPTIONS}
+            isOpen={isStatusDropdownOpen}
+            onToggleOpen={onToggleStatusDropdown}
+            onToggleValue={onToggleApprovalStatus}
+            onToggleAll={onToggleAllApprovalStatus}
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>병의원상태</span>
+          <CheckboxFilterDropdown
+            label="병의원상태"
+            hideLabel
+            containerRef={hospitalStatusDropdownRef}
+            selectedValues={draftFilters.hospitalStatuses}
+            options={HOSPITAL_STATUS_OPTIONS}
+            isOpen={isHospitalStatusDropdownOpen}
+            onToggleOpen={onToggleHospitalStatusDropdown}
+            onToggleValue={onToggleHospitalStatus}
+            onToggleAll={onToggleAllHospitalStatus}
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-4 py-1.5">
+          <span className={inlineLabelClass}>검수상태</span>
+          <CheckboxFilterDropdown
+            label="검수상태"
+            hideLabel
+            containerRef={reviewDropdownRef}
+            selectedValues={draftFilters.reviewStatuses}
+            options={ALLOW_STATUS_OPTIONS}
+            isOpen={isReviewDropdownOpen}
+            onToggleOpen={onToggleReviewDropdown}
+            onToggleValue={onToggleReviewStatus}
+            onToggleAll={onToggleAllReviewStatus}
           />
         </div>
         <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
@@ -164,7 +185,7 @@ export function HospitalsFilterPanel({
                     onApplyFilters();
                   }
                 }}
-                placeholder="ID, 병의원명, 연락처 검색"
+                placeholder="UID, 병의원명, 병원아이디 검색"
                 className="bg-white "
               />
             </div>

@@ -4,9 +4,11 @@ import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTabl
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
 import { api } from "@/lib/common/api";
 import {
+  ACCOUNT_STATUS_OPTIONS,
   ALLOW_STATUS_OPTIONS,
-  APPROVAL_STATUS_OPTIONS,
   DEFAULT_FILTERS,
+  HOSPITAL_DEPARTMENT_OPTIONS,
+  HOSPITAL_STATUS_OPTIONS,
   HOSPITALS_PER_PAGE,
   buildHospitalsQuery,
   buildHospitalsQueryString,
@@ -47,17 +49,18 @@ export default function HospitalsTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
+  const [isHospitalStatusDropdownOpen, setIsHospitalStatusDropdownOpen] = React.useState(false);
   const [isReviewDropdownOpen, setIsReviewDropdownOpen] = React.useState(false);
+  const [isDepartmentDropdownOpen, setIsDepartmentDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [isUpdatedDatePickerOpen, setIsUpdatedDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(initialTableState.draftUpdatedDateRange);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const hospitalStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const reviewDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const departmentDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
-  const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
@@ -160,14 +163,17 @@ export default function HospitalsTableClient() {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
       }
+      if (!hospitalStatusDropdownRef.current?.contains(event.target as Node)) {
+        setIsHospitalStatusDropdownOpen(false);
+      }
       if (!reviewDropdownRef.current?.contains(event.target as Node)) {
         setIsReviewDropdownOpen(false);
       }
+      if (!departmentDropdownRef.current?.contains(event.target as Node)) {
+        setIsDepartmentDropdownOpen(false);
+      }
       if (!datePickerRef.current?.contains(event.target as Node)) {
         setIsDatePickerOpen(false);
-      }
-      if (!updatedDatePickerRef.current?.contains(event.target as Node)) {
-        setIsUpdatedDatePickerOpen(false);
       }
     };
 
@@ -179,27 +185,26 @@ export default function HospitalsTableClient() {
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
-      approvalStatuses: [...draftFilters.approvalStatuses],
+      departments: [...draftFilters.departments],
+      accountStatuses: [...draftFilters.accountStatuses],
+      hospitalStatuses: [...draftFilters.hospitalStatuses],
       reviewStatuses: [...draftFilters.reviewStatuses],
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
-      updatedDateRange: draftFilters.updatedDateRange,
-      updatedStartDate: draftFilters.updatedStartDate,
-      updatedEndDate: draftFilters.updatedEndDate,
     });
   };
 
   const resetFilters = () => {
     setDraftFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
-    setDraftUpdatedDateRange(undefined);
     setSearchInput("");
     setSearchKeyword("");
     setIsStatusDropdownOpen(false);
+    setIsHospitalStatusDropdownOpen(false);
     setIsReviewDropdownOpen(false);
+    setIsDepartmentDropdownOpen(false);
     setIsDatePickerOpen(false);
-    setIsUpdatedDatePickerOpen(false);
     setPage(1);
     setAppliedFilters(DEFAULT_FILTERS);
   };
@@ -218,12 +223,12 @@ export default function HospitalsTableClient() {
 
   const toggleApprovalStatus = (value: string) => {
     setDraftFilters((prev) => {
-      const exists = prev.approvalStatuses.includes(value);
+      const exists = prev.accountStatuses.includes(value);
       return {
         ...prev,
-        approvalStatuses: exists
-          ? prev.approvalStatuses.filter((item) => item !== value)
-          : [...prev.approvalStatuses, value],
+        accountStatuses: exists
+          ? prev.accountStatuses.filter((item) => item !== value)
+          : [...prev.accountStatuses, value],
       };
     });
   };
@@ -231,10 +236,32 @@ export default function HospitalsTableClient() {
   const toggleAllApprovalStatus = () => {
     setDraftFilters((prev) => ({
       ...prev,
-      approvalStatuses:
-        prev.approvalStatuses.length === APPROVAL_STATUS_OPTIONS.length
+      accountStatuses:
+        prev.accountStatuses.length === ACCOUNT_STATUS_OPTIONS.length
           ? []
-          : APPROVAL_STATUS_OPTIONS.map((item) => item.value),
+          : ACCOUNT_STATUS_OPTIONS.map((item) => item.value),
+    }));
+  };
+
+  const toggleHospitalStatus = (value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.hospitalStatuses.includes(value);
+      return {
+        ...prev,
+        hospitalStatuses: exists
+          ? prev.hospitalStatuses.filter((item) => item !== value)
+          : [...prev.hospitalStatuses, value],
+      };
+    });
+  };
+
+  const toggleAllHospitalStatus = () => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      hospitalStatuses:
+        prev.hospitalStatuses.length === HOSPITAL_STATUS_OPTIONS.length
+          ? []
+          : HOSPITAL_STATUS_OPTIONS.map((item) => item.value),
     }));
   };
 
@@ -248,8 +275,30 @@ export default function HospitalsTableClient() {
     }));
   };
 
+  const toggleDepartment = (value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.departments.includes(value);
+      return {
+        ...prev,
+        departments: exists
+          ? prev.departments.filter((item) => item !== value)
+          : [...prev.departments, value],
+      };
+    });
+  };
+
+  const toggleAllDepartments = () => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      departments:
+        prev.departments.length === HOSPITAL_DEPARTMENT_OPTIONS.length
+          ? []
+          : HOSPITAL_DEPARTMENT_OPTIONS.map((item) => item.value),
+    }));
+  };
+
   const applyDateRange = (
-    key: DateFilterKey,
+    _key: DateFilterKey,
     nextRange?: DateRange,
     options?: {
       closePicker?: boolean;
@@ -264,32 +313,16 @@ export default function HospitalsTableClient() {
         : undefined;
     const mapped = mapDateRangeToFilter(normalizedRange);
 
-    if (key === "created") {
-      setDraftDateRange(normalizedRange);
-      setDraftFilters((prev) => ({
-        ...prev,
-        dateRange: mapped.label,
-        startDate: mapped.startDate,
-        endDate: mapped.endDate,
-      }));
-
-      if (options?.closePicker) {
-        setIsDatePickerOpen(false);
-      }
-
-      return;
-    }
-
-    setDraftUpdatedDateRange(normalizedRange);
+    setDraftDateRange(normalizedRange);
     setDraftFilters((prev) => ({
       ...prev,
-      updatedDateRange: mapped.label,
-      updatedStartDate: mapped.startDate,
-      updatedEndDate: mapped.endDate,
+      dateRange: mapped.label,
+      startDate: mapped.startDate,
+      endDate: mapped.endDate,
     }));
 
     if (options?.closePicker) {
-      setIsUpdatedDatePickerOpen(false);
+      setIsDatePickerOpen(false);
     }
   };
 
@@ -307,31 +340,33 @@ export default function HospitalsTableClient() {
       <HospitalsFilterPanel
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
-        draftUpdatedDateRange={draftUpdatedDateRange}
         isStatusDropdownOpen={isStatusDropdownOpen}
+        isHospitalStatusDropdownOpen={isHospitalStatusDropdownOpen}
         isReviewDropdownOpen={isReviewDropdownOpen}
+        isDepartmentDropdownOpen={isDepartmentDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
-        isUpdatedDatePickerOpen={isUpdatedDatePickerOpen}
         statusDropdownRef={statusDropdownRef}
+        hospitalStatusDropdownRef={hospitalStatusDropdownRef}
         reviewDropdownRef={reviewDropdownRef}
+        departmentDropdownRef={departmentDropdownRef}
         datePickerRef={datePickerRef}
-        updatedDatePickerRef={updatedDatePickerRef}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
         onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
+        onToggleHospitalStatusDropdown={() => setIsHospitalStatusDropdownOpen((prev) => !prev)}
         onToggleReviewDropdown={() => setIsReviewDropdownOpen((prev) => !prev)}
+        onToggleDepartmentDropdown={() => setIsDepartmentDropdownOpen((prev) => !prev)}
         onToggleDatePicker={() => {
-          setIsUpdatedDatePickerOpen(false);
           setIsDatePickerOpen((prev) => !prev);
-        }}
-        onToggleUpdatedDatePicker={() => {
-          setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen((prev) => !prev);
         }}
         onToggleApprovalStatus={toggleApprovalStatus}
         onToggleAllApprovalStatus={toggleAllApprovalStatus}
+        onToggleHospitalStatus={toggleHospitalStatus}
+        onToggleAllHospitalStatus={toggleAllHospitalStatus}
         onToggleReviewStatus={toggleReviewStatus}
         onToggleAllReviewStatus={toggleAllReviewStatus}
+        onToggleDepartment={toggleDepartment}
+        onToggleAllDepartments={toggleAllDepartments}
         onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}
