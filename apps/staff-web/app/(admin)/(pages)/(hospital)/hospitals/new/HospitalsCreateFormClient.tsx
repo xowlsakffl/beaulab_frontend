@@ -33,7 +33,7 @@ export default function HospitalsCreateFormClient() {
   const router = useRouter();
   const { showAlert } = useGlobalAlert();
   const { openPostcode, geocodeAddress } = useDaumPostcode();
-  const { focusField, focusFirstErrorField } = useHospitalFieldFocus();
+  const { focusFirstErrorField } = useHospitalFieldFocus();
   const loadCategories = useHospitalCategorySelectorLoader();
   const {
     features: hospitalFeatures,
@@ -67,7 +67,7 @@ export default function HospitalsCreateFormClient() {
   }, []);
 
   const applyDuplicateCheckResult = React.useCallback(
-      (field: HospitalUniqueCheckField, available: boolean) => {
+    (field: HospitalUniqueCheckField, available: boolean) => {
       const message = DUPLICATE_ERROR_MESSAGES[field];
 
       setErrors((prev) => {
@@ -116,7 +116,6 @@ export default function HospitalsCreateFormClient() {
     setErrors,
     setForm,
     showAlert,
-    focusField,
   });
 
   const checkHospitalNameDuplicate = React.useCallback(

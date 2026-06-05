@@ -24,7 +24,6 @@ export function useHospitalAddressSearch({
   setErrors,
   setForm,
   showAlert,
-  focusField,
 }: {
   openPostcode: (onComplete: (data: Parameters<typeof formatDaumAddress>[0]) => void) => Promise<void>;
   geocodeAddress: (address: string) => Promise<{ latitude: string; longitude: string }>;
@@ -32,19 +31,7 @@ export function useHospitalAddressSearch({
   setErrors: React.Dispatch<React.SetStateAction<HospitalFormErrors>>;
   setForm: React.Dispatch<React.SetStateAction<HospitalFormValues>>;
   showAlert: (alert: AddressSearchAlert) => void;
-  focusField: (field: HospitalFieldName) => void;
 }) {
-  const guideHospitalAddressSelection = React.useCallback(() => {
-    setErrors((prev) => ({
-      ...prev,
-      address: prev.address ?? "병의원 주소를 먼저 선택하세요.",
-    }));
-
-    window.setTimeout(() => {
-      focusField("address");
-    }, 0);
-  }, [focusField, setErrors]);
-
   const openAddressSearch = React.useCallback(
     async (field: HospitalAddressField, detailFieldId: HospitalAddressDetailField) => {
       try {
@@ -53,25 +40,23 @@ export function useHospitalAddressSearch({
             const nextAddress = formatDaumAddress(data);
             let coordinates: { latitude: string; longitude: string } | null = null;
 
-            if (field === "address") {
-              try {
-                coordinates = await geocodeAddress(nextAddress);
-              } catch {
-                setErrors((prev) => ({
-                  ...prev,
-                  address: "주소 좌표를 확인하지 못했습니다. 주소를 다시 선택해주세요.",
-                }));
-              }
+            try {
+              coordinates = await geocodeAddress(nextAddress);
+            } catch {
+              setErrors((prev) => ({
+                ...prev,
+                address: "주소 좌표를 확인하지 못했습니다. 주소를 다시 선택해주세요.",
+              }));
             }
 
             setForm((prev) => ({
               ...prev,
               [field]: nextAddress,
-              latitude: field === "address" ? coordinates?.latitude ?? "" : prev.latitude,
-              longitude: field === "address" ? coordinates?.longitude ?? "" : prev.longitude,
+              latitude: coordinates?.latitude ?? "",
+              longitude: coordinates?.longitude ?? "",
             }));
 
-            if (field !== "address" || coordinates) {
+            if (coordinates) {
               clearError(field);
             }
 
@@ -95,7 +80,6 @@ export function useHospitalAddressSearch({
   );
 
   return {
-    guideHospitalAddressSelection,
     openAddressSearch,
   };
 }

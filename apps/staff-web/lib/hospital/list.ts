@@ -63,7 +63,6 @@ export type HospitalRow = {
   surgeryReviewCount: number;
   treatmentReviewCount: number;
   reviewStatus: string;
-  accountStatus: string;
   hospitalStatus: string;
   lastLoginAt: string;
   isDormant: boolean;
@@ -73,14 +72,7 @@ export type HospitalRow = {
 };
 
 export type HospitalSummary = {
-  daily_visitors?: number | null;
-  monthly_visitors?: number | null;
-  today_registered_hospitals?: number | null;
-  registered_within_7_days?: number | null;
-  registered_within_30_days?: number | null;
-  registered_within_1_year?: number | null;
   dormant_hospitals?: number | null;
-  total_hospitals?: number | null;
   pending_review_hospitals?: number | null;
   rejected_review_hospitals?: number | null;
   suspended_hospitals?: number | null;
@@ -108,7 +100,6 @@ export type SortState = {
 
 export type Filters = {
   departments: string[];
-  accountStatuses: string[];
   hospitalStatuses: string[];
   reviewStatuses: string[];
   dateRange: string;
@@ -119,7 +110,6 @@ export type Filters = {
 export type HospitalsQuery = {
   q?: string;
   department?: string;
-  account_status?: string;
   status?: string;
   allow_status?: string;
   start_date?: string;
@@ -132,7 +122,6 @@ export type HospitalsQuery = {
 
 export const DEFAULT_FILTERS: Filters = {
   departments: [],
-  accountStatuses: [],
   hospitalStatuses: [],
   reviewStatuses: [],
   dateRange: "",
@@ -142,13 +131,6 @@ export const DEFAULT_FILTERS: Filters = {
 
 export const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: true };
 export const HOSPITALS_PER_PAGE = 10;
-
-export const ACCOUNT_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "ACTIVE", label: "정상" },
-  { value: "SUSPENDED", label: "정지" },
-  { value: "BLOCKED", label: "차단" },
-  { value: "WITHDRAWN", label: "탈퇴" },
-];
 
 export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "ACTIVE", label: "정상" },
@@ -269,7 +251,6 @@ export function buildHospitalsQuery({
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
   if (appliedFilters.departments.length > 0) query.department = appliedFilters.departments.join(",");
-  if (appliedFilters.accountStatuses.length > 0) query.account_status = appliedFilters.accountStatuses.join(",");
   if (appliedFilters.hospitalStatuses.length > 0) query.status = appliedFilters.hospitalStatuses.join(",");
   if (appliedFilters.reviewStatuses.length > 0) query.allow_status = appliedFilters.reviewStatuses.join(",");
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
@@ -311,10 +292,6 @@ export function buildFilterDateState(startDate: string, endDate: string) {
 }
 
 export function parseHospitalsTableState(searchParams: URLSearchParams) {
-  const accountStatuses = (searchParams.get("account_status") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
   const hospitalStatuses = (searchParams.get("status") ?? "")
     .split(",")
     .map((value) => value.trim())
@@ -357,7 +334,6 @@ export function parseHospitalsTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       departments,
-      accountStatuses,
       hospitalStatuses,
       reviewStatuses,
       dateRange: createdDateState.label,
@@ -405,7 +381,6 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
     surgeryReviewCount: reviewCounts?.surgery ?? 0,
     treatmentReviewCount: reviewCounts?.treatment ?? 0,
     reviewStatus: item.allowStatus ?? item.allow_status ?? "UNKNOWN",
-    accountStatus: item.account?.status || "UNKNOWN",
     hospitalStatus: item.status,
     lastLoginAt,
     isDormant:
@@ -444,15 +419,6 @@ export function labelApprovalStatus(status: string) {
   return status;
 }
 
-export function labelAccountStatus(status: string) {
-  if (status === "ACTIVE") return "정상";
-  if (status === "SUSPENDED") return "정지";
-  if (status === "BLOCKED") return "차단";
-  if (status === "WITHDRAWN") return "탈퇴";
-  if (status === "UNKNOWN") return "-";
-  return status;
-}
-
 export function labelReviewStatus(status: string) {
   if (status === "PENDING") return "검수신청";
   if (status === "APPROVED") return "검수완료";
@@ -470,7 +436,6 @@ export function buildHospitalsQueryString(query: HospitalsQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.department) params.set("department", query.department);
-  if (query.account_status) params.set("account_status", query.account_status);
   if (query.status) params.set("status", query.status);
   if (query.allow_status) params.set("allow_status", query.allow_status);
   if (query.start_date) params.set("start_date", query.start_date);

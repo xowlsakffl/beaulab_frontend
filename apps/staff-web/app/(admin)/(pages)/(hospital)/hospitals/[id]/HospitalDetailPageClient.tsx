@@ -5,6 +5,11 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 
 import { Can } from "@/components/common/guard";
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewItem,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
@@ -22,13 +27,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  ChevronLeft,
-  ChevronRight,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
   MoreVertical,
   SpinnerBlock,
   Star,
@@ -49,22 +47,6 @@ const dayLabels = [
   ["sun", "일"],
 ] as const;
 
-type MediaPreviewState = {
-  url: string;
-  title: string;
-  isImage: boolean;
-  items?: MediaPreviewItem[];
-  index?: number;
-};
-
-type MediaPreviewItem = {
-  url: string;
-  title: string;
-  isImage: boolean;
-};
-
-const EMPTY_MEDIA_PREVIEW_ITEMS: MediaPreviewItem[] = [];
-
 export default function HospitalDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -76,7 +58,7 @@ export default function HospitalDetailPageClient() {
   const [detail, setDetail] = React.useState<HospitalDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -180,7 +162,7 @@ export default function HospitalDetailPageClient() {
 
       <HospitalImagesCard detail={detail} onPreview={setPreviewMedia} />
       <OperationInfoCard detail={detail} />
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -194,7 +176,7 @@ function HospitalLogoCard({
   logo: MediaAsset | null;
   hospitalName: string;
   className?: string;
-  onPreview: (preview: MediaPreviewState) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const logoUrl = resolveMediaUrl(logo);
   const isImage = isImageMedia(logo);
@@ -239,7 +221,7 @@ function HospitalInfoCard({
 }: {
   detail: HospitalDetailResponse;
   className?: string;
-  onPreview: (preview: MediaPreviewState) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const statusHistoryText = buildStatusHistoryText(detail);
 
@@ -323,11 +305,11 @@ function HospitalImagesCard({
   onPreview,
 }: {
   detail: HospitalDetailResponse;
-  onPreview: (preview: MediaPreviewState) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const gallery = detail.gallery ?? [];
   const previewIndexByGalleryIndex = new Map<number, number>();
-  const previewItems = gallery.reduce<MediaPreviewItem[]>((items, media, index) => {
+  const previewItems = gallery.reduce<HospitalMediaPreviewItem[]>((items, media, index) => {
     const mediaUrl = resolveMediaUrl(media);
     if (!mediaUrl || !isImageMedia(media)) return items;
 
@@ -378,9 +360,9 @@ function HospitalImageTile({
   media: MediaAsset;
   index: number;
   isRepresentative: boolean;
-  previewItems: MediaPreviewItem[];
+  previewItems: HospitalMediaPreviewItem[];
   previewIndex: number | null;
-  onPreview: (preview: MediaPreviewState) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const mediaUrl = resolveMediaUrl(media);
   const isImage = isImageMedia(media);
@@ -403,7 +385,7 @@ function HospitalImageTile({
       type="button"
       onClick={handlePreview}
       disabled={!canPreview}
-      className="relative flex h-48 min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left disabled:cursor-default"
+      className="relative flex aspect-[76/49] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left disabled:cursor-default"
       aria-label={canPreview ? `${getMediaFilename(media)} 미리보기` : undefined}
     >
       <span className="absolute left-2 top-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
@@ -513,7 +495,7 @@ function CertificatePreviewField({
   onPreview,
 }: {
   media?: MediaAsset | null;
-  onPreview: (preview: MediaPreviewState) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const mediaUrl = resolveMediaUrl(media);
   const displayValue = mediaLabel(media);
@@ -543,118 +525,6 @@ function CertificatePreviewField({
         ) : null}
       </div>
     </div>
-  );
-}
-
-function MediaPreviewModal({
-  preview,
-  onChange,
-  onClose,
-}: {
-  preview: MediaPreviewState | null;
-  onChange: (preview: MediaPreviewState) => void;
-  onClose: () => void;
-}) {
-  const items = preview?.items?.length ? preview.items : EMPTY_MEDIA_PREVIEW_ITEMS;
-  const activeIndex = preview?.index ?? 0;
-  const canNavigate = Boolean(preview && items.length > 1);
-
-  const navigateTo = React.useCallback(
-    (nextIndex: number) => {
-      if (!preview || !canNavigate) return;
-
-      const normalizedIndex = (nextIndex + items.length) % items.length;
-      const nextItem = items[normalizedIndex];
-      if (!nextItem) return;
-
-      onChange({
-        ...nextItem,
-        items,
-        index: normalizedIndex,
-      });
-    },
-    [canNavigate, items, onChange, preview],
-  );
-
-  const navigateRelative = React.useCallback(
-    (direction: -1 | 1) => {
-      navigateTo(activeIndex + direction);
-    },
-    [activeIndex, navigateTo],
-  );
-
-  React.useEffect(() => {
-    if (!canNavigate) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        navigateRelative(-1);
-      }
-
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        navigateRelative(1);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [canNavigate, navigateRelative]);
-
-  if (!preview) return null;
-
-  const currentPreview = items[activeIndex] ?? preview;
-
-  return (
-    <Modal isOpen={Boolean(preview)} onClose={onClose} className="mx-4 w-full max-w-5xl">
-      <ModalPanel className="max-h-[92vh] overflow-hidden">
-        <ModalHeader>
-          <ModalTitle className="truncate text-base">
-            {currentPreview.title}
-            {canNavigate ? <span className="ml-2 text-sm font-medium text-gray-500">{activeIndex + 1} / {items.length}</span> : null}
-          </ModalTitle>
-        </ModalHeader>
-
-        <ModalBody className="min-h-0 overflow-auto rounded-2xl bg-gray-100 p-4">
-          {currentPreview.isImage ? (
-            <div className="relative flex min-h-[60vh] items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
-              <img src={currentPreview.url} alt={currentPreview.title} className="max-h-[76vh] max-w-full object-contain" />
-              {canNavigate ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => navigateRelative(-1)}
-                    className="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm ring-1 ring-gray-200 transition hover:bg-white"
-                    aria-label="이전 이미지"
-                  >
-                    <ChevronLeft className="size-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigateRelative(1)}
-                    className="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm ring-1 ring-gray-200 transition hover:bg-white"
-                    aria-label="다음 이미지"
-                  >
-                    <ChevronRight className="size-5" />
-                  </button>
-                </>
-              ) : null}
-            </div>
-          ) : (
-            <iframe
-              src={currentPreview.url}
-              title={currentPreview.title}
-              className="h-[76vh] w-full rounded-xl border border-gray-200 bg-white"
-            />
-          )}
-        </ModalBody>
-      </ModalPanel>
-    </Modal>
   );
 }
 

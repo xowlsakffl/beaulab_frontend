@@ -44,7 +44,7 @@ export default function HospitalEditFormClient() {
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
   const { openPostcode, geocodeAddress } = useDaumPostcode();
-  const { focusField, focusFirstErrorField } = useHospitalFieldFocus();
+  const { focusFirstErrorField } = useHospitalFieldFocus();
   const loadCategories = useHospitalCategorySelectorLoader();
   const {
     features: hospitalFeatures,
@@ -100,7 +100,6 @@ export default function HospitalEditFormClient() {
     setErrors,
     setForm,
     showAlert,
-    focusField,
   });
 
   const toggleCategory = (categoryId: number, checked: boolean) => {
