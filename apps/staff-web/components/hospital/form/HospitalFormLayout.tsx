@@ -3,6 +3,10 @@
 import React from "react";
 
 import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import {
   Button,
   Card,
   FormCheckbox,
@@ -10,6 +14,12 @@ import {
   InputField,
   Label,
   MediaUploader,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalPanel,
+  ModalTitle,
   Select,
   X,
   type CategorySelectorItem,
@@ -32,6 +42,7 @@ import {
 import { HOSPITAL_DEPARTMENT_OPTIONS, labelApprovalStatus } from "@/lib/hospital/list";
 import {
   getMediaFilename,
+  isImageMedia,
   resolveMediaUrl,
   type HospitalCategoryItem,
   type HospitalFeatureItem,
@@ -40,6 +51,13 @@ import {
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
+const HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
+const HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+const HOSPITAL_GALLERY_MAX_BYTES = 10 * 1024 * 1024;
+const HOSPITAL_GALLERY_REQUIRED_WIDTH = 760;
+const HOSPITAL_GALLERY_REQUIRED_HEIGHT = 490;
+const HOSPITAL_GALLERY_VALIDATION_MESSAGE =
+  "병의원이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 10MB 이하\n- 이미지 크기: 760 x 490px";
 const operationDayLabels: Array<[HospitalOperationDayKey, string]> = [
   ["mon", "월"],
   ["tue", "화"],
@@ -133,69 +151,98 @@ export function HospitalFormLayout({
   onToggleFeature,
 }: HospitalFormLayoutProps) {
   const isCreate = mode === "create";
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [imageUploadWarning, setImageUploadWarning] = React.useState<string | null>(null);
 
   return (
-    <form id={formId} onSubmit={onSubmit} className="min-w-0 space-y-6">
-      <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
-        <HospitalLogoEditCard
-          logo={logo}
-          existingLogo={existingLogo}
-          hospitalName={form.name}
-          error={errors.logo}
-          onChange={onLogoChange}
-        />
-
-        <div className="grid min-w-0 gap-3">
-          <HospitalMainInfoEditCard
-            mode={mode}
-            form={form}
-            errors={errors}
-            businessRegistrationFile={businessRegistrationFile}
-            existingCertificate={existingCertificate}
-            onFieldChange={onFieldChange}
-            onNameChange={onNameChange}
-            onNameBlur={onNameBlur}
-            onBusinessNumberChange={onBusinessNumberChange}
-            onBusinessNumberBlur={onBusinessNumberBlur}
-            onBusinessRegistrationFileChange={onBusinessRegistrationFileChange}
-            onExistingCertificateChange={onExistingCertificateChange}
-            onOpenAddressSearch={onOpenAddressSearch}
+    <>
+      <form id={formId} onSubmit={onSubmit} className="min-w-0 space-y-6">
+        <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
+          <HospitalLogoEditCard
+            logo={logo}
+            existingLogo={existingLogo}
+            hospitalName={form.name}
+            error={errors.logo}
+            onChange={onLogoChange}
+            onPreview={setPreviewMedia}
           />
 
-          <HospitalBusinessAccountEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
+          <div className="grid min-w-0 gap-3">
+            <HospitalMainInfoEditCard
+              mode={mode}
+              form={form}
+              errors={errors}
+              businessRegistrationFile={businessRegistrationFile}
+              existingCertificate={existingCertificate}
+              onFieldChange={onFieldChange}
+              onNameChange={onNameChange}
+              onNameBlur={onNameBlur}
+              onBusinessNumberChange={onBusinessNumberChange}
+              onBusinessNumberBlur={onBusinessNumberBlur}
+              onBusinessRegistrationFileChange={onBusinessRegistrationFileChange}
+              onExistingCertificateChange={onExistingCertificateChange}
+              onOpenAddressSearch={onOpenAddressSearch}
+              onPreview={setPreviewMedia}
+            />
+
+            <HospitalBusinessAccountEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-3">
+            <HospitalPointEditCard />
+            <HospitalAdReceptionEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
+          </div>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3">
-          <HospitalPointEditCard />
-          <HospitalAdReceptionEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
-        </div>
-      </div>
+        <HospitalGalleryEditCard
+          gallery={gallery}
+          existingMediaByCollection={existingMediaByCollection}
+          galleryOrder={galleryOrder}
+          error={errors.gallery}
+          onGalleryChange={onGalleryChange}
+          onExistingItemsChange={onExistingItemsChange}
+          onGalleryOrderChange={onGalleryOrderChange}
+          onPreview={setPreviewMedia}
+          onUploadValidationError={setImageUploadWarning}
+        />
 
-      <HospitalGalleryEditCard
-        gallery={gallery}
-        existingMediaByCollection={existingMediaByCollection}
-        galleryOrder={galleryOrder}
-        error={errors.gallery}
-        onGalleryChange={onGalleryChange}
-        onExistingItemsChange={onExistingItemsChange}
-        onGalleryOrderChange={onGalleryOrderChange}
-      />
+        <HospitalOperationEditCard
+          form={form}
+          errors={errors}
+          selectedCategoryItems={selectedCategoryItems}
+          hospitalFeatures={hospitalFeatures}
+          isHospitalFeaturesLoading={isHospitalFeaturesLoading}
+          hospitalFeaturesError={hospitalFeaturesError}
+          onFieldChange={onFieldChange}
+          loadCategories={loadCategories}
+          onToggleCategory={onToggleCategory}
+          onToggleFeature={onToggleFeature}
+        />
 
-      <HospitalOperationEditCard
-        form={form}
-        errors={errors}
-        selectedCategoryItems={selectedCategoryItems}
-        hospitalFeatures={hospitalFeatures}
-        isHospitalFeaturesLoading={isHospitalFeaturesLoading}
-        hospitalFeaturesError={hospitalFeaturesError}
-        onFieldChange={onFieldChange}
-        loadCategories={loadCategories}
-        onToggleCategory={onToggleCategory}
-        onToggleFeature={onToggleFeature}
-      />
-
-      {isCreate ? null : <input type="hidden" name="mode" value="edit" readOnly />}
-    </form>
+        {isCreate ? null : <input type="hidden" name="mode" value="edit" readOnly />}
+      </form>
+      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <Modal
+        isOpen={Boolean(imageUploadWarning)}
+        onClose={() => setImageUploadWarning(null)}
+        showCloseButton={false}
+        className="mx-4 w-full max-w-md"
+      >
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>이미지 업로드 조건 확인</ModalTitle>
+          </ModalHeader>
+          <ModalBody className="mt-5">
+            <p className="whitespace-pre-line text-sm font-medium leading-6 text-gray-800">{imageUploadWarning}</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button type="button" variant="brand" onClick={() => setImageUploadWarning(null)}>
+              확인
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
+    </>
   );
 }
 
@@ -205,17 +252,20 @@ function HospitalLogoEditCard({
   hospitalName,
   error,
   onChange,
+  onPreview,
 }: {
   logo: File | null;
   existingLogo: MediaAsset | null;
   hospitalName: string;
   error?: string;
   onChange: (file: File | null) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(logo);
   const existingUrl = resolveMediaUrl(existingLogo);
   const previewUrl = fileUrl ?? existingUrl;
+  const isPreviewImage = logo ? logo.type.startsWith("image/") : isImageMedia(existingLogo);
 
   return (
     <Card
@@ -232,16 +282,34 @@ function HospitalLogoEditCard({
       />
       <div className="flex min-h-[12rem] w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
         {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL
-          <img src={previewUrl} alt={`${hospitalName || "병의원"} 로고`} className="h-full w-full object-cover" />
+          <button
+            type="button"
+            className="flex h-full w-full cursor-zoom-in items-center justify-center"
+            onClick={() =>
+              onPreview({
+                url: previewUrl,
+                title: `${hospitalName || "병의원"} 로고`,
+                isImage: isPreviewImage,
+              })
+            }
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
+            <img src={previewUrl} alt={`${hospitalName || "병의원"} 로고`} className="h-full w-full object-cover" />
+          </button>
         ) : (
-          <div className="flex size-24 items-center justify-center rounded-full border-2 border-gray-700 bg-white text-xl font-bold text-gray-800">
-            {buildLogoInitials(hospitalName)}
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+              <span className="text-2xl leading-none">+</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-800">로고 이미지를 등록해 주세요.</p>
+              <p className="text-xs text-gray-500">jpg, png, webp 파일을 업로드할 수 있습니다.</p>
+            </div>
           </div>
         )}
       </div>
       <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
-        이미지 수정하기
+        {previewUrl ? "이미지 수정하기" : "이미지 등록하기"}
       </Button>
       {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </Card>
@@ -262,6 +330,7 @@ function HospitalMainInfoEditCard({
   onBusinessRegistrationFileChange,
   onExistingCertificateChange,
   onOpenAddressSearch,
+  onPreview,
 }: {
   mode: "create" | "edit";
   form: HospitalFormValues;
@@ -276,6 +345,7 @@ function HospitalMainInfoEditCard({
   onBusinessRegistrationFileChange: (file: File | null) => void;
   onExistingCertificateChange?: (hasFile: boolean) => void;
   onOpenAddressSearch: (field: HospitalAddressField, detailFieldId: HospitalAddressDetailField) => Promise<void>;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const isCreate = mode === "create";
 
@@ -290,9 +360,11 @@ function HospitalMainInfoEditCard({
             </span>
           ) : null}
         </div>
-        <Button type="button" variant="brand" size="sm">
-          비밀번호 재설정
-        </Button>
+        {!isCreate ? (
+          <Button type="button" variant="brand" size="sm">
+            비밀번호 재설정
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
@@ -388,6 +460,7 @@ function HospitalMainInfoEditCard({
           error={errors.business_registration_file}
           onFileChange={onBusinessRegistrationFileChange}
           onExistingCertificateChange={onExistingCertificateChange}
+          onPreview={onPreview}
         />
         <EditField label="업태" required error={errors.business_type}>
           <InputField
@@ -531,6 +604,8 @@ function HospitalGalleryEditCard({
   onGalleryChange,
   onExistingItemsChange,
   onGalleryOrderChange,
+  onPreview,
+  onUploadValidationError,
 }: {
   gallery: File[];
   existingMediaByCollection?: {
@@ -542,6 +617,8 @@ function HospitalGalleryEditCard({
   onGalleryChange: (files: File[]) => void;
   onExistingItemsChange?: (key: HospitalMediaField, items: ExistingMediaItem[]) => void;
   onGalleryOrderChange?: (order: string[]) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onUploadValidationError: (message: string) => void;
 }) {
   const galleryCollection = MEDIA_COLLECTIONS.find((collection) => collection.key === "gallery");
   const uploaderRef = React.useRef<HTMLDivElement | null>(null);
@@ -574,6 +651,7 @@ function HospitalGalleryEditCard({
         >
           파일선택
         </Button>
+        {error ? <p className="text-xs text-error-500">{error}</p> : null}
       </div>
       <div ref={uploaderRef}>
         <MediaUploader
@@ -592,11 +670,21 @@ function HospitalGalleryEditCard({
           filesByCollection={{ gallery }}
           existingItemsByCollection={existingMediaByCollection ? { gallery: existingMediaByCollection.gallery } : undefined}
           orderByCollection={galleryOrder ? { gallery: galleryOrder } : undefined}
-          errors={{ gallery: error }}
           onExistingItemsChange={onExistingItemsChange}
           onOrderChange={(key, order) => {
             if (key !== "gallery") return;
             onGalleryOrderChange?.(order);
+          }}
+          onPreview={(_, preview) => onPreview(preview)}
+          onBeforeAddFiles={async (_, files) => {
+            const message = await validateHospitalGalleryUploadFiles(files);
+
+            if (message) {
+              onUploadValidationError(message);
+              return [];
+            }
+
+            return files;
           }}
           onChange={(key, files) => {
             if (key !== "gallery") return;
@@ -652,6 +740,7 @@ function HospitalOperationEditCard({
               id="department"
               name="department"
               value={form.department}
+              placeholder="분과 선택"
               options={HOSPITAL_DEPARTMENT_OPTIONS}
               onChange={(value) => onFieldChange("department", value)}
               className="h-9 bg-white px-3 py-1.5"
@@ -863,10 +952,13 @@ function HospitalFeatureCheckboxes({
 }) {
   return (
     <div className="space-y-3" data-field-target="feature_ids" tabIndex={-1}>
-      <p className="text-sm text-gray-900">
-        병원정보
-        <RequiredMark />
-      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm text-gray-900">
+          병원정보
+          <RequiredMark />
+        </p>
+        {error ? <p className="text-xs text-error-500">{error}</p> : null}
+      </div>
       <div className="rounded-xl bg-white p-5">
         {isLoading ? (
           <p className="text-sm text-gray-500">불러오는 중</p>
@@ -886,7 +978,6 @@ function HospitalFeatureCheckboxes({
           </div>
         )}
       </div>
-      {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </div>
   );
 }
@@ -897,12 +988,14 @@ function BusinessCertificateEditField({
   error,
   onFileChange,
   onExistingCertificateChange,
+  onPreview,
 }: {
   file: File | null;
   existingCertificate: MediaAsset | null;
   error?: string;
   onFileChange: (file: File | null) => void;
   onExistingCertificateChange?: (hasFile: boolean) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(file);
@@ -910,6 +1003,7 @@ function BusinessCertificateEditField({
   const previewUrl = fileUrl ?? existingUrl;
   const filename = file?.name ?? (existingCertificate ? getMediaFilename(existingCertificate) : "");
   const hasFile = Boolean(file || existingCertificate);
+  const isPreviewImage = file ? file.type.startsWith("image/") : isImageMedia(existingCertificate);
 
   const clearFile = () => {
     if (inputRef.current) {
@@ -943,7 +1037,18 @@ function BusinessCertificateEditField({
             등록
           </Button>
           {previewUrl ? (
-            <Button type="button" variant="brand" size="sm" onClick={() => window.open(previewUrl, "_blank", "noopener,noreferrer")}>
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              onClick={() =>
+                onPreview({
+                  url: previewUrl,
+                  title: "사업자등록증",
+                  isImage: isPreviewImage,
+                })
+              }
+            >
               미리보기
             </Button>
           ) : null}
@@ -977,22 +1082,20 @@ function CompactPhoneField({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] items-center gap-3">
+    <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-1">
       <p className={labelClassName}>
         {label}
         {required ? <RequiredMark /> : null}
       </p>
-      <div>
-        <InputField
-          id={id}
-          name={id}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          error={Boolean(error)}
-          className="h-9 bg-white px-3 py-1.5"
-        />
-        {error ? <p className="mt-1 text-xs text-error-500">{error}</p> : null}
-      </div>
+      <InputField
+        id={id}
+        name={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        error={Boolean(error)}
+        className="h-9 bg-white px-3 py-1.5"
+      />
+      {error ? <p className="col-span-2 text-xs text-error-500">{error}</p> : null}
     </div>
   );
 }
@@ -1046,10 +1149,57 @@ function useObjectUrl(file: File | null) {
   return url;
 }
 
-function buildLogoInitials(name: string) {
-  const normalized = name.trim();
-  if (!normalized) return "D:A";
-  const words = normalized.split(/\s+/).filter(Boolean);
-  if (words.length >= 2) return `${words[0][0] ?? "D"}:${words[1][0] ?? "A"}`.toUpperCase();
-  return normalized.slice(0, 2).toUpperCase();
+async function validateHospitalGalleryUploadFiles(files: File[]) {
+  for (const file of files) {
+    if (!isValidHospitalGalleryImageType(file)) {
+      return HOSPITAL_GALLERY_VALIDATION_MESSAGE;
+    }
+
+    if (file.size > HOSPITAL_GALLERY_MAX_BYTES) {
+      return HOSPITAL_GALLERY_VALIDATION_MESSAGE;
+    }
+
+    const dimensions = await readImageDimensions(file).catch(() => null);
+    if (
+      !dimensions ||
+      dimensions.width !== HOSPITAL_GALLERY_REQUIRED_WIDTH ||
+      dimensions.height !== HOSPITAL_GALLERY_REQUIRED_HEIGHT
+    ) {
+      return HOSPITAL_GALLERY_VALIDATION_MESSAGE;
+    }
+  }
+
+  return null;
+}
+
+function isValidHospitalGalleryImageType(file: File) {
+  const lowerName = file.name.toLowerCase();
+  const hasAllowedExtension = HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS.some((extension) =>
+    lowerName.endsWith(extension),
+  );
+  const hasAllowedMimeType = !file.type || HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES.has(file.type);
+
+  return hasAllowedExtension && hasAllowedMimeType;
+}
+
+function readImageDimensions(file: File) {
+  return new Promise<{ width: number; height: number }>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      });
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("이미지 크기를 확인하지 못했습니다."));
+    };
+
+    image.src = url;
+  });
 }

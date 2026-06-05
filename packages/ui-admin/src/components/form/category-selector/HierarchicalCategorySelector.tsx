@@ -58,6 +58,7 @@ type HierarchicalCategorySelectorProps = {
   error?: string;
   initialSectionKey?: string;
   maxSearchResults?: number;
+  visibleLevels?: 1 | 2 | 3;
   text?: Partial<SelectorText>;
 };
 
@@ -216,6 +217,7 @@ export function HierarchicalCategorySelector({
   error,
   initialSectionKey,
   maxSearchResults = 12,
+  visibleLevels = 3,
   text,
 }: HierarchicalCategorySelectorProps) {
   const mergedText = React.useMemo(() => ({ ...DEFAULT_TEXT, ...text }), [text]);
@@ -621,7 +623,15 @@ export function HierarchicalCategorySelector({
 
         {activeSectionState.loadError ? <p className="text-sm text-error-500">{activeSectionState.loadError}</p> : null}
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div
+          className={
+            visibleLevels === 1
+              ? "grid gap-4"
+              : visibleLevels === 2
+                ? "grid gap-4 lg:grid-cols-2"
+                : "grid gap-4 lg:grid-cols-3"
+          }
+        >
           <CategoryColumn
             title={mergedText.largeTitle}
             items={largeCategories}
@@ -657,50 +667,54 @@ export function HierarchicalCategorySelector({
             onToggle={onToggleCategory}
           />
 
-          <CategoryColumn
-            title={mergedText.middleTitle}
-            items={middleCategories}
-            activeId={activeMiddleId}
-            selectedIdSet={selectedIdSet}
-            emptyMessage={mergedText.emptyMiddleText}
-            isLoading={Boolean(activeLargeId) && Boolean(activeLargeId && activeSectionState.middleLoadingParentIds[activeLargeId])}
-            loadingText={mergedText.loadingText}
-            onActivate={(categoryId) => {
-              if (!activeSection) return;
+          {visibleLevels >= 2 ? (
+            <CategoryColumn
+              title={mergedText.middleTitle}
+              items={middleCategories}
+              activeId={activeMiddleId}
+              selectedIdSet={selectedIdSet}
+              emptyMessage={mergedText.emptyMiddleText}
+              isLoading={Boolean(activeLargeId) && Boolean(activeLargeId && activeSectionState.middleLoadingParentIds[activeLargeId])}
+              loadingText={mergedText.loadingText}
+              onActivate={(categoryId) => {
+                if (!activeSection) return;
 
-              const nextMiddle = middleCategories.find((item) => item.id === categoryId);
+                const nextMiddle = middleCategories.find((item) => item.id === categoryId);
 
-              setSectionStates((prev) => {
-                const current = prev[activeSection.key] ?? createSectionState();
+                setSectionStates((prev) => {
+                  const current = prev[activeSection.key] ?? createSectionState();
 
-                return {
-                  ...prev,
-                  [activeSection.key]: {
-                    ...current,
-                    activeMiddleId: categoryId,
-                  },
-                };
-              });
+                  return {
+                    ...prev,
+                    [activeSection.key]: {
+                      ...current,
+                      activeMiddleId: categoryId,
+                    },
+                  };
+                });
 
-              if (!nextMiddle?.has_children || activeSectionState.smallItemsByParent[categoryId] !== undefined) {
-                return;
-              }
+                if (!nextMiddle?.has_children || activeSectionState.smallItemsByParent[categoryId] !== undefined) {
+                  return;
+                }
 
-              void loadChildCategories(activeSection, categoryId, "small");
-            }}
-            onToggle={onToggleCategory}
-          />
+                void loadChildCategories(activeSection, categoryId, "small");
+              }}
+              onToggle={onToggleCategory}
+            />
+          ) : null}
 
-          <CategoryColumn
-            title={mergedText.smallTitle}
-            items={smallCategories}
-            selectedIdSet={selectedIdSet}
-            emptyMessage={mergedText.emptySmallText}
-            isLoading={Boolean(activeMiddleId) && Boolean(activeMiddleId && activeSectionState.smallLoadingParentIds[activeMiddleId])}
-            loadingText={mergedText.loadingText}
-            onActivate={() => undefined}
-            onToggle={onToggleCategory}
-          />
+          {visibleLevels >= 3 ? (
+            <CategoryColumn
+              title={mergedText.smallTitle}
+              items={smallCategories}
+              selectedIdSet={selectedIdSet}
+              emptyMessage={mergedText.emptySmallText}
+              isLoading={Boolean(activeMiddleId) && Boolean(activeMiddleId && activeSectionState.smallLoadingParentIds[activeMiddleId])}
+              loadingText={mergedText.loadingText}
+              onActivate={() => undefined}
+              onToggle={onToggleCategory}
+            />
+          ) : null}
         </div>
       </div>
 

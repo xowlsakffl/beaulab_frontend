@@ -57,8 +57,8 @@ export type HospitalOperationHoursFormValues = Record<
 export type HospitalFieldName = keyof HospitalFormValues | "logo" | "gallery" | "business_registration_file";
 export type HospitalMediaField = "logo" | "gallery";
 export type HospitalUniqueCheckField = "name" | "business_number";
-export type HospitalAddressField = "address" | "business_address";
-export type HospitalAddressDetailField = "address_detail" | "business_address_detail";
+export type HospitalAddressField = "address";
+export type HospitalAddressDetailField = "address_detail";
 export type HospitalFormErrors = Partial<Record<HospitalFieldName, string>>;
 
 export type HospitalUniqueCheckState = {
@@ -186,11 +186,11 @@ export const MEDIA_COLLECTIONS: readonly MediaCollectionConfig<HospitalMediaFiel
   {
     key: "gallery",
     label: "대표/내부 이미지",
-    accept: "image/jpeg,image/png,image/webp",
+    accept: "image/jpeg,image/png,.jpg,.jpeg,.png",
     multiple: true,
     maxFiles: 5,
     emptyText: "업로드한 이미지가 없습니다.",
-    helperText: "대표 이미지(첫번째). 드래그로 순서 변경",
+    helperText: "png, jpg / 10MB 이하 / 760x490px",
     maxFilesText: "(최대 5장)",
   },
 ];

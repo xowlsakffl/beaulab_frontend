@@ -2,13 +2,9 @@
 
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
-import {
-  HospitalsRegistrationSummaryCard,
-  HospitalsSummaryCards,
-} from "@/components/hospital/list/HospitalsSummaryCards";
+import { HospitalsSummaryCards } from "@/components/hospital/list/HospitalsSummaryCards";
 import { api } from "@/lib/common/api";
 import {
-  ACCOUNT_STATUS_OPTIONS,
   ALLOW_STATUS_OPTIONS,
   DEFAULT_FILTERS,
   HOSPITAL_DEPARTMENT_OPTIONS,
@@ -54,7 +50,6 @@ export default function HospitalsTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
-  const [isHospitalStatusDropdownOpen, setIsHospitalStatusDropdownOpen] = React.useState(false);
   const [isReviewDropdownOpen, setIsReviewDropdownOpen] = React.useState(false);
   const [isDepartmentDropdownOpen, setIsDepartmentDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
@@ -62,7 +57,6 @@ export default function HospitalsTableClient() {
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
-  const hospitalStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const reviewDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const departmentDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
@@ -184,9 +178,6 @@ export default function HospitalsTableClient() {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
       }
-      if (!hospitalStatusDropdownRef.current?.contains(event.target as Node)) {
-        setIsHospitalStatusDropdownOpen(false);
-      }
       if (!reviewDropdownRef.current?.contains(event.target as Node)) {
         setIsReviewDropdownOpen(false);
       }
@@ -207,7 +198,6 @@ export default function HospitalsTableClient() {
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       departments: [...draftFilters.departments],
-      accountStatuses: [...draftFilters.accountStatuses],
       hospitalStatuses: [...draftFilters.hospitalStatuses],
       reviewStatuses: [...draftFilters.reviewStatuses],
       dateRange: draftFilters.dateRange,
@@ -222,7 +212,6 @@ export default function HospitalsTableClient() {
     setSearchInput("");
     setSearchKeyword("");
     setIsStatusDropdownOpen(false);
-    setIsHospitalStatusDropdownOpen(false);
     setIsReviewDropdownOpen(false);
     setIsDepartmentDropdownOpen(false);
     setIsDatePickerOpen(false);
@@ -240,28 +229,6 @@ export default function HospitalsTableClient() {
           : [...prev.reviewStatuses, value],
       };
     });
-  };
-
-  const toggleApprovalStatus = (value: string) => {
-    setDraftFilters((prev) => {
-      const exists = prev.accountStatuses.includes(value);
-      return {
-        ...prev,
-        accountStatuses: exists
-          ? prev.accountStatuses.filter((item) => item !== value)
-          : [...prev.accountStatuses, value],
-      };
-    });
-  };
-
-  const toggleAllApprovalStatus = () => {
-    setDraftFilters((prev) => ({
-      ...prev,
-      accountStatuses:
-        prev.accountStatuses.length === ACCOUNT_STATUS_OPTIONS.length
-          ? []
-          : ACCOUNT_STATUS_OPTIONS.map((item) => item.value),
-    }));
   };
 
   const toggleHospitalStatus = (value: string) => {
@@ -367,45 +334,36 @@ export default function HospitalsTableClient() {
     <div className="min-w-0 space-y-4">
       <HospitalsSummaryCards summary={summary} />
 
-      <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_17rem]">
-        <HospitalsFilterPanel
-          draftFilters={draftFilters}
-          draftDateRange={draftDateRange}
-          isStatusDropdownOpen={isStatusDropdownOpen}
-          isHospitalStatusDropdownOpen={isHospitalStatusDropdownOpen}
-          isReviewDropdownOpen={isReviewDropdownOpen}
-          isDepartmentDropdownOpen={isDepartmentDropdownOpen}
-          isDatePickerOpen={isDatePickerOpen}
-          statusDropdownRef={statusDropdownRef}
-          hospitalStatusDropdownRef={hospitalStatusDropdownRef}
-          reviewDropdownRef={reviewDropdownRef}
-          departmentDropdownRef={departmentDropdownRef}
-          datePickerRef={datePickerRef}
-          searchInput={searchInput}
-          onSearchChange={setSearchInput}
-          onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
-          onToggleHospitalStatusDropdown={() => setIsHospitalStatusDropdownOpen((prev) => !prev)}
-          onToggleReviewDropdown={() => setIsReviewDropdownOpen((prev) => !prev)}
-          onToggleDepartmentDropdown={() => setIsDepartmentDropdownOpen((prev) => !prev)}
-          onToggleDatePicker={() => {
-            setIsDatePickerOpen((prev) => !prev);
-          }}
-          onToggleApprovalStatus={toggleApprovalStatus}
-          onToggleAllApprovalStatus={toggleAllApprovalStatus}
-          onToggleHospitalStatus={toggleHospitalStatus}
-          onToggleAllHospitalStatus={toggleAllHospitalStatus}
-          onToggleReviewStatus={toggleReviewStatus}
-          onToggleAllReviewStatus={toggleAllReviewStatus}
-          onToggleDepartment={toggleDepartment}
-          onToggleAllDepartments={toggleAllDepartments}
-          onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
-          onApplyDatePreset={applyDatePreset}
-          onApplyFilters={applyFilters}
-          onResetFilters={resetFilters}
-        />
-
-        <HospitalsRegistrationSummaryCard summary={summary} />
-      </div>
+      <HospitalsFilterPanel
+        draftFilters={draftFilters}
+        draftDateRange={draftDateRange}
+        isStatusDropdownOpen={isStatusDropdownOpen}
+        isReviewDropdownOpen={isReviewDropdownOpen}
+        isDepartmentDropdownOpen={isDepartmentDropdownOpen}
+        isDatePickerOpen={isDatePickerOpen}
+        statusDropdownRef={statusDropdownRef}
+        reviewDropdownRef={reviewDropdownRef}
+        departmentDropdownRef={departmentDropdownRef}
+        datePickerRef={datePickerRef}
+        searchInput={searchInput}
+        onSearchChange={setSearchInput}
+        onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
+        onToggleReviewDropdown={() => setIsReviewDropdownOpen((prev) => !prev)}
+        onToggleDepartmentDropdown={() => setIsDepartmentDropdownOpen((prev) => !prev)}
+        onToggleDatePicker={() => {
+          setIsDatePickerOpen((prev) => !prev);
+        }}
+        onToggleHospitalStatus={toggleHospitalStatus}
+        onToggleAllHospitalStatus={toggleAllHospitalStatus}
+        onToggleReviewStatus={toggleReviewStatus}
+        onToggleAllReviewStatus={toggleAllReviewStatus}
+        onToggleDepartment={toggleDepartment}
+        onToggleAllDepartments={toggleAllDepartments}
+        onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
+        onApplyDatePreset={applyDatePreset}
+        onApplyFilters={applyFilters}
+        onResetFilters={resetFilters}
+      />
 
       <HospitalsDataTable
         rows={rows}

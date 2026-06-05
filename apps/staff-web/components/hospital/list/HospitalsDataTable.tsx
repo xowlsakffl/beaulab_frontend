@@ -13,7 +13,6 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
-  labelAccountStatus,
   labelApprovalStatus,
   labelReviewStatus,
   type HospitalRow,
@@ -135,23 +134,12 @@ function buildHospitalColumns({
       render: (row) => row.viewCount.toLocaleString(),
     },
     {
-      key: "approvalStatus",
-      headerClassName: `${spacedHeaderClass} lg:w-[68px]`,
-      cellClassName: `${spacedNowrapCellClass} lg:w-[68px]`,
-      header: "회원상태",
-      render: (row) => (
-        <StatusBadge size="sm" color={row.accountStatus === "ACTIVE" ? "success" : row.accountStatus === "SUSPENDED" ? "warning" : "error"}>
-          {labelAccountStatus(row.accountStatus)}
-        </StatusBadge>
-      ),
-    },
-    {
       key: "hospitalStatus",
       headerClassName: `${spacedHeaderClass} lg:w-[76px]`,
       cellClassName: `${spacedNowrapCellClass} lg:w-[76px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
-          병의원상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
+          회원상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
