@@ -25,7 +25,7 @@ export const Select: React.FC<SelectProps> = ({
   options,
   id,
   name,
-  placeholder = "Select an option",
+  placeholder = "선택",
   showPlaceholderOption = true,
   onChange,
   className = "",
