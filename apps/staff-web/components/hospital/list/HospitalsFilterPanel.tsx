@@ -91,7 +91,7 @@ export function HospitalsFilterPanel({
             hideLabel
             containerRef={datePickerRef}
             value={draftFilters.dateRange}
-            placeholder="가입일 기간 선택"
+              placeholder="가입일 기준 기간을 선택해 주세요."
             selected={draftDateRange}
             isOpen={isDatePickerOpen}
             presetOptions={DATE_PRESET_OPTIONS}
@@ -160,7 +160,7 @@ export function HospitalsFilterPanel({
                     onApplyFilters();
                   }
                 }}
-                placeholder="UID, 병의원명, 병원아이디 검색"
+                placeholder="HID, 병의원명, 병원아이디를 입력해 주세요."
                 className="bg-white "
               />
             </div>

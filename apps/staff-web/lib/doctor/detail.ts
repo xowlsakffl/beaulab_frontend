@@ -14,6 +14,11 @@ export type DoctorCategoryItem = {
   is_primary?: boolean;
 };
 
+export type DoctorSpecialist = {
+  code?: string | null;
+  label?: string | null;
+};
+
 export type DoctorDetailResponse = {
   id: number;
   hospital_id: number;
@@ -24,7 +29,7 @@ export type DoctorDetailResponse = {
   position?: string | null;
   career_started_at?: string | null;
   license_number?: string | null;
-  is_specialist?: boolean | null;
+  specialist?: DoctorSpecialist | null;
   status?: string | null;
   allow_status?: string | null;
   educations?: string[] | null;
@@ -34,8 +39,6 @@ export type DoctorDetailResponse = {
   profile_image?: DoctorMediaAsset | null;
   license_image?: DoctorMediaAsset | null;
   specialist_certificate_image?: DoctorMediaAsset | null;
-  education_certificate_image?: DoctorMediaAsset[] | null;
-  etc_certificate_image?: DoctorMediaAsset[] | null;
   view_count?: number | null;
   created_at?: string | null;
   updated_at?: string | null;

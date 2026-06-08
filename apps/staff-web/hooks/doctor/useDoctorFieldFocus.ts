@@ -19,11 +19,11 @@ export function useDoctorFieldFocus() {
       return document.querySelector<HTMLElement>('[data-media-collection="profile_image"]');
     }
 
-    if (["license_image", "specialist_certificate_image", "education_certificate_image", "etc_certificate_image"].includes(field)) {
+    if (["license_image", "specialist_certificate_image"].includes(field)) {
       return document.querySelector<HTMLElement>(`[data-field-target="${field}"]`);
     }
 
-    return document.getElementById(field);
+    return document.getElementById(field) ?? document.querySelector<HTMLElement>(`[data-field-target="${field}"]`);
   }, []);
 
   return useFormFieldFocus<DoctorFieldName>({

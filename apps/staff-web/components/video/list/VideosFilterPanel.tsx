@@ -190,7 +190,7 @@ export function VideosFilterPanel({
                     onApplyFilters();
                   }
                 }}
-                placeholder="병의원명, 의료진명, 제목 검색"
+                placeholder="병의원, 의료진, 제목 검색"
                 className="bg-white "
               />
             </div>

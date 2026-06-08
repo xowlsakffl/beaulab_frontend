@@ -4,23 +4,21 @@ import React from "react";
 
 import { Can } from "@/components/common/guard";
 import {
-  DetailCompactMediaCard,
-  DetailEmptyState,
-  DetailImageMediaCard,
-} from "@/components/common/DetailMediaCard";
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
-  getDoctorMediaFilename,
   resolveDoctorMediaUrl,
   type DoctorDetailResponse,
   type DoctorMediaAsset,
 } from "@/lib/doctor/detail";
 import {
   formatCareerPeriod,
-  labelDoctorApprovalStatus,
   labelDoctorGender,
-  labelDoctorOperatingStatus,
+  labelDoctorSpecialistField,
 } from "@/lib/doctor/list";
 import { isApiSuccess } from "@beaulab/types";
 import {
@@ -31,13 +29,12 @@ import {
   CardHeader,
   CardTitle,
   SpinnerBlock,
-  StatusBadge,
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
-const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 ";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
+const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
+const labelClassName = "text-xs font-bold text-gray-800";
+const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 
 export default function DoctorDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -50,6 +47,7 @@ export default function DoctorDetailPageClient() {
   const [detail, setDetail] = React.useState<DoctorDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
 
   const getReturnToPath = React.useCallback(
     (highlightId?: number) =>
@@ -72,6 +70,18 @@ export default function DoctorDetailPageClient() {
       ? `/doctors/${doctorId}/edit?returnTo=${encodeURIComponent(rawReturnTo)}`
       : `/doctors/${doctorId}/edit`;
   }, [doctorId, searchParams]);
+
+  const headerAction = React.useMemo(() => {
+    if (!Number.isFinite(doctorId) || doctorId <= 0) return null;
+
+    return (
+      <Can permission="beaulab.doctor.update">
+        <Button type="button" variant="brand" size="sm" onClick={() => router.push(editPath)}>
+          수정하기
+        </Button>
+      </Can>
+    );
+  }, [doctorId, editPath, router]);
 
   const fetchDoctor = React.useCallback(async () => {
     if (!Number.isFinite(doctorId) || doctorId <= 0) {
@@ -103,6 +113,8 @@ export default function DoctorDetailPageClient() {
     void fetchDoctor();
   }, [fetchDoctor]);
 
+  usePageHeaderExtra(headerAction);
+
   if (isLoading) {
     return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" />;
   }
@@ -127,329 +139,239 @@ export default function DoctorDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.38fr)_minmax(240px,0.62fr)]">
-      <Card as="section" className="min-w-0">
-        <CardHeader className="pb-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="space-y-1">
-              <CardTitle>{detail.name} 상세 정보</CardTitle>
-            </div>
+    <div className="min-w-0 space-y-4">
+      <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
+        <ProfilePhotoCard
+          media={detail.profile_image ?? null}
+          doctorName={detail.name}
+          onPreview={setPreviewMedia}
+        />
+        <DoctorBasicInfoCard detail={detail} onPreview={setPreviewMedia} />
 
-            <div className="flex w-full flex-row gap-2 sm:w-auto">
-              <Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={() => router.push(getReturnToPath())}>
-                목록으로
-              </Button>
-              <Can permission="beaulab.doctor.update">
-                <Button type="button" variant="brand" className="flex-1 sm:flex-none" onClick={() => router.push(editPath)}>
-                  수정하기
-                </Button>
-              </Can>
-            </div>
-          </div>
-        </CardHeader>
-
-        <div className="space-y-10 divide-y divide-gray-200 ">
-          <section className="space-y-6 pb-6">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
-              <p className="text-xs text-gray-500 ">소속 병의원과 의료진 기본 정보를 확인합니다.</p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <DetailField label="소속 병의원" value={detail.hospital_name} />
-              <DetailField label="사업자등록번호" value={detail.hospital_business_number} />
-              <DetailField label="의료진명" value={detail.name} />
-              <DetailField label="성별" value={labelDoctorGender(detail.gender)} />
-              <DetailField label="직책" value={detail.position} />
-              <DetailField label="전문의 여부" value={detail.is_specialist ? "예" : "아니오"} />
-              <DetailField label="경력 시작일" value={detail.career_started_at} />
-              <DetailField label="경력기간" value={formatCareerPeriod(detail.career_started_at)} />
-              <DetailField label="의사면허증 번호" value={detail.license_number} />
-              <DetailField label="조회수" value={formatNumber(detail.view_count)} />
-              <StatusField label="운영 상태" value={detail.status} kind="status" />
-              <StatusField label="검수 상태" value={detail.allow_status} kind="allow_status" />
-              <TagField
-                label="카테고리"
-                items={detail.categories?.map((item) => formatCategoryPath(item.full_path, item.name)) ?? []}
-                className="md:col-span-2"
-              />
-              <DetailField label="등록일" value={formatIsoDate(detail.created_at)} />
-              <DetailField label="수정일" value={formatIsoDate(detail.updated_at)} />
-            </div>
-          </section>
-
-          <section className="space-y-6">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">이력 정보</h3>
-              <p className="text-xs text-gray-500 ">학력, 경력, 활동 정보를 확인합니다.</p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <ListField label="학력 사항" items={detail.educations ?? []} className="md:col-span-2" />
-              <ListField label="경력 사항" items={detail.careers ?? []} className="md:col-span-2" />
-              <ListField label="활동 사항" items={detail.etc_contents ?? []} className="md:col-span-2" />
-            </div>
-          </section>
+        <InfoPanel title="진료분야">
+          <BadgeBlock items={categoryLabels(detail.categories)} />
+        </InfoPanel>
+        <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-3">
+          <InfoPanel title="경력사항">
+            <ListBlock items={detail.careers ?? []} />
+          </InfoPanel>
+          <InfoPanel title="활동사항">
+            <ListBlock items={detail.etc_contents ?? []} />
+          </InfoPanel>
+          <InfoPanel title="학력사항">
+            <ListBlock items={detail.educations ?? []} />
+          </InfoPanel>
         </div>
-      </Card>
+      </section>
 
-      <Card as="aside" className="min-w-0">
-        <CardHeader className="pb-6">
-          <CardTitle>파일 업로드</CardTitle>
-          <CardDescription>프로필 이미지와 각종 증빙 파일을 확인합니다.</CardDescription>
-        </CardHeader>
-
-        <div className="space-y-6">
-          <ProfileMediaSection
-            label="프로필 사진"
-            media={detail.profile_image ?? null}
-            emptyText="업로드한 프로필 이미지가 없습니다."
-          />
-          <DocumentSection
-            label="의사면허증 이미지"
-            items={detail.license_image ? [detail.license_image] : []}
-            emptyText="업로드한 의사면허증 파일이 없습니다."
-          />
-          <DocumentSection
-            label="전문의 증명서 이미지"
-            items={detail.specialist_certificate_image ? [detail.specialist_certificate_image] : []}
-            emptyText="업로드한 전문의 증명서 파일이 없습니다."
-          />
-          <DocumentSection
-            label="졸업/학력 증명서 이미지"
-            items={detail.education_certificate_image ?? []}
-            emptyText="업로드한 학력 증명서 파일이 없습니다."
-          />
-          <DocumentSection
-            label="활동/기타 증명서"
-            items={detail.etc_certificate_image ?? []}
-            emptyText="업로드한 활동/기타 증명서 파일이 없습니다."
-          />
-        </div>
-      </Card>
+      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
 
-function DetailField({
+function ProfilePhotoCard({
+  media,
+  doctorName,
+  onPreview,
+}: {
+  media: DoctorMediaAsset | null;
+  doctorName: string;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
+}) {
+  const mediaUrl = resolveDoctorMediaUrl(media);
+  const isImage = isImageDoctorMedia(media);
+
+  return (
+    <Card className="flex min-h-[18rem] items-center justify-center rounded-xl border border-gray-200 bg-white p-3 xl:h-[18rem]">
+      {mediaUrl ? (
+        <button
+          type="button"
+          onClick={() =>
+            onPreview({
+              url: mediaUrl,
+              title: `${doctorName} 프로필`,
+              isImage,
+            })
+          }
+          className="flex h-full w-full items-center justify-center overflow-hidden rounded-lg bg-white"
+        >
+          {isImage ? (
+            // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
+            <img src={mediaUrl} alt={`${doctorName} 프로필`} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-sm font-medium text-gray-500">프로필 파일</span>
+          )}
+        </button>
+      ) : (
+        <div className="flex h-full w-full items-center justify-center rounded-lg bg-white text-sm font-medium text-gray-400">
+          프로필 사진
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function DoctorBasicInfoCard({
+  detail,
+  onPreview,
+}: {
+  detail: DoctorDetailResponse;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
+}) {
+  return (
+    <Card className={`${infoCardClassName} min-h-[18rem]`}>
+      <div className="grid h-full min-w-0 gap-x-16 gap-y-6 md:grid-cols-2">
+        <div className="space-y-6">
+          <InfoRow label="병의원" value={detail.hospital_name} />
+          <InfoRow label="의료진" value={detail.name} />
+          <InfoRow label="직책" value={detail.position} />
+          <InfoRow label="성별" value={labelDoctorGender(detail.gender)} />
+        </div>
+
+        <div className="space-y-6">
+          <InfoRow label="경력기간" value={formatCareerPeriod(detail.career_started_at)} />
+          <InfoRow
+            label="의사면허 번호"
+            value={detail.license_number}
+            action={<PreviewButton title="의사면허증 이미지" media={detail.license_image ?? null} onPreview={onPreview} />}
+          />
+          <InfoRow
+            label="전문의"
+            value={labelDoctorSpecialistField(detail.specialist?.code, detail.specialist?.label)}
+            action={<PreviewButton title="전문의 증명서 이미지" media={detail.specialist_certificate_image ?? null} onPreview={onPreview} />}
+          />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function InfoRow({
   label,
   value,
-  className,
+  action,
 }: {
   label: string;
   value?: string | number | null;
-  className?: string;
+  action?: React.ReactNode;
 }) {
   const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
 
   return (
-    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
-      <p className={detailLabelClass}>{label}</p>
-      <div className={detailValueClass}>{displayValue}</div>
-    </div>
-  );
-}
-
-function StatusField({
-  label,
-  value,
-  kind,
-}: {
-  label: string;
-  value?: string | null;
-  kind: "status" | "allow_status";
-}) {
-  const labelText = kind === "status" ? labelDoctorOperatingStatus(value) : labelDoctorApprovalStatus(value);
-  const color =
-    value === "ACTIVE" || value === "APPROVED"
-      ? "success"
-      : value === "SUSPENDED" || value === "PENDING"
-        ? "warning"
-        : "error";
-
-  return (
-    <div className={detailItemClass}>
-      <p className={detailLabelClass}>{label}</p>
-      <div className="flex min-h-[28px] min-w-0 items-center">
-        <StatusBadge size="sm" color={color}>
-          {labelText || "-"}
-        </StatusBadge>
+    <div className="grid min-w-0 grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-5">
+      <p className={labelClassName}>{label}</p>
+      <div className="flex min-w-0 items-center gap-2">
+        <p className={`${valueClassName} min-w-0 flex-1`}>{displayValue}</p>
+        {action}
       </div>
     </div>
   );
 }
 
-function TagField({
-  label,
-  items,
-  className,
+function PreviewButton({
+  title,
+  media,
+  onPreview,
 }: {
-  label: string;
-  items: string[];
-  className?: string;
+  title: string;
+  media: DoctorMediaAsset | null;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
+  const mediaUrl = resolveDoctorMediaUrl(media);
+  if (!mediaUrl) return null;
+
   return (
-    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
-      <p className={detailLabelClass}>{label}</p>
-      <div className="flex min-h-[28px] min-w-0 flex-wrap items-center gap-2">
-        {items.length > 0 ? (
-          items.map((item) => (
-            <span
-              key={item}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 break-all  "
-            >
-              {item}
-            </span>
-          ))
-        ) : (
-          <span className="text-sm text-gray-500 ">-</span>
-        )}
-      </div>
-    </div>
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={() =>
+        onPreview({
+          url: mediaUrl,
+          title,
+          isImage: isImageDoctorMedia(media),
+        })
+      }
+      className="h-7 shrink-0 px-2 text-xs"
+    >
+      미리보기
+    </Button>
   );
 }
 
-function ListField({
-  label,
-  items,
-  className,
+function InfoPanel({
+  title,
+  children,
 }: {
-  label: string;
-  items: string[];
-  className?: string;
+  title: string;
+  children: React.ReactNode;
 }) {
+  return (
+    <Card className={`${infoCardClassName} min-h-[12rem]`}>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">{title}</h3>
+      {children}
+    </Card>
+  );
+}
+
+function ListBlock({ items }: { items: string[] }) {
   const normalizedItems = items.map((item) => item.trim()).filter(Boolean);
 
+  if (normalizedItems.length === 0) {
+    return <p className={valueClassName}>-</p>;
+  }
+
   return (
-    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
-      <p className={detailLabelClass}>{label}</p>
-      {normalizedItems.length > 0 ? (
-        <div className="min-w-0 space-y-2">
-          {normalizedItems.map((item, index) => (
-            <div key={`${label}-${index}`} className={detailValueClass}>
-              {item}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-sm leading-6 text-gray-500 ">-</div>
-      )}
+    <div className="space-y-2">
+      {normalizedItems.map((item, index) => (
+        <p key={`${item}-${index}`} className={valueClassName}>
+          {item}
+        </p>
+      ))}
     </div>
   );
 }
 
-function ProfileMediaSection({
-  label,
-  media,
-  emptyText,
-}: {
-  label: string;
-  media: DoctorMediaAsset | null;
-  emptyText: string;
-}) {
-  return (
-    <section className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-800 ">{label}</h3>
+function BadgeBlock({ items }: { items: string[] }) {
+  const normalizedItems = items.map((item) => item.trim()).filter(Boolean);
 
-      {media ? (
-        <ProfileMediaCard media={media} />
-      ) : (
-        <DetailEmptyState>{emptyText}</DetailEmptyState>
-      )}
-    </section>
-  );
-}
-
-function DocumentSection({
-  label,
-  items,
-  emptyText,
-}: {
-  label: string;
-  items: DoctorMediaAsset[];
-  emptyText: string;
-}) {
-  return (
-    <section className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-800 ">{label}</h3>
-
-      {items.length > 0 ? (
-        <div className="space-y-3 pt-2">
-          {items.map((item, index) => (
-            <DocumentCard key={String(item.id ?? `${label}-${index}`)} media={item} />
-          ))}
-        </div>
-      ) : (
-        <DetailEmptyState>{emptyText}</DetailEmptyState>
-      )}
-    </section>
-  );
-}
-
-function ProfileMediaCard({ media }: { media: DoctorMediaAsset }) {
-  const mediaUrl = resolveDoctorMediaUrl(media);
-  const isImage = media.mime_type?.startsWith("image/") ?? false;
-
-  return (
-    <DetailImageMediaCard
-      fileName={getDoctorMediaFilename(media)}
-      fileUrl={mediaUrl}
-      imageUrl={mediaUrl && isImage ? mediaUrl : null}
-      sizeText={media.size ? formatBytes(media.size) : null}
-      className="w-full"
-    />
-  );
-}
-
-function DocumentCard({ media }: { media: DoctorMediaAsset }) {
-  const mediaUrl = resolveDoctorMediaUrl(media);
-
-  return (
-    <DetailCompactMediaCard
-      fileName={getDoctorMediaFilename(media)}
-      fileUrl={mediaUrl}
-      sizeText={media.size ? formatBytes(media.size) : null}
-      previewSizeClassName="h-14 w-14"
-    />
-  );
-}
-
-function formatBytes(bytes: number) {
-  if (!Number.isFinite(bytes)) return "";
-
-  const units = ["B", "KB", "MB", "GB"];
-  let value = bytes;
-  let unitIndex = 0;
-
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
+  if (normalizedItems.length === 0) {
+    return <p className={valueClassName}>-</p>;
   }
 
-  return `${value.toFixed(unitIndex === 0 ? 0 : 2)} ${units[unitIndex]}`;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {normalizedItems.map((item) => (
+        <span
+          key={item}
+          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600"
+        >
+          <span className="line-clamp-1 break-all">{item}</span>
+        </span>
+      ))}
+    </div>
+  );
 }
 
-function formatIsoDate(value?: string | null) {
-  if (!value) return "-";
+function categoryLabels(categories?: Array<{ name?: string | null; full_path?: string | null }> | null) {
+  if (!categories || categories.length === 0) return [];
 
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  const year = parsed.getFullYear();
-  const month = String(parsed.getMonth() + 1).padStart(2, "0");
-  const day = String(parsed.getDate()).padStart(2, "0");
-  const hours = String(parsed.getHours()).padStart(2, "0");
-  const minutes = String(parsed.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
-}
-
-function formatNumber(value?: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "-";
-  return value.toLocaleString();
+  return categories
+    .map((category) => formatCategoryPath(category.full_path, category.name))
+    .filter((item): item is string => Boolean(item && item !== "-"));
 }
 
 function formatCategoryPath(fullPath?: string | null, fallbackName?: string | null) {
   const raw = fullPath?.trim() || fallbackName?.trim() || "-";
-  return raw.replaceAll(" > ", ">");
+  return raw.replace(/\s*>\s*/g, " > ");
+}
+
+function isImageDoctorMedia(media?: DoctorMediaAsset | null) {
+  const mimeType = media?.mime_type?.trim().toLowerCase();
+  if (mimeType) return mimeType.startsWith("image/");
+
+  const mediaUrl = resolveDoctorMediaUrl(media);
+  if (!mediaUrl) return false;
+
+  return /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(mediaUrl.split("?")[0] ?? "");
 }

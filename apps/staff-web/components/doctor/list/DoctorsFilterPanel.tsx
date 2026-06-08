@@ -9,14 +9,16 @@ import {
   CheckboxFilterDropdown,
   DateRangeFilterDropdown,
   InputField,
+  Select,
   SquarePlus,
 } from "@beaulab/ui-admin";
 
 import {
   DATE_PRESET_OPTIONS,
   DOCTOR_APPROVAL_STATUS_OPTIONS,
+  DOCTOR_METRIC_OPTIONS,
   DOCTOR_POSITION_OPTIONS,
-  DOCTOR_STATUS_OPTIONS,
+  DOCTOR_SPECIALIST_FIELD_OPTIONS,
   type DateFilterKey,
   type DatePresetKey,
   type Filters,
@@ -25,30 +27,35 @@ import {
 type DoctorsFilterPanelProps = {
   draftFilters: Filters;
   draftDateRange?: DateRange;
-  draftUpdatedDateRange?: DateRange;
-  isOperatingStatusDropdownOpen: boolean;
   isApprovalStatusDropdownOpen: boolean;
   isPositionDropdownOpen: boolean;
+  isSpecialistFieldDropdownOpen: boolean;
+  isCategoryDropdownOpen: boolean;
   isDatePickerOpen: boolean;
-  isUpdatedDatePickerOpen: boolean;
-  operatingStatusDropdownRef: React.RefObject<HTMLDivElement | null>;
   approvalStatusDropdownRef: React.RefObject<HTMLDivElement | null>;
   positionDropdownRef: React.RefObject<HTMLDivElement | null>;
+  specialistFieldDropdownRef: React.RefObject<HTMLDivElement | null>;
+  categoryDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
-  updatedDatePickerRef: React.RefObject<HTMLDivElement | null>;
+  categoryOptions: { value: string; label: string }[];
   searchInput: string;
   onSearchChange: (value: string) => void;
-  onToggleOperatingStatusDropdown: () => void;
   onToggleApprovalStatusDropdown: () => void;
   onTogglePositionDropdown: () => void;
+  onToggleSpecialistFieldDropdown: () => void;
+  onToggleCategoryDropdown: () => void;
   onToggleDatePicker: () => void;
-  onToggleUpdatedDatePicker: () => void;
-  onToggleOperatingStatus: (value: string) => void;
   onToggleApprovalStatus: (value: string) => void;
   onTogglePosition: (value: string) => void;
-  onToggleAllOperatingStatus: () => void;
+  onToggleSpecialistField: (value: string) => void;
+  onToggleCategory: (value: string) => void;
   onToggleAllApprovalStatus: () => void;
   onToggleAllPosition: () => void;
+  onToggleAllSpecialistField: () => void;
+  onToggleAllCategory: () => void;
+  onMetricChange: (value: string) => void;
+  onMetricMinChange: (value: string) => void;
+  onMetricMaxChange: (value: string) => void;
   onApplyDateRange: (key: DateFilterKey, nextRange?: DateRange) => void;
   onApplyDatePreset: (key: DateFilterKey, preset: DatePresetKey) => void;
   onApplyFilters: () => void;
@@ -58,86 +65,50 @@ type DoctorsFilterPanelProps = {
 export function DoctorsFilterPanel({
   draftFilters,
   draftDateRange,
-  draftUpdatedDateRange,
-  isOperatingStatusDropdownOpen,
   isApprovalStatusDropdownOpen,
   isPositionDropdownOpen,
+  isSpecialistFieldDropdownOpen,
+  isCategoryDropdownOpen,
   isDatePickerOpen,
-  isUpdatedDatePickerOpen,
-  operatingStatusDropdownRef,
   approvalStatusDropdownRef,
   positionDropdownRef,
+  specialistFieldDropdownRef,
+  categoryDropdownRef,
   datePickerRef,
-  updatedDatePickerRef,
+  categoryOptions,
   searchInput,
   onSearchChange,
-  onToggleOperatingStatusDropdown,
   onToggleApprovalStatusDropdown,
   onTogglePositionDropdown,
+  onToggleSpecialistFieldDropdown,
+  onToggleCategoryDropdown,
   onToggleDatePicker,
-  onToggleUpdatedDatePicker,
-  onToggleOperatingStatus,
   onToggleApprovalStatus,
   onTogglePosition,
-  onToggleAllOperatingStatus,
+  onToggleSpecialistField,
+  onToggleCategory,
   onToggleAllApprovalStatus,
   onToggleAllPosition,
+  onToggleAllSpecialistField,
+  onToggleAllCategory,
+  onMetricChange,
+  onMetricMinChange,
+  onMetricMaxChange,
   onApplyDateRange,
   onApplyDatePreset,
   onApplyFilters,
   onResetFilters,
 }: DoctorsFilterPanelProps) {
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
 
   return (
     <Card className="rounded-xl p-3 ">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)]">
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>운영 상태</span>
-          <CheckboxFilterDropdown
-            label="운영 상태"
-            hideLabel
-            containerRef={operatingStatusDropdownRef}
-            selectedValues={draftFilters.operatingStatuses}
-            options={DOCTOR_STATUS_OPTIONS}
-            isOpen={isOperatingStatusDropdownOpen}
-            onToggleOpen={onToggleOperatingStatusDropdown}
-            onToggleValue={onToggleOperatingStatus}
-            onToggleAll={onToggleAllOperatingStatus}
-          />
-        </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>검수 상태</span>
-          <CheckboxFilterDropdown
-            label="검수 상태"
-            hideLabel
-            containerRef={approvalStatusDropdownRef}
-            selectedValues={draftFilters.approvalStatuses}
-            options={DOCTOR_APPROVAL_STATUS_OPTIONS}
-            isOpen={isApprovalStatusDropdownOpen}
-            onToggleOpen={onToggleApprovalStatusDropdown}
-            onToggleValue={onToggleApprovalStatus}
-            onToggleAll={onToggleAllApprovalStatus}
-          />
-        </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>직책</span>
-          <CheckboxFilterDropdown
-            label="직책"
-            hideLabel
-            containerRef={positionDropdownRef}
-            selectedValues={draftFilters.positions}
-            options={DOCTOR_POSITION_OPTIONS}
-            isOpen={isPositionDropdownOpen}
-            onToggleOpen={onTogglePositionDropdown}
-            onToggleValue={onTogglePosition}
-            onToggleAll={onToggleAllPosition}
-          />
-        </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>등록일</span>
+      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(14rem,1.25fr)_minmax(10.5rem,0.9fr)_minmax(10.5rem,0.9fr)_minmax(9.5rem,0.8fr)_minmax(10.5rem,0.9fr)_minmax(24rem,1.8fr)]">
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
-            label="등록일"
+            label="기간"
             hideLabel
             containerRef={datePickerRef}
             value={draftFilters.dateRange}
@@ -155,27 +126,103 @@ export function DoctorsFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
-          <span className={inlineLabelClass}>수정일</span>
-          <DateRangeFilterDropdown
-            label="수정일"
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>전문의</span>
+          <CheckboxFilterDropdown
+            label="전문의"
             hideLabel
-            containerRef={updatedDatePickerRef}
-            value={draftFilters.updatedDateRange}
-            placeholder="수정일 기간 선택"
-            selected={draftUpdatedDateRange}
-            isOpen={isUpdatedDatePickerOpen}
-            presetOptions={DATE_PRESET_OPTIONS}
-            onToggleOpen={onToggleUpdatedDatePicker}
-            onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
-            onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
-            onReset={() => {
-              onApplyDateRange("updated", undefined);
-              onToggleUpdatedDatePicker();
-            }}
-            onConfirm={onToggleUpdatedDatePicker}
+            containerRef={specialistFieldDropdownRef}
+            selectedValues={draftFilters.specialistFields}
+            options={[...DOCTOR_SPECIALIST_FIELD_OPTIONS]}
+            isOpen={isSpecialistFieldDropdownOpen}
+            onToggleOpen={onToggleSpecialistFieldDropdown}
+            onToggleValue={onToggleSpecialistField}
+            onToggleAll={onToggleAllSpecialistField}
           />
         </div>
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>진료분야</span>
+          <CheckboxFilterDropdown
+            label="진료분야"
+            hideLabel
+            containerRef={categoryDropdownRef}
+            selectedValues={draftFilters.categoryIds}
+            options={categoryOptions}
+            isOpen={isCategoryDropdownOpen}
+            onToggleOpen={onToggleCategoryDropdown}
+            onToggleValue={onToggleCategory}
+            onToggleAll={onToggleAllCategory}
+          />
+        </div>
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>직책</span>
+          <CheckboxFilterDropdown
+            label="직책"
+            hideLabel
+            containerRef={positionDropdownRef}
+            selectedValues={draftFilters.positions}
+            options={DOCTOR_POSITION_OPTIONS}
+            isOpen={isPositionDropdownOpen}
+            onToggleOpen={onTogglePositionDropdown}
+            onToggleValue={onTogglePosition}
+            onToggleAll={onToggleAllPosition}
+          />
+        </div>
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>검수상태</span>
+          <CheckboxFilterDropdown
+            label="검수상태"
+            hideLabel
+            containerRef={approvalStatusDropdownRef}
+            selectedValues={draftFilters.approvalStatuses}
+            options={DOCTOR_APPROVAL_STATUS_OPTIONS}
+            isOpen={isApprovalStatusDropdownOpen}
+            onToggleOpen={onToggleApprovalStatusDropdown}
+            onToggleValue={onToggleApprovalStatus}
+            onToggleAll={onToggleAllApprovalStatus}
+          />
+        </div>
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>지표</span>
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
+            <div className="min-w-0 max-sm:col-span-3">
+              <Select
+                value={draftFilters.metric}
+                options={[...DOCTOR_METRIC_OPTIONS]}
+                showPlaceholderOption={false}
+                onChange={onMetricChange}
+                className="h-11 px-3"
+              />
+            </div>
+            <div className="min-w-0">
+              <InputField
+                type="number"
+                min="0"
+                value={draftFilters.metricMin}
+                onChange={(event) => onMetricMinChange(event.target.value.replace(/\D/g, ""))}
+                placeholder="1"
+                className="bg-white px-3"
+              />
+            </div>
+            <span className="text-sm text-gray-400">~</span>
+            <div className="min-w-0">
+              <InputField
+                type="number"
+                min="0"
+                value={draftFilters.metricMax}
+                onChange={(event) => onMetricMaxChange(event.target.value.replace(/\D/g, ""))}
+                placeholder="500"
+                className="bg-white px-3"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <span className={inlineLabelClass}>검색</span>
@@ -189,7 +236,7 @@ export function DoctorsFilterPanel({
                     onApplyFilters();
                   }
                 }}
-                placeholder="소속 병의원, 의료진명, 직책 검색"
+                placeholder="DID, 병의원, 의료진, 면허번호 검색"
                 className="bg-white "
               />
             </div>

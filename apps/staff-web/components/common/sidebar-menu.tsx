@@ -210,7 +210,6 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             name: "회원 관리",
             subItems: [
                 routeSubItem({name: "일반 회원", path: "/users"}),
-                routeSubItem({name: "대행사", path: "/agencies"}),
             ],
         },
         {

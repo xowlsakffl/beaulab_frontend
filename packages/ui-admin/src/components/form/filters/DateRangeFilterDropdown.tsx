@@ -104,7 +104,7 @@ export function DateRangeFilterDropdown({
           <ChevronDown className="size-4" />
         </Button>
         {isOpen ? (
-          <Card className="absolute left-0 z-20 mt-1 max-w-[calc(100vw-2rem)] rounded-lg p-3 shadow-lg   sm:left-auto sm:right-0">
+          <Card className="absolute left-0 z-[100000] mt-1 max-w-[calc(100vw-2rem)] rounded-lg p-3 shadow-lg   sm:left-auto sm:right-0">
             <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3 ">
               {presetOptions.map((preset) => (
                 <Button

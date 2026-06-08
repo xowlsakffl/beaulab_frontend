@@ -20,6 +20,7 @@ import {
   StatusBadge,
 } from "@beaulab/ui-admin";
 
+import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
@@ -437,16 +438,7 @@ function AdminMemoCard({
     <Card>
       <CardHeader className={`${cardHeaderClassName} flex flex-row items-center justify-between`}>
         <CardTitle>관리자 메모</CardTitle>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onOpenNoteModal}
-          aria-label="관리자 메모 추가"
-          className="rounded-full border border-gray-300 bg-white text-[#FA2875] shadow-none hover:border-gray-300 hover:bg-white hover:text-[#FA2875]"
-        >
-          <span className="text-2xl font-light leading-none">+</span>
-        </Button>
+        <AddCircleButton label="관리자 메모 추가" onClick={onOpenNoteModal} />
       </CardHeader>
       <CardContent>
         <div className="max-h-44 overflow-y-auto border-t border-gray-200">

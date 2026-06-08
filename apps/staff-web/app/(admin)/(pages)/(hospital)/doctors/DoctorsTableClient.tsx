@@ -3,20 +3,22 @@
 import { DoctorsDataTable } from "@/components/doctor/list/DoctorsDataTable";
 import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel";
 import { api } from "@/lib/common/api";
+import type { CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_FILTERS,
   DOCTORS_PER_PAGE,
   DOCTOR_APPROVAL_STATUS_OPTIONS,
   DOCTOR_POSITION_OPTIONS,
-  DOCTOR_STATUS_OPTIONS,
-  buildPresetDateRange,
+  DOCTOR_SPECIALIST_FIELD_OPTIONS,
   buildDoctorsQuery,
   buildDoctorsQueryString,
   buildDoctorsReturnToPath,
+  buildPresetDateRange,
+  expandDoctorCategoryIds,
   mapDateRangeToFilter,
   nextSortState,
-  normalizeRangeDate,
   normalizeDoctor,
+  normalizeRangeDate,
   parseDoctorsTableState,
   type DateFilterKey,
   type DatePresetKey,
@@ -31,6 +33,16 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import type { DateRange } from "react-day-picker";
+
+const DOCTOR_CATEGORY_DOMAINS = [
+  "HOSPITAL_REVIEW_SURGERY",
+  "HOSPITAL_REVIEW_TREATMENT",
+] as const;
+
+type CategoryFilterOption = {
+  value: string;
+  label: string;
+};
 
 export default function DoctorsTableClient() {
   const router = useRouter();
@@ -48,18 +60,18 @@ export default function DoctorsTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
-  const [isOperatingStatusDropdownOpen, setIsOperatingStatusDropdownOpen] = React.useState(false);
+  const [categoryOptions, setCategoryOptions] = React.useState<CategoryFilterOption[]>([]);
   const [isApprovalStatusDropdownOpen, setIsApprovalStatusDropdownOpen] = React.useState(false);
   const [isPositionDropdownOpen, setIsPositionDropdownOpen] = React.useState(false);
+  const [isSpecialistFieldDropdownOpen, setIsSpecialistFieldDropdownOpen] = React.useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [isUpdatedDatePickerOpen, setIsUpdatedDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(initialTableState.draftUpdatedDateRange);
-  const operatingStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const approvalStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const positionDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const specialistFieldDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const categoryDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
-  const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
@@ -89,6 +101,48 @@ export default function DoctorsTableClient() {
   const queryString = React.useMemo(() => buildDoctorsQueryString(query), [query]);
   const buildReturnToPath = React.useCallback(() => buildDoctorsReturnToPath(pathname, query), [pathname, query]);
 
+  const fetchCategoryOptions = React.useCallback(async () => {
+    try {
+      const results = await Promise.all(
+        DOCTOR_CATEGORY_DOMAINS.map(async (domain) => {
+          const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+            domain,
+            status: ["ACTIVE"],
+          });
+
+          if (!isApiSuccess(response)) return [];
+
+          return response.data
+            .filter((item) => item.status === "ACTIVE" && item.depth === 1)
+            .map((item) => ({
+              value: String(item.id),
+              label: item.name,
+            }));
+        }),
+      );
+
+      const groupedOptions = results.flat().reduce<Map<string, string[]>>((map, item) => {
+        const label = item.label.trim();
+        if (!label) return map;
+
+        const values = map.get(label) ?? [];
+        values.push(item.value);
+        map.set(label, values);
+
+        return map;
+      }, new Map());
+
+      setCategoryOptions(
+        Array.from(groupedOptions.entries()).map(([label, values]) => ({
+          value: values.join("|"),
+          label,
+        })),
+      );
+    } catch {
+      setCategoryOptions([]);
+    }
+  }, []);
+
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
@@ -109,7 +163,10 @@ export default function DoctorsTableClient() {
       setError(null);
 
       try {
-        const response = await api.get<DoctorApiItem[]>("/doctors", query);
+        const response = await api.get<DoctorApiItem[]>("/doctors", {
+          ...query,
+          category_ids: expandDoctorCategoryIds(query.category_ids),
+        });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "의료진 목록 조회에 실패했습니다.");
           return;
@@ -144,6 +201,10 @@ export default function DoctorsTableClient() {
   }, [fetchDoctors]);
 
   React.useEffect(() => {
+    void fetchCategoryOptions();
+  }, [fetchCategoryOptions]);
+
+  React.useEffect(() => {
     rows.slice(0, DOCTORS_PER_PAGE).forEach((row) => {
       router.prefetch(`/doctors/${row.id}`);
     });
@@ -167,10 +228,6 @@ export default function DoctorsTableClient() {
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
-      if (!operatingStatusDropdownRef.current?.contains(event.target as Node)) {
-        setIsOperatingStatusDropdownOpen(false);
-      }
-
       if (!approvalStatusDropdownRef.current?.contains(event.target as Node)) {
         setIsApprovalStatusDropdownOpen(false);
       }
@@ -179,12 +236,16 @@ export default function DoctorsTableClient() {
         setIsPositionDropdownOpen(false);
       }
 
-      if (!datePickerRef.current?.contains(event.target as Node)) {
-        setIsDatePickerOpen(false);
+      if (!specialistFieldDropdownRef.current?.contains(event.target as Node)) {
+        setIsSpecialistFieldDropdownOpen(false);
       }
 
-      if (!updatedDatePickerRef.current?.contains(event.target as Node)) {
-        setIsUpdatedDatePickerOpen(false);
+      if (!categoryDropdownRef.current?.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+
+      if (!datePickerRef.current?.contains(event.target as Node)) {
+        setIsDatePickerOpen(false);
       }
     };
 
@@ -196,15 +257,16 @@ export default function DoctorsTableClient() {
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
-      operatingStatuses: [...draftFilters.operatingStatuses],
       approvalStatuses: [...draftFilters.approvalStatuses],
       positions: [...draftFilters.positions],
+      specialistFields: [...draftFilters.specialistFields],
+      categoryIds: [...draftFilters.categoryIds],
+      metric: draftFilters.metric,
+      metricMin: draftFilters.metricMin,
+      metricMax: draftFilters.metricMax,
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
-      updatedDateRange: draftFilters.updatedDateRange,
-      updatedStartDate: draftFilters.updatedStartDate,
-      updatedEndDate: draftFilters.updatedEndDate,
     });
   }, [draftFilters, searchInput]);
 
@@ -212,20 +274,19 @@ export default function DoctorsTableClient() {
     setDraftFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
-    setDraftUpdatedDateRange(undefined);
     setSearchInput("");
     setSearchKeyword("");
-    setIsOperatingStatusDropdownOpen(false);
     setIsApprovalStatusDropdownOpen(false);
     setIsPositionDropdownOpen(false);
+    setIsSpecialistFieldDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
     setIsDatePickerOpen(false);
-    setIsUpdatedDatePickerOpen(false);
     setPage(1);
   }, []);
 
   const applyDateRange = React.useCallback(
     (
-      key: DateFilterKey,
+      _key: DateFilterKey,
       nextRange?: DateRange,
       options?: {
         closePicker?: boolean;
@@ -240,32 +301,16 @@ export default function DoctorsTableClient() {
           : undefined;
       const mapped = mapDateRangeToFilter(normalizedRange);
 
-      if (key === "created") {
-        setDraftDateRange(normalizedRange);
-        setDraftFilters((prev) => ({
-          ...prev,
-          dateRange: mapped.label,
-          startDate: mapped.startDate,
-          endDate: mapped.endDate,
-        }));
-
-        if (options?.closePicker) {
-          setIsDatePickerOpen(false);
-        }
-
-        return;
-      }
-
-      setDraftUpdatedDateRange(normalizedRange);
+      setDraftDateRange(normalizedRange);
       setDraftFilters((prev) => ({
         ...prev,
-        updatedDateRange: mapped.label,
-        updatedStartDate: mapped.startDate,
-        updatedEndDate: mapped.endDate,
+        dateRange: mapped.label,
+        startDate: mapped.startDate,
+        endDate: mapped.endDate,
       }));
 
       if (options?.closePicker) {
-        setIsUpdatedDatePickerOpen(false);
+        setIsDatePickerOpen(false);
       }
     },
     [],
@@ -278,19 +323,6 @@ export default function DoctorsTableClient() {
   const toggleSort = React.useCallback((field: SortField) => {
     setPage(1);
     setSortState((prev) => nextSortState(prev, field));
-  }, []);
-
-  const toggleOperatingStatus = React.useCallback((value: string) => {
-    setDraftFilters((prev) => {
-      const exists = prev.operatingStatuses.includes(value);
-
-      return {
-        ...prev,
-        operatingStatuses: exists
-          ? prev.operatingStatuses.filter((item) => item !== value)
-          : [...prev.operatingStatuses, value],
-      };
-    });
   }, []);
 
   const toggleApprovalStatus = React.useCallback((value: string) => {
@@ -319,71 +351,87 @@ export default function DoctorsTableClient() {
     });
   }, []);
 
+  const toggleSpecialistField = React.useCallback((value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.specialistFields.includes(value);
+
+      return {
+        ...prev,
+        specialistFields: exists
+          ? prev.specialistFields.filter((item) => item !== value)
+          : [...prev.specialistFields, value],
+      };
+    });
+  }, []);
+
+  const toggleCategory = React.useCallback((value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev.categoryIds.includes(value);
+
+      return {
+        ...prev,
+        categoryIds: exists
+          ? prev.categoryIds.filter((item) => item !== value)
+          : [...prev.categoryIds, value],
+      };
+    });
+  }, []);
+
+  const closeDropdowns = React.useCallback(() => {
+    setIsApprovalStatusDropdownOpen(false);
+    setIsPositionDropdownOpen(false);
+    setIsSpecialistFieldDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
+    setIsDatePickerOpen(false);
+  }, []);
+
   return (
     <div className="min-w-0 space-y-4">
       <DoctorsFilterPanel
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
-        draftUpdatedDateRange={draftUpdatedDateRange}
-        isOperatingStatusDropdownOpen={isOperatingStatusDropdownOpen}
         isApprovalStatusDropdownOpen={isApprovalStatusDropdownOpen}
         isPositionDropdownOpen={isPositionDropdownOpen}
+        isSpecialistFieldDropdownOpen={isSpecialistFieldDropdownOpen}
+        isCategoryDropdownOpen={isCategoryDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
-        isUpdatedDatePickerOpen={isUpdatedDatePickerOpen}
-        operatingStatusDropdownRef={operatingStatusDropdownRef}
         approvalStatusDropdownRef={approvalStatusDropdownRef}
         positionDropdownRef={positionDropdownRef}
+        specialistFieldDropdownRef={specialistFieldDropdownRef}
+        categoryDropdownRef={categoryDropdownRef}
         datePickerRef={datePickerRef}
-        updatedDatePickerRef={updatedDatePickerRef}
+        categoryOptions={categoryOptions}
         searchInput={searchInput}
         onSearchChange={setSearchInput}
-        onToggleOperatingStatusDropdown={() => {
-          setIsApprovalStatusDropdownOpen(false);
-          setIsPositionDropdownOpen(false);
-          setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen(false);
-          setIsOperatingStatusDropdownOpen((prev) => !prev);
-        }}
         onToggleApprovalStatusDropdown={() => {
-          setIsOperatingStatusDropdownOpen(false);
-          setIsPositionDropdownOpen(false);
-          setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen(false);
-          setIsApprovalStatusDropdownOpen((prev) => !prev);
+          const wasOpen = isApprovalStatusDropdownOpen;
+          closeDropdowns();
+          setIsApprovalStatusDropdownOpen(!wasOpen);
         }}
         onTogglePositionDropdown={() => {
-          setIsOperatingStatusDropdownOpen(false);
-          setIsApprovalStatusDropdownOpen(false);
-          setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen(false);
-          setIsPositionDropdownOpen((prev) => !prev);
+          const wasOpen = isPositionDropdownOpen;
+          closeDropdowns();
+          setIsPositionDropdownOpen(!wasOpen);
+        }}
+        onToggleSpecialistFieldDropdown={() => {
+          const wasOpen = isSpecialistFieldDropdownOpen;
+          closeDropdowns();
+          setIsSpecialistFieldDropdownOpen(!wasOpen);
+        }}
+        onToggleCategoryDropdown={() => {
+          const wasOpen = isCategoryDropdownOpen;
+          closeDropdowns();
+          setIsCategoryDropdownOpen(!wasOpen);
         }}
         onToggleDatePicker={() => {
-          setIsOperatingStatusDropdownOpen(false);
-          setIsApprovalStatusDropdownOpen(false);
-          setIsPositionDropdownOpen(false);
-          setIsUpdatedDatePickerOpen(false);
-          setIsDatePickerOpen((prev) => !prev);
+          const wasOpen = isDatePickerOpen;
+          closeDropdowns();
+          setIsDatePickerOpen(!wasOpen);
         }}
-        onToggleUpdatedDatePicker={() => {
-          setIsOperatingStatusDropdownOpen(false);
-          setIsApprovalStatusDropdownOpen(false);
-          setIsPositionDropdownOpen(false);
-          setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen((prev) => !prev);
-        }}
-        onToggleOperatingStatus={toggleOperatingStatus}
         onToggleApprovalStatus={toggleApprovalStatus}
         onTogglePosition={togglePosition}
-        onToggleAllOperatingStatus={() =>
-          setDraftFilters((prev) => ({
-            ...prev,
-            operatingStatuses:
-              prev.operatingStatuses.length === DOCTOR_STATUS_OPTIONS.length
-                ? []
-                : DOCTOR_STATUS_OPTIONS.map((item) => item.value),
-          }))
-        }
+        onToggleSpecialistField={toggleSpecialistField}
+        onToggleCategory={toggleCategory}
         onToggleAllApprovalStatus={() =>
           setDraftFilters((prev) => ({
             ...prev,
@@ -402,6 +450,27 @@ export default function DoctorsTableClient() {
                 : DOCTOR_POSITION_OPTIONS.map((item) => item.value),
           }))
         }
+        onToggleAllSpecialistField={() =>
+          setDraftFilters((prev) => ({
+            ...prev,
+            specialistFields:
+              prev.specialistFields.length === DOCTOR_SPECIALIST_FIELD_OPTIONS.length
+                ? []
+                : DOCTOR_SPECIALIST_FIELD_OPTIONS.map((item) => item.value),
+          }))
+        }
+        onToggleAllCategory={() =>
+          setDraftFilters((prev) => ({
+            ...prev,
+            categoryIds:
+              prev.categoryIds.length === categoryOptions.length
+                ? []
+                : categoryOptions.map((item) => item.value),
+          }))
+        }
+        onMetricChange={(value) => setDraftFilters((prev) => ({ ...prev, metric: value }))}
+        onMetricMinChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMin: value }))}
+        onMetricMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMax: value }))}
         onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}

@@ -1,19 +1,23 @@
 "use client";
 
 import React from "react";
-import { DayPicker } from "react-day-picker";
+import { DayFlag, DayPicker, SelectionState, UI, getDefaultClassNames } from "react-day-picker";
 import { ko } from "react-day-picker/locale";
 import { ChevronDown } from "../../../icons";
+import { cn } from "../../../lib/utils";
 import Label from "../Label";
 import { Button } from "../../ui/button/Button";
 import { Card } from "../../ui/card/Card";
 
 type SingleDatePickerFieldProps = {
   id: string;
-  label: string;
+  label?: string;
   value: string;
   placeholder?: string;
   error?: string;
+  className?: string;
+  buttonClassName?: string;
+  popoverClassName?: string;
   onChange: (value: string) => void;
 };
 
@@ -44,10 +48,41 @@ export function SingleDatePickerField({
   value,
   placeholder = "날짜를 선택하세요.",
   error,
+  className = "",
+  buttonClassName = "",
+  popoverClassName = "",
   onChange,
 }: SingleDatePickerFieldProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = React.useState(false);
+  const defaultClassNames = React.useMemo(() => getDefaultClassNames(), []);
+  const dayPickerClassNames = React.useMemo(
+    () => ({
+      ...defaultClassNames,
+      [UI.Chevron]: cn(defaultClassNames[UI.Chevron], "fill-brand-500"),
+      [UI.NextMonthButton]: cn(defaultClassNames[UI.NextMonthButton], "rounded-md text-brand-500 hover:bg-brand-50"),
+      [UI.PreviousMonthButton]: cn(defaultClassNames[UI.PreviousMonthButton], "rounded-md text-brand-500 hover:bg-brand-50"),
+      [UI.DayButton]: cn(
+        defaultClassNames[UI.DayButton],
+        "transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300",
+      ),
+      [UI.CaptionLabel]: cn(defaultClassNames[UI.CaptionLabel], "font-semibold text-gray-800"),
+      [UI.Weekday]: cn(defaultClassNames[UI.Weekday], "text-gray-500"),
+      [DayFlag.today]: cn(defaultClassNames[DayFlag.today], "text-brand-600"),
+      [SelectionState.selected]: cn(defaultClassNames[SelectionState.selected], "text-brand-700"),
+    }),
+    [defaultClassNames],
+  );
+  const dayPickerStyles = React.useMemo(
+    () =>
+      ({
+        "--rdp-accent-color": "var(--color-brand-500)",
+        "--rdp-accent-background-color": "var(--color-brand-50)",
+        "--rdp-selected-border": "2px solid var(--color-brand-500)",
+        "--rdp-today-color": "var(--color-brand-600)",
+      }) as React.CSSProperties,
+    [],
+  );
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -66,8 +101,8 @@ export function SingleDatePickerField({
   }, [isOpen]);
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
+    <div className={`space-y-2 ${className}`}>
+      {label ? <Label htmlFor={id}>{label}</Label> : null}
       <div ref={containerRef} className="relative">
         <Button
           id={id}
@@ -75,18 +110,18 @@ export function SingleDatePickerField({
           variant="outline"
           size="default"
           onClick={() => setIsOpen((prev) => !prev)}
-          className={`flex h-11 w-full items-center justify-between rounded-lg border px-3 text-sm ${
+          className={`flex h-11 w-full items-center justify-between rounded-lg border px-3 text-sm shadow-none ${
             error
               ? "border-error-500 text-error-800 "
               : "border-gray-300 text-gray-700  "
-          }`}
+          } ${buttonClassName}`}
         >
           <span>{value || placeholder}</span>
           <ChevronDown className="size-4" />
         </Button>
 
         {isOpen ? (
-          <Card className="absolute left-0 z-20 mt-2 rounded-xl p-3 shadow-lg  ">
+          <Card className={`absolute left-0 z-[100000] mt-2 rounded-xl p-3 shadow-lg  ${popoverClassName}`}>
             <DayPicker
               mode="single"
               locale={ko}
@@ -95,6 +130,8 @@ export function SingleDatePickerField({
               endMonth={endMonth}
               reverseYears
               selected={parseDate(value)}
+              classNames={dayPickerClassNames}
+              style={dayPickerStyles}
               onSelect={(date) => {
                 onChange(date ? formatDate(date) : "");
                 setIsOpen(false);

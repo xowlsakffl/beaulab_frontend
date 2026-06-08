@@ -6,6 +6,7 @@ import {
   type DoctorDetailResponse,
   type DoctorMediaAsset,
 } from "./detail";
+export { DOCTOR_SPECIALIST_FIELD_OPTIONS } from "./list";
 
 export type DoctorHospitalOption = {
   id: number;
@@ -22,7 +23,7 @@ export type DoctorFormValues = {
   position: string;
   career_started_at: string;
   license_number: string;
-  is_specialist: boolean;
+  specialist_field: string;
   status: string;
   allow_status: string;
   category_ids: number[];
@@ -34,9 +35,7 @@ export type DoctorFormValues = {
 export type DoctorMediaField =
   | "profile_image"
   | "license_image"
-  | "specialist_certificate_image"
-  | "education_certificate_image"
-  | "etc_certificate_image";
+  | "specialist_certificate_image";
 
 export type DoctorFieldName = keyof DoctorFormValues | DoctorMediaField;
 export type DoctorFormErrors = Partial<Record<DoctorFieldName, string>>;
@@ -50,7 +49,7 @@ export const INITIAL_DOCTOR_FORM: DoctorFormValues = {
   position: "",
   career_started_at: "",
   license_number: "",
-  is_specialist: false,
+  specialist_field: "NONE",
   status: "SUSPENDED",
   allow_status: "PENDING",
   category_ids: [],
@@ -82,12 +81,6 @@ export const DOCTOR_GENDER_OPTIONS = [
 export const DOCTOR_POSITION_OPTIONS = [
   { value: "대표원장", label: "대표원장" },
   { value: "원장", label: "원장" },
-  { value: "기타", label: "기타" },
-] as const;
-
-export const DOCTOR_SPECIALIST_OPTIONS = [
-  { value: true, label: "예" },
-  { value: false, label: "아니오" },
 ] as const;
 
 export const DOCTOR_STATUS_OPTIONS = [
@@ -111,11 +104,12 @@ export const DOCTOR_PROFILE_COLLECTIONS: readonly MediaCollectionConfig<"profile
     multiple: false,
     maxFiles: 1,
     emptyText: "업로드한 프로필 이미지가 없습니다.",
-    helperText: "jpg, png, webp / 최대 8MB",
+    helperText: "jpg, png, webp / 최대 5MB / 1:1 비율",
   },
 ];
 
 export const FIELD_FOCUS_ORDER: readonly DoctorFieldName[] = [
+  "profile_image",
   "hospital_id",
   "name",
   "gender",
@@ -125,14 +119,12 @@ export const FIELD_FOCUS_ORDER: readonly DoctorFieldName[] = [
   "category_ids",
   "career_started_at",
   "license_number",
-  "profile_image",
+  "specialist_field",
   "license_image",
   "specialist_certificate_image",
-  "education_certificate_image",
   "careers",
   "educations",
   "etc_contents",
-  "etc_certificate_image",
 ] as const;
 
 const FIELD_NAMES: readonly DoctorFieldName[] = [
@@ -144,7 +136,7 @@ const FIELD_NAMES: readonly DoctorFieldName[] = [
   "position",
   "career_started_at",
   "license_number",
-  "is_specialist",
+  "specialist_field",
   "status",
   "allow_status",
   "category_ids",
@@ -154,8 +146,6 @@ const FIELD_NAMES: readonly DoctorFieldName[] = [
   "profile_image",
   "license_image",
   "specialist_certificate_image",
-  "education_certificate_image",
-  "etc_certificate_image",
 ] as const;
 
 export function isDoctorFieldName(value: string): value is DoctorFieldName {
@@ -168,8 +158,6 @@ export function normalizeDoctorErrorField(key: string): DoctorFieldName | null {
   if (key.startsWith("careers")) return "careers";
   if (key.startsWith("etc_contents")) return "etc_contents";
   if (key.startsWith("specialist_certificate_image")) return "specialist_certificate_image";
-  if (key.startsWith("education_certificate_image")) return "education_certificate_image";
-  if (key.startsWith("etc_certificate_image")) return "etc_certificate_image";
   if (isDoctorFieldName(key)) return key;
   return null;
 }
@@ -241,8 +229,8 @@ export function mapDoctorDetailToForm(detail: DoctorDetailResponse): DoctorFormV
     gender: detail.gender?.trim() ?? "",
     position: detail.position?.trim() ?? "",
     career_started_at: detail.career_started_at ?? "",
-    license_number: detail.license_number ?? "",
-    is_specialist: Boolean(detail.is_specialist),
+    license_number: (detail.license_number ?? "").replace(/\D/g, ""),
+    specialist_field: detail.specialist?.code?.trim() || INITIAL_DOCTOR_FORM.specialist_field,
     status: detail.status ?? INITIAL_DOCTOR_FORM.status,
     allow_status: detail.allow_status ?? INITIAL_DOCTOR_FORM.allow_status,
     category_ids: detail.categories?.map((category) => category.id) ?? [],
@@ -275,13 +263,19 @@ function validateDoctorBaseForm(form: DoctorFormValues): DoctorFormErrors {
     nextErrors.category_ids = "주요 시술 분야를 1개 이상 선택해 주세요.";
   }
 
+  if (!form.license_number.trim()) {
+    nextErrors.license_number = "의사면허 번호를 입력해 주세요.";
+  }
+
   return nextErrors;
 }
 
 export function validateCreateDoctorForm({
   form,
+  profileImage,
 }: {
   form: DoctorFormValues;
+  profileImage?: File | null;
 }): DoctorFormErrors {
   const nextErrors = validateDoctorBaseForm(form);
 
@@ -291,6 +285,10 @@ export function validateCreateDoctorForm({
 
   if (!form.allow_status) {
     nextErrors.allow_status = "검수 상태를 선택해 주세요.";
+  }
+
+  if (!profileImage) {
+    nextErrors.profile_image = "프로필 사진을 등록해 주세요.";
   }
 
   return nextErrors;
@@ -298,8 +296,12 @@ export function validateCreateDoctorForm({
 
 export function validateUpdateDoctorForm({
   form,
+  profileImage,
+  existingProfileImage,
 }: {
   form: DoctorFormValues;
+  profileImage?: File | null;
+  existingProfileImage?: ExistingMediaItem | null;
 }): DoctorFormErrors {
   const nextErrors = validateDoctorBaseForm(form);
 
@@ -309,6 +311,10 @@ export function validateUpdateDoctorForm({
 
   if (!form.allow_status) {
     nextErrors.allow_status = "검수 상태를 선택해 주세요.";
+  }
+
+  if (!profileImage && !existingProfileImage) {
+    nextErrors.profile_image = "프로필 사진을 등록해 주세요.";
   }
 
   return nextErrors;

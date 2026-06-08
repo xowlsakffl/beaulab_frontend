@@ -414,16 +414,20 @@ function OperationInfoCard({ detail }: { detail: HospitalDetailResponse }) {
   return (
     <Card className={cardClassName}>
       <h3 className="mb-5 text-sm font-bold text-gray-900">운영정보</h3>
-      <div className="grid gap-x-14 gap-y-4 lg:grid-cols-2">
+      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-2 2xl:grid-cols-[minmax(14rem,0.8fr)_minmax(16rem,1fr)_minmax(18rem,1fr)_minmax(18rem,1fr)]">
         <div className="space-y-4">
-          <InfoField label="분과" value={detail.department_label ?? detail.department} />
-          <BadgeInfoField label="진료과목" items={categoryLabels(detail.categories)} />
-          <BadgeInfoField label="병원정보" items={featureLabels(detail.features)} />
+          <InfoField label="분과" value={detail.department_label ?? detail.department} compact />
+          <BadgeInfoField label="진료과목" items={categoryLabels(detail.categories)} compact />
         </div>
         <div className="space-y-4">
-          <InfoField label="병원소개" value={detail.description} multiline />
-          <InfoField label="진료시간" value={operationHoursSummary(detail)} multiline />
-          <InfoField label="오시는길" value={detail.direction} multiline />
+          <BadgeInfoField label="병의원정보" items={featureLabels(detail.features)} compact />
+        </div>
+        <div className="space-y-4">
+          <InfoField label="병의원소개" value={detail.description} multiline compact />
+        </div>
+        <div className="space-y-4">
+          <InfoField label="진료시간" value={operationHoursSummary(detail)} multiline compact />
+          <InfoField label="오시는길" value={detail.direction} multiline compact />
         </div>
       </div>
     </Card>
@@ -477,7 +481,7 @@ function BadgeInfoField({
           {items.map((item) => (
             <span
               key={item}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200"
+              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600"
             >
               <span className="line-clamp-1 break-all">{item}</span>
             </span>

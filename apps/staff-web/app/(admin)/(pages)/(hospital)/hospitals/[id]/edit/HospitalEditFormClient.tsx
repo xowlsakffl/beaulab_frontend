@@ -65,6 +65,15 @@ export default function HospitalEditFormClient() {
   const rawHospitalId = Array.isArray(params.id) ? params.id[0] : params.id;
   const hospitalId = Number(rawHospitalId);
 
+  const detailPath = React.useMemo(() => {
+    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return "/hospitals";
+
+    const rawReturnTo = searchParams.get("returnTo");
+    return rawReturnTo
+      ? `/hospitals/${hospitalId}?returnTo=${encodeURIComponent(rawReturnTo)}`
+      : `/hospitals/${hospitalId}`;
+  }, [hospitalId, searchParams]);
+
   const [form, setForm] = React.useState<HospitalFormValues>(INITIAL_HOSPITAL_FORM);
   const [logo, setLogo] = React.useState<File | null>(null);
   const [gallery, setGallery] = React.useState<File[]>([]);
@@ -192,7 +201,7 @@ export default function HospitalEditFormClient() {
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      focusFirstErrorField(nextErrors);
+      window.setTimeout(() => focusFirstErrorField(nextErrors), 0);
       return false;
     }
 
@@ -222,7 +231,6 @@ export default function HospitalEditFormClient() {
     formData.append("email", form.email.trim());
     formData.append("allow_status", form.allow_status);
     formData.append("status", form.status);
-    formData.append("status_change_reason", form.statusChangeReason.trim());
     formData.append("business_number", normalizeBusinessNumber(form.business_number));
     formData.append("company_name", form.company_name.trim() || form.name.trim());
     formData.append("ceo_name", form.ceo_name.trim());
@@ -320,7 +328,7 @@ export default function HospitalEditFormClient() {
         title: "병의원 수정 완료",
         message: "수정된 병의원을 목록에서 확인할 수 있습니다.",
       });
-      router.push(getReturnToPath(hospitalId));
+      router.push(detailPath);
     } catch {
       showAlert({
         variant: "error",

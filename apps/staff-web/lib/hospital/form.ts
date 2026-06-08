@@ -19,7 +19,6 @@ export type HospitalFormValues = {
   email: string;
   allow_status: string;
   status: string;
-  statusChangeReason: string;
   address: string;
   address_detail: string;
   latitude: string;
@@ -82,7 +81,6 @@ export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "email",
   "allow_status",
   "status",
-  "statusChangeReason",
   "address",
   "address_detail",
   "latitude",
@@ -131,7 +129,6 @@ export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
   email: "",
   allow_status: "PENDING",
   status: "SUSPENDED",
-  statusChangeReason: "",
   address: "",
   address_detail: "",
   latitude: "",
@@ -211,7 +208,6 @@ export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "name",
   "department",
   "status",
-  "statusChangeReason",
   "allow_status",
   "tel",
   "ad_reception_phone_1",
@@ -255,7 +251,6 @@ export function normalizeErrorField(key: string): HospitalFieldName | null {
   if (key.startsWith("category_ids")) return "category_ids";
   if (key.startsWith("feature_ids")) return "feature_ids";
   if (key.startsWith("operation_hours")) return "operation_hours";
-  if (key === "status_change_reason") return "statusChangeReason";
   if (isFieldName(key)) return key;
   return null;
 }
@@ -310,7 +305,6 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     email: data.email ?? "",
     allow_status: data.allow_status ?? INITIAL_HOSPITAL_FORM.allow_status,
     status: data.status ?? INITIAL_HOSPITAL_FORM.status,
-    statusChangeReason: data.latest_status_history?.reason ?? "",
     address: data.address ?? "",
     address_detail: data.address_detail ?? "",
     latitude: data.latitude !== null && data.latitude !== undefined ? String(data.latitude) : "",
@@ -419,10 +413,6 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (!form.status) {
     nextErrors.status = "상태는 필수 항목입니다.";
-  }
-
-  if ((form.status === "SUSPENDED" || form.status === "WITHDRAWN") && !form.statusChangeReason.trim()) {
-    nextErrors.statusChangeReason = "운영중지 또는 탈퇴 상태에서는 사유를 입력해주세요.";
   }
 
   if (!form.allow_status) {

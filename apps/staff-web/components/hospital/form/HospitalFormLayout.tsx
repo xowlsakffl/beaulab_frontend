@@ -9,6 +9,7 @@ import {
 import {
   Button,
   Card,
+  ChevronDown,
   FormCheckbox,
   FormTextArea,
   InputField,
@@ -21,6 +22,7 @@ import {
   ModalPanel,
   ModalTitle,
   Select,
+  SpinnerBlock,
   X,
   type CategorySelectorItem,
   type CategorySelectorLoadParams,
@@ -51,6 +53,12 @@ import {
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
+const fileSelectButtonClassName = "h-8 px-3 text-xs";
+const HOSPITAL_LOGO_MAX_BYTES = 5 * 1024 * 1024;
+const HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const HOSPITAL_LOGO_VALIDATION_MESSAGE =
+  "로고 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하\n- 이미지 비율: 1:1";
 const HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
 const HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 const HOSPITAL_GALLERY_MAX_BYTES = 10 * 1024 * 1024;
@@ -162,10 +170,11 @@ export function HospitalFormLayout({
             logo={logo}
             existingLogo={existingLogo}
             hospitalName={form.name}
-            error={errors.logo}
-            onChange={onLogoChange}
-            onPreview={setPreviewMedia}
-          />
+          error={errors.logo}
+          onChange={onLogoChange}
+          onPreview={setPreviewMedia}
+          onUploadValidationError={setImageUploadWarning}
+        />
 
           <div className="grid min-w-0 gap-3">
             <HospitalMainInfoEditCard
@@ -226,11 +235,11 @@ export function HospitalFormLayout({
         isOpen={Boolean(imageUploadWarning)}
         onClose={() => setImageUploadWarning(null)}
         showCloseButton={false}
-        className="mx-4 w-full max-w-md"
+        className="mx-4 w-[calc(100%-2rem)] max-w-sm"
       >
         <ModalPanel>
           <ModalHeader className="pr-0">
-            <ModalTitle>이미지 업로드 조건 확인</ModalTitle>
+            <ModalTitle className="text-base">이미지 업로드 조건 확인</ModalTitle>
           </ModalHeader>
           <ModalBody className="mt-5">
             <p className="whitespace-pre-line text-sm font-medium leading-6 text-gray-800">{imageUploadWarning}</p>
@@ -253,6 +262,7 @@ function HospitalLogoEditCard({
   error,
   onChange,
   onPreview,
+  onUploadValidationError,
 }: {
   logo: File | null;
   existingLogo: MediaAsset | null;
@@ -260,6 +270,7 @@ function HospitalLogoEditCard({
   error?: string;
   onChange: (file: File | null) => void;
   onPreview: (preview: HospitalMediaPreviewState) => void;
+  onUploadValidationError: (message: string) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(logo);
@@ -267,21 +278,37 @@ function HospitalLogoEditCard({
   const previewUrl = fileUrl ?? existingUrl;
   const isPreviewImage = logo ? logo.type.startsWith("image/") : isImageMedia(existingLogo);
 
+  const handleSelectFile = async (file: File | null) => {
+    if (!file) return;
+
+    const validationMessage = await validateLogoImageFile(file);
+    if (validationMessage) {
+      onUploadValidationError(validationMessage);
+      return;
+    }
+
+    onChange(file);
+  };
+
   return (
     <Card
       data-media-collection="logo"
       tabIndex={-1}
-      className="flex min-h-[14rem] flex-col items-center justify-center gap-4 rounded-xl border border-gray-200 bg-white p-4"
+      className="flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white p-4"
     >
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
-        onChange={(event) => onChange(event.target.files?.[0] ?? null)}
+        onChange={(event) => {
+          const nextFile = event.target.files?.[0] ?? null;
+          event.currentTarget.value = "";
+          void handleSelectFile(nextFile);
+        }}
       />
-      <div className="flex min-h-[12rem] w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
-        {previewUrl ? (
+      {previewUrl ? (
+        <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
           <button
             type="button"
             className="flex h-full w-full cursor-zoom-in items-center justify-center"
@@ -296,21 +323,31 @@ function HospitalLogoEditCard({
             {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
             <img src={previewUrl} alt={`${hospitalName || "병의원"} 로고`} className="h-full w-full object-cover" />
           </button>
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-              <span className="text-2xl leading-none">+</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-gray-800">로고 이미지를 등록해 주세요.</p>
-              <p className="text-xs text-gray-500">jpg, png, webp 파일을 업로드할 수 있습니다.</p>
-            </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-6 text-center transition-colors hover:border-brand-200 hover:bg-brand-50/30"
+          onClick={() => inputRef.current?.click()}
+        >
+          <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+            <span className="text-2xl leading-none">+</span>
           </div>
-        )}
-      </div>
-      <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
-        {previewUrl ? "이미지 수정하기" : "이미지 등록하기"}
-      </Button>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-gray-800">로고 이미지를 등록해 주세요.</p>
+            <p className="text-xs text-gray-500">jpg, png, webp 파일을 업로드할 수 있습니다.</p>
+          </div>
+        </button>
+      )}
+      {previewUrl ? (
+        <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
+          이미지 수정하기
+        </Button>
+      ) : (
+        <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
+          이미지 등록하기
+        </Button>
+      )}
       {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </Card>
   );
@@ -373,7 +410,7 @@ function HospitalMainInfoEditCard({
             id="name"
             name="name"
             value={form.name}
-            placeholder="병의원명"
+            placeholder="예: 뷰랩성형외과"
             readOnly={!isCreate}
             disabled={!isCreate}
             onChange={(event) => onNameChange?.(event.target.value)}
@@ -387,6 +424,7 @@ function HospitalMainInfoEditCard({
             id="ceo_name"
             name="ceo_name"
             value={form.ceo_name}
+            placeholder="사업자등록증 기준 대표자명을 입력해 주세요."
             onChange={(event) => onFieldChange("ceo_name", event.target.value)}
             error={Boolean(errors.ceo_name)}
             className="h-9 bg-white px-3 py-1.5"
@@ -399,6 +437,7 @@ function HospitalMainInfoEditCard({
                 id="address"
                 name="address"
                 value={form.address}
+                placeholder="주소찾기로 병의원 주소를 선택해 주세요."
                 readOnly
                 onClick={() => void onOpenAddressSearch("address", "address_detail")}
                 error={Boolean(errors.address)}
@@ -418,7 +457,7 @@ function HospitalMainInfoEditCard({
               id="address_detail"
               name="address_detail"
               value={form.address_detail}
-              placeholder="상세주소"
+              placeholder="건물명, 층수, 호수 등 상세주소를 입력해 주세요."
               onChange={(event) => onFieldChange("address_detail", event.target.value)}
               error={Boolean(errors.address_detail)}
               className="h-9 bg-white px-3 py-1.5"
@@ -431,6 +470,7 @@ function HospitalMainInfoEditCard({
             id="tel"
             name="tel"
             value={form.tel}
+            placeholder="대표 전화번호를 입력해 주세요."
             onChange={(event) => onFieldChange("tel", event.target.value)}
             error={Boolean(errors.tel)}
             className="h-9 bg-white px-3 py-1.5"
@@ -442,6 +482,7 @@ function HospitalMainInfoEditCard({
             id="business_number"
             name="business_number"
             value={form.business_number}
+            placeholder="사업자등록번호 10자리를 입력해 주세요."
             onChange={(event) => {
               if (isCreate) {
                 onBusinessNumberChange?.(event.target.value);
@@ -467,6 +508,7 @@ function HospitalMainInfoEditCard({
             id="business_type"
             name="business_type"
             value={form.business_type}
+            placeholder="사업자등록증의 업태를 입력해 주세요."
             onChange={(event) => onFieldChange("business_type", event.target.value)}
             error={Boolean(errors.business_type)}
             className="h-9 bg-white px-3 py-1.5"
@@ -477,6 +519,7 @@ function HospitalMainInfoEditCard({
             id="business_item"
             name="business_item"
             value={form.business_item}
+            placeholder="사업자등록증의 종목을 입력해 주세요."
             onChange={(event) => onFieldChange("business_item", event.target.value)}
             error={Boolean(errors.business_item)}
             className="h-9 bg-white px-3 py-1.5"
@@ -505,6 +548,7 @@ function HospitalBusinessAccountEditCard({
             name="tax_invoice_email"
             type="email"
             value={form.tax_invoice_email}
+            placeholder="세금계산서를 수신할 이메일을 입력해 주세요."
             onChange={(event) => onFieldChange("tax_invoice_email", event.target.value)}
             error={Boolean(errors.tax_invoice_email)}
             className="h-9 bg-white px-3 py-1.5"
@@ -515,7 +559,7 @@ function HospitalBusinessAccountEditCard({
             <Select
               id="settlement_bank_name"
               value={form.settlement_bank_name}
-              placeholder="선택"
+              placeholder="정산은행을 선택해 주세요."
               options={settlementBankOptions}
               onChange={(value) => onFieldChange("settlement_bank_name", value)}
               className="h-9 bg-white px-3 py-1.5"
@@ -524,6 +568,7 @@ function HospitalBusinessAccountEditCard({
               id="settlement_account_number"
               name="settlement_account_number"
               value={form.settlement_account_number}
+              placeholder="정산받을 계좌번호를 입력해 주세요."
               onChange={(event) => onFieldChange("settlement_account_number", event.target.value)}
               error={Boolean(errors.settlement_account_number)}
               className="h-9 bg-white px-3 py-1.5"
@@ -535,6 +580,7 @@ function HospitalBusinessAccountEditCard({
             id="settlement_account_holder"
             name="settlement_account_holder"
             value={form.settlement_account_holder}
+            placeholder="계좌 예금주명을 입력해 주세요."
             onChange={(event) => onFieldChange("settlement_account_holder", event.target.value)}
             error={Boolean(errors.settlement_account_holder)}
             className="h-9 bg-white px-3 py-1.5"
@@ -573,6 +619,7 @@ function HospitalAdReceptionEditCard({
           id="ad_reception_phone_1"
           label="[필수] 담당자1"
           required
+          placeholder="필수 담당자 전화번호를 입력해 주세요."
           value={form.ad_reception_phone_1}
           error={errors.ad_reception_phone_1}
           onChange={(value) => onFieldChange("ad_reception_phone_1", value)}
@@ -580,6 +627,7 @@ function HospitalAdReceptionEditCard({
         <CompactPhoneField
           id="ad_reception_phone_2"
           label="[선택] 담당자2"
+          placeholder="추가 담당자 전화번호를 입력해 주세요."
           value={form.ad_reception_phone_2}
           error={errors.ad_reception_phone_2}
           onChange={(value) => onFieldChange("ad_reception_phone_2", value)}
@@ -587,6 +635,7 @@ function HospitalAdReceptionEditCard({
         <CompactPhoneField
           id="ad_reception_phone_3"
           label="[선택] 담당자3"
+          placeholder="추가 담당자 전화번호를 입력해 주세요."
           value={form.ad_reception_phone_3}
           error={errors.ad_reception_phone_3}
           onChange={(value) => onFieldChange("ad_reception_phone_3", value)}
@@ -645,7 +694,7 @@ function HospitalGalleryEditCard({
           type="button"
           variant="brand"
           size="sm"
-          className="h-8 px-3 text-xs"
+          className={fileSelectButtonClassName}
           disabled={isGalleryFull}
           onClick={openFilePicker}
         >
@@ -732,7 +781,7 @@ function HospitalOperationEditCard({
   return (
     <Card className={cardClassName}>
       <h3 className="mb-5 text-sm font-bold text-gray-900">운영정보</h3>
-      <div className="grid gap-10 xl:grid-cols-[minmax(15rem,0.8fr)_minmax(18rem,1fr)_minmax(20rem,1.2fr)]">
+      <div className="grid gap-10 xl:grid-cols-2 2xl:grid-cols-[minmax(14rem,0.8fr)_minmax(16rem,1fr)_minmax(18rem,1fr)_minmax(24rem,1.3fr)]">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="department">분과</Label>
@@ -740,7 +789,7 @@ function HospitalOperationEditCard({
               id="department"
               name="department"
               value={form.department}
-              placeholder="분과 선택"
+              placeholder="병의원 분과를 선택해 주세요."
               options={HOSPITAL_DEPARTMENT_OPTIONS}
               onChange={(value) => onFieldChange("department", value)}
               className="h-9 bg-white px-3 py-1.5"
@@ -766,21 +815,21 @@ function HospitalOperationEditCard({
           onToggleFeature={onToggleFeature}
         />
 
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="description">병원소개</Label>
-            <FormTextArea
-              id="description"
-              name="description"
-              value={form.description}
-              placeholder="병원소개를 입력해 주세요."
-              onChange={(value) => onFieldChange("description", value)}
-              error={Boolean(errors.description)}
-              hint={errors.description}
-              rows={4}
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">병의원소개</Label>
+          <FormTextArea
+            id="description"
+            name="description"
+            value={form.description}
+            placeholder="병의원 소개를 입력해 주세요."
+            onChange={(value) => onFieldChange("description", value)}
+            error={Boolean(errors.description)}
+            hint={errors.description}
+            rows={9}
+          />
+        </div>
 
+        <div className="space-y-5">
           <div id="operation_hours" className="space-y-2">
             <Label>
               진료시간
@@ -828,7 +877,7 @@ function HospitalOperationEditCard({
               id="direction"
               name="direction"
               value={form.direction}
-              placeholder="오시는 길을 입력해 주세요."
+              placeholder="대중교통, 주차, 건물 위치 등 오시는 길을 입력해 주세요."
               onChange={(value) => onFieldChange("direction", value)}
               error={Boolean(errors.direction)}
               hint={errors.direction}
@@ -855,12 +904,15 @@ function HospitalCategorySelect({
   onToggleCategory: (categoryId: number, checked: boolean) => void;
 }) {
   const [options, setOptions] = React.useState<Array<{ value: string; label: string }>>([]);
-  const [selectedValue, setSelectedValue] = React.useState("");
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
 
+    setIsLoading(true);
     void Promise.all(
       CATEGORY_SECTIONS.map(async (section) => {
         const items = await loadCategories({ section });
@@ -878,12 +930,32 @@ function HospitalCategorySelect({
       .catch(() => {
         if (!isMounted) return;
         setLoadError("진료과목을 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setIsLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
   }, [loadCategories]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isOpen]);
 
   const selectedLabels = selectedIds.map((id) => {
     const option = options.find((item) => item.value === String(id));
@@ -893,42 +965,88 @@ function HospitalCategorySelect({
       label: option?.label ?? fallback?.name ?? String(id),
     };
   });
-
   return (
-    <div className="space-y-2" data-field-target="category_ids" tabIndex={-1}>
-      <Label htmlFor="category_selector">진료과목 <span className="text-xs text-gray-500">(최대 5개)</span></Label>
-      <div className="flex flex-wrap gap-1.5 rounded-xl border border-gray-200 bg-white p-2">
+    <div ref={containerRef} className="space-y-2" data-field-target="category_ids" tabIndex={-1}>
+      <div className="flex items-center justify-between gap-3">
+        <Label htmlFor="category_selector" className="mb-0">
+          진료과목 <span className="text-xs text-gray-500">(최대 {HOSPITAL_CATEGORY_MAX_SELECTION}개)</span>
+        </Label>
+        <span className="text-xs text-gray-500">
+          선택 {selectedIds.length}/{HOSPITAL_CATEGORY_MAX_SELECTION}
+        </span>
+      </div>
+      <div className={["min-h-20 rounded-xl border bg-white p-2", error ? "border-error-500" : "border-gray-200"].join(" ")}>
         {selectedLabels.length > 0 ? (
-          selectedLabels.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onToggleCategory(item.id, false)}
-              className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700"
-            >
-              {item.label}
-              <X className="size-3" />
-            </button>
-          ))
+          <div className="flex flex-wrap gap-2">
+            {selectedLabels.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onToggleCategory(item.id, false)}
+                className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700"
+              >
+                <X className="size-3" />
+                {item.label}
+              </button>
+            ))}
+          </div>
         ) : (
-          <span className="px-1 text-xs text-gray-400">선택된 진료과목 없음</span>
+          <span className="px-1 py-2 text-sm text-gray-400">선택된 진료과목이 없습니다.</span>
         )}
       </div>
-      <Select
-        id="category_selector"
-        value={selectedValue}
-        placeholder="전체"
-        options={options.filter((option) => !selectedIds.includes(Number(option.value)))}
-        onChange={(value) => {
-          const categoryId = Number(value);
-          if (!Number.isFinite(categoryId)) return;
-          if (selectedIds.length >= HOSPITAL_CATEGORY_MAX_SELECTION) return;
-          onToggleCategory(categoryId, true);
-          setSelectedValue("");
-        }}
-        className="h-9 bg-white px-3 py-1.5"
-      />
-      <p className="text-xs text-gray-500">선택 {selectedIds.length}/{HOSPITAL_CATEGORY_MAX_SELECTION}</p>
+      <div className="relative">
+        <button
+          id="category_selector"
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="flex h-9 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700"
+        >
+          전체
+          <ChevronDown className="size-4 text-gray-500" />
+        </button>
+
+        {isOpen ? (
+          <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+            {isLoading ? (
+              <div className="py-5">
+                <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="진료과목 불러오는 중" />
+              </div>
+            ) : options.length === 0 ? (
+              <p className="px-3 py-4 text-sm text-gray-500">선택 가능한 진료과목이 없습니다.</p>
+            ) : (
+              <div className="space-y-1">
+                {options.map((option) => {
+                  const categoryId = Number(option.value);
+                  const isSelected = selectedIds.includes(categoryId);
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        if (!Number.isFinite(categoryId)) return;
+                        if (isSelected) {
+                          onToggleCategory(categoryId, false);
+                          return;
+                        }
+                        if (selectedIds.length >= HOSPITAL_CATEGORY_MAX_SELECTION) return;
+                        onToggleCategory(categoryId, true);
+                      }}
+                      className={[
+                        "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm",
+                        isSelected ? "bg-brand-50 font-semibold text-brand-700" : "text-gray-700 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span>{option.label}</span>
+                      {isSelected ? <span className="text-xs">선택됨</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        ) : null}
+      </div>
       {loadError ? <p className="text-xs text-error-500">{loadError}</p> : null}
       {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </div>
@@ -954,7 +1072,7 @@ function HospitalFeatureCheckboxes({
     <div className="space-y-3" data-field-target="feature_ids" tabIndex={-1}>
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-sm text-gray-900">
-          병원정보
+          병의원정보
           <RequiredMark />
         </p>
         {error ? <p className="text-xs text-error-500">{error}</p> : null}
@@ -1033,14 +1151,21 @@ function BusinessCertificateEditField({
       />
       <div className="min-w-0 space-y-2">
         <div className="flex min-w-0 items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
-            등록
+          <Button
+            type="button"
+            variant="brand"
+            size="sm"
+            className={fileSelectButtonClassName}
+            onClick={() => inputRef.current?.click()}
+          >
+            파일선택
           </Button>
           {previewUrl ? (
             <Button
               type="button"
-              variant="brand"
+              variant="outline"
               size="sm"
+              className={fileSelectButtonClassName}
               onClick={() =>
                 onPreview({
                   url: previewUrl,
@@ -1072,6 +1197,7 @@ function CompactPhoneField({
   required = false,
   value,
   error,
+  placeholder,
   onChange,
 }: {
   id: string;
@@ -1079,6 +1205,7 @@ function CompactPhoneField({
   required?: boolean;
   value: string;
   error?: string;
+  placeholder?: string;
   onChange: (value: string) => void;
 }) {
   return (
@@ -1091,6 +1218,7 @@ function CompactPhoneField({
         id={id}
         name={id}
         value={value}
+        placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         error={Boolean(error)}
         className="h-9 bg-white px-3 py-1.5"
@@ -1172,12 +1300,31 @@ async function validateHospitalGalleryUploadFiles(files: File[]) {
   return null;
 }
 
+async function validateLogoImageFile(file: File) {
+  if (!isValidImageFileType(file, HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS, HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES)) {
+    return HOSPITAL_LOGO_VALIDATION_MESSAGE;
+  }
+
+  if (file.size > HOSPITAL_LOGO_MAX_BYTES) {
+    return HOSPITAL_LOGO_VALIDATION_MESSAGE;
+  }
+
+  const dimensions = await readImageDimensions(file).catch(() => null);
+  if (!dimensions || dimensions.width !== dimensions.height) {
+    return HOSPITAL_LOGO_VALIDATION_MESSAGE;
+  }
+
+  return null;
+}
+
 function isValidHospitalGalleryImageType(file: File) {
+  return isValidImageFileType(file, HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS, HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES);
+}
+
+function isValidImageFileType(file: File, allowedExtensions: string[], allowedMimeTypes: Set<string>) {
   const lowerName = file.name.toLowerCase();
-  const hasAllowedExtension = HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS.some((extension) =>
-    lowerName.endsWith(extension),
-  );
-  const hasAllowedMimeType = !file.type || HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES.has(file.type);
+  const hasAllowedExtension = allowedExtensions.some((extension) => lowerName.endsWith(extension));
+  const hasAllowedMimeType = !file.type || allowedMimeTypes.has(file.type);
 
   return hasAllowedExtension && hasAllowedMimeType;
 }

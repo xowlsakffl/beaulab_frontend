@@ -59,17 +59,27 @@ function buildHospitalColumns({
     },
     {
       key: "name",
-      headerClassName: `${headerBaseClass} lg:w-[140px]`,
-      cellClassName: `${cellBaseClass} lg:w-[140px]`,
+      headerClassName: `${headerBaseClass} lg:w-[170px]`,
+      cellClassName: `${cellBaseClass} lg:w-[170px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("name")} className="inline-flex items-center gap-1 px-0 text-xs">
           병의원 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
         </Button>
       ),
       render: (row) => (
-        <span className="block line-clamp-2 break-words font-medium text-gray-800 " title={row.name}>
-          {row.name}
-        </span>
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 text-[10px] font-semibold text-gray-400">
+            {row.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
+              <img src={row.logoUrl} alt={`${row.name} 로고`} className="h-full w-full object-cover" />
+            ) : (
+              "로고"
+            )}
+          </div>
+          <span className="block min-w-0 flex-1 line-clamp-2 break-words font-medium text-gray-800 " title={row.name}>
+            {row.name}
+          </span>
+        </div>
       ),
     },
     {

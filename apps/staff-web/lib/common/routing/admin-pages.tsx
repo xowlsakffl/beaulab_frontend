@@ -203,11 +203,6 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         group: "회원 관리",
     },
     {
-        slug: ["agencies"],
-        title: "대행사",
-        group: "회원 관리",
-    },
-    {
         slug: ["categories"],
         title: "카테고리",
         group: "카테고리 / 해시태그 관리",

@@ -285,7 +285,6 @@ export default function HospitalsCreateFormClient() {
     formData.append("email", form.email.trim());
     formData.append("allow_status", form.allow_status);
     formData.append("status", form.status);
-    formData.append("status_change_reason", form.statusChangeReason.trim());
     formData.append("business_number", form.business_number.trim());
     formData.append("ceo_name", form.ceo_name.trim());
     formData.append("business_type", form.business_type.trim());

@@ -8,6 +8,11 @@ type MediaAsset = {
   url?: string | null;
 };
 
+export type DoctorSpecialist = {
+  code?: string | null;
+  label?: string | null;
+};
+
 export type DoctorApiItem = {
   id: number;
   hospital_id: number;
@@ -15,14 +20,19 @@ export type DoctorApiItem = {
   name: string;
   gender?: string | null;
   position?: string | null;
-  is_specialist?: boolean;
+  specialist?: DoctorSpecialist | null;
   career_started_at?: string | null;
+  license_number?: string | null;
   allow_status?: string | null;
-  status?: string | null;
-  view_count?: number | null;
+  review_count?: number | null;
+  consultation_count?: number | null;
   created_at?: string | null;
-  updated_at?: string | null;
   profile_image?: MediaAsset | null;
+  categories?: DoctorCategory[] | null;
+};
+
+export type DoctorCategory = {
+  name?: string | null;
 };
 
 export type DoctorRow = {
@@ -31,13 +41,16 @@ export type DoctorRow = {
   name: string;
   genderLabel: string;
   position: string;
-  isSpecialist: boolean;
+  specialistCode: string;
+  specialistLabel: string;
+  licenseNumber: string;
+  categoryNames: string[];
   careerPeriodLabel: string;
+  careerYears: number | null;
   approvalStatus: string;
-  operatingStatus: string;
   createdAt: string;
-  updatedAt: string;
-  viewCount: number;
+  reviewCount: number;
+  consultationCount: number;
   profileImageUrl: string | null;
 };
 
@@ -46,12 +59,12 @@ export type SortField =
   | "name"
   | "gender"
   | "position"
-  | "is_specialist"
-  | "status"
+  | "specialist_field"
   | "allow_status"
-  | "created_at"
-  | "updated_at"
-  | "view_count";
+  | "career_years"
+  | "review_count"
+  | "consultation_count"
+  | "created_at";
 
 export type SortDirection = "asc" | "desc";
 
@@ -63,13 +76,15 @@ export type SortState = {
 
 export type DoctorsQuery = {
   q?: string;
-  status?: string;
   allow_status?: string;
   position?: string;
+  specialist_field?: string;
+  category_ids?: string;
+  metric?: string;
+  metric_min?: number;
+  metric_max?: number;
   start_date?: string;
   end_date?: string;
-  updated_start_date?: string;
-  updated_end_date?: string;
   sort: SortField;
   direction: SortDirection;
   per_page: number;
@@ -77,15 +92,16 @@ export type DoctorsQuery = {
 };
 
 export type Filters = {
-  operatingStatuses: string[];
   approvalStatuses: string[];
   positions: string[];
+  specialistFields: string[];
+  categoryIds: string[];
+  metric: string;
+  metricMin: string;
+  metricMax: string;
   dateRange: string;
   startDate: string;
   endDate: string;
-  updatedDateRange: string;
-  updatedStartDate: string;
-  updatedEndDate: string;
 };
 
 export const DEFAULT_SORT: SortState = {
@@ -95,24 +111,19 @@ export const DEFAULT_SORT: SortState = {
 };
 
 export const DEFAULT_FILTERS: Filters = {
-  operatingStatuses: [],
   approvalStatuses: [],
   positions: [],
+  specialistFields: [],
+  categoryIds: [],
+  metric: "",
+  metricMin: "",
+  metricMax: "",
   dateRange: "",
   startDate: "",
   endDate: "",
-  updatedDateRange: "",
-  updatedStartDate: "",
-  updatedEndDate: "",
 };
 
 export const DOCTORS_PER_PAGE = 10;
-
-export const DOCTOR_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "ACTIVE", label: "정상" },
-  { value: "SUSPENDED", label: "정지" },
-  { value: "INACTIVE", label: "비활성" },
-];
 
 export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "PENDING", label: "검수 대기" },
@@ -123,8 +134,47 @@ export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
 export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
   { value: "대표원장", label: "대표원장" },
   { value: "원장", label: "원장" },
-  { value: "기타", label: "기타" },
 ];
+
+export const DOCTOR_METRIC_OPTIONS = [
+  { value: "", label: "선택" },
+  { value: "career_years", label: "경력기간" },
+  { value: "review_count", label: "후기수" },
+  { value: "consultation_count", label: "상담수" },
+] as const;
+
+export const DOCTOR_SPECIALIST_FIELD_OPTIONS = [
+  { value: "NONE", label: "선택안함" },
+  { value: "PLASTIC_SURGERY", label: "성형외과" },
+  { value: "SURGERY", label: "외과" },
+  { value: "OTOLARYNGOLOGY", label: "이비인후과" },
+  { value: "FAMILY_MEDICINE", label: "가정의학과" },
+  { value: "OBSTETRICS_GYNECOLOGY", label: "산부인과" },
+  { value: "ORAL_MAXILLOFACIAL_SURGERY", label: "구강악안면외과" },
+  { value: "ANESTHESIOLOGY_PAIN_MEDICINE", label: "마취통증의학과" },
+  { value: "KOREAN_MEDICINE", label: "한의학과" },
+  { value: "DENTISTRY", label: "치과" },
+  { value: "ORTHODONTICS", label: "치과교정과" },
+  { value: "DERMATOLOGY", label: "피부과" },
+  { value: "OPHTHALMOLOGY", label: "안과" },
+  { value: "INTERNAL_MEDICINE", label: "내과" },
+  { value: "NEUROLOGY", label: "신경과" },
+  { value: "ORTHOPEDICS", label: "정형외과" },
+  { value: "NEUROSURGERY", label: "신경외과" },
+  { value: "THORACIC_SURGERY", label: "흉부외과" },
+  { value: "PEDIATRICS", label: "소아청소년과" },
+  { value: "UROLOGY", label: "비뇨의학과" },
+  { value: "RADIOLOGY", label: "영상의학과" },
+  { value: "EMERGENCY_MEDICINE", label: "응급의학과" },
+  { value: "REHABILITATION_MEDICINE", label: "재활의학과" },
+  { value: "PROSTHODONTICS", label: "치과보철과" },
+  { value: "PERIODONTICS", label: "치주과" },
+  { value: "INTEGRATED_DENTISTRY", label: "통합치의학과" },
+  { value: "PATHOLOGY", label: "병리과" },
+  { value: "OCCUPATIONAL_ENVIRONMENTAL_MEDICINE", label: "직업환경의학과" },
+  { value: "CONSERVATIVE_DENTISTRY", label: "치과보존과" },
+  { value: "OTHER", label: "기타" },
+] as const satisfies readonly CheckboxFilterOption[];
 
 export const DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
@@ -134,7 +184,7 @@ export const DATE_PRESET_OPTIONS = [
 ] as const satisfies readonly DatePresetOption[];
 
 export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
-export type DateFilterKey = "created" | "updated";
+export type DateFilterKey = "created";
 
 export function formatLocalDate(date: Date) {
   const year = date.getFullYear();
@@ -285,6 +335,24 @@ export function formatCareerPeriod(careerStartedAt?: string | null, now = new Da
   return `${years}년 ${months}개월`;
 }
 
+export function calculateCareerYears(careerStartedAt?: string | null, now = new Date()) {
+  if (!careerStartedAt) return null;
+
+  const startedAt = parseLocalDate(careerStartedAt);
+  if (!startedAt) return null;
+
+  let years = now.getFullYear() - startedAt.getFullYear();
+  const hasNotReachedAnniversary =
+    now.getMonth() < startedAt.getMonth() ||
+    (now.getMonth() === startedAt.getMonth() && now.getDate() < startedAt.getDate());
+
+  if (hasNotReachedAnniversary) {
+    years -= 1;
+  }
+
+  return Math.max(years, 0);
+}
+
 export function labelDoctorGender(gender?: string | null) {
   if (!gender) return "-";
 
@@ -312,20 +380,37 @@ export function labelDoctorOperatingStatus(status?: string | null) {
   return status || "-";
 }
 
+export function labelDoctorSpecialistField(code?: string | null, label?: string | null) {
+  const trimmedLabel = label?.trim();
+  if (trimmedLabel) return trimmedLabel;
+
+  const matchedOption = DOCTOR_SPECIALIST_FIELD_OPTIONS.find((option) => option.value === code);
+  return matchedOption?.label ?? code ?? "-";
+}
+
 export function normalizeDoctor(item: DoctorApiItem): DoctorRow {
+  const specialistCode = item.specialist?.code?.trim() || "NONE";
+  const categoryNames = (item.categories ?? [])
+    .map((category) => category.name?.trim())
+    .filter((name): name is string => Boolean(name))
+    .filter((name, index, array) => array.indexOf(name) === index);
+
   return {
     id: item.id,
     hospitalName: item.hospital_name?.trim() || "-",
     name: item.name,
     genderLabel: labelDoctorGender(item.gender),
     position: item.position?.trim() || "-",
-    isSpecialist: Boolean(item.is_specialist),
+    specialistCode,
+    specialistLabel: labelDoctorSpecialistField(specialistCode, item.specialist?.label),
+    licenseNumber: item.license_number?.trim() || "-",
+    categoryNames,
     careerPeriodLabel: formatCareerPeriod(item.career_started_at),
+    careerYears: calculateCareerYears(item.career_started_at),
     approvalStatus: item.allow_status || "",
-    operatingStatus: item.status || "",
     createdAt: formatDateValue(item.created_at),
-    updatedAt: formatDateValue(item.updated_at),
-    viewCount: Number(item.view_count ?? 0),
+    reviewCount: Number(item.review_count ?? 0),
+    consultationCount: Number(item.consultation_count ?? 0),
     profileImageUrl: resolveMediaUrl(item.profile_image),
   };
 }
@@ -345,10 +430,6 @@ export function nextSortState(prev: SortState, field: SortField): SortState {
 }
 
 export function parseDoctorsTableState(searchParams: URLSearchParams) {
-  const operatingStatuses = (searchParams.get("status") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
   const approvalStatuses = (searchParams.get("allow_status") ?? "")
     .split(",")
     .map((value) => value.trim())
@@ -357,12 +438,22 @@ export function parseDoctorsTableState(searchParams: URLSearchParams) {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
+  const specialistFields = (searchParams.get("specialist_field") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const categoryIds = (searchParams.get("category_ids") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const metricParam = searchParams.get("metric")?.trim() ?? "";
+  const allowedMetrics = new Set(DOCTOR_METRIC_OPTIONS.map((option) => option.value));
+  const metric = allowedMetrics.has(metricParam as (typeof DOCTOR_METRIC_OPTIONS)[number]["value"]) ? metricParam : "";
+  const metricMin = searchParams.get("metric_min")?.trim() ?? "";
+  const metricMax = searchParams.get("metric_max")?.trim() ?? "";
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
-  const updatedStartDate = searchParams.get("updated_start_date") ?? "";
-  const updatedEndDate = searchParams.get("updated_end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
-  const updatedDateState = buildFilterDateState(updatedStartDate, updatedEndDate);
   const perPage = DOCTORS_PER_PAGE;
 
   const parsedPage = Number(searchParams.get("page"));
@@ -373,12 +464,12 @@ export function parseDoctorsTableState(searchParams: URLSearchParams) {
     "name",
     "gender",
     "position",
-    "is_specialist",
-    "status",
+    "specialist_field",
     "allow_status",
+    "career_years",
+    "review_count",
+    "consultation_count",
     "created_at",
-    "updated_at",
-    "view_count",
   ]);
 
   const sortFieldParam = searchParams.get("sort");
@@ -391,18 +482,18 @@ export function parseDoctorsTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      operatingStatuses,
       approvalStatuses,
       positions,
+      specialistFields,
+      categoryIds,
+      metric,
+      metricMin,
+      metricMax,
       dateRange: createdDateState.label,
       startDate,
       endDate,
-      updatedDateRange: updatedDateState.label,
-      updatedStartDate,
-      updatedEndDate,
     },
     draftDateRange: createdDateState.range,
-    draftUpdatedDateRange: updatedDateState.range,
     sortState: {
       field: sortField,
       direction: sortDirection,
@@ -435,28 +526,46 @@ export function buildDoctorsQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
-  if (appliedFilters.operatingStatuses.length > 0) query.status = appliedFilters.operatingStatuses.join(",");
   if (appliedFilters.approvalStatuses.length > 0) query.allow_status = appliedFilters.approvalStatuses.join(",");
   if (appliedFilters.positions.length > 0) query.position = appliedFilters.positions.join(",");
+  if (appliedFilters.specialistFields.length > 0) query.specialist_field = appliedFilters.specialistFields.join(",");
+  if (appliedFilters.categoryIds.length > 0) query.category_ids = appliedFilters.categoryIds.join(",");
+  if (appliedFilters.metric) {
+    query.metric = appliedFilters.metric;
+    if (appliedFilters.metricMin.trim()) query.metric_min = Number(appliedFilters.metricMin);
+    if (appliedFilters.metricMax.trim()) query.metric_max = Number(appliedFilters.metricMax);
+  }
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
-  if (appliedFilters.updatedStartDate) query.updated_start_date = appliedFilters.updatedStartDate;
-  if (appliedFilters.updatedEndDate) query.updated_end_date = appliedFilters.updatedEndDate;
 
   return query;
+}
+
+export function expandDoctorCategoryIds(value?: string) {
+  if (!value) return undefined;
+
+  const categoryIds = value
+    .split(",")
+    .flatMap((item) => item.split("|"))
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return categoryIds.length > 0 ? categoryIds.join(",") : undefined;
 }
 
 export function buildDoctorsQueryString(query: DoctorsQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
-  if (query.status) params.set("status", query.status);
   if (query.allow_status) params.set("allow_status", query.allow_status);
   if (query.position) params.set("position", query.position);
+  if (query.specialist_field) params.set("specialist_field", query.specialist_field);
+  if (query.category_ids) params.set("category_ids", query.category_ids);
+  if (query.metric) params.set("metric", query.metric);
+  if (query.metric_min !== undefined) params.set("metric_min", String(query.metric_min));
+  if (query.metric_max !== undefined) params.set("metric_max", String(query.metric_max));
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.updated_start_date) params.set("updated_start_date", query.updated_start_date);
-  if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
   if (query.per_page !== DOCTORS_PER_PAGE) params.set("per_page", String(query.per_page));
