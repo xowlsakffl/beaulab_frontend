@@ -5,16 +5,17 @@ import type { DateRange } from "react-day-picker";
 import {
   Button,
   Card,
+  CheckboxFilterDropdown,
   DateRangeFilterDropdown,
   InputField,
   Select,
+  type CheckboxFilterOption,
 } from "@beaulab/ui-admin";
 
 import {
   HOSPITAL_EVALUATION_DATE_PRESET_OPTIONS,
   HOSPITAL_EVALUATION_RATING_OPTIONS,
   HOSPITAL_EVALUATION_REPORT_STATUS_OPTIONS,
-  HOSPITAL_EVALUATION_REVIEW_TYPE_OPTIONS,
   HOSPITAL_EVALUATION_VISIBILITY_OPTIONS,
   type HospitalEvaluationDatePresetKey,
   type HospitalEvaluationFilters,
@@ -23,15 +24,20 @@ import {
 type HospitalEvaluationsFilterPanelProps = {
   searchInput: string;
   draftFilters: HospitalEvaluationFilters;
+  reviewTypeOptions: CheckboxFilterOption[];
   draftDateRange?: DateRange;
+  isReviewTypeDropdownOpen: boolean;
   isDatePickerOpen: boolean;
+  reviewTypeDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
+  onToggleReviewTypeDropdown: () => void;
   onToggleDatePicker: () => void;
   onVisibilityChange: (value: string) => void;
   onReportStatusChange: (value: string) => void;
   onRatingChange: (value: string) => void;
-  onReviewTypeChange: (value: string) => void;
+  onToggleReviewType: (value: string) => void;
+  onToggleAllReviewType: () => void;
   onCostMinChange: (value: string) => void;
   onCostMaxChange: (value: string) => void;
   onViewCountMinChange: (value: string) => void;
@@ -45,15 +51,20 @@ type HospitalEvaluationsFilterPanelProps = {
 export function HospitalEvaluationsFilterPanel({
   searchInput,
   draftFilters,
+  reviewTypeOptions,
   draftDateRange,
+  isReviewTypeDropdownOpen,
   isDatePickerOpen,
+  reviewTypeDropdownRef,
   datePickerRef,
   onSearchChange,
+  onToggleReviewTypeDropdown,
   onToggleDatePicker,
   onVisibilityChange,
   onReportStatusChange,
   onRatingChange,
-  onReviewTypeChange,
+  onToggleReviewType,
+  onToggleAllReviewType,
   onCostMinChange,
   onCostMaxChange,
   onViewCountMinChange,
@@ -193,15 +204,18 @@ export function HospitalEvaluationsFilterPanel({
         <div className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,3.2fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>후기유형</span>
-            <div className="min-w-0 flex-1">
-              <Select
-                value={draftFilters.reviewType}
-                options={HOSPITAL_EVALUATION_REVIEW_TYPE_OPTIONS}
-                showPlaceholderOption={false}
-                onChange={onReviewTypeChange}
-                className="h-11 px-3"
-              />
-            </div>
+            <CheckboxFilterDropdown
+              label="후기유형"
+              hideLabel
+              containerRef={reviewTypeDropdownRef}
+              selectedValues={draftFilters.categoryIds}
+              options={reviewTypeOptions}
+              isOpen={isReviewTypeDropdownOpen}
+              onToggleOpen={onToggleReviewTypeDropdown}
+              onToggleValue={onToggleReviewType}
+              onToggleAll={onToggleAllReviewType}
+              emptyLabel="전체"
+            />
           </div>
 
           <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center xl:pl-2">
@@ -212,7 +226,7 @@ export function HospitalEvaluationsFilterPanel({
                   value={searchInput}
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
-                  placeholder="후기ID, 병의원명, 전화번호 등을 입력해주세요"
+                  placeholder="평가ID, 병의원명, 전화번호 등을 입력해주세요"
                   className="bg-white "
                 />
               </div>

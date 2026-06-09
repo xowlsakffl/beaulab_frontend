@@ -156,16 +156,10 @@ export const HOSPITAL_CATEGORY_MAX_SELECTION = 5;
 
 export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
-    key: "surgery",
-    label: "성형",
-    domain: "HOSPITAL_REVIEW_SURGERY",
-    searchPlaceholder: "대분류명을 입력해주세요. (ex. 눈, 코)",
-  },
-  {
-    key: "treatment",
-    label: "쁘띠/피부",
-    domain: "HOSPITAL_REVIEW_TREATMENT",
-    searchPlaceholder: "대분류명을 입력해주세요. (ex. 인모드)",
+    key: "medical-subject",
+    label: "진료과목",
+    domain: "HOSPITAL_DOCTER",
+    searchPlaceholder: "진료과목명을 입력해주세요. (ex. 눈, 피부)",
   },
 ];
 

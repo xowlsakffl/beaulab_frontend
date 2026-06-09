@@ -35,8 +35,7 @@ import React from "react";
 import type { DateRange } from "react-day-picker";
 
 const DOCTOR_CATEGORY_DOMAINS = [
-  "HOSPITAL_REVIEW_SURGERY",
-  "HOSPITAL_REVIEW_TREATMENT",
+  "HOSPITAL_DOCTER",
 ] as const;
 
 type CategoryFilterOption = {

@@ -3,6 +3,7 @@ import type { CategorySelectorItem } from "@beaulab/ui-admin";
 export type CategoryApiItem = {
   id: number;
   name: string;
+  code?: string | null;
   full_path?: string | null;
   parent_id?: number | null;
   depth: number;

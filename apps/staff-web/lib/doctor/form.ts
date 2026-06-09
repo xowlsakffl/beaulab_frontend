@@ -62,16 +62,10 @@ export const INITIAL_DOCTOR_FORM: DoctorFormValues = {
 
 export const DOCTOR_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
-    key: "surgery",
-    label: "성형",
-    domain: "HOSPITAL_REVIEW_SURGERY",
-    searchPlaceholder: "카테고리명을 입력해주세요. (ex. 눈, 코)",
-  },
-  {
-    key: "treatment",
-    label: "쁘띠/피부",
-    domain: "HOSPITAL_REVIEW_TREATMENT",
-    searchPlaceholder: "카테고리명을 입력해주세요. (ex. 인모드)",
+    key: "doctor-specialty",
+    label: "진료분야",
+    domain: "HOSPITAL_DOCTER",
+    searchPlaceholder: "진료분야명을 입력해주세요. (ex. 눈, 피부)",
   },
 ];
 

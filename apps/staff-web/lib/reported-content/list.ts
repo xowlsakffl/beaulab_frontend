@@ -16,8 +16,8 @@ import {
 import {
   formatHospitalEvaluationAuthorName,
   formatHospitalEvaluationDate,
-  labelHospitalEvaluationReviewType,
   type HospitalEvaluationApiItem,
+  type HospitalEvaluationCategory,
 } from "@/lib/hospital-evaluation/list";
 import {
   type TalkCommentApiItem,
@@ -644,7 +644,7 @@ function normalizeReportedEvaluation(
     id,
     chatRoomId: null,
     createdAt: formatHospitalEvaluationDate(target?.created_at),
-    categoryLabel: labelHospitalEvaluationReviewType(target?.category_domain),
+    categoryLabel: labelHospitalEvaluationCategory(target?.categories),
     image: null,
     imageCount: 0,
     nickname: formatHospitalEvaluationAuthorName(target?.author),
@@ -665,6 +665,12 @@ function normalizeReportedEvaluation(
     hasIgnoredWarning: Boolean(report?.warning_ignored),
     detailPath: config.detailPath(id),
   };
+}
+
+function labelHospitalEvaluationCategory(categories?: HospitalEvaluationCategory[] | null) {
+  const category = categories?.find((candidate) => candidate.is_primary) ?? categories?.[0];
+
+  return category?.name?.trim() || category?.full_path?.trim() || "-";
 }
 
 function normalizeReportedTalk(

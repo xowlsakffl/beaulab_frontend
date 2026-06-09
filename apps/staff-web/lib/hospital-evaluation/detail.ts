@@ -5,7 +5,6 @@ import {
   formatHospitalEvaluationAuthorName,
   formatHospitalEvaluationCost,
   formatHospitalEvaluationRating,
-  labelHospitalEvaluationReviewType,
   labelHospitalEvaluationVisibilityStatus,
   type HospitalEvaluationAuthor,
   type HospitalEvaluationCategory,
@@ -83,7 +82,6 @@ export type HospitalEvaluationDetailResponse = {
   doctor?: HospitalEvaluationDoctor | null;
   categories?: HospitalEvaluationCategory[] | null;
   report?: ContentReportSummary | null;
-  category_domain?: string | null;
   content?: string | null;
   phone?: string | null;
   author_ip?: string | null;
@@ -177,12 +175,14 @@ export function formatHospitalEvaluationAverageRating(value?: number | null) {
   return Number(value ?? 0).toFixed(1);
 }
 
-export function labelHospitalEvaluationDetailReviewType(domain?: string | null) {
-  return labelHospitalEvaluationReviewType(domain);
+export function labelHospitalEvaluationDetailReviewType(categories?: HospitalEvaluationCategory[] | null) {
+  const category = categories?.find((candidate) => candidate.is_primary) ?? categories?.[0];
+
+  return category?.name?.trim() || category?.full_path?.trim() || "-";
 }
 
-export function titleHospitalEvaluationDetailReviewType(domain?: string | null) {
-  const label = labelHospitalEvaluationDetailReviewType(domain);
+export function titleHospitalEvaluationDetailReviewType(categories?: HospitalEvaluationCategory[] | null) {
+  const label = labelHospitalEvaluationDetailReviewType(categories);
   if (label === "-") return "병의원 후기 평가";
 
   return `${label.replace(/후기$/, "").trim()} 후기 평가`;

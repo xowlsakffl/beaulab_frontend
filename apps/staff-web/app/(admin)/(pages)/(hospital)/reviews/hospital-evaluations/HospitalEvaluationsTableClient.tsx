@@ -13,12 +13,14 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
+  type CheckboxFilterOption,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { HospitalEvaluationsDataTable } from "@/components/hospital-evaluation/list/HospitalEvaluationsDataTable";
 import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation/list/HospitalEvaluationsFilterPanel";
 import { api } from "@/lib/common/api";
+import type { CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_HOSPITAL_EVALUATION_FILTERS,
   DEFAULT_HOSPITAL_EVALUATION_SORT,
@@ -72,6 +74,7 @@ export function HospitalEvaluationsTableClient() {
   const initialTableState = initialTableStateRef.current;
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
+  const [isReviewTypeDropdownOpen, setIsReviewTypeDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
   const [draftFilters, setDraftFilters] = React.useState<HospitalEvaluationFilters>(initialTableState.filters);
@@ -88,6 +91,8 @@ export function HospitalEvaluationsTableClient() {
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
+  const [reviewTypeOptions, setReviewTypeOptions] = React.useState<CheckboxFilterOption[]>([]);
+  const reviewTypeDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const query = React.useMemo(
@@ -102,6 +107,41 @@ export function HospitalEvaluationsTableClient() {
   );
 
   const queryString = React.useMemo(() => buildHospitalEvaluationsQueryString(query), [query]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function fetchReviewTypeOptions() {
+      try {
+        const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+          domain: "HOSPITAL_EVALUATION",
+          status: ["ACTIVE"],
+          per_page: 10,
+        });
+
+        if (!isApiSuccess(response)) {
+          throw new Error(response.error.message || "후기유형 필터를 불러오지 못했습니다.");
+        }
+
+        if (cancelled) return;
+
+        setReviewTypeOptions(response.data.map((item) => ({
+          value: String(item.id),
+          label: item.name,
+        })));
+      } catch {
+        if (!cancelled) {
+          setReviewTypeOptions([]);
+        }
+      }
+    }
+
+    void fetchReviewTypeOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -162,6 +202,10 @@ export function HospitalEvaluationsTableClient() {
     const onOutsideClick = (event: MouseEvent) => {
       const target = event.target as Node;
 
+      if (!reviewTypeDropdownRef.current?.contains(target)) {
+        setIsReviewTypeDropdownOpen(false);
+      }
+
       if (!datePickerRef.current?.contains(target)) {
         setIsDatePickerOpen(false);
       }
@@ -185,6 +229,7 @@ export function HospitalEvaluationsTableClient() {
     setDraftFilters(DEFAULT_HOSPITAL_EVALUATION_FILTERS);
     setAppliedFilters(DEFAULT_HOSPITAL_EVALUATION_FILTERS);
     setSortState(DEFAULT_HOSPITAL_EVALUATION_SORT);
+    setIsReviewTypeDropdownOpen(false);
     setIsDatePickerOpen(false);
     setPage(1);
     setSelectedIds(new Set());
@@ -205,6 +250,25 @@ export function HospitalEvaluationsTableClient() {
   const applyDatePreset = React.useCallback((preset: HospitalEvaluationDatePresetKey) => {
     applyDateRange(buildHospitalEvaluationPresetDateRange(preset));
   }, [applyDateRange]);
+
+  const toggleReviewType = React.useCallback((value: string) => {
+    setDraftFilters((prev) => {
+      const selected = new Set(prev.categoryIds);
+      if (selected.has(value)) selected.delete(value);
+      else selected.add(value);
+
+      return { ...prev, categoryIds: Array.from(selected) };
+    });
+  }, []);
+
+  const toggleAllReviewTypes = React.useCallback(() => {
+    setDraftFilters((prev) => {
+      const allValues = reviewTypeOptions.map((option) => option.value);
+      const isAllSelected = allValues.length > 0 && allValues.every((value) => prev.categoryIds.includes(value));
+
+      return { ...prev, categoryIds: isAllSelected ? [] : allValues };
+    });
+  }, [reviewTypeOptions]);
 
   const toggleSort = React.useCallback((field: HospitalEvaluationSortField) => {
     setSortState((prev) => nextHospitalEvaluationSortState(prev, field));
@@ -356,17 +420,24 @@ export function HospitalEvaluationsTableClient() {
       <HospitalEvaluationsFilterPanel
         searchInput={searchInput}
         draftFilters={draftFilters}
+        reviewTypeOptions={reviewTypeOptions}
         draftDateRange={draftDateRange}
+        isReviewTypeDropdownOpen={isReviewTypeDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
+        reviewTypeDropdownRef={reviewTypeDropdownRef}
         datePickerRef={datePickerRef}
         onSearchChange={setSearchInput}
+        onToggleReviewTypeDropdown={() => {
+          setIsReviewTypeDropdownOpen((value) => !value);
+        }}
         onToggleDatePicker={() => {
           setIsDatePickerOpen((value) => !value);
         }}
         onVisibilityChange={(value) => setDraftFilters((prev) => ({ ...prev, visibilityStatus: value }))}
         onReportStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, reportStatus: value }))}
         onRatingChange={(value) => setDraftFilters((prev) => ({ ...prev, rating: value }))}
-        onReviewTypeChange={(value) => setDraftFilters((prev) => ({ ...prev, reviewType: value }))}
+        onToggleReviewType={toggleReviewType}
+        onToggleAllReviewType={toggleAllReviewTypes}
         onCostMinChange={(value) => setDraftFilters((prev) => ({ ...prev, costMin: normalizeMetricBound(value) }))}
         onCostMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, costMax: normalizeMetricBound(value) }))}
         onViewCountMinChange={(value) => setDraftFilters((prev) => ({ ...prev, viewCountMin: normalizeMetricBound(value) }))}

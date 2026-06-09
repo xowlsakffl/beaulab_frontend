@@ -64,7 +64,7 @@ export function ProfileImageEditor({
   file: File | null;
   existingImage: ExistingMediaItem | null;
   error?: string;
-  onPreview: (preview: { url: string | null; title: string; isImage: boolean }) => void;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
   onChange: (file: File | null) => void | Promise<void>;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);

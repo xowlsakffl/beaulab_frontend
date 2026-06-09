@@ -388,7 +388,7 @@ function HospitalMainInfoEditCard({
 
   return (
     <Card className={cardClassName}>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-center gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold text-gray-900">병의원정보</h2>
           {!isCreate && form.status !== "ACTIVE" ? (
@@ -397,11 +397,6 @@ function HospitalMainInfoEditCard({
             </span>
           ) : null}
         </div>
-        {!isCreate ? (
-          <Button type="button" variant="brand" size="sm">
-            비밀번호 재설정
-          </Button>
-        ) : null}
       </div>
 
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">

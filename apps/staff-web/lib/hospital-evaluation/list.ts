@@ -46,7 +46,6 @@ export type HospitalEvaluationReceipt = {
 export type HospitalEvaluationApiItem = {
   id: number;
   created_at?: string | null;
-  category_domain?: string | null;
   author?: HospitalEvaluationAuthor | null;
   hospital?: HospitalEvaluationHospital | null;
   doctor?: HospitalEvaluationDoctor | null;
@@ -99,7 +98,7 @@ export type HospitalEvaluationSortState = {
 };
 
 export type HospitalEvaluationFilters = {
-  reviewType: string;
+  categoryIds: string[];
   visibilityStatus: string;
   reportStatus: string;
   rating: string;
@@ -116,7 +115,7 @@ export type HospitalEvaluationsQuery = {
   q?: string;
   status?: string;
   report_status?: string;
-  category_domain?: string;
+  category_ids?: string;
   ratings?: string;
   cost_min?: string;
   cost_max?: string;
@@ -139,7 +138,7 @@ export const DEFAULT_HOSPITAL_EVALUATION_SORT: HospitalEvaluationSortState = {
 };
 
 export const DEFAULT_HOSPITAL_EVALUATION_FILTERS: HospitalEvaluationFilters = {
-  reviewType: "",
+  categoryIds: [],
   visibilityStatus: "",
   reportStatus: "",
   rating: "",
@@ -151,13 +150,6 @@ export const DEFAULT_HOSPITAL_EVALUATION_FILTERS: HospitalEvaluationFilters = {
   startDate: "",
   endDate: "",
 };
-
-export const HOSPITAL_EVALUATION_REVIEW_TYPE_OPTIONS = [
-  { value: "", label: "전체" },
-  { value: "HOSPITAL_EVALUATION_SURGERY", label: "성형후기" },
-  { value: "HOSPITAL_EVALUATION_TREATMENT", label: "시술후기" },
-  { value: "HOSPITAL_EVALUATION_CONSULTATION", label: "상담후기" },
-];
 
 export const HOSPITAL_EVALUATION_VISIBILITY_OPTIONS = [
   { value: "", label: "전체" },
@@ -195,13 +187,8 @@ const HOSPITAL_EVALUATION_SORT_FIELDS = new Set<HospitalEvaluationSortField>([
   "created_at",
   "updated_at",
 ]);
-const HOSPITAL_EVALUATION_REVIEW_TYPE_VALUE_SET = new Set(HOSPITAL_EVALUATION_REVIEW_TYPE_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVALUATION_VISIBILITY_VALUE_SET = new Set(HOSPITAL_EVALUATION_VISIBILITY_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVALUATION_RATING_VALUE_SET = new Set(HOSPITAL_EVALUATION_RATING_OPTIONS.map((option) => option.value));
-
-export function labelHospitalEvaluationReviewType(domain?: string | null) {
-  return HOSPITAL_EVALUATION_REVIEW_TYPE_OPTIONS.find((option) => option.value === domain)?.label || "-";
-}
 
 export function labelHospitalEvaluationVisibilityStatus(status?: string | null) {
   return status === "INACTIVE" ? "미노출" : "노출";
@@ -237,12 +224,12 @@ export function formatHospitalEvaluationReceiptLabel(receipt?: HospitalEvaluatio
 
 export function normalizeHospitalEvaluation(item: HospitalEvaluationApiItem): HospitalEvaluationRow {
   const status = item.status?.trim() || "ACTIVE";
-  const categoryDomain = item.category_domain?.trim() || item.categories?.[0]?.domain?.trim() || "";
+  const category = item.categories?.find((candidate) => candidate.is_primary) ?? item.categories?.[0];
 
   return {
     id: item.id,
     createdAt: formatHospitalEvaluationDate(item.created_at),
-    reviewType: labelHospitalEvaluationReviewType(categoryDomain),
+    reviewType: category?.name?.trim() || category?.full_path?.trim() || "-",
     authorName: formatHospitalEvaluationAuthorName(item.author),
     hospitalName: item.hospital?.name?.trim() || "-",
     doctorName: item.doctor?.name?.trim() || "-",
@@ -363,6 +350,13 @@ export function normalizeMetricBound(value: string | null | undefined) {
   return trimmedValue.replace(/^0+(?=\d)/, "");
 }
 
+function normalizePositiveIdListParam(value: string | null) {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => /^[1-9]\d*$/.test(item));
+}
+
 export function nextHospitalEvaluationSortState(
   prev: HospitalEvaluationSortState,
   field: HospitalEvaluationSortField,
@@ -375,7 +369,7 @@ export function nextHospitalEvaluationSortState(
 }
 
 export function parseHospitalEvaluationsTableState(searchParams: URLSearchParams) {
-  const reviewType = searchParams.get("category_domain") ?? "";
+  const categoryIds = normalizePositiveIdListParam(searchParams.get("category_ids") ?? searchParams.get("category_id"));
   const visibilityStatus = searchParams.get("status") ?? "";
   const reportStatus = searchParams.get("report_status") ?? "";
   const rating = searchParams.get("ratings") ?? searchParams.get("rating") ?? "";
@@ -394,7 +388,7 @@ export function parseHospitalEvaluationsTableState(searchParams: URLSearchParams
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      reviewType: HOSPITAL_EVALUATION_REVIEW_TYPE_VALUE_SET.has(reviewType) ? reviewType : "",
+      categoryIds,
       visibilityStatus: HOSPITAL_EVALUATION_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       reportStatus: VISIBLE_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
       rating: HOSPITAL_EVALUATION_RATING_VALUE_SET.has(rating) ? rating : "",
@@ -442,7 +436,12 @@ export function buildHospitalEvaluationsQuery({
   if (VISIBLE_REPORT_STATUS_VALUE_SET.has(appliedFilters.reportStatus)) {
     query.report_status = appliedFilters.reportStatus;
   }
-  if (appliedFilters.reviewType) query.category_domain = appliedFilters.reviewType;
+  const normalizedCategoryIds = appliedFilters.categoryIds
+    .map((value) => value.trim())
+    .filter((value) => /^[1-9]\d*$/.test(value));
+  if (normalizedCategoryIds.length > 0) {
+    query.category_ids = Array.from(new Set(normalizedCategoryIds)).join(",");
+  }
   if (appliedFilters.rating) query.ratings = appliedFilters.rating;
 
   const costMin = normalizeMetricBound(appliedFilters.costMin);
@@ -467,7 +466,7 @@ export function buildHospitalEvaluationsQueryString(query: HospitalEvaluationsQu
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
   if (query.report_status) params.set("report_status", query.report_status);
-  if (query.category_domain) params.set("category_domain", query.category_domain);
+  if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.ratings) params.set("ratings", query.ratings);
   if (query.cost_min) params.set("cost_min", query.cost_min);
   if (query.cost_max) params.set("cost_max", query.cost_max);

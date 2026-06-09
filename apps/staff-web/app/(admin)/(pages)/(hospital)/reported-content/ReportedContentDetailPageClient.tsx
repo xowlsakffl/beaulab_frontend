@@ -1227,7 +1227,7 @@ function ReportedEvaluationContentCard({
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <CardTitle>{titleHospitalEvaluationDetailReviewType(detail.category_domain)}</CardTitle>
+            <CardTitle>{titleHospitalEvaluationDetailReviewType(detail.categories)}</CardTitle>
           </div>
           {hasReceiptImages ? (
             <Button
@@ -1678,7 +1678,7 @@ function renderOriginalContent(config: ReportedContentDetailConfig, detail: Deta
     return (
       <Card as="section">
         <CardHeader className="pb-4">
-          <CardTitle>{titleHospitalEvaluationDetailReviewType(evaluation.category_domain)}</CardTitle>
+          <CardTitle>{titleHospitalEvaluationDetailReviewType(evaluation.categories)}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <ContentBox content={evaluation.content} />

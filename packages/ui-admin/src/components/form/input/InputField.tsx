@@ -23,6 +23,7 @@ interface InputProps {
   success?: boolean;
   error?: boolean;
   hint?: string;
+  autoComplete?: string;
 }
 
 export const InputField: FC<InputProps> = ({
@@ -45,6 +46,7 @@ export const InputField: FC<InputProps> = ({
   success = false,
   error = false,
   hint,
+  autoComplete = "off",
 }) => {
   const inputClasses = twMerge(
     "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-hidden focus:ring-3    ",
@@ -96,6 +98,7 @@ export const InputField: FC<InputProps> = ({
         max={max}
         step={step}
         disabled={disabled}
+        autoComplete={autoComplete}
         className={inputClasses}
       />
 
