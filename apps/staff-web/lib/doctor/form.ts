@@ -40,6 +40,8 @@ export type DoctorMediaField =
 export type DoctorFieldName = keyof DoctorFormValues | DoctorMediaField;
 export type DoctorFormErrors = Partial<Record<DoctorFieldName, string>>;
 
+export const MAX_DOCTOR_TEXT_ITEM_COUNT = 20;
+
 export const INITIAL_DOCTOR_FORM: DoctorFormValues = {
   hospital_id: null,
   hospital_name: "",
@@ -265,6 +267,18 @@ function validateDoctorBaseForm(form: DoctorFormValues): DoctorFormErrors {
 
   if (!form.license_number.trim()) {
     nextErrors.license_number = "의사면허 번호를 입력해 주세요.";
+  }
+
+  if (sanitizeDoctorList(form.careers).length > MAX_DOCTOR_TEXT_ITEM_COUNT) {
+    nextErrors.careers = `경력사항은 최대 ${MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.`;
+  }
+
+  if (sanitizeDoctorList(form.etc_contents).length > MAX_DOCTOR_TEXT_ITEM_COUNT) {
+    nextErrors.etc_contents = `활동사항은 최대 ${MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.`;
+  }
+
+  if (sanitizeDoctorList(form.educations).length > MAX_DOCTOR_TEXT_ITEM_COUNT) {
+    nextErrors.educations = `학력사항은 최대 ${MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.`;
   }
 
   return nextErrors;

@@ -5,13 +5,13 @@ import React from "react";
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { useDoctorHospitalOptions } from "@/hooks/doctor/useDoctorHospitalOptions";
-import { useDoctorNameOptions } from "@/hooks/doctor/useDoctorNameOptions";
 import type { DoctorCategoryItem } from "@/lib/doctor/detail";
 import { formatCareerPeriod } from "@/lib/doctor/list";
 import {
   DOCTOR_GENDER_OPTIONS,
   DOCTOR_POSITION_OPTIONS,
   DOCTOR_SPECIALIST_FIELD_OPTIONS,
+  MAX_DOCTOR_TEXT_ITEM_COUNT,
   type DoctorFieldName,
   type DoctorFormErrors,
   type DoctorFormValues,
@@ -188,11 +188,13 @@ export function DoctorInfoEditorCard({
           />
 
           <EditField label="의료진" required error={errors.name} target="name">
-            <DoctorNameAutocompleteField
-              hospitalId={form.hospital_id}
+            <InputField
+              id="name"
               value={form.name}
-              error={errors.name}
-              onChange={(value) => onFieldChange("name", value)}
+              onChange={(event) => onFieldChange("name", event.target.value)}
+              placeholder="의료진명을 입력해 주세요."
+              error={Boolean(errors.name)}
+              className={formControlClassName}
             />
           </EditField>
 
@@ -398,90 +400,6 @@ function HospitalAutocompleteField({
   );
 }
 
-function DoctorNameAutocompleteField({
-  hospitalId,
-  value,
-  error,
-  onChange,
-}: {
-  hospitalId: number | null;
-  value: string;
-  error?: string;
-  onChange: (value: string) => void;
-}) {
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const [isOpen, setIsOpen] = React.useState(false);
-  const { options, isLoading, error: loadError } = useDoctorNameOptions(hospitalId, isOpen, value);
-  const isDisabled = !hospitalId;
-
-  React.useEffect(() => {
-    if (!isOpen) return;
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-    };
-  }, [isOpen]);
-
-  return (
-    <div ref={containerRef} className="relative">
-      <InputField
-        id="name"
-        value={value}
-        disabled={isDisabled}
-        onClick={() => {
-          if (!isDisabled) setIsOpen(true);
-        }}
-        onChange={(event) => {
-          onChange(event.target.value);
-          setIsOpen(true);
-        }}
-        placeholder={isDisabled ? "병의원을 먼저 선택해 주세요." : "의료진명을 입력해 주세요."}
-        error={Boolean(error)}
-        className={formControlClassName}
-      />
-
-      {isOpen && !isDisabled ? (
-        <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
-          {isLoading ? (
-            <div className="py-5">
-              <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="의료진 검색 중" />
-            </div>
-          ) : loadError ? (
-            <p className="px-3 py-4 text-sm text-error-500">{loadError}</p>
-          ) : options.length === 0 ? (
-            <p className="px-3 py-4 text-sm text-gray-500">검색 결과가 없습니다.</p>
-          ) : (
-            <div className="space-y-1">
-              {options.map((doctor) => (
-                <button
-                  key={doctor.id}
-                  type="button"
-                  onClick={() => {
-                    onChange(doctor.name);
-                    setIsOpen(false);
-                  }}
-                  className="w-full rounded-lg px-3 py-2 text-left hover:bg-brand-50"
-                >
-                  <span className="block truncate text-sm font-semibold text-gray-800">{doctor.name}</span>
-                  {doctor.position ? <span className="block truncate text-xs text-gray-500">{doctor.position}</span> : null}
-                </button>
-              ))}
-            </div>
-          )}
-        </Card>
-      ) : null}
-    </div>
-  );
-}
-
 function CareerDateField({
   value,
   onChange,
@@ -646,6 +564,7 @@ export function RepeaterPanel({
   onChange: (values: string[]) => void;
 }) {
   const displayValues = values.length > 0 ? values : [""];
+  const canAddItem = displayValues.length < MAX_DOCTOR_TEXT_ITEM_COUNT;
 
   const updateValue = (index: number, value: string) => {
     const nextValues = [...displayValues];
@@ -689,7 +608,18 @@ export function RepeaterPanel({
           ))}
         </div>
 
-        <AddCircleButton label={`${title} 추가`} onClick={() => onChange([...displayValues, ""])} className="mx-auto mt-3" />
+        <AddCircleButton
+          label={`${title} 추가`}
+          onClick={() => {
+            if (!canAddItem) return;
+            onChange([...displayValues, ""]);
+          }}
+          disabled={!canAddItem}
+          className="mx-auto mt-3 disabled:cursor-not-allowed disabled:opacity-40"
+        />
+        {!canAddItem ? (
+          <p className="mt-2 text-center text-xs text-gray-500">최대 {MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.</p>
+        ) : null}
         {error ? <p className="mt-2 text-xs text-error-500">{error}</p> : null}
       </div>
     </Card>
