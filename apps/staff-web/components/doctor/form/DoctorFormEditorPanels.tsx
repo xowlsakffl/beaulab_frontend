@@ -64,7 +64,7 @@ export function ProfileImageEditor({
   file: File | null;
   existingImage: ExistingMediaItem | null;
   error?: string;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: { url: string | null; title: string; isImage: boolean }) => void;
   onChange: (file: File | null) => void | Promise<void>;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -376,21 +376,27 @@ function HospitalAutocompleteField({
               <p className="px-3 py-4 text-sm text-gray-500">검색 결과가 없습니다.</p>
             ) : (
               <div className="space-y-1">
-                {visibleOptions.map((hospital) => (
-                  <button
-                    key={hospital.id}
-                    type="button"
-                    onClick={() => {
-                      onSelectHospital(hospital);
-                      setQuery(hospital.name);
-                      setIsOpen(false);
-                    }}
-                    className="w-full rounded-lg px-3 py-2 text-left hover:bg-brand-50"
-                  >
-                    <span className="block truncate text-sm font-semibold text-gray-800">{hospital.name}</span>
-                    <span className="block truncate text-xs text-gray-500">병의원명 검색</span>
-                  </button>
-                ))}
+                {visibleOptions.map((hospital) => {
+                  const businessNumber = hospital.business_number?.trim() || "-";
+
+                  return (
+                    <button
+                      key={hospital.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectHospital(hospital);
+                        setQuery(hospital.name);
+                        setIsOpen(false);
+                      }}
+                      className="w-full rounded-lg px-3 py-2 text-left hover:bg-brand-50"
+                    >
+                      <span className="block truncate text-sm font-semibold text-gray-800">{hospital.name}</span>
+                      <span className="block truncate text-xs text-gray-500">
+                        HID {hospital.id} · 사업자등록번호 {businessNumber}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </Card>

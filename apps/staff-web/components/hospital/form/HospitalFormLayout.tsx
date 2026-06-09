@@ -164,7 +164,7 @@ export function HospitalFormLayout({
 
   return (
     <>
-      <form id={formId} onSubmit={onSubmit} className="min-w-0 space-y-6">
+      <form id={formId} onSubmit={onSubmit} autoComplete="off" className="min-w-0 space-y-6">
         <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
           <HospitalLogoEditCard
             logo={logo}

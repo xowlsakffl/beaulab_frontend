@@ -387,7 +387,7 @@ export default function DoctorEditFormClient() {
   }
 
   return (
-    <form id={DOCTOR_EDIT_FORM_ID} onSubmit={handleSubmit} className="min-w-0 space-y-4">
+    <form id={DOCTOR_EDIT_FORM_ID} onSubmit={handleSubmit} autoComplete="off" className="min-w-0 space-y-4">
 
       <section className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
         <ProfileImageEditor
