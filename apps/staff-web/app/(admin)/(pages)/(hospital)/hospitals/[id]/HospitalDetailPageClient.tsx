@@ -561,7 +561,7 @@ function categoryLabels(categories?: Array<{ name?: string | null; full_path?: s
   if (!categories || categories.length === 0) return [];
 
   return categories
-    .map((category) => category.full_path?.trim() || category.name?.trim())
+    .map((category) => category.name?.trim() || category.full_path?.trim())
     .filter((item): item is string => Boolean(item));
 }
 

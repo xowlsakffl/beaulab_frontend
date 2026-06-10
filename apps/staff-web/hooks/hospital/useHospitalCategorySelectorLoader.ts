@@ -15,13 +15,11 @@ export function useHospitalCategorySelectorLoader() {
 
       const items = await loadCategories({ ...params, parentId: undefined });
 
-      return items
-        .filter((item) => item.depth === 1 && (item.parent_id === null || item.parent_id === undefined))
-        .map((item) => ({
-          ...item,
-          full_path: item.name,
-          has_children: false,
-        }));
+      return items.map((item) => ({
+        ...item,
+        full_path: item.name,
+        has_children: false,
+      }));
     },
     [loadCategories],
   );

@@ -22,7 +22,7 @@ import { HospitalReviewCommentsFilterPanel } from "@/components/hospital-review/
 import { HospitalReviewsDataTable } from "@/components/hospital-review/list/HospitalReviewsDataTable";
 import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/HospitalReviewsFilterPanel";
 import { api } from "@/lib/common/api";
-import type { CategoryApiItem } from "@/lib/common/category";
+import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
   buildHospitalReviewCommentsQuery,
@@ -211,10 +211,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const fetchCategoryItems = React.useCallback(
     async (parentId?: string | number | null, perPage = 100): Promise<CategoryApiItem[]> => {
       const response = await api.get<CategoryApiItem[]>("/categories/selector", {
-        domain: config.categoryDomain,
+        domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
         status: ["ACTIVE"],
         per_page: perPage,
-        ...(parentId !== undefined && parentId !== null && String(parentId) !== "" ? { parent_id: parentId } : {}),
+        ...(parentId !== undefined && parentId !== null && String(parentId) !== ""
+          ? { parent_id: parentId }
+          : { usage: config.categoryUsage }),
       });
 
       if (!isApiSuccess(response)) {
@@ -223,7 +225,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
 
       return response.data;
     },
-    [config.categoryDomain],
+    [config.categoryUsage],
   );
 
   const loadMiddleCategories = React.useCallback(

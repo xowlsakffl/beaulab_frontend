@@ -11,8 +11,10 @@ export function useCategorySelectorLoader() {
   return React.useCallback(
     async ({ section, parentId, query, perPage }: CategorySelectorLoadParams): Promise<CategorySelectorItem[]> => {
       try {
+        const isRootRequest = parentId === undefined || parentId === null;
         const response = await api.get<CategoryApiItem[]>("/categories/selector", {
           domain: section.domain,
+          ...(isRootRequest && section.usage ? { usage: section.usage } : {}),
           status: ["ACTIVE"],
           ...(query
             ? {

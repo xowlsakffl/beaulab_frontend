@@ -216,16 +216,15 @@ export default function DoctorEditFormClient() {
             return items.map((item) => ({
               ...item,
               domain: section.domain,
+              full_path: item.name,
+              has_children: false,
             }));
           }),
         );
 
         if (!isMounted) return;
 
-        const nextOptions = results
-          .flat()
-          .filter((item) => item.depth === 1 || item.parent_id === null || item.parent_id === undefined);
-        setCategoryOptions(nextOptions);
+        setCategoryOptions(results.flat());
       } catch {
         if (!isMounted) return;
         setCategoryLoadError("진료분야를 불러오지 못했습니다.");

@@ -357,7 +357,7 @@ function categoryLabels(categories?: Array<{ name?: string | null; full_path?: s
   if (!categories || categories.length === 0) return [];
 
   return categories
-    .map((category) => formatCategoryPath(category.full_path, category.name))
+    .map((category) => category.name?.trim() || formatCategoryPath(category.full_path, category.name))
     .filter((item): item is string => Boolean(item && item !== "-"));
 }
 

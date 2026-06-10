@@ -25,6 +25,7 @@ export type CategorySelectorSection = {
   key: string;
   label: string;
   domain: string;
+  usage?: string;
   searchPlaceholder: string;
 };
 

@@ -1,5 +1,6 @@
 import type { CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
 
+import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import {
   getMediaFilename,
   isImageMedia,
@@ -158,7 +159,8 @@ export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
     key: "medical-subject",
     label: "진료과목",
-    domain: "HOSPITAL_DOCTER",
+    domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
+    usage: CATEGORY_USAGES.HOSPITAL_DOCTOR_SUBJECT,
     searchPlaceholder: "진료과목명을 입력해주세요. (ex. 눈, 피부)",
   },
 ];

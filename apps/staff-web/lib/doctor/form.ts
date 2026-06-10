@@ -1,5 +1,6 @@
 import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig } from "@beaulab/ui-admin";
 
+import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import {
   getDoctorMediaFilename,
   resolveDoctorMediaUrl,
@@ -64,7 +65,8 @@ export const DOCTOR_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
     key: "doctor-specialty",
     label: "진료분야",
-    domain: "HOSPITAL_DOCTER",
+    domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
+    usage: CATEGORY_USAGES.HOSPITAL_DOCTOR_SUBJECT,
     searchPlaceholder: "진료분야명을 입력해주세요. (ex. 눈, 피부)",
   },
 ];

@@ -1,5 +1,6 @@
 import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig } from "@beaulab/ui-admin";
 
+import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import {
   getVideoMediaFilename,
   resolveVideoMediaUrl,
@@ -66,13 +67,15 @@ export const VIDEO_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
     key: "surgery",
     label: "성형",
-    domain: "HOSPITAL_REVIEW_SURGERY",
+    domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
+    usage: CATEGORY_USAGES.HOSPITAL_REVIEW_SURGERY,
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 눈, 코)",
   },
   {
     key: "treatment",
     label: "쁘띠/피부",
-    domain: "HOSPITAL_REVIEW_TREATMENT",
+    domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
+    usage: CATEGORY_USAGES.HOSPITAL_REVIEW_TREATMENT,
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 인모드)",
   },
 ];

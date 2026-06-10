@@ -3,7 +3,7 @@
 import { DoctorsDataTable } from "@/components/doctor/list/DoctorsDataTable";
 import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel";
 import { api } from "@/lib/common/api";
-import type { CategoryApiItem } from "@/lib/common/category";
+import { CATEGORY_DOMAINS, CATEGORY_USAGES, type CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_FILTERS,
   DOCTORS_PER_PAGE,
@@ -33,10 +33,6 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import type { DateRange } from "react-day-picker";
-
-const DOCTOR_CATEGORY_DOMAINS = [
-  "HOSPITAL_DOCTER",
-] as const;
 
 type CategoryFilterOption = {
   value: string;
@@ -102,34 +98,33 @@ export default function DoctorsTableClient() {
 
   const fetchCategoryOptions = React.useCallback(async () => {
     try {
-      const results = await Promise.all(
-        DOCTOR_CATEGORY_DOMAINS.map(async (domain) => {
-          const response = await api.get<CategoryApiItem[]>("/categories/selector", {
-            domain,
-            status: ["ACTIVE"],
-          });
+      const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+        domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
+        usage: CATEGORY_USAGES.HOSPITAL_DOCTOR_SUBJECT,
+        status: ["ACTIVE"],
+      });
 
-          if (!isApiSuccess(response)) return [];
+      if (!isApiSuccess(response)) {
+        setCategoryOptions([]);
+        return;
+      }
 
-          return response.data
-            .filter((item) => item.status === "ACTIVE" && item.depth === 1)
-            .map((item) => ({
-              value: String(item.id),
-              label: item.name,
-            }));
-        }),
-      );
+      const groupedOptions = response.data
+        .filter((item) => item.status === "ACTIVE")
+        .map((item) => ({
+          value: String(item.id),
+          label: item.name,
+        }))
+        .reduce<Map<string, string[]>>((map, item) => {
+          const label = item.label.trim();
+          if (!label) return map;
 
-      const groupedOptions = results.flat().reduce<Map<string, string[]>>((map, item) => {
-        const label = item.label.trim();
-        if (!label) return map;
+          const values = map.get(label) ?? [];
+          values.push(item.value);
+          map.set(label, values);
 
-        const values = map.get(label) ?? [];
-        values.push(item.value);
-        map.set(label, values);
-
-        return map;
-      }, new Map());
+          return map;
+        }, new Map());
 
       setCategoryOptions(
         Array.from(groupedOptions.entries()).map(([label, values]) => ({

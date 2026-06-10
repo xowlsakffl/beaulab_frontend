@@ -1,6 +1,7 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { CATEGORY_USAGES, HOSPITAL_REVIEW_CATEGORY_DOMAINS } from "@/lib/common/category";
 import {
   formatPostManagementStatusLabel,
   isVisibilityLockedByReport,
@@ -17,6 +18,7 @@ export type HospitalReviewBoardConfig = {
   title: string;
   listPath: string;
   categoryDomain: string;
+  categoryUsage: string;
 };
 
 export type HospitalReviewAuthor = {
@@ -179,13 +181,15 @@ export const HOSPITAL_REVIEW_BOARD_CONFIGS: Record<HospitalReviewBoardType, Hosp
     type: "surgery",
     title: "성형후기",
     listPath: "/reviews/surgery-reviews",
-    categoryDomain: "HOSPITAL_REVIEW_SURGERY",
+    categoryDomain: HOSPITAL_REVIEW_CATEGORY_DOMAINS.SURGERY,
+    categoryUsage: CATEGORY_USAGES.HOSPITAL_REVIEW_SURGERY,
   },
   treatment: {
     type: "treatment",
     title: "시술후기",
     listPath: "/reviews/treatment-reviews",
-    categoryDomain: "HOSPITAL_REVIEW_TREATMENT",
+    categoryDomain: HOSPITAL_REVIEW_CATEGORY_DOMAINS.TREATMENT,
+    categoryUsage: CATEGORY_USAGES.HOSPITAL_REVIEW_TREATMENT,
   },
 };
 
