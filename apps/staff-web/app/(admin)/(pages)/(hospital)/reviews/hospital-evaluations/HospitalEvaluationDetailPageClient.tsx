@@ -23,6 +23,11 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
@@ -112,6 +117,7 @@ export default function HospitalEvaluationDetailPageClient() {
   const [receiptModalError, setReceiptModalError] = React.useState<string | null>(null);
   const [visibilityUpdating, setVisibilityUpdating] = React.useState(false);
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const hasLoadedRef = React.useRef(false);
 
   const getReturnToPath = React.useCallback(
@@ -410,6 +416,7 @@ export default function HospitalEvaluationDetailPageClient() {
             hasReceiptImages={receiptImages.length > 0}
             receiptButtonDisabled={receiptUpdating}
             onOpenReceiptModal={openReceiptModal}
+            onPreviewMedia={setPreviewMedia}
           />
         </div>
 
@@ -443,6 +450,7 @@ export default function HospitalEvaluationDetailPageClient() {
         }}
         onRejectReasonTextChange={setReceiptRejectReasonText}
         onSubmit={() => void submitReceiptDecision()}
+        onPreviewMedia={setPreviewMedia}
       />
 
       <Modal
@@ -500,6 +508,8 @@ export default function HospitalEvaluationDetailPageClient() {
           </ModalFooter>
         </ModalPanel>
       </Modal>
+
+      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -554,6 +564,7 @@ function HospitalEvaluationContentCard({
   hasReceiptImages,
   receiptButtonDisabled,
   onOpenReceiptModal,
+  onPreviewMedia,
 }: {
   detail: HospitalEvaluationDetailResponse;
   receiptButtonLabel: string;
@@ -561,6 +572,7 @@ function HospitalEvaluationContentCard({
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -593,7 +605,7 @@ function HospitalEvaluationContentCard({
           </div>
         </section>
 
-        <ImageGallery title="평가 이미지" images={detail.images ?? []} />
+        <ImageGallery title="평가 이미지" images={detail.images ?? []} onPreviewMedia={onPreviewMedia} />
       </CardContent>
     </Card>
   );
@@ -768,6 +780,7 @@ function ReceiptVerificationModal({
   onRejectReasonChange,
   onRejectReasonTextChange,
   onSubmit,
+  onPreviewMedia,
 }: {
   isOpen: boolean;
   image: HospitalEvaluationMediaAsset | null;
@@ -781,6 +794,7 @@ function ReceiptVerificationModal({
   onRejectReasonChange: (value: string) => void;
   onRejectReasonTextChange: (value: string) => void;
   onSubmit: () => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   const imageUrl = resolveHospitalEvaluationMediaUrl(image);
 
@@ -794,10 +808,22 @@ function ReceiptVerificationModal({
         <ModalBody className="mt-6 space-y-6">
           <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500  ">
             {imageUrl ? (
-              <a href={imageUrl} target="_blank" rel="noreferrer" className="block h-full w-full">
+              <button
+                type="button"
+                className="block h-full w-full"
+                onClick={() =>
+                  onPreviewMedia({
+                    url: imageUrl,
+                    title: "영수증 사진",
+                    isImage: true,
+                    items: [{ url: imageUrl, title: "영수증 사진", isImage: true }],
+                    index: 0,
+                  })
+                }
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
                 <img src={imageUrl} alt="영수증 사진" className="h-full w-full object-cover" />
-              </a>
+              </button>
             ) : (
               "영수증 사진"
             )}
@@ -938,44 +964,28 @@ function ReceiptDecisionOption({
   );
 }
 
-function ImageGallery({ title, images }: { title: string; images: HospitalEvaluationMediaAsset[] }) {
-  return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 ">{title}</p>
-      {images.length > 0 ? (
-        <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="flex min-w-full gap-3">
-            {images.map((image) => {
-              const imageUrl = resolveHospitalEvaluationMediaUrl(image);
+function ImageGallery({
+  title,
+  images,
+  onPreviewMedia,
+}: {
+  title: string;
+  images: HospitalEvaluationMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+}) {
+  const galleryItems: DetailImageGalleryItem[] = images.map((image, index) => ({
+    id: image.id ?? `hospital-evaluation-image-${index}`,
+    url: resolveHospitalEvaluationMediaUrl(image),
+    title: `${title} ${index + 1}`,
+  }));
 
-              return (
-                <a
-                  key={image.id}
-                  href={imageUrl ?? undefined}
-                  target={imageUrl ? "_blank" : undefined}
-                  rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
-                  style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-                >
-                  {imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-                    <img
-                      src={imageUrl}
-                      alt=""
-                      className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
-      )}
-    </section>
+  return (
+    <DetailImageGallery
+      title={title}
+      items={galleryItems}
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      onPreview={onPreviewMedia}
+    />
   );
 }
 

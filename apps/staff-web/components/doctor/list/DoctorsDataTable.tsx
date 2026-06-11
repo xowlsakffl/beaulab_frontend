@@ -12,6 +12,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   labelDoctorApprovalStatus,
   type DoctorRow,
@@ -65,16 +66,16 @@ function buildDoctorColumns({
     },
     {
       key: "name",
-      headerClassName: `${headerBaseClass} lg:w-[142px]`,
-      cellClassName: `${cellBaseClass} lg:w-[142px]`,
+      headerClassName: `${headerBaseClass} lg:w-[196px]`,
+      cellClassName: `${cellBaseClass} lg:w-[196px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("name")} className="inline-flex items-center gap-1 px-0 text-xs">
           의료진 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
         </Button>
       ),
       render: (row) => (
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 text-[10px] font-semibold text-gray-400">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-400">
             {row.profileImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
               <img src={row.profileImageUrl} alt={`${row.name} 프로필`} className="h-full w-full object-cover" />
@@ -138,17 +139,7 @@ function buildDoctorColumns({
       cellClassName: `${cellBaseClass} lg:w-[130px]`,
       header: "진료분야",
       render: (row) =>
-        row.categoryNames.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {row.categoryNames.slice(0, 3).map((name) => (
-              <span key={name} className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
-                {name}
-              </span>
-            ))}
-          </div>
-        ) : (
-          "-"
-        ),
+        <CategoryBadgeList values={row.categoryNames} />,
     },
     {
       key: "careerPeriod",

@@ -253,7 +253,7 @@ export function DoctorsFilterPanel({
               onClick={onResetFilters}
               className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
             >
-              필터 초기화
+              검색 초기화
             </Button>
             <Can permission="beaulab.doctor.create">
               <Link href="/doctors/new">

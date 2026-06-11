@@ -4,6 +4,7 @@ import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { Can } from "@/components/common/guard";
 import {
   HospitalMediaPreviewModal,
@@ -476,20 +477,7 @@ function BadgeInfoField({
   return (
     <div className={compact ? "grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3" : "grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4"}>
       <p className={labelClassName}>{label}</p>
-      {items.length > 0 ? (
-        <div className="flex min-w-0 flex-wrap gap-1.5">
-          {items.map((item) => (
-            <span
-              key={item}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600"
-            >
-              <span className="line-clamp-1 break-all">{item}</span>
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p className={valueClassName}>-</p>
-      )}
+      <CategoryBadgeList values={items} empty={<p className={valueClassName}>-</p>} />
     </div>
   );
 }

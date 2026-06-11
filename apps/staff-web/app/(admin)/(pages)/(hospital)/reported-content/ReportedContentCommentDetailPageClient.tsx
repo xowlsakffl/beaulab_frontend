@@ -14,6 +14,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
@@ -29,7 +30,7 @@ import {
 } from "@/lib/hospital-review/list";
 import {
   formatHospitalReviewHistoryReason,
-  getHospitalReviewDetailSmallCategoryNames,
+  getHospitalReviewDetailCategoryFullPaths,
   labelHospitalReviewHistoryChange,
   type HospitalReviewOperationHistory,
 } from "@/lib/hospital-review/detail";
@@ -414,22 +415,7 @@ function ContentBox({ content }: { content?: string | null }) {
 }
 
 function CategoryBadges({ categories }: { categories: HospitalReviewCategory[] }) {
-  const categoryNames = getHospitalReviewDetailSmallCategoryNames(categories);
-
-  if (categoryNames.length === 0) return "-";
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {categoryNames.map((category) => (
-        <span
-          key={category}
-          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100   "
-        >
-          #{category}
-        </span>
-      ))}
-    </div>
-  );
+  return <CategoryBadgeList values={getHospitalReviewDetailCategoryFullPaths(categories)} />;
 }
 
 function ReviewImageGallery({

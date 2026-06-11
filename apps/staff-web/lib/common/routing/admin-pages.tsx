@@ -120,6 +120,11 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         group: "고객 DB 관리",
     },
     {
+        slug: ["events"],
+        title: "이벤트 관리",
+        group: "광고 관리",
+    },
+    {
         slug: ["ads", "events"],
         title: "이벤트 관리",
         group: "광고 관리",

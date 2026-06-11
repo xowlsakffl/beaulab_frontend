@@ -11,6 +11,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   resolveReportedReviewImageUrl,
   type ReportedContentKind,
@@ -419,18 +420,7 @@ function buildColumns({
         headerClassName: `${headerBaseClass} min-w-[150px]`,
         cellClassName: `${cellBaseClass} min-w-[150px]`,
         header: "카테고리",
-        render: (row) => (
-          <div className="flex flex-wrap gap-1.5">
-            {row.categoryLabel.split("\n").filter(Boolean).map((category) => (
-              <span
-                key={category}
-                className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200   "
-              >
-                <span className="line-clamp-1 break-all">{category}</span>
-              </span>
-            ))}
-          </div>
-        ),
+        render: (row) => <CategoryBadgeList values={[row.categoryLabel]} title={row.categoryLabel} />,
       },
       {
         key: "nickname",
@@ -481,18 +471,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} min-w-[150px]`,
       cellClassName: `${cellBaseClass} min-w-[150px]`,
       header: "카테고리",
-      render: (row) => (
-        <div className="flex flex-wrap gap-1.5">
-          {row.categoryLabel.split("\n").filter(Boolean).map((category) => (
-            <span
-              key={category}
-              className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200   "
-            >
-              <span className="line-clamp-1 break-all">{category}</span>
-            </span>
-          ))}
-        </div>
-      ),
+      render: (row) => <CategoryBadgeList values={[row.categoryLabel]} title={row.categoryLabel} />,
     },
     {
       key: "image",

@@ -20,6 +20,7 @@ import {
   DetailEmptyState,
   DetailImageMediaCard,
 } from "@/components/common/DetailMediaCard";
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
@@ -312,21 +313,7 @@ function TagField({
   return (
     <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
       <p className={detailLabelClass}>{label}</p>
-      {values.length > 0 ? (
-        <div className="flex min-h-[28px] min-w-0 flex-wrap items-center gap-2">
-          {values.map((value) => (
-            <span
-              key={value}
-              className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700  "
-              title={value}
-            >
-              <span className="truncate">{value}</span>
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div className={detailValueClass}>-</div>
-      )}
+      <CategoryBadgeList values={values} empty={<div className={detailValueClass}>-</div>} />
     </div>
   );
 }

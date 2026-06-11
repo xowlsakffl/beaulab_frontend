@@ -22,6 +22,12 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
@@ -39,7 +45,7 @@ import {
   formatHospitalReviewDetailDateTime,
   formatHospitalReviewCommentHistoryReason,
   formatHospitalReviewHistoryReason,
-  getHospitalReviewDetailSmallCategoryNames,
+  getHospitalReviewDetailCategoryFullPaths,
   labelHospitalReviewCommentHistoryChange,
   labelHospitalReviewHistoryChange,
   type PaginatedBlock,
@@ -110,6 +116,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
     () => new Set(),
   );
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const [expandedCommentHistoryIds, setExpandedCommentHistoryIds] = React.useState<Set<number>>(
     () => new Set(),
   );
@@ -463,6 +470,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
             visibilityLocked={reviewVisibilityLocked}
             visibilityUpdating={reviewVisibilityUpdating}
             onChangeVisibility={requestReviewVisibility}
+            onPreviewMedia={setPreviewMedia}
           />
           <HospitalReviewHistoryCard
             histories={operationHistories}
@@ -545,6 +553,8 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
           </ModalFooter>
         </ModalPanel>
       </Modal>
+
+      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -605,12 +615,14 @@ function HospitalReviewContentCard({
   visibilityLocked,
   visibilityUpdating,
   onChangeVisibility,
+  onPreviewMedia,
 }: {
   boardTitle: string;
   detail: HospitalReviewDetailResponse;
   visibilityLocked: boolean;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -633,7 +645,11 @@ function HospitalReviewContentCard({
           <DetailField label="제목" value={detail.title?.trim() || "-"} />
         </div>
 
-        <ReviewImageGallery beforeImages={detail.before_images ?? []} afterImages={detail.after_images ?? []} />
+        <ReviewImageGallery
+          beforeImages={detail.before_images ?? []}
+          afterImages={detail.after_images ?? []}
+          onPreviewMedia={onPreviewMedia}
+        />
 
         <section className="space-y-2">
           <p className="text-xs font-semibold text-gray-500 ">내용</p>
@@ -701,24 +717,7 @@ function HospitalReviewHistoryCard({
 }
 
 function CategoryBadges({ detail }: { detail: HospitalReviewDetailResponse }) {
-  const categoryNames = getHospitalReviewDetailSmallCategoryNames(detail.categories);
-
-  if (categoryNames.length === 0) {
-    return "-";
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {categoryNames.map((categoryName) => (
-        <span
-          key={categoryName}
-          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100   "
-        >
-          #{categoryName}
-        </span>
-      ))}
-    </div>
-  );
+  return <CategoryBadgeList values={getHospitalReviewDetailCategoryFullPaths(detail.categories)} />;
 }
 
 function CommentsCard({
@@ -901,55 +900,30 @@ function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory 
 function ReviewImageGallery({
   beforeImages,
   afterImages,
+  onPreviewMedia,
 }: {
   beforeImages: HospitalReviewMediaAsset[];
   afterImages: HospitalReviewMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   const images = [
-    ...beforeImages.map((image) => ({ image, label: "전" })),
-    ...afterImages.map((image) => ({ image, label: "후" })),
+    ...beforeImages.map((image, index) => ({ image, label: "전", index })),
+    ...afterImages.map((image, index) => ({ image, label: "후", index })),
   ];
+  const galleryItems: DetailImageGalleryItem[] = images.map(({ image, label, index }, imageIndex) => ({
+    id: `${label}-${image.id ?? imageIndex}`,
+    url: resolveHospitalReviewMediaUrl(image),
+    title: `${label} 이미지 ${index + 1}`,
+    badge: label,
+  }));
 
   return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 ">이미지</p>
-      {images.length > 0 ? (
-        <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="flex min-w-full gap-3">
-            {images.map(({ image, label }) => {
-              const imageUrl = resolveHospitalReviewMediaUrl(image);
-
-              return (
-                <a
-                  key={`${label}-${image.id}`}
-                  href={imageUrl ?? undefined}
-                  target={imageUrl ? "_blank" : undefined}
-                  rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
-                  style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-                >
-                  <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm  ">
-                    {label}
-                  </span>
-                  {imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-                    <img
-                      src={imageUrl}
-                      alt=""
-                      className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
-      )}
-    </section>
+    <DetailImageGallery
+      title="이미지"
+      items={galleryItems}
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      onPreview={onPreviewMedia}
+    />
   );
 }
 

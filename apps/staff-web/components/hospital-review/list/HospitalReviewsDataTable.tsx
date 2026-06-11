@@ -13,6 +13,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   formatHospitalReviewCost,
   formatHospitalReviewRating,
@@ -124,24 +125,7 @@ function renderBestBadges(row: HospitalReviewRow) {
 }
 
 function renderCategoryBadges(row: HospitalReviewRow) {
-  const categories = row.categoryName.split("\n").filter((categoryName) => categoryName.trim() && categoryName !== "-");
-
-  if (categories.length === 0) {
-    return "-";
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5" title={row.categoryName}>
-      {categories.map((categoryName) => (
-        <span
-          key={categoryName}
-          className="inline-flex max-w-full items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-200   "
-        >
-          <span className="line-clamp-1 break-all">{categoryName}</span>
-        </span>
-      ))}
-    </div>
-  );
+  return <CategoryBadgeList values={[row.categoryName]} title={row.categoryName} />;
 }
 
 function renderImagePreview(row: HospitalReviewRow) {

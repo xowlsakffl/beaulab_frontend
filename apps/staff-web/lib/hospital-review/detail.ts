@@ -125,20 +125,14 @@ export function formatHospitalReviewDetailCategories(categories?: HospitalReview
   return formatHospitalReviewCategories(categories, 3);
 }
 
-export function getHospitalReviewDetailSmallCategoryNames(categories?: HospitalReviewCategory[] | null) {
+export function getHospitalReviewDetailCategoryFullPaths(categories?: HospitalReviewCategory[] | null) {
   return Array.from(new Set(
     (categories ?? [])
       .map((category) => {
-        const pathItems = (category.full_path?.trim() || category.name?.trim() || "")
-          .split(">")
-          .map((item) => item.trim())
-          .filter(Boolean);
+        const fullPath = category.full_path?.trim();
+        if (fullPath) return fullPath;
 
-        if (Number(category.depth ?? 0) > 0 && Number(category.depth ?? 0) !== 3) {
-          return "";
-        }
-
-        return pathItems.at(-1) || category.name?.trim() || "";
+        return category.name?.trim() || "";
       })
       .filter(Boolean),
   ));

@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { Can } from "@/components/common/guard";
 import {
   HospitalMediaPreviewModal,
@@ -333,24 +334,7 @@ function ListBlock({ items }: { items: string[] }) {
 }
 
 function BadgeBlock({ items }: { items: string[] }) {
-  const normalizedItems = items.map((item) => item.trim()).filter(Boolean);
-
-  if (normalizedItems.length === 0) {
-    return <p className={valueClassName}>-</p>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {normalizedItems.map((item) => (
-        <span
-          key={item}
-          className="inline-flex max-w-full items-center rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600"
-        >
-          <span className="line-clamp-1 break-all">{item}</span>
-        </span>
-      ))}
-    </div>
-  );
+  return <CategoryBadgeList values={items} empty={<p className={valueClassName}>-</p>} />;
 }
 
 function categoryLabels(categories?: Array<{ name?: string | null; full_path?: string | null }> | null) {

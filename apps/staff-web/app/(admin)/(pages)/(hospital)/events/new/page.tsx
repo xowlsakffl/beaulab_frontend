@@ -14,7 +14,7 @@ export default function HospitalEventsCreatePage() {
           homeLabel="관리자"
           items={[
             { label: "광고 관리" },
-            { label: "이벤트", href: "/ads/events" },
+            { label: "이벤트 관리", href: "/events" },
           ]}
         />
       </div>

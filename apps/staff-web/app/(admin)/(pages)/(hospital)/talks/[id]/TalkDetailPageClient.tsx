@@ -27,6 +27,11 @@ import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import {
   TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS,
   TALK_DETAIL_HISTORY_PER_PAGE,
   formatTalkAuthorName,
@@ -102,6 +107,7 @@ export default function TalkDetailPageClient() {
     () => new Set(),
   );
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const [expandedCommentHistoryIds, setExpandedCommentHistoryIds] = React.useState<Set<number>>(
     () => new Set(),
   );
@@ -451,6 +457,7 @@ export default function TalkDetailPageClient() {
             visibilityLocked={talkVisibilityLocked}
             visibilityUpdating={talkVisibilityUpdating}
             onChangeVisibility={requestTalkVisibility}
+            onPreviewMedia={setPreviewMedia}
           />
           <TalkHistoryCard
             histories={operationHistories}
@@ -530,6 +537,8 @@ export default function TalkDetailPageClient() {
           </ModalFooter>
         </ModalPanel>
       </Modal>
+
+      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -572,11 +581,13 @@ function TalkContentCard({
   visibilityLocked,
   visibilityUpdating,
   onChangeVisibility,
+  onPreviewMedia,
 }: {
   detail: TalkDetailResponse;
   visibilityLocked: boolean;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   const pollOptions = detail.poll?.options ?? [];
   const totalPollVotes = pollOptions.reduce((sum, option) => sum + Number(option.vote_count ?? 0), 0);
@@ -610,7 +621,7 @@ function TalkContentCard({
           </div>
         </section>
 
-        <TalkImageGrid images={detail.images ?? []} />
+        <TalkImageGrid images={detail.images ?? []} onPreviewMedia={onPreviewMedia} />
 
         <section className="space-y-3">
           <div className="space-y-1">
@@ -873,41 +884,27 @@ function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   );
 }
 
-function TalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
-  return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 ">이미지</p>
-      {images.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {images.map((image) => {
-            const imageUrl = resolveMediaUrl(image as MediaAsset);
+function TalkImageGrid({
+  images,
+  onPreviewMedia,
+}: {
+  images: TalkMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+}) {
+  const galleryItems: DetailImageGalleryItem[] = images.map((image, index) => ({
+    id: image.id ?? `talk-image-${index}`,
+    url: resolveMediaUrl(image as MediaAsset),
+    title: `토크 이미지 ${index + 1}`,
+  }));
 
-            return (
-              <a
-                key={image.id}
-                href={imageUrl ?? undefined}
-                target={imageUrl ? "_blank" : undefined}
-                rel={imageUrl ? "noreferrer" : undefined}
-                className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
-              >
-                {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-                  <img
-                    src={imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
-                )}
-              </a>
-            );
-          })}
-        </div>
-      ) : (
-        <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
-      )}
-    </section>
+  return (
+    <DetailImageGallery
+      title="이미지"
+      items={galleryItems}
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      layout="grid"
+      onPreview={onPreviewMedia}
+    />
   );
 }
 
