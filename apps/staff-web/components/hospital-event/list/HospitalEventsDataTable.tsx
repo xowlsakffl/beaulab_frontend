@@ -138,14 +138,19 @@ function buildHospitalEventColumns({
     },
     {
       key: "eventPrice",
-      headerClassName: `${headerBaseClass} lg:w-[96px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[96px]`,
+      headerClassName: `${headerBaseClass} lg:w-[120px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
         <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("event_price")} className="inline-flex items-center gap-1 px-0 text-xs">
           이벤트가격 <span className="text-xs text-gray-400">{renderSortMark("event_price", sortState)}</span>
         </Button>
       ),
-      render: (row) => `${formatHospitalEventPrice(row.eventPrice)} ${row.discountRate.toFixed(1)}%`,
+      render: (row) => (
+        <span>
+          {formatHospitalEventPrice(row.eventPrice)}{" "}
+          <span className="font-semibold text-brand-500">{row.discountRate}%</span>
+        </span>
+      ),
     },
     {
       key: "consultationCount",
