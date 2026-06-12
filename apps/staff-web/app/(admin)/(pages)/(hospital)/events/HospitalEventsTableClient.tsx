@@ -4,7 +4,18 @@ import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
-import type { DataTableMeta } from "@beaulab/ui-admin";
+import {
+  Button,
+  FormCheckbox,
+  InputField,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalPanel,
+  ModalTitle,
+  type DataTableMeta,
+} from "@beaulab/ui-admin";
 
 import { HospitalEventsDataTable } from "@/components/hospital-event/list/HospitalEventsDataTable";
 import { HospitalEventsFilterPanel } from "@/components/hospital-event/list/HospitalEventsFilterPanel";
@@ -42,6 +53,14 @@ type SelectOption = {
   label: string;
 };
 
+type PeriodEditState = {
+  row: HospitalEventRow;
+  eventStartAt: string;
+  eventEndAt: string;
+  isEventPeriodUnlimited: boolean;
+  error: string | null;
+};
+
 export default function HospitalEventsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -73,6 +92,8 @@ export default function HospitalEventsTableClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [periodEdit, setPeriodEdit] = React.useState<PeriodEditState | null>(null);
+  const [periodUpdating, setPeriodUpdating] = React.useState(false);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
   const allowStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -347,6 +368,71 @@ export default function HospitalEventsTableClient() {
     setSortState((prev) => nextHospitalEventSortState(prev, field));
   }, []);
 
+  const openPeriodEditModal = React.useCallback((row: HospitalEventRow) => {
+    setPeriodEdit({
+      row,
+      eventStartAt: row.eventStartAt,
+      eventEndAt: row.eventEndAt,
+      isEventPeriodUnlimited: row.isEventPeriodUnlimited,
+      error: null,
+    });
+  }, []);
+
+  const closePeriodEditModal = React.useCallback(() => {
+    if (periodUpdating) return;
+    setPeriodEdit(null);
+  }, [periodUpdating]);
+
+  const updatePeriodEdit = React.useCallback((patch: Partial<Omit<PeriodEditState, "row">>) => {
+    setPeriodEdit((prev) => (prev ? { ...prev, ...patch, error: null } : prev));
+  }, []);
+
+  const submitPeriodEdit = React.useCallback(async () => {
+    if (!periodEdit || periodUpdating) return;
+
+    const eventStartAt = periodEdit.eventStartAt.trim();
+    const eventEndAt = periodEdit.eventEndAt.trim();
+
+    if (!eventStartAt) {
+      updatePeriodEdit({ error: "시작일을 선택해주세요." });
+      return;
+    }
+
+    if (!periodEdit.isEventPeriodUnlimited && !eventEndAt) {
+      updatePeriodEdit({ error: "종료일을 선택해주세요." });
+      return;
+    }
+
+    if (!periodEdit.isEventPeriodUnlimited && eventEndAt < eventStartAt) {
+      updatePeriodEdit({ error: "종료일은 시작일보다 빠를 수 없습니다." });
+      return;
+    }
+
+    setPeriodUpdating(true);
+
+    try {
+      const response = await api.patch<HospitalEventApiItem>(`/hospital-events/${periodEdit.row.id}/period`, {
+        event_start_at: eventStartAt,
+        event_end_at: periodEdit.isEventPeriodUnlimited ? null : eventEndAt,
+        is_event_period_unlimited: periodEdit.isEventPeriodUnlimited,
+      });
+
+      if (!isApiSuccess(response)) {
+        updatePeriodEdit({ error: response.error.message || "이벤트 기간 수정에 실패했습니다." });
+        return;
+      }
+
+      setPeriodEdit(null);
+      await Promise.all([fetchEvents(true), fetchSummary()]);
+    } catch (error) {
+      if (isApiRequestCanceledError(error)) return;
+
+      updatePeriodEdit({ error: "이벤트 기간 수정 중 오류가 발생했습니다." });
+    } finally {
+      setPeriodUpdating(false);
+    }
+  }, [fetchEvents, fetchSummary, periodEdit, periodUpdating, updatePeriodEdit]);
+
   return (
     <div className="min-w-0 space-y-4">
       <HospitalEventsSummaryCards summary={summary} />
@@ -393,11 +479,69 @@ export default function HospitalEventsTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={toggleSort}
+        onEditPeriod={openPeriodEditModal}
         onRefresh={() => {
           void Promise.all([fetchEvents(true), fetchSummary()]);
         }}
         onGoPage={setPage}
       />
+
+      <Modal isOpen={Boolean(periodEdit)} onClose={closePeriodEditModal} className="mx-4 w-full max-w-2xl" showCloseButton>
+        <ModalPanel className="rounded-2xl p-6 shadow-none">
+          <ModalHeader className="pr-12">
+            <ModalTitle className="text-xl font-bold">이벤트 기간 수정</ModalTitle>
+          </ModalHeader>
+
+          <ModalBody className="mt-5 space-y-6">
+            <div>
+              <p className="mb-2 text-sm font-semibold text-gray-700">
+                이벤트 기간 <span className="text-error-500">*</span>
+              </p>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] sm:items-center">
+                <InputField
+                  type="date"
+                  value={periodEdit?.eventStartAt ?? ""}
+                  onChange={(event) => updatePeriodEdit({ eventStartAt: event.target.value })}
+                  error={Boolean(periodEdit?.error && !periodEdit.eventStartAt)}
+                  className="h-11 bg-gray-50"
+                />
+                <span className="hidden text-center text-gray-400 sm:block">-</span>
+                <InputField
+                  type="date"
+                  value={periodEdit?.isEventPeriodUnlimited ? "" : (periodEdit?.eventEndAt ?? "")}
+                  min={periodEdit?.eventStartAt || undefined}
+                  disabled={Boolean(periodEdit?.isEventPeriodUnlimited)}
+                  onChange={(event) => updatePeriodEdit({ eventEndAt: event.target.value })}
+                  error={Boolean(periodEdit?.error && periodEdit && !periodEdit.isEventPeriodUnlimited && !periodEdit.eventEndAt)}
+                  className="h-11 bg-gray-50 disabled:bg-gray-100"
+                />
+                <div className="whitespace-nowrap">
+                  <FormCheckbox
+                    checked={Boolean(periodEdit?.isEventPeriodUnlimited)}
+                    onChange={(checked) =>
+                      updatePeriodEdit({
+                        isEventPeriodUnlimited: checked,
+                        eventEndAt: checked ? "" : (periodEdit?.eventEndAt ?? ""),
+                      })
+                    }
+                    label="종료일 없음"
+                  />
+                </div>
+              </div>
+              {periodEdit?.error ? <p className="mt-2 text-sm font-medium text-error-500">{periodEdit.error}</p> : null}
+            </div>
+          </ModalBody>
+
+          <ModalFooter className="mt-10 grid grid-cols-2 gap-2">
+            <Button type="button" variant="outline" className="h-12 w-full justify-center" disabled={periodUpdating} onClick={closePeriodEditModal}>
+              취소
+            </Button>
+            <Button type="button" variant="brand" className="h-12 w-full justify-center" disabled={periodUpdating} onClick={() => void submitPeriodEdit()}>
+              {periodUpdating ? "수정 중" : "수정하기"}
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
     </div>
   );
 }

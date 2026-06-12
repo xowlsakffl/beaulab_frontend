@@ -41,13 +41,22 @@ function categoryBadges(categoryLabel: string) {
   return <CategoryBadgeList values={[categoryLabel]} title={categoryLabel} />;
 }
 
-function EventInlineActionButton({ children }: { children: React.ReactNode }) {
+function EventInlineActionButton({
+  children,
+  disabled = true,
+  onClick,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  onClick?: () => void;
+}) {
   return (
     <Button
       type="button"
       variant="outline"
       size="sm"
-      disabled
+      disabled={disabled}
+      onClick={onClick}
       className="h-8 min-w-12 border-gray-200 bg-white px-3 text-xs font-medium text-gray-500 disabled:opacity-60 "
     >
       {children}
@@ -58,9 +67,11 @@ function EventInlineActionButton({ children }: { children: React.ReactNode }) {
 function buildHospitalEventColumns({
   sortState,
   onToggleSort,
+  onEditPeriod,
 }: {
   sortState: HospitalEventSortState;
   onToggleSort: (field: HospitalEventSortField) => void;
+  onEditPeriod: (row: HospitalEventRow) => void;
 }): DataTableColumn<HospitalEventRow>[] {
   const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
   const cellBaseClass = "px-2 py-4 text-start align-top ";
@@ -131,7 +142,9 @@ function buildHospitalEventColumns({
         <div className="relative min-h-20 pb-9">
           <span className="block whitespace-pre-line text-gray-700 ">{row.periodLabel}</span>
           <div className="absolute bottom-0 right-0">
-            <EventInlineActionButton>수정</EventInlineActionButton>
+            <EventInlineActionButton disabled={false} onClick={() => onEditPeriod(row)}>
+              수정
+            </EventInlineActionButton>
           </div>
         </div>
       ),
@@ -229,6 +242,7 @@ type HospitalEventsDataTableProps = {
   error: string | null;
   sortState: HospitalEventSortState;
   onToggleSort: (field: HospitalEventSortField) => void;
+  onEditPeriod: (row: HospitalEventRow) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
@@ -241,12 +255,13 @@ export function HospitalEventsDataTable({
   error,
   sortState,
   onToggleSort,
+  onEditPeriod,
   onRefresh,
   onGoPage,
 }: HospitalEventsDataTableProps) {
   const columns = React.useMemo(
-    () => buildHospitalEventColumns({ sortState, onToggleSort }),
-    [sortState, onToggleSort],
+    () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod }),
+    [sortState, onToggleSort, onEditPeriod],
   );
 
   return (

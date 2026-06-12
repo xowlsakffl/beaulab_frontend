@@ -65,6 +65,9 @@ export type HospitalEventRow = {
   name: string;
   thumbnailUrl: string | null;
   periodLabel: string;
+  eventStartAt: string;
+  eventEndAt: string;
+  isEventPeriodUnlimited: boolean;
   eventPrice: number;
   discountRate: number;
   consultationCount: number;
@@ -330,6 +333,9 @@ export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEven
     name: item.name?.trim() || "-",
     thumbnailUrl: resolveHospitalEventMediaUrl(item.thumbnail_image, "thumb"),
     periodLabel: formatHospitalEventPeriod(item),
+    eventStartAt: formatHospitalEventDateInput(item.event_start_at),
+    eventEndAt: formatHospitalEventDateInput(item.event_end_at),
+    isEventPeriodUnlimited: Boolean(item.is_event_period_unlimited),
     eventPrice: Number(item.event_price ?? 0),
     discountRate: Number(item.discount_rate ?? 0),
     consultationCount: Number(item.consultation_count ?? 0),
@@ -349,6 +355,10 @@ export function formatHospitalEventPeriod(item: HospitalEventApiItem) {
   if (item.is_event_period_unlimited) return `${start} ~ 무기한`;
 
   return `${start} ~ ${formatHospitalEventDate(item.event_end_at)}`;
+}
+
+function formatHospitalEventDateInput(value?: string | null) {
+  return value ? value.slice(0, 10) : "";
 }
 
 export function formatLocalDate(date: Date) {
