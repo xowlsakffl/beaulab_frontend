@@ -36,10 +36,6 @@ import {
   type HospitalEventSummary,
 } from "@/lib/hospital-event/list";
 
-type HospitalEventMeta = DataTableMeta & {
-  summary?: HospitalEventSummary;
-};
-
 type SelectOption = {
   value: string;
   label: string;
@@ -92,6 +88,20 @@ export default function HospitalEventsTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEventsQueryString(query), [query]);
 
+  const fetchSummary = React.useCallback(async () => {
+    try {
+      const response = await api.get<HospitalEventSummary>("/hospital-events/summary");
+
+      if (!isApiSuccess(response)) {
+        return;
+      }
+
+      setSummary(response.data);
+    } catch {
+      setSummary(null);
+    }
+  }, []);
+
   const majorCategoryOptions = React.useMemo<SelectOption[]>(() => [
     { value: "", label: "전체" },
     ...majorCategoryItems.map((item) => ({
@@ -138,11 +148,8 @@ export default function HospitalEventsTableClient() {
           return;
         }
 
-        const responseMeta = (response.meta as HospitalEventMeta | null) ?? null;
-
         setRows(response.data.map(normalizeHospitalEvent));
-        setMeta(responseMeta);
-        setSummary(responseMeta?.summary ?? null);
+        setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch {
         setError("이벤트 목록 조회 중 오류가 발생했습니다.");
@@ -213,6 +220,10 @@ export default function HospitalEventsTableClient() {
   React.useEffect(() => {
     fetchEvents(false);
   }, [fetchEvents]);
+
+  React.useEffect(() => {
+    void fetchSummary();
+  }, [fetchSummary]);
 
   React.useEffect(() => {
     void loadMajorCategories();
@@ -366,7 +377,7 @@ export default function HospitalEventsTableClient() {
         sortState={sortState}
         onToggleSort={toggleSort}
         onRefresh={() => {
-          void fetchEvents(true);
+          void Promise.all([fetchEvents(true), fetchSummary()]);
         }}
         onGoPage={setPage}
       />

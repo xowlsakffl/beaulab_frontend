@@ -10,11 +10,11 @@ type HospitalsSummaryCardsProps = {
 
 export function HospitalsSummaryCards({ summary }: HospitalsSummaryCardsProps) {
   const cards = [
-    { label: "휴면 업체수", value: summary?.dormant_hospitals ?? null },
-    { label: "검수신청 업체수", value: summary?.pending_review_hospitals ?? null },
-    { label: "검수반려 업체수", value: summary?.rejected_review_hospitals ?? null },
-    { label: "운영중지 업체수", value: summary?.suspended_hospitals ?? null },
-    { label: "탈퇴 업체수", value: summary?.withdrawn_hospitals ?? null },
+    { label: "휴면 업체수", value: summary?.dormant_hospitals ?? 0 },
+    { label: "검수신청 업체수", value: summary?.pending_review_hospitals ?? 0 },
+    { label: "검수반려 업체수", value: summary?.rejected_review_hospitals ?? 0 },
+    { label: "운영중지 업체수", value: summary?.suspended_hospitals ?? 0 },
+    { label: "탈퇴 업체수", value: summary?.withdrawn_hospitals ?? 0 },
   ];
 
   return (
@@ -24,7 +24,7 @@ export function HospitalsSummaryCards({ summary }: HospitalsSummaryCardsProps) {
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-medium text-gray-700">{card.label}</span>
             <span className="text-base font-semibold text-gray-900">
-              {card.value === null ? "-" : `${Number(card.value).toLocaleString()}개`}
+              {Number(card.value).toLocaleString()}개
             </span>
           </div>
         </Card>
