@@ -1,3 +1,5 @@
+import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
+
 export type VideoHospitalRef = {
   id: number;
   name?: string | null;
@@ -60,21 +62,11 @@ export type VideoDetailResponse = {
   updated_at?: string | null;
 };
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
-
-export function resolveVideoMediaUrl(media?: VideoMediaAsset | null): string | null {
-  const rawUrl = media?.url?.trim();
-  if (rawUrl) return rawUrl;
-
-  const rawPath = media?.path?.trim();
-  if (!rawPath) return null;
-  if (/^https?:\/\//i.test(rawPath)) return rawPath;
-  if (!API_BASE_URL) return rawPath;
-  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
-  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
-  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
-
-  return `${API_BASE_URL}/storage/${rawPath}`;
+export function resolveVideoMediaUrl(
+  media?: VideoMediaAsset | null,
+  preferredVariant: MediaVariantPreference = "original",
+): string | null {
+  return resolveMediaAssetUrl(media, preferredVariant);
 }
 
 export function getVideoMediaFilename(media?: VideoMediaAsset | null) {

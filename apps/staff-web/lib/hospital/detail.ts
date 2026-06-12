@@ -1,3 +1,5 @@
+import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
+
 export type MediaAsset = {
   id?: number | string;
   path?: string | null;
@@ -8,6 +10,7 @@ export type MediaAsset = {
   height?: number | null;
   sort_order?: number | null;
   is_primary?: boolean;
+  metadata?: unknown;
 };
 
 export type BusinessRegistrationAsset = {
@@ -109,21 +112,11 @@ export type HospitalDetailResponse = {
   updated_at?: string | null;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-
-export function resolveMediaUrl(media?: MediaAsset | null): string | null {
-  const rawUrl = media?.url?.trim();
-  if (rawUrl) return rawUrl;
-
-  const rawPath = media?.path?.trim();
-  if (!rawPath) return null;
-  if (/^https?:\/\//i.test(rawPath)) return rawPath;
-  if (!API_BASE_URL) return rawPath;
-  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
-  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
-  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
-
-  return `${API_BASE_URL}/storage/${rawPath}`;
+export function resolveMediaUrl(
+  media?: MediaAsset | null,
+  preferredVariant: MediaVariantPreference = "original",
+): string | null {
+  return resolveMediaAssetUrl(media, preferredVariant);
 }
 
 export function formatBytes(bytes?: number | null) {

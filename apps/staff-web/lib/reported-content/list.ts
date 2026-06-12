@@ -550,7 +550,7 @@ export function normalizeReportedContent(
 }
 
 export function resolveReportedReviewImageUrl(media?: HospitalReviewMediaAsset | null) {
-  return resolveHospitalReviewMediaUrl(media);
+  return resolveHospitalReviewMediaUrl(media, "thumb");
 }
 
 function normalizeReportedReview(

@@ -10,6 +10,7 @@ import {
   VISIBLE_REPORT_STATUS_VALUE_SET,
   type ContentReportSummary,
 } from "@/lib/common/content-report";
+import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
 
 export type HospitalReviewBoardType = "surgery" | "treatment";
 
@@ -273,21 +274,12 @@ const HOSPITAL_REVIEW_SORT_FIELDS = new Set<HospitalReviewSortField>([
 const HOSPITAL_REVIEW_VISIBILITY_VALUE_SET = new Set(HOSPITAL_REVIEW_VISIBILITY_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_RATING_VALUE_SET = new Set(HOSPITAL_REVIEW_RATING_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_METRIC_VALUE_SET = new Set<HospitalReviewMetricField>(["like_count", "save_count", "comment_count", "view_count"]);
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-export function resolveHospitalReviewMediaUrl(media?: HospitalReviewMediaAsset | null): string | null {
-  const rawUrl = media?.url?.trim();
-  if (rawUrl) return rawUrl;
-
-  const rawPath = media?.path?.trim();
-  if (!rawPath) return null;
-  if (/^https?:\/\//i.test(rawPath)) return rawPath;
-  if (!API_BASE_URL) return rawPath;
-  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
-  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
-  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
-
-  return `${API_BASE_URL}/storage/${rawPath}`;
+export function resolveHospitalReviewMediaUrl(
+  media?: HospitalReviewMediaAsset | null,
+  preferredVariant: MediaVariantPreference = "original",
+): string | null {
+  return resolveMediaAssetUrl(media, preferredVariant);
 }
 
 export function labelHospitalReviewVisibilityStatus(status?: string | null) {

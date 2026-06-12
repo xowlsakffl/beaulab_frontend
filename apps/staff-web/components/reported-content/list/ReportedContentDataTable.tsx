@@ -110,7 +110,7 @@ function renderImagePreview(row: ReportedContentRow) {
   return (
     <div className="relative h-[86px] w-[86px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50  ">
       {/* eslint-disable-next-line @next/next/no-img-element -- image URL is provided by backend storage configuration */}
-      <img src={imageUrl} alt={`신고 후기 ${row.id} 이미지`} loading="lazy" className="h-full w-full object-cover" />
+      <img src={imageUrl} alt={`신고 후기 ${row.id} 이미지`} className="h-full w-full object-cover" />
       {row.imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
           {row.imageCount}+

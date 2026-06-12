@@ -23,6 +23,7 @@ import { HospitalReviewsDataTable } from "@/components/hospital-review/list/Hosp
 import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/HospitalReviewsFilterPanel";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
+import { preloadImageUrls } from "@/lib/common/media";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
   buildHospitalReviewCommentsQuery,
@@ -49,6 +50,7 @@ import {
   normalizeHospitalReview,
   normalizeMetricBound,
   parseHospitalReviewsTableState,
+  resolveHospitalReviewMediaUrl,
   type HospitalReviewApiItem,
   type HospitalReviewBoardType,
   type HospitalReviewFilters,
@@ -375,7 +377,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           return;
         }
 
-        setRows(response.data.map(normalizeHospitalReview));
+        const normalizedRows = response.data.map(normalizeHospitalReview);
+        await preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
+        setRows(normalizedRows);
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch (error) {
@@ -418,7 +422,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           return;
         }
 
-        setCommentRows(response.data.map(normalizeHospitalReviewComment));
+        const normalizedRows = response.data.map(normalizeHospitalReviewComment);
+        await preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
+        setCommentRows(normalizedRows);
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch (error) {

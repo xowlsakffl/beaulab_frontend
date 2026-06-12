@@ -389,7 +389,7 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
       Date.now() - lastLoginDate.getTime() > 30 * 24 * 60 * 60 * 1000,
     createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
     updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
-    logoUrl: resolveMediaUrl(item.logo as MediaAsset | null),
+    logoUrl: resolveMediaUrl(item.logo as MediaAsset | null, "thumb"),
   };
 }
 

@@ -2,6 +2,7 @@ import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import { CATEGORY_USAGES } from "@/lib/common/category";
+import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
 
 export type HospitalEventCategory = {
   id?: number | null;
@@ -20,6 +21,7 @@ export type HospitalEventMedia = {
   mime_type?: string | null;
   width?: number | null;
   height?: number | null;
+  metadata?: unknown;
 };
 
 export type HospitalEventApiItem = {
@@ -234,21 +236,11 @@ const HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET = new Set(HOSPITAL_EVENT_ALLOW_STATU
 const HOSPITAL_EVENT_QUANTITY_METRIC_VALUE_SET = new Set(HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET = new Set(HOSPITAL_EVENT_AMOUNT_METRIC_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVENT_DATE_TYPE_VALUE_SET = new Set(HOSPITAL_EVENT_DATE_TYPE_OPTIONS.map((option) => option.value));
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-
-export function resolveHospitalEventMediaUrl(media?: HospitalEventMedia | null): string | null {
-  const rawUrl = media?.url?.trim();
-  if (rawUrl) return rawUrl;
-
-  const rawPath = media?.path?.trim();
-  if (!rawPath) return null;
-  if (/^https?:\/\//i.test(rawPath)) return rawPath;
-  if (!API_BASE_URL) return rawPath;
-  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
-  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
-  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
-
-  return `${API_BASE_URL}/storage/${rawPath}`;
+export function resolveHospitalEventMediaUrl(
+  media?: HospitalEventMedia | null,
+  preferredVariant: MediaVariantPreference = "original",
+): string | null {
+  return resolveMediaAssetUrl(media, preferredVariant);
 }
 
 export function labelHospitalEventVisibilityStatus(status?: string | null) {
@@ -336,7 +328,7 @@ export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEven
     hospitalName: item.hospital?.name?.trim() || "-",
     categoryLabel: formatHospitalEventCategories(item.categories),
     name: item.name?.trim() || "-",
-    thumbnailUrl: resolveHospitalEventMediaUrl(item.thumbnail_image),
+    thumbnailUrl: resolveHospitalEventMediaUrl(item.thumbnail_image, "thumb"),
     periodLabel: formatHospitalEventPeriod(item),
     eventPrice: Number(item.event_price ?? 0),
     discountRate: Number(item.discount_rate ?? 0),

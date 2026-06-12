@@ -87,7 +87,7 @@ function renderCategoryBadges(row: HospitalReviewCommentRow) {
 }
 
 function renderParentImage(row: HospitalReviewCommentRow) {
-  const imageUrl = resolveHospitalReviewMediaUrl(row.firstImage);
+  const imageUrl = resolveHospitalReviewMediaUrl(row.firstImage, "thumb");
   const imageFrameClass = "h-[100px] w-full min-w-[84px] max-w-[100px] shrink-0";
 
   if (!imageUrl) {
@@ -104,7 +104,6 @@ function renderParentImage(row: HospitalReviewCommentRow) {
       <img
         src={imageUrl}
         alt={`후기 ${row.parentReviewId ?? row.id} 이미지`}
-        loading="lazy"
         className="h-full w-full object-cover"
       />
       {row.imageCount > 0 ? (
