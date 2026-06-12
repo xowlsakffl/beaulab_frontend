@@ -37,10 +37,6 @@ type ReportedContentTableClientProps = {
   type: ReportedContentBoardType;
 };
 
-type ReportedContentMeta = DataTableMeta & {
-  summary?: ReportedContentSummary | null;
-};
-
 export function ReportedContentTableClient({ type }: ReportedContentTableClientProps) {
   const config = REPORTED_CONTENT_BOARD_CONFIGS[type];
   const supportsComments = Boolean(config.commentApiPath && config.commentKind);
@@ -79,6 +75,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const [refreshing, setRefreshing] = React.useState(false);
   const activeKind = activeBoard === "comments" ? config.commentKind ?? config.kind : config.kind;
   const activeApiPath = activeBoard === "comments" ? config.commentApiPath ?? config.apiPath : config.apiPath;
+  const showSummaryCards = config.showSummaryCards !== false;
 
   const query = React.useMemo(
     () =>
@@ -106,6 +103,25 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
 
+  const fetchSummary = React.useCallback(async () => {
+    if (!showSummaryCards) {
+      setSummary(null);
+      return;
+    }
+
+    try {
+      const response = await api.get<ReportedContentSummary>(`${activeApiPath}/summary`);
+
+      if (!isApiSuccess(response)) {
+        return;
+      }
+
+      setSummary(response.data);
+    } catch {
+      setSummary(null);
+    }
+  }, [activeApiPath, showSummaryCards]);
+
   const fetchRows = React.useCallback(
     async (manualRefresh = false) => {
       const requestKey = JSON.stringify({ apiPath: activeApiPath, query });
@@ -128,7 +144,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
 
         const normalizedRows = response.data
           .map((item) => normalizeReportedContent(item, config, activeKind));
-        const responseMeta = (response.meta as ReportedContentMeta | null) ?? null;
+        const responseMeta = (response.meta as DataTableMeta | null) ?? null;
 
         setRows(normalizedRows);
         setMeta(responseMeta ? {
@@ -137,7 +153,6 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
           total: responseMeta.total,
           last_page: responseMeta.last_page,
         } : null);
-        setSummary(responseMeta?.summary ?? null);
         hasFetchedRef.current = true;
       } catch {
         setError("신고게시물 목록 조회 중 오류가 발생했습니다.");
@@ -152,6 +167,10 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   React.useEffect(() => {
     void fetchRows();
   }, [fetchRows]);
+
+  React.useEffect(() => {
+    void fetchSummary();
+  }, [fetchSummary]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -271,7 +290,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
           </Button>
         </div>
       ) : null}
-      {config.showSummaryCards === false ? null : <ReportedContentStatsCards summary={summary} />}
+      {showSummaryCards ? <ReportedContentStatsCards summary={summary} /> : null}
       <ReportedContentFilterPanel
         searchInput={searchInput}
         draftFilters={draftFilters}
@@ -312,7 +331,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         sortState={sortState}
         onToggleSort={toggleSort}
         onGoPage={setPage}
-        onRefresh={() => void fetchRows(true)}
+        onRefresh={() => void Promise.all([fetchRows(true), fetchSummary()])}
         onOpenDetail={openDetail}
       />
     </div>

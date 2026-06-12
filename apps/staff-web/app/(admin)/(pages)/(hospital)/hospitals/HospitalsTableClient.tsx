@@ -71,11 +71,9 @@ export default function HospitalsTableClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
-  const [listLoadedOnce, setListLoadedOnce] = React.useState(false);
 
   const requestKeyRef = React.useRef("");
   const hasFetchedRef = React.useRef(false);
-  const summaryRequestedRef = React.useRef(false);
 
   const query = React.useMemo(
     () =>
@@ -135,7 +133,6 @@ export default function HospitalsTableClient() {
         setRows(response.data.map(normalizeHospital));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-        setListLoadedOnce(true);
       } catch {
         setError("병의원 목록 조회 중 오류가 발생했습니다.");
       } finally {
@@ -151,15 +148,8 @@ export default function HospitalsTableClient() {
   }, [fetchHospitals]);
 
   React.useEffect(() => {
-    if (!listLoadedOnce || summaryRequestedRef.current) return;
-
-    summaryRequestedRef.current = true;
-    const timeoutId = window.setTimeout(() => {
-      void fetchHospitalSummary();
-    }, 250);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [fetchHospitalSummary, listLoadedOnce]);
+    void fetchHospitalSummary();
+  }, [fetchHospitalSummary]);
 
   React.useEffect(() => {
     const highlightParam = searchParams.get("highlight");
