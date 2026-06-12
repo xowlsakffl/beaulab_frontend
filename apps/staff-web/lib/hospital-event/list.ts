@@ -289,10 +289,6 @@ export function formatHospitalEventDateTime(value?: string | null) {
 }
 
 export function formatHospitalEventPrice(value: number) {
-  if (value >= 10000 && value % 10000 === 0) {
-    return `${(value / 10000).toLocaleString()}만원`;
-  }
-
   return `${value.toLocaleString()}원`;
 }
 
@@ -351,14 +347,20 @@ export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEven
 }
 
 export function formatHospitalEventPeriod(item: HospitalEventApiItem) {
-  const start = formatHospitalEventDate(item.event_start_at);
+  const start = formatHospitalEventShortDate(item.event_start_at);
   if (item.is_event_period_unlimited) return `${start} ~ 무기한`;
 
-  return `${start} ~ ${formatHospitalEventDate(item.event_end_at)}`;
+  return `${start} ~ ${formatHospitalEventShortDate(item.event_end_at)}`;
 }
 
 function formatHospitalEventDateInput(value?: string | null) {
   return value ? value.slice(0, 10) : "";
+}
+
+function formatHospitalEventShortDate(value?: string | null) {
+  const formatted = formatHospitalEventDate(value);
+
+  return formatted.length === 10 ? formatted.slice(2) : formatted;
 }
 
 export function formatLocalDate(date: Date) {

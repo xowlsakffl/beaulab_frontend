@@ -7,8 +7,8 @@ import {
   Button,
   Card,
   CheckboxFilterDropdown,
-  CircleCheck,
   DateRangeFilterDropdown,
+  FormCheckbox,
   InputField,
   Select,
   SquarePlus,
@@ -130,21 +130,14 @@ export function HospitalEventsFilterPanel({
                 onConfirm={onToggleDatePicker}
               />
               <div className="flex shrink-0 items-center gap-5 px-1">
-                {HOSPITAL_EVENT_DATE_TYPE_OPTIONS.map((option) => {
-                  const checked = draftFilters.dateTypes.includes(option.value);
-
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => onToggleDateType(option.value)}
-                      className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-gray-800 transition hover:text-brand-600 "
-                    >
-                      <CircleCheck className={checked ? "size-5 text-brand-500" : "size-5 text-gray-400"} aria-hidden="true" />
-                      {option.label}
-                    </button>
-                  );
-                })}
+                {HOSPITAL_EVENT_DATE_TYPE_OPTIONS.map((option) => (
+                  <FormCheckbox
+                    key={option.value}
+                    checked={draftFilters.dateTypes.includes(option.value)}
+                    onChange={() => onToggleDateType(option.value)}
+                    label={option.label}
+                  />
+                ))}
               </div>
             </div>
           </div>

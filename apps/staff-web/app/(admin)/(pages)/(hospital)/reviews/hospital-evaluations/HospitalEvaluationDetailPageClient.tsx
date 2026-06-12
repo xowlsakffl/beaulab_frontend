@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CircleCheck,
+  FormCheckbox,
   InputField,
   Modal,
   ModalBody,
@@ -412,7 +412,6 @@ export default function HospitalEvaluationDetailPageClient() {
           <HospitalEvaluationContentCard
             detail={detail}
             receiptButtonLabel={receiptButtonLabel}
-            receiptVerified={receiptStatus === "VERIFIED"}
             hasReceiptImages={receiptImages.length > 0}
             receiptButtonDisabled={receiptUpdating}
             onOpenReceiptModal={openReceiptModal}
@@ -560,7 +559,6 @@ function HospitalSummaryCard({ detail }: { detail: HospitalEvaluationDetailRespo
 function HospitalEvaluationContentCard({
   detail,
   receiptButtonLabel,
-  receiptVerified,
   hasReceiptImages,
   receiptButtonDisabled,
   onOpenReceiptModal,
@@ -568,7 +566,6 @@ function HospitalEvaluationContentCard({
 }: {
   detail: HospitalEvaluationDetailResponse;
   receiptButtonLabel: string;
-  receiptVerified: boolean;
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
@@ -590,7 +587,6 @@ function HospitalEvaluationContentCard({
               onClick={onOpenReceiptModal}
               className="min-w-[7.5rem]"
             >
-              {receiptVerified ? <CircleCheck className="mr-1 size-4" aria-hidden="true" /> : null}
               {receiptButtonLabel}
             </Button>
           ) : null}
@@ -949,18 +945,12 @@ function ReceiptDecisionOption({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <FormCheckbox
       disabled={disabled}
-      onClick={onClick}
-      className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 transition disabled:opacity-60 "
-    >
-      <CircleCheck
-        className={checked ? "size-5 text-brand-500" : "size-5 text-gray-400"}
-        aria-hidden="true"
-      />
-      {label}
-    </button>
+      checked={checked}
+      label={label}
+      onChange={onClick}
+    />
   );
 }
 

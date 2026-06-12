@@ -5,8 +5,8 @@ import type { DateRange } from "react-day-picker";
 import {
   Button,
   Card,
-  CircleCheck,
   DateRangeFilterDropdown,
+  FormCheckbox,
   InputField,
   Select,
 } from "@beaulab/ui-admin";
@@ -214,18 +214,12 @@ export function ReportedContentFilterPanel({
               {dateTypeInline ? (
                 <div className="flex shrink-0 items-center gap-5 px-1">
                   {dateTypeOptions.map((option) => (
-                    <button
+                    <FormCheckbox
                       key={option.value}
-                      type="button"
-                      onClick={() => onDateTypeChange(option.value)}
-                      className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-gray-800 transition hover:text-brand-600  "
-                    >
-                      <CircleCheck
-                        className={draftFilters.dateType === option.value ? "size-5 text-brand-500" : "size-5 text-gray-400"}
-                        aria-hidden="true"
-                      />
-                      {option.label}
-                    </button>
+                      checked={draftFilters.dateType === option.value}
+                      onChange={() => onDateTypeChange(option.value)}
+                      label={option.label}
+                    />
                   ))}
                 </div>
               ) : null}
