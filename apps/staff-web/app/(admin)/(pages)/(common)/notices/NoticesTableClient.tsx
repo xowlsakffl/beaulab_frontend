@@ -144,12 +144,6 @@ export default function NoticesTableClient() {
   }, [fetchNotices]);
 
   React.useEffect(() => {
-    rows.slice(0, 15).forEach((row) => {
-      router.prefetch(`/notices/${row.id}`);
-    });
-  }, [router, rows]);
-
-  React.useEffect(() => {
     const highlightParam = searchParams.get("highlight");
     if (!highlightParam) return;
 

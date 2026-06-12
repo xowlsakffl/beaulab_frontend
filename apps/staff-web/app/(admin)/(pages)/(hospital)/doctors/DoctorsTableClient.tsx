@@ -39,6 +39,32 @@ type CategoryFilterOption = {
   label: string;
 };
 
+let cachedDoctorCategoryOptions: CategoryFilterOption[] | null = null;
+
+function normalizeDoctorCategoryOptions(items: CategoryApiItem[]): CategoryFilterOption[] {
+  const groupedOptions = items
+    .filter((item) => item.status === "ACTIVE")
+    .map((item) => ({
+      value: String(item.id),
+      label: item.name,
+    }))
+    .reduce<Map<string, string[]>>((map, item) => {
+      const label = item.label.trim();
+      if (!label) return map;
+
+      const values = map.get(label) ?? [];
+      values.push(item.value);
+      map.set(label, values);
+
+      return map;
+    }, new Map());
+
+  return Array.from(groupedOptions.entries()).map(([label, values]) => ({
+    value: values.join("|"),
+    label,
+  }));
+}
+
 export default function DoctorsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -97,6 +123,11 @@ export default function DoctorsTableClient() {
   const buildReturnToPath = React.useCallback(() => buildDoctorsReturnToPath(pathname, query), [pathname, query]);
 
   const fetchCategoryOptions = React.useCallback(async () => {
+    if (cachedDoctorCategoryOptions) {
+      setCategoryOptions(cachedDoctorCategoryOptions);
+      return;
+    }
+
     try {
       const response = await api.get<CategoryApiItem[]>("/categories/selector", {
         domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
@@ -109,29 +140,9 @@ export default function DoctorsTableClient() {
         return;
       }
 
-      const groupedOptions = response.data
-        .filter((item) => item.status === "ACTIVE")
-        .map((item) => ({
-          value: String(item.id),
-          label: item.name,
-        }))
-        .reduce<Map<string, string[]>>((map, item) => {
-          const label = item.label.trim();
-          if (!label) return map;
-
-          const values = map.get(label) ?? [];
-          values.push(item.value);
-          map.set(label, values);
-
-          return map;
-        }, new Map());
-
-      setCategoryOptions(
-        Array.from(groupedOptions.entries()).map(([label, values]) => ({
-          value: values.join("|"),
-          label,
-        })),
-      );
+      const options = normalizeDoctorCategoryOptions(response.data);
+      cachedDoctorCategoryOptions = options;
+      setCategoryOptions(options);
     } catch {
       setCategoryOptions([]);
     }
@@ -197,12 +208,6 @@ export default function DoctorsTableClient() {
   React.useEffect(() => {
     void fetchCategoryOptions();
   }, [fetchCategoryOptions]);
-
-  React.useEffect(() => {
-    rows.slice(0, DOCTORS_PER_PAGE).forEach((row) => {
-      router.prefetch(`/doctors/${row.id}`);
-    });
-  }, [router, rows]);
 
   React.useEffect(() => {
     const highlightParam = searchParams.get("highlight");

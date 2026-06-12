@@ -147,12 +147,6 @@ export default function VideosTableClient() {
   }, [fetchVideos]);
 
   React.useEffect(() => {
-    rows.slice(0, 15).forEach((row) => {
-      router.prefetch(`/videos/${row.id}`);
-    });
-  }, [router, rows]);
-
-  React.useEffect(() => {
     const highlightParam = searchParams.get("highlight");
     if (!highlightParam) return;
 

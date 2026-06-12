@@ -682,12 +682,6 @@ export default function TalksTableClient() {
     router.push(`/talks/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
   }, [pathname, queryString, router]);
 
-  React.useEffect(() => {
-    rows.slice(0, 10).forEach((row) => {
-      router.prefetch(`/talks/${row.id}`);
-    });
-  }, [router, rows]);
-
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityCount = pendingVisibilityChange?.ids.length ?? 0;
   const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"

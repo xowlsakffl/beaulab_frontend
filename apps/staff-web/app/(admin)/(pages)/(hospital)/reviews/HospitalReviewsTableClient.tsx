@@ -809,12 +809,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     router.push(`${config.listPath}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
   }, [config.listPath, pathname, queryString, router]);
 
-  React.useEffect(() => {
-    rows.slice(0, 10).forEach((row) => {
-      router.prefetch(`${config.listPath}/${row.id}`);
-    });
-  }, [config.listPath, router, rows]);
-
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityTarget = pendingVisibilityChange?.board === "comments" ? "댓글" : "후기";
   const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
