@@ -37,8 +37,34 @@ function allowStatusColor(status: string): "success" | "warning" | "error" | "in
   return "light";
 }
 
-function categoryBadges(categoryLabel: string) {
-  return <CategoryBadgeList values={[categoryLabel]} title={categoryLabel} />;
+function categoryBadges(row: HospitalEventRow) {
+  if (row.categoryBadges.length > 0) {
+    return (
+      <div className="flex min-w-0 flex-wrap gap-1.5" title={row.categoryLabel}>
+        {row.categoryBadges.map((category) => (
+          <span
+            key={category.label}
+            className={[
+              "inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold",
+              category.isPrimary
+                ? "border border-brand-600 text-brand-600"
+                : "border border-transparent text-brand-600",
+            ].join(" ")}
+            title={category.label}
+          >
+            <span className="truncate">{category.label}</span>
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <CategoryBadgeList
+      values={[row.categoryLabel]}
+      title={row.categoryLabel}
+    />
+  );
 }
 
 function EventInlineActionButton({
@@ -102,15 +128,15 @@ function buildHospitalEventColumns({
     },
     {
       key: "categories",
-      headerClassName: `${headerBaseClass} lg:w-[150px]`,
-      cellClassName: `${cellBaseClass} lg:w-[150px]`,
+      headerClassName: `${headerBaseClass} lg:w-[170px]`,
+      cellClassName: `${cellBaseClass} lg:w-[170px]`,
       header: "카테고리",
-      render: (row) => categoryBadges(row.categoryLabel),
+      render: (row) => categoryBadges(row),
     },
     {
       key: "event",
-      headerClassName: `${headerBaseClass} lg:w-[230px]`,
-      cellClassName: `${cellBaseClass} lg:w-[230px]`,
+      headerClassName: `${headerBaseClass} lg:w-[210px]`,
+      cellClassName: `${cellBaseClass} lg:w-[210px]`,
       header: "이벤트",
       render: (row) => (
         <div className="flex min-w-0 items-start gap-3">

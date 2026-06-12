@@ -286,7 +286,7 @@ export function validateCreateHospitalEventForm(
   if (!thumbnailImage) errors.thumbnail_image = "썸네일 이미지를 등록해 주세요.";
   if (form.event_type === "IMAGE" && !eventPageImage) errors.event_page_image = "이벤트 페이지 이미지를 등록해 주세요.";
 
-  if (form.event_type === "IMAGE" && selectedCategoryUsage === "HOSPITAL_EVENT_TREATMENT" && form.has_options) {
+  if (selectedCategoryUsage === "HOSPITAL_EVENT_TREATMENT" && form.has_options) {
     const validOptions = form.options.filter((option) => option.name.trim());
     if (validOptions.length === 0) errors.options = "이벤트 옵션을 1개 이상 입력해 주세요.";
   }
@@ -353,7 +353,7 @@ export function appendHospitalEventFormData(
       formData.append(`doctor_assignments[${index}][is_activity_visible]`, assignment.is_activity_visible ? "1" : "0");
     });
 
-  const shouldSubmitOptions = form.event_type === "IMAGE" && selectedCategoryUsage === "HOSPITAL_EVENT_TREATMENT" && form.has_options;
+  const shouldSubmitOptions = selectedCategoryUsage === "HOSPITAL_EVENT_TREATMENT" && form.has_options;
   formData.append("has_options", shouldSubmitOptions ? "1" : "0");
 
   if (shouldSubmitOptions) {

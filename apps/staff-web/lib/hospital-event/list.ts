@@ -62,6 +62,10 @@ export type HospitalEventRow = {
   id: number;
   hospitalName: string;
   categoryLabel: string;
+  categoryBadges: Array<{
+    label: string;
+    isPrimary: boolean;
+  }>;
   name: string;
   thumbnailUrl: string | null;
   periodLabel: string;
@@ -318,14 +322,37 @@ export function formatHospitalEventCategories(categories?: HospitalEventCategory
   return values.length > 0 ? values.join("\n") : "-";
 }
 
+export function formatHospitalEventCategoryBadges(categories?: HospitalEventCategory[] | null) {
+  const seenLabels = new Set<string>();
+
+  return (categories ?? [])
+    .slice()
+    .sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)))
+    .flatMap((category) => {
+      const label = formatHospitalEventCategory(category, 3);
+      if (!label || seenLabels.has(label)) return [];
+
+      seenLabels.add(label);
+
+      return [{
+        label,
+        isPrimary: Boolean(category.is_primary),
+      }];
+    })
+}
+
 export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEventRow {
   const status = item.status?.trim() || "INACTIVE";
   const allowStatus = item.allow_status?.trim() || "";
+  const categoryBadges = formatHospitalEventCategoryBadges(item.categories);
 
   return {
     id: item.id,
     hospitalName: item.hospital?.name?.trim() || "-",
-    categoryLabel: formatHospitalEventCategories(item.categories),
+    categoryLabel: categoryBadges.length > 0
+      ? categoryBadges.map((category) => category.label).join("\n")
+      : formatHospitalEventCategories(item.categories),
+    categoryBadges,
     name: item.name?.trim() || "-",
     thumbnailUrl: resolveHospitalEventMediaUrl(item.thumbnail_image, "thumb"),
     periodLabel: formatHospitalEventPeriod(item),
