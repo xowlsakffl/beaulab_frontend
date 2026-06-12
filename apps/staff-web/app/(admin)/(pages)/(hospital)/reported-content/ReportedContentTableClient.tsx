@@ -9,7 +9,7 @@ import { Button, type DataTableMeta } from "@beaulab/ui-admin";
 import { ReportedContentDataTable } from "@/components/reported-content/list/ReportedContentDataTable";
 import { ReportedContentFilterPanel } from "@/components/reported-content/list/ReportedContentFilterPanel";
 import { ReportedContentStatsCards } from "@/components/reported-content/list/ReportedContentStatsCards";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DEFAULT_REPORTED_CONTENT_SORT,
   REPORTED_CONTENT_BOARD_CONFIGS,
@@ -110,14 +110,18 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     }
 
     try {
-      const response = await api.get<ReportedContentSummary>(`${activeApiPath}/summary`);
+      const response = await api.get<ReportedContentSummary>(`${activeApiPath}/summary`, undefined, {
+        latestKey: "reported-content:summary",
+      });
 
       if (!isApiSuccess(response)) {
         return;
       }
 
       setSummary(response.data);
-    } catch {
+    } catch (error) {
+      if (isApiRequestCanceledError(error)) return;
+
       setSummary(null);
     }
   }, [activeApiPath, showSummaryCards]);
@@ -133,9 +137,12 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<ReportedContentApiItem[]>(activeApiPath, query);
+        const response = await api.get<ReportedContentApiItem[]>(activeApiPath, query, {
+          latestKey: "reported-content:list",
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "신고게시물 목록 조회에 실패했습니다.");
@@ -154,11 +161,18 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
           last_page: responseMeta.last_page,
         } : null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("신고게시물 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [activeApiPath, activeKind, config, query],

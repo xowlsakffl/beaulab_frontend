@@ -8,7 +8,7 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import { VideosDataTable } from "@/components/video/list/VideosDataTable";
 import { VideosFilterPanel } from "@/components/video/list/VideosFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DATE_PRESET_OPTIONS,
   DEFAULT_FILTERS,
@@ -110,9 +110,12 @@ export default function VideosTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<VideoApiItem[]>("/videos", query);
+        const response = await api.get<VideoApiItem[]>("/videos", query, {
+          latestKey: "videos:list",
+        });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "동영상 목록 조회에 실패했습니다.");
           return;
@@ -132,11 +135,18 @@ export default function VideosTableClient() {
             : null,
         );
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("동영상 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

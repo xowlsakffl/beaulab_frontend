@@ -11,7 +11,7 @@ import {
 import { HashtagUpsertModal } from "@/components/hashtag/list/HashtagUpsertModal";
 import { HashtagsDataTable } from "@/components/hashtag/list/HashtagsDataTable";
 import { HashtagsFilterPanel } from "@/components/hashtag/list/HashtagsFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
   HASHTAG_STATUS_OPTIONS,
@@ -110,9 +110,12 @@ export default function HashtagsPageClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<HashtagApiItem[]>("/hashtags", query);
+        const response = await api.get<HashtagApiItem[]>("/hashtags", query, {
+          latestKey: "hashtags:list",
+        });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "해시태그 목록 조회에 실패했습니다.");
           return;
@@ -132,11 +135,18 @@ export default function HashtagsPageClient() {
             : null,
         );
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("해시태그 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

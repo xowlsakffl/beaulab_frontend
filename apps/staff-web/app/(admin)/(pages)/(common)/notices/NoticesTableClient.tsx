@@ -8,7 +8,7 @@ import type { DateRange } from "react-day-picker";
 
 import { NoticesDataTable } from "@/components/notice/list/NoticesDataTable";
 import { NoticesFilterPanel } from "@/components/notice/list/NoticesFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   buildPresetDateRange,
   buildNoticesQuery,
@@ -107,9 +107,12 @@ export default function NoticesTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<NoticeApiItem[]>("/notices", query);
+        const response = await api.get<NoticeApiItem[]>("/notices", query, {
+          latestKey: "notices:list",
+        });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "공지사항 목록 조회에 실패했습니다.");
           return;
@@ -129,11 +132,18 @@ export default function NoticesTableClient() {
             : null,
         );
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("공지사항 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

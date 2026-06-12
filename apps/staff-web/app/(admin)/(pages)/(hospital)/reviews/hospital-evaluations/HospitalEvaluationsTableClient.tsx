@@ -19,7 +19,7 @@ import {
 
 import { HospitalEvaluationsDataTable } from "@/components/hospital-evaluation/list/HospitalEvaluationsDataTable";
 import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation/list/HospitalEvaluationsFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_HOSPITAL_EVALUATION_FILTERS,
@@ -161,9 +161,12 @@ export function HospitalEvaluationsTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<HospitalEvaluationApiItem[]>("/hospital-evaluations", query);
+        const response = await api.get<HospitalEvaluationApiItem[]>("/hospital-evaluations", query, {
+          latestKey: "hospital-evaluations:list",
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "평가 목록 조회에 실패했습니다.");
@@ -173,11 +176,18 @@ export function HospitalEvaluationsTableClient() {
         setRows(response.data.map(normalizeHospitalEvaluation));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("평가 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

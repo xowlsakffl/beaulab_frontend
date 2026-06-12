@@ -3,7 +3,7 @@
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
 import { HospitalsSummaryCards } from "@/components/hospital/list/HospitalsSummaryCards";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   ALLOW_STATUS_OPTIONS,
   DEFAULT_FILTERS,
@@ -95,11 +95,15 @@ export default function HospitalsTableClient() {
 
   const fetchHospitalSummary = React.useCallback(async () => {
     try {
-      const response = await api.get<HospitalSummary>("/hospitals/summary");
+      const response = await api.get<HospitalSummary>("/hospitals/summary", undefined, {
+        latestKey: "hospitals:summary",
+      });
       if (!isApiSuccess(response)) return;
 
       setSummary(response.data);
-    } catch {
+    } catch (error) {
+      if (isApiRequestCanceledError(error)) return;
+
       setSummary(null);
     }
   }, []);
@@ -122,9 +126,12 @@ export default function HospitalsTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<HospitalApiItem[]>("/hospitals", query);
+        const response = await api.get<HospitalApiItem[]>("/hospitals", query, {
+          latestKey: "hospitals:list",
+        });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "병의원 목록 조회에 실패했습니다.");
           return;
@@ -133,11 +140,18 @@ export default function HospitalsTableClient() {
         setRows(response.data.map(normalizeHospital));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("병의원 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

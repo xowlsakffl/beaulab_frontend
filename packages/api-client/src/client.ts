@@ -28,7 +28,31 @@ type CreateClientOptions = {
 type RequestOptions = Omit<RequestInit, "body"> & {
     query?: Query;
     body?: unknown; // object | FormData | string | etc
+    latestKey?: string;
 };
+
+type LatestRequest = {
+    controller: AbortController;
+    requestId: number;
+};
+
+const latestRequests = new Map<string, LatestRequest>();
+let latestRequestSequence = 0;
+
+export class ApiRequestCanceledError extends Error {
+    constructor(message = "API request canceled") {
+        super(message);
+        this.name = "ApiRequestCanceledError";
+    }
+}
+
+export function isApiRequestCanceledError(error: unknown): error is ApiRequestCanceledError {
+    return error instanceof ApiRequestCanceledError;
+}
+
+function isAbortError(error: unknown): boolean {
+    return error instanceof DOMException && error.name === "AbortError";
+}
 
 function isFormData(v: unknown): v is FormData {
     return typeof FormData !== "undefined" && v instanceof FormData;
@@ -52,9 +76,30 @@ export function createClient(options: CreateClientOptions) {
     const { baseURL, actor } = options;
 
     async function request<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponse<T>> {
-        const { query, body: rawBody, ...rest } = opts;
+        const { query, body: rawBody, latestKey, ...rest } = opts;
 
         const url = buildUrl(baseURL, path, query);
+        let latestRequest: LatestRequest | null = null;
+        let signal = rest.signal;
+
+        if (latestKey) {
+            latestRequests.get(latestKey)?.controller.abort();
+
+            const controller = new AbortController();
+            latestRequest = {
+                controller,
+                requestId: latestRequestSequence += 1,
+            };
+            latestRequests.set(latestKey, latestRequest);
+
+            if (rest.signal?.aborted) {
+                controller.abort();
+            } else {
+                rest.signal?.addEventListener("abort", () => controller.abort(), { once: true });
+            }
+
+            signal = controller.signal;
+        }
 
         const headers = new Headers(rest.headers);
         headers.set("Accept", "application/json");
@@ -77,30 +122,53 @@ export function createClient(options: CreateClientOptions) {
             }
         }
 
-        const res = await fetch(url, {
-            ...rest,
-            headers,
-            body,
-        });
+        try {
+            const res = await fetch(url, {
+                ...rest,
+                signal,
+                headers,
+                body,
+            });
 
-        return (await res.json()) as ApiResponse<T>;
+            if (latestKey && latestRequests.get(latestKey)?.requestId !== latestRequest?.requestId) {
+                throw new ApiRequestCanceledError("Stale API response ignored");
+            }
+
+            const payload = (await res.json()) as ApiResponse<T>;
+
+            if (latestKey && latestRequests.get(latestKey)?.requestId !== latestRequest?.requestId) {
+                throw new ApiRequestCanceledError("Stale API response ignored");
+            }
+
+            return payload;
+        } catch (error) {
+            if (isAbortError(error)) {
+                throw new ApiRequestCanceledError();
+            }
+
+            throw error;
+        } finally {
+            if (latestKey && latestRequests.get(latestKey)?.requestId === latestRequest?.requestId) {
+                latestRequests.delete(latestKey);
+            }
+        }
     }
 
     return {
-        get: <T>(path: string, query?: Query) =>
-            request<T>(path, { method: "GET", query }),
+        get: <T>(path: string, query?: Query, options?: Omit<RequestOptions, "query" | "body" | "method">) =>
+            request<T>(path, { ...options, method: "GET", query }),
 
-        post: <T>(path: string, body?: unknown, query?: Query) =>
-            request<T>(path, { method: "POST", body, query }),
+        post: <T>(path: string, body?: unknown, query?: Query, options?: Omit<RequestOptions, "query" | "body" | "method">) =>
+            request<T>(path, { ...options, method: "POST", body, query }),
 
-        put: <T>(path: string, body?: unknown, query?: Query) =>
-            request<T>(path, { method: "PUT", body, query }),
+        put: <T>(path: string, body?: unknown, query?: Query, options?: Omit<RequestOptions, "query" | "body" | "method">) =>
+            request<T>(path, { ...options, method: "PUT", body, query }),
 
-        patch: <T>(path: string, body?: unknown, query?: Query) =>
-            request<T>(path, { method: "PATCH", body, query }),
+        patch: <T>(path: string, body?: unknown, query?: Query, options?: Omit<RequestOptions, "query" | "body" | "method">) =>
+            request<T>(path, { ...options, method: "PATCH", body, query }),
 
-        delete: <T>(path: string, query?: Query) =>
-            request<T>(path, { method: "DELETE", query }),
+        delete: <T>(path: string, query?: Query, options?: Omit<RequestOptions, "query" | "body" | "method">) =>
+            request<T>(path, { ...options, method: "DELETE", query }),
 
         // 필요하면 외부에서 커스텀 옵션까지 쓰게 raw도 제공 가능
         raw: request,

@@ -21,7 +21,7 @@ import { HospitalReviewCommentsDataTable } from "@/components/hospital-review/li
 import { HospitalReviewCommentsFilterPanel } from "@/components/hospital-review/list/HospitalReviewCommentsFilterPanel";
 import { HospitalReviewsDataTable } from "@/components/hospital-review/list/HospitalReviewsDataTable";
 import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/HospitalReviewsFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
@@ -363,9 +363,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", query);
+        const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", query, {
+          latestKey: `hospital-reviews:${type}:posts`,
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "후기 목록 조회에 실패했습니다.");
@@ -375,11 +378,18 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         setRows(response.data.map(normalizeHospitalReview));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("후기 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query, type],
@@ -396,9 +406,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", commentQuery);
+        const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", commentQuery, {
+          latestKey: `hospital-reviews:${type}:comments`,
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "후기 댓글 목록 조회에 실패했습니다.");
@@ -408,11 +421,18 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         setCommentRows(response.data.map(normalizeHospitalReviewComment));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("후기 댓글 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [commentQuery, type],

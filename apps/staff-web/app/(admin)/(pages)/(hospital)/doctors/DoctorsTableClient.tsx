@@ -2,7 +2,7 @@
 
 import { DoctorsDataTable } from "@/components/doctor/list/DoctorsDataTable";
 import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, CATEGORY_USAGES, type CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_FILTERS,
@@ -166,11 +166,14 @@ export default function DoctorsTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
         const response = await api.get<DoctorApiItem[]>("/doctors", {
           ...query,
           category_ids: expandDoctorCategoryIds(query.category_ids),
+        }, {
+          latestKey: "doctors:list",
         });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "의료진 목록 조회에 실패했습니다.");
@@ -191,11 +194,18 @@ export default function DoctorsTableClient() {
             : null,
         );
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("의료진 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

@@ -12,7 +12,7 @@ import {
   AccountUsersSignupChannelCard,
   AccountUsersSummaryCards,
 } from "@/components/account-user/list/AccountUsersSummaryCards";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DEFAULT_ACCOUNT_USER_FILTERS,
   DEFAULT_ACCOUNT_USER_SORT,
@@ -83,14 +83,18 @@ export default function AccountUsersTableClient() {
 
   const fetchSummary = React.useCallback(async () => {
     try {
-      const response = await api.get<AccountUserSummary>("/users/summary");
+      const response = await api.get<AccountUserSummary>("/users/summary", undefined, {
+        latestKey: "account-users:summary",
+      });
 
       if (!isApiSuccess(response)) {
         return;
       }
 
       setSummary(response.data);
-    } catch {
+    } catch (error) {
+      if (isApiRequestCanceledError(error)) return;
+
       setSummary(null);
     }
   }, []);
@@ -106,9 +110,12 @@ export default function AccountUsersTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<AccountUserApiItem[]>("/users", query);
+        const response = await api.get<AccountUserApiItem[]>("/users", query, {
+          latestKey: "account-users:list",
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "일반회원 목록 조회에 실패했습니다.");
@@ -118,11 +125,18 @@ export default function AccountUsersTableClient() {
         setRows(response.data.map(normalizeAccountUser));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("일반회원 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],

@@ -21,7 +21,7 @@ import type { DateRange } from "react-day-picker";
 import { TalkCommentsDataTable } from "@/components/talk/list/TalkCommentsDataTable";
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
-import { api, downloadFile } from "@/lib/common/api";
+import { api, downloadFile, isApiRequestCanceledError } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_TALK_COMMENT_SORT,
@@ -216,9 +216,12 @@ export default function TalksTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<TalkApiItem[]>("/talks", query);
+        const response = await api.get<TalkApiItem[]>("/talks", query, {
+          latestKey: "talks:posts",
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "토크 목록 조회에 실패했습니다.");
@@ -228,11 +231,18 @@ export default function TalksTableClient() {
         setRows(response.data.map(normalizeTalk));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("토크 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],
@@ -249,9 +259,12 @@ export default function TalksTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<TalkCommentApiItem[]>("/talk-comments", commentQuery);
+        const response = await api.get<TalkCommentApiItem[]>("/talk-comments", commentQuery, {
+          latestKey: "talks:comments",
+        });
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "토크 댓글 목록 조회에 실패했습니다.");
@@ -261,11 +274,18 @@ export default function TalksTableClient() {
         setCommentRows(response.data.map(normalizeTalkComment));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("토크 댓글 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [commentQuery],

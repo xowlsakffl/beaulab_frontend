@@ -9,7 +9,7 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 import { HospitalEventsDataTable } from "@/components/hospital-event/list/HospitalEventsDataTable";
 import { HospitalEventsFilterPanel } from "@/components/hospital-event/list/HospitalEventsFilterPanel";
 import { HospitalEventsSummaryCards } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_HOSPITAL_EVENT_FILTERS,
@@ -90,14 +90,18 @@ export default function HospitalEventsTableClient() {
 
   const fetchSummary = React.useCallback(async () => {
     try {
-      const response = await api.get<HospitalEventSummary>("/hospital-events/summary");
+      const response = await api.get<HospitalEventSummary>("/hospital-events/summary", undefined, {
+        latestKey: "hospital-events:summary",
+      });
 
       if (!isApiSuccess(response)) {
         return;
       }
 
       setSummary(response.data);
-    } catch {
+    } catch (error) {
+      if (isApiRequestCanceledError(error)) return;
+
       setSummary(null);
     }
   }, []);
@@ -140,9 +144,12 @@ export default function HospitalEventsTableClient() {
       if (manualRefresh) setRefreshing(true);
 
       setError(null);
+      let shouldFinalize = true;
 
       try {
-        const response = await api.get<HospitalEventApiItem[]>("/hospital-events", query);
+        const response = await api.get<HospitalEventApiItem[]>("/hospital-events", query, {
+          latestKey: "hospital-events:list",
+        });
         if (!isApiSuccess(response)) {
           setError(response.error.message || "이벤트 목록 조회에 실패했습니다.");
           return;
@@ -151,11 +158,18 @@ export default function HospitalEventsTableClient() {
         setRows(response.data.map(normalizeHospitalEvent));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
-      } catch {
+      } catch (error) {
+        if (isApiRequestCanceledError(error)) {
+          shouldFinalize = false;
+          return;
+        }
+
         setError("이벤트 목록 조회 중 오류가 발생했습니다.");
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (shouldFinalize) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
     [query],
