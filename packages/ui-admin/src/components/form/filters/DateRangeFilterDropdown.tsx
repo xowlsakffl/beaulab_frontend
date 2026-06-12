@@ -20,7 +20,7 @@ type DateRangeFilterDropdownProps = {
   selected?: DateRange;
   isOpen: boolean;
   onToggleOpen: () => void;
-  onSelect: (range?: DateRange) => void;
+  onSelect: (range?: DateRange, selectedDay?: Date) => void;
   onReset: () => void;
   onConfirm: () => void;
   onPresetSelect: (presetKey: string) => void;
@@ -28,6 +28,8 @@ type DateRangeFilterDropdownProps = {
   containerRef?: React.RefObject<HTMLDivElement | null>;
   locale?: Locale;
   hideLabel?: boolean;
+  error?: boolean;
+  triggerClassName?: string;
 };
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
@@ -49,6 +51,8 @@ export function DateRangeFilterDropdown({
   containerRef,
   locale = ko,
   hideLabel = false,
+  error = false,
+  triggerClassName,
 }: DateRangeFilterDropdownProps) {
   const defaultClassNames = React.useMemo(() => getDefaultClassNames(), []);
   const dayPickerClassNames = React.useMemo(
@@ -98,7 +102,11 @@ export function DateRangeFilterDropdown({
           variant="outline"
           size="default"
           onClick={onToggleOpen}
-          className={filterTriggerClass}
+          className={cn(
+            filterTriggerClass,
+            error ? "border-error-500 focus:ring-3 focus:ring-error-500/10" : undefined,
+            triggerClassName,
+          )}
         >
           <span className="min-w-0 flex-1 truncate text-left">{value || placeholder}</span>
           <ChevronDown className="size-4" />
@@ -123,7 +131,7 @@ export function DateRangeFilterDropdown({
               mode="range"
               selected={selected}
               locale={locale}
-              onSelect={onSelect}
+              onSelect={(range, selectedDay) => onSelect(range, selectedDay)}
               classNames={dayPickerClassNames}
               style={dayPickerStyles}
             />

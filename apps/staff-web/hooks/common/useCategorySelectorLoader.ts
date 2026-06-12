@@ -9,7 +9,7 @@ import type { CategorySelectorItem, CategorySelectorLoadParams } from "@beaulab/
 
 export function useCategorySelectorLoader() {
   return React.useCallback(
-    async ({ section, parentId, query, perPage }: CategorySelectorLoadParams): Promise<CategorySelectorItem[]> => {
+    async ({ section, parentId, query, perPage, depth }: CategorySelectorLoadParams): Promise<CategorySelectorItem[]> => {
       try {
         const isRootRequest = parentId === undefined || parentId === null;
         const response = await api.get<CategoryApiItem[]>("/categories/selector", {
@@ -22,6 +22,7 @@ export function useCategorySelectorLoader() {
                 per_page: perPage ?? 12,
               }
             : {}),
+          ...(depth ? { depth } : {}),
           ...(parentId !== undefined && parentId !== null ? { parent_id: parentId } : {}),
         });
 

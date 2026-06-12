@@ -21,6 +21,7 @@ import {
   Button,
   Card,
   ChevronDown,
+  CircleRemoveButton,
   InputField,
   Label,
   Search,
@@ -492,15 +493,15 @@ export function CategorySelectPanel({
           {selectedDisplayItems.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {selectedDisplayItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onToggleCategory(item.id, false)}
-                  className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700"
-                >
-                  <X className="size-3" />
-                  {item.name}
-                </button>
+	                <button
+	                  key={item.id}
+	                  type="button"
+	                  onClick={() => onToggleCategory(item.id, false)}
+	                  className="inline-flex max-w-full items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600"
+	                >
+	                  <span className="truncate">{item.name}</span>
+	                  <X className="size-3 shrink-0" />
+	                </button>
               ))}
             </div>
           ) : (
@@ -599,14 +600,11 @@ export function RepeaterPanel({
                 />
               </div>
               {index > 0 ? (
-                <button
-                  type="button"
+                <CircleRemoveButton
                   onClick={() => removeValue(index)}
-                  className="flex size-7 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+                  className="size-7"
                   aria-label={`${title} 삭제`}
-                >
-                  <X className="size-4" />
-                </button>
+                />
               ) : (
                 <span className="size-7 shrink-0" aria-hidden="true" />
               )}

@@ -1,4 +1,5 @@
 export { Button, buttonVariants } from "./button/Button";
+export { CircleRemoveButton } from "./button/CircleRemoveButton";
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card/Card";
 export * from "./spinner/Spinner";
 export * from "./dropdown/Dropdown";

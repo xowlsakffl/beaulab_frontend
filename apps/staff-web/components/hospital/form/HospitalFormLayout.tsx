@@ -970,21 +970,21 @@ function HospitalCategorySelect({
           선택 {selectedIds.length}/{HOSPITAL_CATEGORY_MAX_SELECTION}
         </span>
       </div>
-      <div className={["min-h-20 rounded-xl border bg-white p-2", error ? "border-error-500" : "border-gray-200"].join(" ")}>
-        {selectedLabels.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {selectedLabels.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onToggleCategory(item.id, false)}
-                className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700"
-              >
-                <X className="size-3" />
-                {item.label}
-              </button>
-            ))}
-          </div>
+	      <div className={["min-h-20 rounded-xl border bg-white p-2", error ? "border-error-500" : "border-gray-200"].join(" ")}>
+	        {selectedLabels.length > 0 ? (
+	          <div className="flex flex-wrap gap-2">
+	            {selectedLabels.map((item) => (
+	              <button
+	                key={item.id}
+	                type="button"
+	                onClick={() => onToggleCategory(item.id, false)}
+	                className="inline-flex max-w-full items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600"
+	              >
+	                <span className="truncate">{item.label}</span>
+	                <X className="size-3 shrink-0" />
+	              </button>
+	            ))}
+	          </div>
         ) : (
           <span className="px-1 py-2 text-sm text-gray-400">선택된 진료과목이 없습니다.</span>
         )}

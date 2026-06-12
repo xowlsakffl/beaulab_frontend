@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Check, ChevronRight, Search, X } from "../../../icons";
+import { Button } from "../../ui/button/Button";
 import { Card } from "../../ui/card/Card";
 import { SpinnerBlock } from "../../ui/spinner/Spinner";
 import { SegmentedTabs } from "../../ui/tabs/SegmentedTabs";
@@ -34,6 +35,7 @@ export type CategorySelectorLoadParams = {
   parentId?: number | null;
   query?: string;
   perPage?: number;
+  depth?: 1 | 2 | 3 | 4;
 };
 
 type SelectorText = {
@@ -45,10 +47,19 @@ type SelectorText = {
   loadingText: string;
   noResultsText: string;
   selectedTitle: string;
+  primaryTitle: string;
+  selectedPlaceholder: string;
+  primaryPlaceholder: string;
   emptyLargeText: string;
   emptyMiddleText: string;
   emptySmallText: string;
 };
+
+type CategorySelectorSearchMode = "inline" | "dropdown";
+type CategorySelectorSelectionMode = "checkbox" | "leaf-click";
+type CategorySelectorSelectedDisplay = "badges" | "input";
+type CategorySelectorSectionTabsPlacement = "top" | "header";
+type CategorySelectorErrorPlacement = "bottom" | "header";
 
 type HierarchicalCategorySelectorProps = {
   sections: CategorySelectorSection[];
@@ -61,6 +72,28 @@ type HierarchicalCategorySelectorProps = {
   maxSearchResults?: number;
   visibleLevels?: 1 | 2 | 3;
   text?: Partial<SelectorText>;
+  className?: string;
+  headerTitle?: React.ReactNode;
+  headerExtra?: React.ReactNode;
+  info?: React.ReactNode;
+  afterColumns?: React.ReactNode;
+  activeSectionKey?: string;
+  onActiveSectionKeyChange?: (sectionKey: string) => void;
+  onSectionChangeRequest?: (sectionKey: string, currentSectionKey: string) => boolean | void;
+  sectionTabsPlacement?: CategorySelectorSectionTabsPlacement;
+  errorPlacement?: CategorySelectorErrorPlacement;
+  compactSectionTabs?: boolean;
+  searchMode?: CategorySelectorSearchMode;
+  showSearchActions?: boolean;
+  showSearchTitle?: boolean;
+  showDirectTitle?: boolean;
+  selectionMode?: CategorySelectorSelectionMode;
+  selectedDisplay?: CategorySelectorSelectedDisplay;
+  primaryCategoryId?: number | null;
+  onPrimaryCategoryChange?: (categoryId: number) => void;
+  columnHeightClassName?: string;
+  searchInputClassName?: string;
+  searchDepth?: 1 | 2 | 3 | 4;
 };
 
 type CategoryColumnProps = {
@@ -71,8 +104,11 @@ type CategoryColumnProps = {
   emptyMessage: string;
   isLoading?: boolean;
   loadingText: string;
-  onActivate: (categoryId: number) => void;
-  onToggle: (categoryId: number, checked: boolean) => void;
+  selectionMode: CategorySelectorSelectionMode;
+  columnHeightClassName?: string;
+  compact?: boolean;
+  onActivate: (category: CategorySelectorItem) => void;
+  onToggle: (category: CategorySelectorItem, checked: boolean) => void;
 };
 
 type SectionState = {
@@ -97,6 +133,9 @@ const DEFAULT_TEXT: SelectorText = {
   loadingText: "카테고리를 불러오는 중입니다.",
   noResultsText: "검색 결과가 없습니다.",
   selectedTitle: "선택된 카테고리",
+  primaryTitle: "대표 카테고리 선택",
+  selectedPlaceholder: "카테고리를 선택해 주세요.",
+  primaryPlaceholder: "선택된 카테고리 중 대표 카테고리를 선택해 주세요.",
   emptyLargeText: "대카테고리가 없습니다.",
   emptyMiddleText: "대카테고리를 선택해 주세요.",
   emptySmallText: "중카테고리를 선택해 주세요.",
@@ -121,6 +160,10 @@ function getNodeLabel(node: CategorySelectorItem | SelectedCategoryDisplayItem) 
   return node.full_path?.trim() || node.name;
 }
 
+function getNodeName(node: CategorySelectorItem | SelectedCategoryDisplayItem) {
+  return node.name;
+}
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     return error.message;
@@ -137,50 +180,70 @@ const CategoryColumn = React.memo(function CategoryColumn({
   emptyMessage,
   isLoading = false,
   loadingText,
+  selectionMode,
+  columnHeightClassName = "h-[320px]",
+  compact = false,
   onActivate,
   onToggle,
 }: CategoryColumnProps) {
   return (
-    <Card className="flex h-[320px] flex-col p-3">
-      <p className="mb-3 text-xs font-semibold text-gray-500 ">{title}</p>
+    <Card className={`flex flex-col ${compact ? "p-2" : "p-2.5"} ${columnHeightClassName}`}>
+      <p className={`${compact ? "mb-1.5" : "mb-2"} text-xs font-semibold text-gray-500 `}>{title}</p>
 
       {isLoading ? (
         <SpinnerBlock className="min-h-0 flex-1" spinnerClassName="size-5" label={loadingText} />
       ) : items.length > 0 ? (
-        <div className="flex-1 space-y-1 overflow-y-auto pr-1">
+        <div className={`flex-1 ${compact ? "space-y-0.5" : "space-y-1"} overflow-y-auto pr-1`}>
           {items.map((item) => {
             const isActive = activeId === item.id;
             const isSelected = selectedIdSet.has(item.id);
+            const isLeafClickMode = selectionMode === "leaf-click";
+            const isLeaf = !item.has_children;
+            const rowClick = () => {
+              if (isLeafClickMode && isLeaf) {
+                onToggle(item, !isSelected);
+                return;
+              }
+
+              onActivate(item);
+            };
 
             return (
-              <div
+              <button
                 key={item.id}
-                className={`flex items-center gap-2 rounded-xl border px-2 py-1.5 ${
+                type="button"
+                onClick={rowClick}
+                className={`flex w-full items-center gap-2 rounded-lg border px-2 ${compact ? "py-0.5" : "py-1"} text-left ${
                   isActive
                     ? "border-brand-200 bg-brand-50/70  "
+                    : isSelected
+                      ? "border-brand-200 bg-brand-50 text-brand-700  "
                     : "border-transparent hover:border-gray-200 hover:bg-gray-50  "
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => onToggle(item.id, !isSelected)}
-                  className={`flex size-6 shrink-0 items-center justify-center rounded-md border ${
-                    isSelected
-                      ? "border-brand-500 bg-brand-500 text-white"
-                      : "border-gray-300 bg-white text-transparent  "
-                  }`}
-                  aria-label={isSelected ? `${item.name} 선택 해제` : `${item.name} 선택`}
-                >
-                  <Check className="size-3.5" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onActivate(item.id)}
-                  className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg py-1 text-left"
-                >
+                {selectionMode === "checkbox" ? (
                   <span
-                    className={`truncate text-sm ${
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    tabIndex={-1}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggle(item, !isSelected);
+                    }}
+                    className={`flex size-6 shrink-0 items-center justify-center rounded-md border ${
+                      isSelected
+                        ? "border-brand-500 bg-brand-500 text-white"
+                        : "border-gray-300 bg-white text-transparent  "
+                    }`}
+                    aria-label={isSelected ? `${item.name} 선택 해제` : `${item.name} 선택`}
+                  >
+                    <Check className="size-3.5" />
+                  </span>
+                ) : null}
+
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-lg py-1">
+                  <span
+                    className={`min-w-0 break-keep ${compact ? "text-xs" : "text-sm"} ${
                       isSelected
                         ? "font-semibold text-brand-700 "
                         : "text-gray-700 "
@@ -195,13 +258,13 @@ const CategoryColumn = React.memo(function CategoryColumn({
                       }`}
                     />
                   ) : null}
-                </button>
-              </div>
+                </span>
+              </button>
             );
           })}
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 items-center justify-center text-center text-sm text-gray-400 ">
+        <div className={`flex min-h-0 flex-1 items-center justify-center text-center ${compact ? "text-xs" : "text-sm"} text-gray-400 `}>
           {emptyMessage}
         </div>
       )}
@@ -220,11 +283,37 @@ export function HierarchicalCategorySelector({
   maxSearchResults = 12,
   visibleLevels = 3,
   text,
+  className,
+  headerTitle,
+  headerExtra,
+  info,
+  afterColumns,
+  activeSectionKey: controlledActiveSectionKey,
+  onActiveSectionKeyChange,
+  onSectionChangeRequest,
+  sectionTabsPlacement = "top",
+  errorPlacement = "bottom",
+  compactSectionTabs = false,
+  searchMode = "inline",
+  showSearchActions = false,
+  showSearchTitle = true,
+  showDirectTitle = true,
+  selectionMode = "checkbox",
+  selectedDisplay = "badges",
+  primaryCategoryId,
+  onPrimaryCategoryChange,
+  columnHeightClassName,
+  searchInputClassName,
+  searchDepth,
 }: HierarchicalCategorySelectorProps) {
   const mergedText = React.useMemo(() => ({ ...DEFAULT_TEXT, ...text }), [text]);
   const fallbackSectionKey = initialSectionKey ?? sections[0]?.key ?? "";
-  const [activeSectionKey, setActiveSectionKey] = React.useState(fallbackSectionKey);
+  const searchContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const [internalActiveSectionKey, setInternalActiveSectionKey] = React.useState(fallbackSectionKey);
+  const activeSectionKey = controlledActiveSectionKey ?? internalActiveSectionKey;
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+  const [isPrimaryOpen, setIsPrimaryOpen] = React.useState(false);
   const [sectionStates, setSectionStates] = React.useState<Record<string, SectionState>>({});
   const [searchResults, setSearchResults] = React.useState<CategorySelectorItem[]>([]);
   const [isSearchLoading, setIsSearchLoading] = React.useState(false);
@@ -235,6 +324,7 @@ export function HierarchicalCategorySelector({
   const rootRequestRef = React.useRef(new Map<string, Promise<CategorySelectorItem[]>>());
   const childRequestRef = React.useRef(new Map<string, Promise<CategorySelectorItem[]>>());
   const searchCacheRef = React.useRef(new Map<string, CategorySelectorItem[]>());
+  const primaryContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const mergeNodeCache = React.useCallback((items: CategorySelectorItem[]) => {
     setNodeCache((prev) => {
@@ -277,9 +367,11 @@ export function HierarchicalCategorySelector({
         : sections[0]?.key;
 
     if (nextKey) {
-      setActiveSectionKey(nextKey);
+      if (controlledActiveSectionKey === undefined) {
+        setInternalActiveSectionKey(nextKey);
+      }
     }
-  }, [activeSectionKey, initialSectionKey, sections]);
+  }, [activeSectionKey, controlledActiveSectionKey, initialSectionKey, sections]);
 
   const activeSection =
     sections.find((section) => section.key === activeSectionKey) ??
@@ -317,9 +409,34 @@ export function HierarchicalCategorySelector({
 
     return nextSelectedNodes;
   }, [nodeCache, selectedIds, selectedItems]);
+  const primaryNode = selectedNodes.find((node) => node.id === primaryCategoryId) ?? null;
   const sectionTabItems = React.useMemo(
     () => sections.map((section) => ({ value: section.key, label: section.label })),
     [sections],
+  );
+  const sectionTabs = (
+    <SegmentedTabs
+      items={sectionTabItems}
+      value={activeSection?.key}
+      onValueChange={(sectionKey) => {
+        const currentSectionKey = activeSection?.key ?? activeSectionKey;
+        if (sectionKey === currentSectionKey) return;
+
+        const shouldChange = onSectionChangeRequest?.(sectionKey, currentSectionKey);
+        if (shouldChange === false) return;
+
+        if (controlledActiveSectionKey === undefined) {
+          setInternalActiveSectionKey(sectionKey);
+        }
+        onActiveSectionKeyChange?.(sectionKey);
+        setSearchQuery("");
+        setSearchResults([]);
+        setSearchError(null);
+        setIsSearchOpen(false);
+      }}
+      className={compactSectionTabs ? "w-36 rounded-lg p-0.5" : undefined}
+      tabClassName={compactSectionTabs ? "rounded-md px-3 py-1.5 text-xs" : undefined}
+    />
   );
 
   const loadChildCategories = React.useCallback(
@@ -507,12 +624,40 @@ export function HierarchicalCategorySelector({
   }, [activeSection, activeSectionState.isRootLoading, activeSectionState.rootLoaded, loadRootCategories]);
 
   React.useEffect(() => {
+    if (searchMode !== "dropdown" || !isSearchOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!searchContainerRef.current?.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isSearchOpen, searchMode]);
+
+  React.useEffect(() => {
+    if (!isPrimaryOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!primaryContainerRef.current?.contains(event.target as Node)) {
+        setIsPrimaryOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isPrimaryOpen]);
+
+  React.useEffect(() => {
     if (!activeSection) return;
 
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
 
-    if (!normalizedSearchQuery) {
+    const shouldSearch = Boolean(normalizedSearchQuery) && (searchMode === "inline" || isSearchOpen);
+
+    if (!shouldSearch) {
       setSearchResults([]);
       setSearchError(null);
       setIsSearchLoading(false);
@@ -539,6 +684,7 @@ export function HierarchicalCategorySelector({
           section: activeSection,
           query: normalizedSearchQuery,
           perPage: maxSearchResults,
+          depth: searchDepth,
         });
 
         if (searchRequestIdRef.current !== requestId) return;
@@ -557,70 +703,126 @@ export function HierarchicalCategorySelector({
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [activeSection, loadCategories, maxSearchResults, mergeNodeCache, normalizedSearchQuery]);
+  }, [activeSection, isSearchOpen, loadCategories, maxSearchResults, mergeNodeCache, normalizedSearchQuery, searchDepth, searchMode]);
+
+  const searchResultsContent = (
+    <>
+      {isSearchLoading ? (
+        <SpinnerBlock className={searchMode === "dropdown" ? "min-h-0 py-5" : "py-2"} spinnerClassName="size-5" label={mergedText.loadingText} />
+      ) : searchError ? (
+        <p className="px-3 py-4 text-sm text-error-500">{searchError}</p>
+      ) : searchResults.length > 0 ? (
+        <div className="space-y-1">
+          {searchResults.map((node) => {
+            const isSelected = selectedIdSet.has(node.id);
+            const canSelect = selectionMode !== "leaf-click" || !node.has_children;
+
+            return (
+              <button
+                key={node.id}
+                type="button"
+                disabled={!canSelect}
+                onClick={() => {
+                  if (!canSelect) return;
+                  onToggleCategory(node.id, !isSelected);
+                  if (searchMode === "dropdown") {
+                    setIsSearchOpen(false);
+                    setSearchQuery("");
+                  }
+                }}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${
+                  isSelected
+                    ? "bg-brand-50 font-semibold text-brand-700"
+                    : "text-gray-700 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60"
+                }`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold text-gray-800">{node.name}</span>
+                  <span className="block truncate text-xs text-gray-500">{node.full_path || (canSelect ? node.name : "소카테고리만 선택할 수 있습니다.")}</span>
+                </span>
+                {isSelected ? <Check className="size-4 shrink-0" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="px-3 py-4 text-sm text-gray-500 ">{mergedText.noResultsText}</p>
+      )}
+    </>
+  );
 
   return (
-    <div className="space-y-4">
-      <SegmentedTabs
-        items={sectionTabItems}
-        value={activeSection?.key}
-        onValueChange={(sectionKey) => {
-          setActiveSectionKey(sectionKey);
-          setSearchQuery("");
-          setSearchResults([]);
-          setSearchError(null);
-        }}
-      />
+    <div className={["space-y-4", className].filter(Boolean).join(" ")}>
+      {headerTitle || headerExtra || sectionTabsPlacement === "header" ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {headerTitle ? <div className="min-w-0">{headerTitle}</div> : null}
+            {sectionTabsPlacement === "header" ? sectionTabs : null}
+            {error && errorPlacement === "header" ? (
+              <p className="min-w-0 text-xs font-medium text-error-500">{error}</p>
+            ) : null}
+          </div>
+          {headerExtra ? <div className="flex flex-wrap items-center justify-end gap-2">{headerExtra}</div> : null}
+        </div>
+      ) : null}
+
+      {sectionTabsPlacement === "top" ? sectionTabs : null}
 
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-gray-800 ">{mergedText.searchTitle}</p>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-          <InputField
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={activeSection?.searchPlaceholder || "카테고리를 검색하세요."}
-            className="pl-10"
-          />
+        {showSearchTitle ? <p className="text-sm font-semibold text-gray-800 ">{mergedText.searchTitle}</p> : null}
+        <div className={showSearchActions ? "grid grid-cols-[minmax(0,1fr)_4rem_4rem] items-center gap-2" : "relative"}>
+          <div ref={searchContainerRef} className="relative min-w-0">
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+            <InputField
+              value={searchQuery}
+              onClick={() => {
+                if (searchMode === "dropdown") {
+                  setIsSearchOpen(true);
+                }
+              }}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                if (searchMode === "dropdown") {
+                  setIsSearchOpen(true);
+                }
+              }}
+              placeholder={activeSection?.searchPlaceholder || "카테고리를 검색하세요."}
+              className={["pl-10", searchInputClassName].filter(Boolean).join(" ")}
+            />
+            {searchMode === "dropdown" && isSearchOpen && normalizedSearchQuery ? (
+              <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+                {searchResultsContent}
+              </Card>
+            ) : null}
+          </div>
+          {showSearchActions ? (
+            <>
+              <Button type="button" variant="brand" size="sm" className="h-9 px-3" onClick={() => setIsSearchOpen(true)}>
+                검색
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 px-3"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchResults([]);
+                  setSearchError(null);
+                  setIsSearchOpen(false);
+                }}
+              >
+                초기화
+              </Button>
+            </>
+          ) : null}
         </div>
 
-        {normalizedSearchQuery ? (
-          <Card className="p-3">
-            {isSearchLoading ? (
-              <SpinnerBlock className="py-2" spinnerClassName="size-5" label={mergedText.loadingText} />
-            ) : searchError ? (
-              <p className="text-sm text-error-500">{searchError}</p>
-            ) : searchResults.length > 0 ? (
-              <div className="space-y-2">
-                {searchResults.map((node) => {
-                  const isSelected = selectedIdSet.has(node.id);
-
-                  return (
-                    <button
-                      key={node.id}
-                      type="button"
-                      onClick={() => onToggleCategory(node.id, !isSelected)}
-                      className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left text-sm ${
-                        isSelected
-                          ? "border-brand-200 bg-brand-50 text-brand-700   "
-                          : "border-gray-200 text-gray-700 hover:bg-gray-50   "
-                      }`}
-                    >
-                      <span className="truncate">{getNodeLabel(node)}</span>
-                      {isSelected ? <Check className="size-4 shrink-0" /> : null}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 ">{mergedText.noResultsText}</p>
-            )}
-          </Card>
-        ) : null}
+        {searchMode === "inline" && normalizedSearchQuery ? <Card className="p-3">{searchResultsContent}</Card> : null}
       </div>
 
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-gray-800 ">{mergedText.directTitle}</p>
+        {showDirectTitle ? <p className="text-sm font-semibold text-gray-800 ">{mergedText.directTitle}</p> : null}
 
         {activeSectionState.loadError ? <p className="text-sm text-error-500">{activeSectionState.loadError}</p> : null}
 
@@ -641,10 +843,13 @@ export function HierarchicalCategorySelector({
             emptyMessage={mergedText.emptyLargeText}
             isLoading={activeSectionState.isRootLoading}
             loadingText={mergedText.loadingText}
-            onActivate={(categoryId) => {
+            selectionMode={selectionMode}
+            columnHeightClassName={columnHeightClassName}
+            compact={compactSectionTabs}
+            onActivate={(category) => {
               if (!activeSection) return;
 
-              const nextLarge = largeCategories.find((item) => item.id === categoryId);
+              const categoryId = category.id;
 
               setSectionStates((prev) => {
                 const current = prev[activeSection.key] ?? createSectionState();
@@ -659,13 +864,13 @@ export function HierarchicalCategorySelector({
                 };
               });
 
-              if (!nextLarge?.has_children || activeSectionState.middleItemsByParent[categoryId] !== undefined) {
+              if (!category.has_children || activeSectionState.middleItemsByParent[categoryId] !== undefined) {
                 return;
               }
 
               void loadChildCategories(activeSection, categoryId, "middle");
             }}
-            onToggle={onToggleCategory}
+            onToggle={(category, checked) => onToggleCategory(category.id, checked)}
           />
 
           {visibleLevels >= 2 ? (
@@ -677,10 +882,13 @@ export function HierarchicalCategorySelector({
               emptyMessage={mergedText.emptyMiddleText}
               isLoading={Boolean(activeLargeId) && Boolean(activeLargeId && activeSectionState.middleLoadingParentIds[activeLargeId])}
               loadingText={mergedText.loadingText}
-              onActivate={(categoryId) => {
+              selectionMode={selectionMode}
+              columnHeightClassName={columnHeightClassName}
+              compact={compactSectionTabs}
+              onActivate={(category) => {
                 if (!activeSection) return;
 
-                const nextMiddle = middleCategories.find((item) => item.id === categoryId);
+                const categoryId = category.id;
 
                 setSectionStates((prev) => {
                   const current = prev[activeSection.key] ?? createSectionState();
@@ -694,13 +902,13 @@ export function HierarchicalCategorySelector({
                   };
                 });
 
-                if (!nextMiddle?.has_children || activeSectionState.smallItemsByParent[categoryId] !== undefined) {
+                if (!category.has_children || activeSectionState.smallItemsByParent[categoryId] !== undefined) {
                   return;
                 }
 
                 void loadChildCategories(activeSection, categoryId, "small");
               }}
-              onToggle={onToggleCategory}
+              onToggle={(category, checked) => onToggleCategory(category.id, checked)}
             />
           ) : null}
 
@@ -713,13 +921,104 @@ export function HierarchicalCategorySelector({
               isLoading={Boolean(activeMiddleId) && Boolean(activeMiddleId && activeSectionState.smallLoadingParentIds[activeMiddleId])}
               loadingText={mergedText.loadingText}
               onActivate={() => undefined}
-              onToggle={onToggleCategory}
+              selectionMode={selectionMode}
+              columnHeightClassName={columnHeightClassName}
+              compact={compactSectionTabs}
+              onToggle={(category, checked) => onToggleCategory(category.id, checked)}
             />
           ) : null}
         </div>
+
+        {afterColumns}
       </div>
 
-      {selectedNodes.length > 0 ? (
+      {selectedDisplay === "input" ? (
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 ">{mergedText.selectedTitle}</p>
+            <div className="min-h-10 rounded-lg border border-gray-200 bg-white px-2 py-2">
+              {selectedNodes.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedNodes.map((node) => {
+                    return (
+                    <span
+                      key={node.id}
+                      className="inline-flex max-w-full items-center rounded-full bg-brand-50 text-xs font-semibold text-brand-600"
+                    >
+                      <span className="max-w-[15rem] truncate px-2.5 py-1">
+                        {getNodeName(node)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onToggleCategory(node.id, false)}
+                        className="pr-2 text-current"
+                        aria-label={`${getNodeName(node)} 제거`}
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span className="text-sm text-gray-400">{mergedText.selectedPlaceholder}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 ">{mergedText.primaryTitle}</p>
+            <div ref={primaryContainerRef} className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedNodes.length > 0) {
+                    setIsPrimaryOpen((prev) => !prev);
+                  }
+                }}
+                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left"
+              >
+                {primaryNode ? (
+                  <span className="inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600">
+                    <span className="max-w-full truncate">{getNodeLabel(primaryNode)}</span>
+                  </span>
+                ) : (
+                  <span className="min-w-0 truncate text-sm text-gray-400">{mergedText.primaryPlaceholder}</span>
+                )}
+                {selectedNodes.length > 0 ? <ChevronRight className="size-4 shrink-0 rotate-90 text-gray-500" /> : null}
+              </button>
+
+              {isPrimaryOpen ? (
+                <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+                <div className="space-y-1">
+                  {selectedNodes.map((node) => {
+                    const isPrimary = node.id === primaryCategoryId;
+
+                    return (
+                      <button
+                        key={node.id}
+                        type="button"
+                        onClick={() => {
+                          onPrimaryCategoryChange?.(node.id);
+                          setIsPrimaryOpen(false);
+                        }}
+                        className={[
+                          "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm",
+                          isPrimary ? "bg-brand-50 font-semibold text-brand-700" : "text-gray-700 hover:bg-brand-50",
+                        ].join(" ")}
+                      >
+                        <span className="min-w-0 truncate">{getNodeLabel(node)}</span>
+                        {isPrimary ? <span className="shrink-0 text-xs">선택됨</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+                </Card>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : selectedNodes.length > 0 ? (
         <div className="space-y-2">
           <p className="text-xs font-medium text-gray-500 ">{mergedText.selectedTitle}</p>
           <div className="flex flex-wrap gap-2">
@@ -738,7 +1037,9 @@ export function HierarchicalCategorySelector({
         </div>
       ) : null}
 
-      {error ? <p className="text-sm text-error-500">{error}</p> : null}
+      {error && errorPlacement !== "header" ? <p className="text-sm text-error-500">{error}</p> : null}
+
+      {info ? <div>{info}</div> : null}
     </div>
   );
 }
