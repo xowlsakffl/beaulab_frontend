@@ -9,6 +9,7 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 import { VideosDataTable } from "@/components/video/list/VideosDataTable";
 import { VideosFilterPanel } from "@/components/video/list/VideosFilterPanel";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { preloadImageUrls } from "@/lib/common/media";
 import {
   DATE_PRESET_OPTIONS,
   DEFAULT_FILTERS,
@@ -123,7 +124,9 @@ export default function VideosTableClient() {
 
         const responseMeta = (response.meta as DataTableMeta | null) ?? null;
 
-        setRows(response.data.map(normalizeVideo));
+        const normalizedRows = response.data.map(normalizeVideo);
+        await preloadImageUrls(normalizedRows.map((row) => row.thumbnailUrl));
+        setRows(normalizedRows);
         setMeta(
           responseMeta
             ? {

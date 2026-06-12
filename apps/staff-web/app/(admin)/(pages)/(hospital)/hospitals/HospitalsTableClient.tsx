@@ -4,6 +4,7 @@ import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTabl
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
 import { HospitalsSummaryCards } from "@/components/hospital/list/HospitalsSummaryCards";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { preloadImageUrls } from "@/lib/common/media";
 import {
   ALLOW_STATUS_OPTIONS,
   DEFAULT_FILTERS,
@@ -137,7 +138,9 @@ export default function HospitalsTableClient() {
           return;
         }
 
-        setRows(response.data.map(normalizeHospital));
+        const normalizedRows = response.data.map(normalizeHospital);
+        await preloadImageUrls(normalizedRows.map((row) => row.logoUrl));
+        setRows(normalizedRows);
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch (error) {

@@ -11,6 +11,7 @@ import { HospitalEventsFilterPanel } from "@/components/hospital-event/list/Hosp
 import { HospitalEventsSummaryCards } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
+import { preloadImageUrls } from "@/lib/common/media";
 import {
   DEFAULT_HOSPITAL_EVENT_FILTERS,
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS,
@@ -155,7 +156,9 @@ export default function HospitalEventsTableClient() {
           return;
         }
 
-        setRows(response.data.map(normalizeHospitalEvent));
+        const normalizedRows = response.data.map(normalizeHospitalEvent);
+        await preloadImageUrls(normalizedRows.map((row) => row.thumbnailUrl));
+        setRows(normalizedRows);
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch (error) {
