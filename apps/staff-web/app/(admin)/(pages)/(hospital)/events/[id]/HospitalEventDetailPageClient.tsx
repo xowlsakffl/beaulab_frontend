@@ -728,6 +728,21 @@ function OperationHistoryCard({
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
+  const [expandedHistoryIds, setExpandedHistoryIds] = React.useState<Set<number>>(() => new Set());
+
+  const toggleExpandedHistory = React.useCallback((historyId: number) => {
+    setExpandedHistoryIds((current) => {
+      const next = new Set(current);
+      if (next.has(historyId)) {
+        next.delete(historyId);
+      } else {
+        next.add(historyId);
+      }
+
+      return next;
+    });
+  }, []);
+
   return (
     <Card className={cardClassName}>
       <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">히스토리</h3>
@@ -738,27 +753,47 @@ function OperationHistoryCard({
           <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
             {histories.map((history) => {
               const changes = history.changes ?? [];
+              const canExpand = history.action === "UPDATED" && changes.length > 0;
+              const isExpanded = expandedHistoryIds.has(history.id);
 
               return (
                 <div key={history.id} className="space-y-2 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-                  <div className="grid grid-cols-[6.5rem_5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600">
+                  <div className="grid grid-cols-[6.5rem_5rem_5rem_minmax(0,1fr)_2rem] items-start gap-3 text-xs text-gray-600">
                     <span>{formatDateTime(history.created_at)}</span>
                     <span>{history.actor_label || "-"}</span>
                     <span>{historyValueLabel(history)}</span>
-                    <span className="break-words">{history.reason || "-"}</span>
+                    <span className="break-words">{historyReasonLabel(history)}</span>
+                    {canExpand ? (
+                      isExpanded ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="변경 상세 닫기"
+                          className="ml-auto size-7 rounded-full border border-gray-300 bg-white p-0 text-brand-600 shadow-none hover:border-gray-300 hover:bg-white hover:text-brand-600"
+                          onClick={() => toggleExpandedHistory(history.id)}
+                        >
+                          <span className="text-sm leading-none">−</span>
+                        </Button>
+                      ) : (
+                        <AddCircleButton label="변경 상세 열기" className="ml-auto" onClick={() => toggleExpandedHistory(history.id)} />
+                      )
+                    ) : (
+                      <span aria-hidden="true" />
+                    )}
                   </div>
-                  {changes.length > 0 ? (
+                  {canExpand && isExpanded ? (
                     <div className="space-y-2 rounded-lg bg-gray-50 p-3">
                       {changes.map((change, index) => (
                         <div key={`${history.id}-${change.field_key ?? index}`} className="space-y-1 text-xs text-gray-600">
                           <p className="font-semibold text-gray-900">{change.field_label || change.field_key || "변경 항목"}</p>
                           <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
-                            <span className="font-semibold text-pink-500">변경 후</span>
-                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "after")}</span>
-                          </div>
-                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
                             <span className="font-semibold text-gray-500">변경 전</span>
                             <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "before")}</span>
+                          </div>
+                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
+                            <span className="font-semibold text-brand-600">변경 후</span>
+                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "after")}</span>
                           </div>
                         </div>
                       ))}
@@ -957,15 +992,17 @@ function DoctorBadgeList({ detail }: { detail: HospitalEventApiItem }) {
         const name = doctor.name?.trim() || `의료진 ${index + 1}`;
 
         return (
-          <div key={`${doctor.id ?? name}-${index}`} className="inline-flex w-fit max-w-full min-w-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700">
-            <span className="min-w-0 truncate font-semibold text-gray-800">{name}</span>
-            <div className="flex shrink-0 items-center gap-1.5">
-              {doctor.is_career_visible ? (
-                <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-600">경력사항</span>
-              ) : null}
-              {doctor.is_activity_visible ? (
-                <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-600">활동사항</span>
-              ) : null}
+          <div key={`${doctor.id ?? name}-${index}`} className="flex w-full min-w-0">
+            <div className="inline-flex w-fit max-w-full min-w-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700">
+              <span className="min-w-0 truncate font-semibold text-gray-800">{name}</span>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {doctor.is_career_visible ? (
+                  <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-600">경력사항</span>
+                ) : null}
+                {doctor.is_activity_visible ? (
+                  <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-600">활동사항</span>
+                ) : null}
+              </div>
             </div>
           </div>
         );
@@ -1007,12 +1044,14 @@ function formatDateTime(value?: string | null) {
 
 function historyChangeDisplay(change: OperationHistoryChangeItem, side: "before" | "after") {
   const display = side === "after" ? change.after_display : change.before_display;
+  const value = side === "after" ? change.after_value : change.before_value;
+  const field = change.field_key ?? null;
+
   if (typeof display === "string" && display.trim() !== "") {
-    return display;
+    return historyRawValueLabel(field, display);
   }
 
-  const value = side === "after" ? change.after_value : change.before_value;
-  return historyRawValueLabel(change.field_key ?? null, value);
+  return historyRawValueLabel(field, value);
 }
 
 function historyRawValueLabel(field: string | null, value: unknown) {
@@ -1021,7 +1060,8 @@ function historyRawValueLabel(field: string | null, value: unknown) {
   }
 
   if (field === "allow_status") {
-    return labelHospitalEventAllowStatus(String(value ?? ""));
+    const label = labelHospitalEventAllowStatus(String(value ?? ""));
+    return label === "-" ? stringifyHistoryValue(value) : label;
   }
 
   return stringifyHistoryValue(value);
@@ -1039,20 +1079,44 @@ function stringifyHistoryValue(value: unknown) {
   }
 }
 
+function historyReasonLabel(history: OperationHistoryItem) {
+  const reason = history.reason?.trim();
+  if (reason) {
+    return reason;
+  }
+
+  if (history.action !== "UPDATED") {
+    return "-";
+  }
+
+  const labels = (history.changes ?? [])
+    .map((change) => (change.field_label || change.field_key || "").trim())
+    .filter(Boolean);
+
+  if (labels.length === 0) {
+    return "수정";
+  }
+
+  const uniqueLabels = Array.from(new Set(labels));
+
+  return `${uniqueLabels.join(", ")} 수정`;
+}
+
 function historyValueLabel(history: OperationHistoryItem) {
-  const field = history.field ?? history.changes?.[0]?.field_key ?? null;
+  const firstChange = history.changes?.[0] ?? null;
+  const field = firstChange?.field_key ?? history.field ?? null;
 
   if (history.action === "UPDATED") {
     return "수정";
   }
 
   if (field === "status") {
-    return history.after_value === "ACTIVE" ? "노출" : "미노출";
+    return firstChange ? historyChangeDisplay(firstChange, "after") : historyRawValueLabel(field, history.after_value);
   }
 
   if (field === "allow_status") {
-    return labelHospitalEventAllowStatus(String(history.after_value ?? ""));
+    return firstChange ? historyChangeDisplay(firstChange, "after") : historyRawValueLabel(field, history.after_value);
   }
 
-  return history.field || history.action || "-";
+  return firstChange?.field_label || history.field || history.action || "-";
 }
