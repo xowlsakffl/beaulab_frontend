@@ -131,9 +131,6 @@ export default function DoctorDetailPageClient() {
           <Button type="button" variant="brand" onClick={() => void fetchDoctor()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -220,8 +217,9 @@ function DoctorBasicInfoCard({
   onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   return (
-    <Card className={`${infoCardClassName} min-h-[18rem]`}>
-      <div className="grid h-full min-w-0 gap-x-16 gap-y-6 md:grid-cols-2">
+    <Card className={`${infoCardClassName} flex min-h-[18rem] flex-col`}>
+      <h2 className="mb-6 text-sm font-bold text-gray-900">의료진정보</h2>
+      <div className="grid min-w-0 flex-1 gap-x-16 gap-y-6 md:grid-cols-2">
         <div className="space-y-6">
           <InfoRow label="병의원" value={detail.hospital_name} />
           <InfoRow label="의료진" value={detail.name} />

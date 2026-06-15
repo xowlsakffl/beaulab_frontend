@@ -262,9 +262,6 @@ export default function VideoEditFormClient() {
           <Button type="button" variant="brand" onClick={() => void fetchVideo()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -314,9 +311,6 @@ export default function VideoEditFormClient() {
         />
 
         <div className="flex flex-col gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
           <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "저장 중..." : "동영상 저장"}
           </Button>

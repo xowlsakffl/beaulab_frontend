@@ -51,6 +51,11 @@ export type HospitalEventFieldName =
 
 export type HospitalEventFormErrors = Partial<Record<HospitalEventFieldName, string>>;
 
+export type HospitalEventFormValidationOptions = {
+  hasExistingThumbnailImage?: boolean;
+  hasExistingEventPageImage?: boolean;
+};
+
 export const HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT = 5;
 export const HOSPITAL_EVENT_PROCEDURE_BENEFIT_MAX_COUNT = 6;
 
@@ -259,6 +264,7 @@ export function validateCreateHospitalEventForm(
   thumbnailImage: File | null,
   eventPageImage: File | null,
   selectedCategoryUsage: HospitalEventCategoryUsage | null,
+  options: HospitalEventFormValidationOptions = {},
 ): HospitalEventFormErrors {
   const errors: HospitalEventFormErrors = {};
   const normalPrice = parseNumberInput(form.normal_price);
@@ -283,8 +289,8 @@ export function validateCreateHospitalEventForm(
   if (consultationPrice > 0 && consultationPrice < baseConsultationPrice) {
     errors.consultation_price = "상담 신청 단가는 기준 단가보다 낮게 설정할 수 없습니다.";
   }
-  if (!thumbnailImage) errors.thumbnail_image = "썸네일 이미지를 등록해 주세요.";
-  if (form.event_type === "IMAGE" && !eventPageImage) errors.event_page_image = "이벤트 페이지 이미지를 등록해 주세요.";
+  if (!thumbnailImage && !options.hasExistingThumbnailImage) errors.thumbnail_image = "썸네일 이미지를 등록해 주세요.";
+  if (form.event_type === "IMAGE" && !eventPageImage && !options.hasExistingEventPageImage) errors.event_page_image = "이벤트 페이지 이미지를 등록해 주세요.";
 
   if (selectedCategoryUsage === "HOSPITAL_EVENT_TREATMENT" && form.has_options) {
     const validOptions = form.options.filter((option) => option.name.trim());
@@ -314,9 +320,12 @@ export function validateCreateHospitalEventForm(
 export function appendHospitalEventFormData(
   formData: FormData,
   form: HospitalEventFormValues,
-  thumbnailImage: File,
+  thumbnailImage: File | null,
   eventPageImage: File | null,
   selectedCategoryUsage: HospitalEventCategoryUsage | null,
+  options: {
+    includeDefaultStatuses?: boolean;
+  } = {},
 ) {
   formData.append("hospital_id", String(form.hospital_id ?? ""));
   formData.append("event_type", form.event_type);
@@ -334,8 +343,10 @@ export function appendHospitalEventFormData(
   const consultationPrice =
     parseNumberInput(form.consultation_price) || calculateHospitalEventConsultationBasePrice(parseNumberInput(form.event_price));
   formData.append("consultation_price", String(consultationPrice));
-  formData.append("allow_status", "PENDING");
-  formData.append("status", "INACTIVE");
+  if (options.includeDefaultStatuses ?? true) {
+    formData.append("allow_status", "PENDING");
+    formData.append("status", "INACTIVE");
+  }
   formData.append("side_effect_notice", form.side_effect_notice.trim());
 
   form.category_ids.forEach((categoryId) => {
@@ -379,7 +390,10 @@ export function appendHospitalEventFormData(
       .forEach((item) => formData.append("procedure_benefits[]", item));
   }
 
-  formData.append("thumbnail_image", thumbnailImage);
+  if (thumbnailImage) {
+    formData.append("thumbnail_image", thumbnailImage);
+  }
+
   if (form.event_type === "IMAGE" && eventPageImage) {
     formData.append("event_page_image", eventPageImage);
   }

@@ -4,6 +4,7 @@ import { cn } from "../../../lib/utils";
 
 export type CategoryBadgeListProps = {
   values: Array<string | null | undefined>;
+  primaryValues?: Array<string | null | undefined>;
   empty?: ReactNode;
   title?: string;
   className?: string;
@@ -22,11 +23,13 @@ export function normalizeCategoryBadgeValues(values: Array<string | null | undef
 
 export function CategoryBadgeList({
   values,
+  primaryValues = [],
   empty = "-",
   title,
   className,
 }: CategoryBadgeListProps) {
   const normalizedValues = normalizeCategoryBadgeValues(values);
+  const normalizedPrimaryValues = new Set(normalizeCategoryBadgeValues(primaryValues));
 
   if (normalizedValues.length === 0) {
     return empty;
@@ -37,7 +40,10 @@ export function CategoryBadgeList({
       {normalizedValues.map((value) => (
         <span
           key={value}
-          className="inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600"
+          className={cn(
+            "inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600",
+            normalizedPrimaryValues.has(value) && "border border-brand-600",
+          )}
           title={value}
         >
           <span className="truncate">{value}</span>

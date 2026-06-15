@@ -120,9 +120,6 @@ export default function VideoDetailPageClient() {
           <Button type="button" variant="brand" onClick={() => void fetchVideo()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -138,14 +135,6 @@ export default function VideoDetailPageClient() {
             </div>
 
             <div className="flex w-full flex-row gap-2 sm:w-auto">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1 sm:flex-none"
-                onClick={() => router.push(getReturnToPath())}
-              >
-                목록으로
-              </Button>
               <Can permission="beaulab.video.update">
                 <Button
                   type="button"

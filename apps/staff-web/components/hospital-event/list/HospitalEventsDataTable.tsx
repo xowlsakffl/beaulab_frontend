@@ -6,14 +6,13 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
+  CategoryBadgeList,
   DataTable,
   Pagination,
   StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
-
-import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   formatHospitalEventPoint,
   formatHospitalEventPrice,
@@ -38,30 +37,10 @@ function allowStatusColor(status: string): "success" | "warning" | "error" | "in
 }
 
 function categoryBadges(row: HospitalEventRow) {
-  if (row.categoryBadges.length > 0) {
-    return (
-      <div className="flex min-w-0 flex-wrap gap-1.5" title={row.categoryLabel}>
-        {row.categoryBadges.map((category) => (
-          <span
-            key={category.label}
-            className={[
-              "inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold",
-              category.isPrimary
-                ? "border border-brand-600 text-brand-600"
-                : "border border-transparent text-brand-600",
-            ].join(" ")}
-            title={category.label}
-          >
-            <span className="truncate">{category.label}</span>
-          </span>
-        ))}
-      </div>
-    );
-  }
-
   return (
     <CategoryBadgeList
-      values={[row.categoryLabel]}
+      values={row.categoryBadges.length > 0 ? row.categoryBadges.map((category) => category.label) : [row.categoryLabel]}
+      primaryValues={row.categoryBadges.filter((category) => category.isPrimary).map((category) => category.label)}
       title={row.categoryLabel}
     />
   );
@@ -74,7 +53,7 @@ function EventInlineActionButton({
 }: {
   children: React.ReactNode;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
     <Button
@@ -82,7 +61,10 @@ function EventInlineActionButton({
       variant="outline"
       size="sm"
       disabled={disabled}
-      onClick={onClick}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.(event);
+      }}
       className="h-8 min-w-12 border-gray-200 bg-white px-3 text-xs font-medium text-gray-500 disabled:opacity-60 "
     >
       {children}
@@ -269,6 +251,7 @@ type HospitalEventsDataTableProps = {
   sortState: HospitalEventSortState;
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
+  onOpenDetail: (row: HospitalEventRow) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
@@ -282,6 +265,7 @@ export function HospitalEventsDataTable({
   sortState,
   onToggleSort,
   onEditPeriod,
+  onOpenDetail,
   onRefresh,
   onGoPage,
 }: HospitalEventsDataTableProps) {
@@ -305,6 +289,7 @@ export function HospitalEventsDataTable({
       meta={meta}
       onRefresh={onRefresh}
       onGoPage={onGoPage}
+      onRowClick={onOpenDetail}
       footerCenter={
         meta ? (
           <Pagination

@@ -159,9 +159,6 @@ export default function NoticesCreateFormClient() {
         />
 
         <div className="flex flex-col gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push("/notices")}>
-            목록으로
-          </Button>
           <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "등록 중..." : "공지사항 등록"}
           </Button>

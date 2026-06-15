@@ -82,6 +82,8 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/videos/[id]", requiredPermissions: ["beaulab.video.show"] },
   { path: "/videos/[id]/edit", requiredPermissions: ["beaulab.video.update"] },
   { path: "/videos/new", requiredPermissions: ["beaulab.video.create"] },
+  { path: "/events/[id]", requiredPermissions: ["beaulab.hospital_event.show"] },
+  { path: "/events/[id]/edit", requiredPermissions: ["beaulab.hospital_event.update"] },
   { path: "/events/new", requiredPermissions: ["beaulab.hospital_event.create"] },
   { path: "/notices/[id]", requiredPermissions: ["beaulab.notice.show"] },
   { path: "/notices/[id]/edit", requiredPermissions: ["beaulab.notice.update"] },

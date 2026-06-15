@@ -11,6 +11,7 @@ export type HospitalEventCategory = {
   name?: string | null;
   full_path?: string | null;
   depth?: number | null;
+  usage?: string | null;
   is_primary?: boolean | null;
 };
 
@@ -29,6 +30,7 @@ export type HospitalEventApiItem = {
   hospital?: {
     id?: number | null;
     name?: string | null;
+    business_number?: string | null;
     manager?: {
       id?: number | null;
       name?: string | null;
@@ -39,6 +41,7 @@ export type HospitalEventApiItem = {
   categories?: HospitalEventCategory[] | null;
   thumbnail_image?: HospitalEventMedia | null;
   event_type?: string | null;
+  is_male_targeted?: boolean | null;
   name?: string | null;
   description?: string | null;
   is_event_period_unlimited?: boolean | null;
@@ -46,11 +49,34 @@ export type HospitalEventApiItem = {
   event_end_at?: string | null;
   normal_price?: number | null;
   event_price?: number | null;
+  is_vat_included?: boolean | null;
   discount_rate?: number | null;
   consultation_price?: number | null;
+  base_consultation_price?: number | null;
   consultation_count?: number | null;
   confirmed_consultation_count?: number | null;
   total_spent_point?: number | null;
+  has_options?: boolean | null;
+  procedure_targets?: string[] | null;
+  procedure_benefits?: string[] | null;
+  side_effect_notice?: string | null;
+  doctors?: Array<{
+    id?: number | null;
+    name?: string | null;
+    position?: string | null;
+    is_career_visible?: boolean | null;
+    is_activity_visible?: boolean | null;
+  }> | null;
+  options?: Array<{
+    id?: number | null;
+    name?: string | null;
+    session_count?: number | null;
+    normal_price?: number | null;
+    event_price?: number | null;
+    discount_rate?: number | null;
+    sort_order?: number | null;
+  }> | null;
+  event_page_image?: HospitalEventMedia | null;
   status?: string | null;
   allow_status?: string | null;
   view_count?: number | null;

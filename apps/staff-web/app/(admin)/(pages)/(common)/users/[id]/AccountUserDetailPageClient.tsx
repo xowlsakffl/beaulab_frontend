@@ -227,7 +227,6 @@ export default function AccountUserDetailPageClient() {
       <Card>
         <CardContent className="flex min-h-[240px] flex-col items-center justify-center gap-4">
           <p className="text-sm text-rose-600">{loadError || "회원 상세 정보가 없습니다."}</p>
-          <Button type="button" variant="outline" onClick={goBackToList}>목록으로</Button>
         </CardContent>
       </Card>
     );
@@ -496,7 +495,7 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
 
         <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_8.5rem]">
           <div className="space-y-3">
-            <h3 className="text-base font-semibold text-gray-800">신고게시물</h3>
+            <h3 className="text-sm font-semibold text-gray-800">신고게시물</h3>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <ClickableCountBox
                 label="성형후기/댓글"
@@ -522,7 +521,7 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-base font-semibold text-gray-800">경고횟수</h3>
+            <h3 className="text-sm font-semibold text-gray-800">경고횟수</h3>
             <CountBox label="경고" value={warningCount} />
           </div>
         </div>

@@ -378,9 +378,6 @@ export default function HospitalEditFormClient() {
           <Button type="button" variant="brand" onClick={() => void fetchHospital()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );

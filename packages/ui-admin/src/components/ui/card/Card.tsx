@@ -25,7 +25,7 @@ function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement
 }
 
 function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 data-slot="card-title" className={cn("text-base font-semibold text-gray-800 ", className)} {...props} />;
+  return <h3 data-slot="card-title" className={cn("text-sm font-semibold text-gray-800 ", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {

@@ -377,9 +377,6 @@ export default function DoctorEditFormClient() {
           <Button type="button" variant="brand" onClick={() => void fetchDoctor()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );

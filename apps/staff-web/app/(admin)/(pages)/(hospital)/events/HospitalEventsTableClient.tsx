@@ -410,6 +410,11 @@ export default function HospitalEventsTableClient() {
     setIsPeriodDatePickerOpen(false);
   }, []);
 
+  const openEventDetailPage = React.useCallback((row: HospitalEventRow) => {
+    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(`/events/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+  }, [pathname, queryString, router]);
+
   const closePeriodEditModal = React.useCallback(() => {
     if (periodUpdating) return;
     setPeriodEdit(null);
@@ -552,15 +557,16 @@ export default function HospitalEventsTableClient() {
         sortState={sortState}
         onToggleSort={toggleSort}
         onEditPeriod={openPeriodEditModal}
+        onOpenDetail={openEventDetailPage}
         onRefresh={() => {
           void Promise.all([fetchEvents(true), fetchSummary()]);
         }}
         onGoPage={setPage}
       />
 
-      <Modal isOpen={Boolean(periodEdit)} onClose={closePeriodEditModal} className="mx-4 w-full max-w-xl" showCloseButton>
+      <Modal isOpen={Boolean(periodEdit)} onClose={closePeriodEditModal} className="mx-4 w-full max-w-xl" showCloseButton={false}>
         <ModalPanel className="rounded-2xl p-6 shadow-none">
-          <ModalHeader className="pr-12">
+          <ModalHeader className="pr-0">
             <ModalTitle className="text-xl font-bold">이벤트 기간 수정</ModalTitle>
           </ModalHeader>
 

@@ -213,9 +213,6 @@ export default function ReportedContentCommentDetailPageClient({
       <Card>
         <CardContent className="space-y-4 py-10">
           <p className="text-sm text-rose-600 ">{error || "신고 댓글 상세 정보가 없습니다."}</p>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -263,16 +260,6 @@ function renderCommentSummary(
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>회원정보</CardTitle>
-          <div className="flex w-full flex-row gap-2 sm:w-auto">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={onBack}
-            >
-              목록으로
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">

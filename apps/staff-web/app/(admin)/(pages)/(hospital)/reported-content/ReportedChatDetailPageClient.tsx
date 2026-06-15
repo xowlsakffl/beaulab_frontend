@@ -231,9 +231,6 @@ export default function ReportedChatDetailPageClient() {
       <Card>
         <CardContent className="space-y-4 py-10">
           <p className="text-sm text-rose-600 ">{error || "신고 채팅 상세 정보가 없습니다."}</p>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -419,11 +416,6 @@ function ChatMemberInfoCard({
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>{title}</CardTitle>
-          {onBack ? (
-            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onBack}>
-              목록으로
-            </Button>
-          ) : null}
         </div>
       </CardHeader>
       <CardContent>

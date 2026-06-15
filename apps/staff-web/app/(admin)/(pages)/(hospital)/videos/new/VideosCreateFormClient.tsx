@@ -227,9 +227,6 @@ export default function VideosCreateFormClient() {
         />
 
         <div className="flex flex-col gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push("/videos")}>
-            목록으로
-          </Button>
           <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "등록 중..." : "동영상 등록"}
           </Button>

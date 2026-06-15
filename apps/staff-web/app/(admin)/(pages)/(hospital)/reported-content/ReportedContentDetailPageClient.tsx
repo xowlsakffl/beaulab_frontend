@@ -24,6 +24,7 @@ import {
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
+import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
@@ -462,9 +463,6 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       <Card>
         <CardContent className="space-y-4 py-10">
           <p className="text-sm text-rose-600 ">{error || "신고게시물 상세 정보가 없습니다."}</p>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -751,13 +749,6 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div />
-        <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath(Number(detail.id)))}>
-          목록으로
-        </Button>
-      </div>
-
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
         <div className="space-y-6">
           {renderOriginalSummary(config, detail)}
@@ -793,16 +784,6 @@ function ReportedTalkMemberSummaryCard({
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>회원정보</CardTitle>
-          <div className="flex w-full flex-row gap-2 sm:w-auto">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={onBack}
-            >
-              목록으로
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
@@ -961,16 +942,6 @@ function ReportedReviewMemberSummaryCard({
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>회원정보</CardTitle>
-          <div className="flex w-full flex-row gap-2 sm:w-auto">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={onBack}
-            >
-              목록으로
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
@@ -1112,31 +1083,12 @@ function ReportedReviewVisibilityButtons({
   disabled: boolean;
   onChange: (status: "ACTIVE" | "INACTIVE") => void;
 }) {
-  const visible = status !== "INACTIVE";
-
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        type="button"
-        size="sm"
-        variant={visible ? "outline" : "brand"}
-        disabled={disabled || visible}
-        onClick={() => onChange("ACTIVE")}
-        className="min-w-16"
-      >
-        노출
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={visible ? "brand" : "outline"}
-        disabled={disabled || !visible}
-        onClick={() => onChange("INACTIVE")}
-        className="min-w-16"
-      >
-        미노출
-      </Button>
-    </div>
+    <VisibilityActionButtons
+      status={status}
+      disabled={disabled}
+      onChange={onChange}
+    />
   );
 }
 
@@ -1152,16 +1104,6 @@ function ReportedEvaluationMemberSummaryCard({
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>회원정보</CardTitle>
-          <div className="flex w-full flex-row gap-2 sm:w-auto">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1 sm:flex-none"
-              onClick={onBack}
-            >
-              목록으로
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">

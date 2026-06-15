@@ -28,6 +28,7 @@ import {
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
@@ -375,9 +376,6 @@ export default function HospitalEvaluationDetailPageClient() {
           <Button type="button" variant="brand" onClick={() => void refreshEvaluationPage(true)}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -525,9 +523,6 @@ function MemberSummaryCard({
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <CardTitle>회원정보</CardTitle>
-          <Button type="button" variant="outline" onClick={onBack}>
-            목록으로
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
@@ -893,43 +888,6 @@ function ReceiptVerificationModal({
         </ModalFooter>
       </ModalPanel>
     </Modal>
-  );
-}
-
-function VisibilityButtons({
-  status,
-  disabled,
-  onChange,
-}: {
-  status?: string | null;
-  disabled: boolean;
-  onChange: (status: "ACTIVE" | "INACTIVE") => void;
-}) {
-  const visible = status !== "INACTIVE";
-
-  return (
-    <div className="flex items-center gap-2">
-      <Button
-        type="button"
-        size="sm"
-        variant={visible ? "outline" : "brand"}
-        disabled={disabled || visible}
-        onClick={() => onChange("ACTIVE")}
-        className="h-9 min-w-16"
-      >
-        노출
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant={visible ? "brand" : "outline"}
-        disabled={disabled || !visible}
-        onClick={() => onChange("INACTIVE")}
-        className="h-9 min-w-16"
-      >
-        미노출
-      </Button>
-    </div>
   );
 }
 

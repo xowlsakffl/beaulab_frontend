@@ -208,9 +208,6 @@ export default function NoticeEditFormClient() {
           <Button type="button" variant="brand" onClick={() => void fetchNotice()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -244,9 +241,6 @@ export default function NoticeEditFormClient() {
         />
 
         <div className="flex flex-col gap-3">
-          <Button type="button" variant="outline" size="auth" className="w-full" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
           <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "저장 중..." : "공지사항 저장"}
           </Button>

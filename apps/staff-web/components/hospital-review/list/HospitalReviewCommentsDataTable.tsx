@@ -368,7 +368,7 @@ export function HospitalReviewCommentsDataTable({
             size="sm"
             disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
             onClick={() => onBulkVisibilityChange("ACTIVE")}
-            className="h-9 min-w-16"
+            className="h-9 min-w-16 px-3 text-sm"
           >
             노출
           </Button>
@@ -378,7 +378,7 @@ export function HospitalReviewCommentsDataTable({
             size="sm"
             disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
             onClick={() => onBulkVisibilityChange("INACTIVE")}
-            className="h-9 min-w-16"
+            className="h-9 min-w-16 px-3 text-sm"
           >
             미노출
           </Button>

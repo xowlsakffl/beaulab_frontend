@@ -2,7 +2,7 @@
 
 이 문서는 `apps/staff-web`에서 앞으로 지켜야 할 리팩토링/구조/구현 규칙을 정리합니다.
 
-작성 기준: 2026-05-13
+작성 기준: 2026-06-15
 
 ## 1. 공통 원칙
 
@@ -284,6 +284,15 @@
 
 - 같은 panel / header / footer 구조가 두 군데 이상 반복되면 `packages/ui-admin`의 modal 조합 컴포넌트를 우선 재사용합니다.
 - 앱 도메인 문구와 필드만 `apps/staff-web`에서 조립하고, 모달 기본 레이아웃 스타일은 `ui-admin`에 둡니다.
+
+### 8.7 운영 히스토리
+
+- 운영 히스토리 응답은 `changes` 배열을 우선 사용합니다.
+- `field`, `before_value`, `after_value`는 백엔드 호환 필드이므로 신규 화면의 기본 렌더링 기준으로 쓰지 않습니다.
+- 단건 변경은 `changes` 1건, 다중 변경은 하나의 history 아래 `changes` 여러 건으로 표시합니다.
+- 변경 상세 표시는 `field_label`, `after_display`, `before_display`를 우선 사용합니다.
+- 표시값이 없을 때만 `after_value`, `before_value`를 fallback으로 문자열화합니다.
+- 기존 상태/사유만 간단히 보여주는 댓글 이력 UI는 유지할 수 있지만, 신규 상세 이력 UI는 `changes` 구조를 기준으로 만듭니다.
 
 ## 9. 권한 규칙
 

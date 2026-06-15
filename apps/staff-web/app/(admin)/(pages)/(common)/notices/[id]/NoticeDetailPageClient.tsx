@@ -102,9 +102,6 @@ export default function NoticeDetailPageClient() {
           <Button type="button" variant="brand" onClick={() => void fetchNotice()}>
             다시 불러오기
           </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            목록으로
-          </Button>
         </CardContent>
       </Card>
     );
@@ -120,9 +117,6 @@ export default function NoticeDetailPageClient() {
             </div>
 
             <div className="flex w-full flex-row gap-2 sm:w-auto">
-              <Button type="button" variant="outline" className="flex-1 sm:flex-none" onClick={() => router.push(getReturnToPath())}>
-                목록으로
-              </Button>
               <Can permission="beaulab.notice.update">
                 <Button type="button" variant="brand" className="flex-1 sm:flex-none" onClick={() => router.push(editPath)}>
                   수정하기

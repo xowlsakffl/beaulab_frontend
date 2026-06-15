@@ -64,6 +64,9 @@ import {
   formatLocalDate,
   normalizeRangeDate,
   parseDateParam,
+  resolveHospitalEventMediaUrl,
+  type HospitalEventApiItem,
+  type HospitalEventMedia,
 } from "@/lib/hospital-event/list";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
 import type { VideoDoctorOption } from "@/lib/video/form";
@@ -96,6 +99,14 @@ type EventCreateResponse = {
 };
 
 export default function HospitalEventsCreateFormClient() {
+  return <HospitalEventsFormClient mode="create" />;
+}
+
+export function HospitalEventsEditFormClient({ eventId }: { eventId: number }) {
+  return <HospitalEventsFormClient mode="edit" eventId={eventId} />;
+}
+
+function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; eventId?: number }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
@@ -105,7 +116,11 @@ export default function HospitalEventsCreateFormClient() {
   const [errors, setErrors] = React.useState<HospitalEventFormErrors>({});
   const [thumbnailImage, setThumbnailImage] = React.useState<File | null>(null);
   const [eventPageImage, setEventPageImage] = React.useState<File | null>(null);
+  const [existingThumbnailImage, setExistingThumbnailImage] = React.useState<HospitalEventMedia | null>(null);
+  const [existingEventPageImage, setExistingEventPageImage] = React.useState<HospitalEventMedia | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(mode === "edit");
+  const [loadError, setLoadError] = React.useState<string | null>(null);
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const [isAppPreviewOpen, setIsAppPreviewOpen] = React.useState(false);
   const [uploadWarning, setUploadWarning] = React.useState<string | null>(null);
@@ -211,6 +226,70 @@ export default function HospitalEventsCreateFormClient() {
     },
     [baseLoadCategories],
   );
+
+  const fetchEvent = React.useCallback(async () => {
+    if (mode !== "edit") return;
+
+    if (!eventId || !Number.isFinite(eventId) || eventId <= 0) {
+      setLoadError("잘못된 이벤트 경로입니다.");
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const response = await api.get<HospitalEventApiItem>(`/hospital-events/${eventId}`);
+
+      if (!isApiSuccess(response)) {
+        setLoadError(response.error.message || "이벤트 정보를 불러오지 못했습니다.");
+        return;
+      }
+
+      const detail = response.data;
+      setForm(mapHospitalEventDetailToForm(detail));
+      setThumbnailImage(null);
+      setEventPageImage(null);
+      setExistingThumbnailImage(detail.thumbnail_image ?? null);
+      setExistingEventPageImage(detail.event_page_image ?? null);
+      setErrors({});
+
+      const categories = detail.categories ?? [];
+      setCategoryCache((prev) => {
+        const next = { ...prev };
+
+        categories.forEach((category) => {
+          if (!category.id) return;
+
+          next[category.id] = {
+            id: category.id,
+            name: category.name?.trim() || "-",
+            full_path: category.full_path?.trim() || category.name?.trim() || "-",
+            depth: Number(category.depth ?? 3),
+            has_children: false,
+            usage: normalizeHospitalEventCategoryUsage(category.usage),
+          };
+        });
+
+        return next;
+      });
+
+      const categoryUsage = normalizeHospitalEventCategoryUsage(categories.find((category) => category.usage)?.usage);
+      const sectionKey = HOSPITAL_EVENT_CATEGORY_SECTIONS.find((section) => section.usage === categoryUsage)?.key;
+      setCategorySectionKey(sectionKey ?? INITIAL_EVENT_CATEGORY_SECTION_KEY);
+    } catch {
+      setLoadError("이벤트 정보를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [eventId, mode]);
+
+  React.useEffect(() => {
+    if (mode !== "edit") return;
+
+    void fetchEvent();
+  }, [fetchEvent, mode]);
 
   const handleSelectHospital = React.useCallback(
     (hospital: DoctorHospitalOption) => {
@@ -343,7 +422,10 @@ export default function HospitalEventsCreateFormClient() {
   }, [clearError]);
 
   const validate = React.useCallback(() => {
-    const nextErrors = validateCreateHospitalEventForm(form, thumbnailImage, eventPageImage, selectedCategoryUsage);
+    const nextErrors = validateCreateHospitalEventForm(form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
+      hasExistingThumbnailImage: Boolean(existingThumbnailImage),
+      hasExistingEventPageImage: Boolean(existingEventPageImage),
+    });
     if (eventPriceError) {
       nextErrors.event_price = eventPriceError;
     }
@@ -355,18 +437,23 @@ export default function HospitalEventsCreateFormClient() {
     }
 
     return true;
-  }, [eventPageImage, eventPriceError, focusFirstErrorField, form, selectedCategoryUsage, thumbnailImage]);
+  }, [eventPageImage, eventPriceError, existingEventPageImage, existingThumbnailImage, focusFirstErrorField, form, selectedCategoryUsage, thumbnailImage]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!validate() || !thumbnailImage) return;
+    if (!validate()) return;
+    if (mode === "edit" && (!eventId || !Number.isFinite(eventId) || eventId <= 0)) return;
 
     const formData = new FormData();
-    appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage);
+    appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
+      includeDefaultStatuses: mode === "create",
+    });
     setIsSubmitting(true);
 
     try {
-      const response = await api.post<EventCreateResponse>("/hospital-events", formData);
+      const response = mode === "edit"
+        ? await api.post<HospitalEventApiItem>(`/hospital-events/${eventId}`, formData)
+        : await api.post<EventCreateResponse>("/hospital-events", formData);
 
       if (!isApiSuccess(response)) {
         const nextErrors = extractHospitalEventFieldErrors(response.error.details);
@@ -377,23 +464,23 @@ export default function HospitalEventsCreateFormClient() {
 
         showAlert({
           variant: "error",
-          title: "이벤트 등록 실패",
-          message: response.error.message || "이벤트 등록에 실패했습니다.",
+          title: mode === "edit" ? "이벤트 수정 실패" : "이벤트 등록 실패",
+          message: response.error.message || (mode === "edit" ? "이벤트 수정에 실패했습니다." : "이벤트 등록에 실패했습니다."),
         });
         return;
       }
 
       showAlert({
         variant: "success",
-        title: "이벤트 등록 완료",
-        message: "등록된 이벤트를 목록에서 확인할 수 있습니다.",
+        title: mode === "edit" ? "이벤트 수정 완료" : "이벤트 등록 완료",
+        message: mode === "edit" ? "수정한 이벤트를 목록에서 확인할 수 있습니다." : "등록된 이벤트를 목록에서 확인할 수 있습니다.",
       });
-      router.push(`/events?highlight=${response.data.id}`);
+      router.push(getReturnToPath(Number(response.data.id)));
     } catch {
       showAlert({
         variant: "error",
-        title: "이벤트 등록 실패",
-        message: "이벤트 등록 중 오류가 발생했습니다.",
+        title: mode === "edit" ? "이벤트 수정 실패" : "이벤트 등록 실패",
+        message: mode === "edit" ? "이벤트 수정 중 오류가 발생했습니다." : "이벤트 등록 중 오류가 발생했습니다.",
       });
     } finally {
       setIsSubmitting(false);
@@ -410,14 +497,34 @@ export default function HospitalEventsCreateFormClient() {
           미리보기 적용
         </Button>
         <Button type="submit" form={EVENT_CREATE_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
-          {isSubmitting ? "요청 중..." : "검수 요청하기"}
+          {isSubmitting ? "저장 중..." : mode === "edit" ? "저장하기" : "등록하기"}
         </Button>
       </>
     ),
-    [getReturnToPath, isSubmitting, router],
+    [getReturnToPath, isSubmitting, mode, router],
   );
 
-  usePageHeaderExtra(headerActions);
+  usePageHeaderExtra(isLoading || loadError ? null : headerActions);
+
+  if (isLoading) {
+    return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="이벤트 정보를 불러오는 중" />;
+  }
+
+  if (loadError) {
+    return (
+      <Card className="space-y-4 p-6">
+        <div>
+          <h2 className="text-base font-bold text-gray-900">이벤트 정보를 불러오지 못했습니다.</h2>
+          <p className="mt-2 text-sm text-gray-500">{loadError}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button type="button" variant="brand" onClick={() => void fetchEvent()}>
+            다시 불러오기
+          </Button>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -459,6 +566,8 @@ export default function HospitalEventsCreateFormClient() {
 	          eventPriceError={eventPriceError}
 	          thumbnailImage={thumbnailImage}
 	          eventPageImage={eventPageImage}
+	          existingThumbnailImage={existingThumbnailImage}
+	          existingEventPageImage={existingEventPageImage}
 	          onThumbnailChange={(file) => {
 	            setThumbnailImage(file);
 	            clearError("thumbnail_image");
@@ -485,6 +594,8 @@ export default function HospitalEventsCreateFormClient() {
           eventType={form.event_type}
           thumbnailImage={thumbnailImage}
           eventPageImage={eventPageImage}
+          existingThumbnailImage={existingThumbnailImage}
+          existingEventPageImage={existingEventPageImage}
           onThumbnailChange={(file) => {
             setThumbnailImage(file);
             clearError("thumbnail_image");
@@ -532,6 +643,8 @@ export default function HospitalEventsCreateFormClient() {
         form={form}
         thumbnailImage={thumbnailImage}
         eventPageImage={eventPageImage}
+        existingThumbnailImage={existingThumbnailImage}
+        existingEventPageImage={existingEventPageImage}
         discountRate={discountRate}
       />
 
@@ -768,6 +881,8 @@ function EventInfoCard({
   eventPriceError,
   thumbnailImage,
   eventPageImage,
+  existingThumbnailImage,
+  existingEventPageImage,
   onThumbnailChange,
   onEventPageChange,
   onUploadWarning,
@@ -786,6 +901,8 @@ function EventInfoCard({
   eventPriceError: string | null;
   thumbnailImage: File | null;
   eventPageImage: File | null;
+  existingThumbnailImage: HospitalEventMedia | null;
+  existingEventPageImage: HospitalEventMedia | null;
   onThumbnailChange: (file: File | null) => void;
   onEventPageChange: (file: File | null) => void;
   onUploadWarning: (message: string) => void;
@@ -1041,6 +1158,7 @@ function EventInfoCard({
 	          required
 	          helper="800px x 800px 이상, 1:1비율, 2MB 이하"
 		          file={thumbnailImage}
+		          existingMedia={existingThumbnailImage}
 		          error={errors.thumbnail_image}
 		          onChange={onThumbnailChange}
 		          onValidate={(file) => validateImageFile(file, { square: true, maxBytes: 2 * 1024 * 1024, minWidth: 800, minHeight: 800 })}
@@ -1054,6 +1172,7 @@ function EventInfoCard({
 	            required
 	            helper="가로 800px 이상, 5MB 이하"
 		            file={eventPageImage}
+		            existingMedia={existingEventPageImage}
 		            error={errors.event_page_image}
 		            onChange={onEventPageChange}
 		            onValidate={(file) => validateImageFile(file, { maxBytes: 5 * 1024 * 1024, minWidth: 800 })}
@@ -1325,6 +1444,8 @@ function EventMediaCard({
   eventType,
   thumbnailImage,
   eventPageImage,
+  existingThumbnailImage,
+  existingEventPageImage,
   onThumbnailChange,
   onEventPageChange,
   onPreview,
@@ -1333,13 +1454,17 @@ function EventMediaCard({
   eventType: HospitalEventType;
   thumbnailImage: File | null;
   eventPageImage: File | null;
+  existingThumbnailImage: HospitalEventMedia | null;
+  existingEventPageImage: HospitalEventMedia | null;
   onThumbnailChange: (file: File | null) => void;
   onEventPageChange: (file: File | null) => void;
   onPreview: (preview: HospitalMediaPreviewState) => void;
   onUploadWarning: (message: string) => void;
 }) {
-  const thumbnailUrl = useObjectUrl(thumbnailImage);
-  const eventPageUrl = useObjectUrl(eventPageImage);
+  const thumbnailObjectUrl = useObjectUrl(thumbnailImage);
+  const eventPageObjectUrl = useObjectUrl(eventPageImage);
+  const thumbnailUrl = thumbnailObjectUrl ?? resolveHospitalEventMediaUrl(existingThumbnailImage, "original");
+  const eventPageUrl = eventPageObjectUrl ?? resolveHospitalEventMediaUrl(existingEventPageImage, "original");
 
   return (
     <div className="min-w-0 space-y-4">
@@ -1376,6 +1501,7 @@ function InlineImageFileField({
   required = false,
   helper,
   file,
+  existingMedia,
   error,
   onChange,
   onValidate,
@@ -1387,6 +1513,7 @@ function InlineImageFileField({
   required?: boolean;
   helper: string;
   file: File | null;
+  existingMedia?: HospitalEventMedia | null;
   error?: string;
   onChange: (file: File | null) => void;
   onValidate: (file: File) => Promise<boolean>;
@@ -1394,7 +1521,9 @@ function InlineImageFileField({
   onUploadWarning: (message: string) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
-  const displayText = file?.name ?? helper;
+  const existingFileName = formatHospitalEventMediaFileName(existingMedia);
+  const displayText = file?.name ?? existingFileName ?? helper;
+  const hasFile = Boolean(file || existingFileName);
 
   return (
 	    <InlineField label={label} required={required} error={error} target={target}>
@@ -1403,7 +1532,7 @@ function InlineImageFileField({
           <span
             className={[
               "min-w-0 truncate rounded-md px-2 py-1 text-xs",
-              file ? "bg-gray-50 font-medium text-gray-700" : "text-gray-500",
+              hasFile ? "bg-gray-50 font-medium text-gray-700" : "text-gray-500",
             ].join(" ")}
           >
             {displayText}
@@ -1420,15 +1549,13 @@ function InlineImageFileField({
           onChange={async (event) => {
             const selectedFile = event.target.files?.[0] ?? null;
             event.currentTarget.value = "";
-            if (!selectedFile) return;
-
-            const isValid = await onValidate(selectedFile);
-            if (!isValid) {
-              onUploadWarning(validationMessage);
-              return;
-            }
-
-            onChange(selectedFile);
+            await applyValidatedEventImageFile({
+              file: selectedFile,
+              onValidate,
+              validationMessage,
+              onUploadWarning,
+              onChange,
+            });
           }}
         />
       </div>
@@ -1507,15 +1634,13 @@ function SingleImagePreviewPanel({
 	        onChange={async (event) => {
 	          const selectedFile = event.target.files?.[0] ?? null;
 	          event.currentTarget.value = "";
-	          if (!selectedFile) return;
-
-	          const isValid = await onValidate(selectedFile);
-	          if (!isValid) {
-	            onUploadWarning(validationMessage);
-	            return;
-	          }
-
-	          onFileChange(selectedFile);
+	          await applyValidatedEventImageFile({
+	            file: selectedFile,
+	            onValidate,
+	            validationMessage,
+	            onUploadWarning,
+	            onChange: onFileChange,
+	          });
 	        }}
 	      />
 	    </Card>
@@ -1528,6 +1653,8 @@ function HospitalEventAppPreviewModal({
   form,
   thumbnailImage,
   eventPageImage,
+  existingThumbnailImage,
+  existingEventPageImage,
   discountRate,
 }: {
   isOpen: boolean;
@@ -1535,10 +1662,14 @@ function HospitalEventAppPreviewModal({
   form: HospitalEventFormValues;
   thumbnailImage: File | null;
   eventPageImage: File | null;
+  existingThumbnailImage: HospitalEventMedia | null;
+  existingEventPageImage: HospitalEventMedia | null;
   discountRate: number;
 }) {
-  const thumbnailUrl = useObjectUrl(thumbnailImage);
-  const eventPageUrl = useObjectUrl(eventPageImage);
+  const thumbnailObjectUrl = useObjectUrl(thumbnailImage);
+  const eventPageObjectUrl = useObjectUrl(eventPageImage);
+  const thumbnailUrl = thumbnailObjectUrl ?? resolveHospitalEventMediaUrl(existingThumbnailImage, "original");
+  const eventPageUrl = eventPageObjectUrl ?? resolveHospitalEventMediaUrl(existingEventPageImage, "original");
   const normalPrice = parseNumberInput(form.normal_price);
   const eventPrice = parseNumberInput(form.event_price);
   const heroUrl = thumbnailUrl;
@@ -1752,6 +1883,114 @@ function formatAppPreviewWon(value: number) {
   return value > 0 ? `${value.toLocaleString("ko-KR")}원` : "-";
 }
 
+function mapHospitalEventDetailToForm(item: HospitalEventApiItem): HospitalEventFormValues {
+  const categories = (item.categories ?? []).filter((category) => Number(category.id ?? 0) > 0);
+  const primaryCategoryId = Number(categories.find((category) => category.is_primary)?.id ?? categories[0]?.id ?? 0) || null;
+  const isUnlimited = item.is_event_period_unlimited ?? true;
+
+  return {
+    ...INITIAL_HOSPITAL_EVENT_FORM,
+    hospital_id: Number(item.hospital?.id ?? 0) || null,
+    hospital_name: item.hospital?.name?.trim() ?? "",
+    hospital_business_number: item.hospital?.business_number?.trim() ?? "",
+    category_ids: categories.map((category) => Number(category.id)),
+    primary_category_id: primaryCategoryId,
+    is_male_targeted: Boolean(item.is_male_targeted),
+    doctor_assignments: mapHospitalEventDoctorAssignments(item.doctors),
+    event_type: item.event_type === "TEXT" ? "TEXT" : "IMAGE",
+    name: item.name?.trim() ?? "",
+    description: item.description?.trim() ?? "",
+    event_start_at: item.event_start_at?.slice(0, 10) || INITIAL_HOSPITAL_EVENT_FORM.event_start_at,
+    event_end_at: item.event_end_at?.slice(0, 10) ?? "",
+    is_event_period_unlimited: Boolean(isUnlimited),
+    is_vat_included: item.is_vat_included ?? true,
+    normal_price: formatPersistedNumber(item.normal_price),
+    event_price: formatPersistedNumber(item.event_price),
+    consultation_price: formatPersistedNumber(item.consultation_price),
+    has_options: Boolean(item.has_options),
+    options: mapHospitalEventOptions(item.options),
+    procedure_targets: normalizeTextItemList(item.procedure_targets),
+    procedure_benefits: normalizeTextItemList(item.procedure_benefits),
+    side_effect_notice: item.side_effect_notice?.trim() ?? "",
+  };
+}
+
+function mapHospitalEventDoctorAssignments(doctors: HospitalEventApiItem["doctors"]): HospitalEventFormValues["doctor_assignments"] {
+  const assignments = (doctors ?? [])
+    .slice(0, 3)
+    .map((doctor) => ({
+      hospital_doctor_id: Number(doctor.id ?? 0) || null,
+      name: doctor.name?.trim() ?? "",
+      is_career_visible: doctor.is_career_visible ?? true,
+      is_activity_visible: doctor.is_activity_visible ?? false,
+    }));
+
+  while (assignments.length < 3) {
+    assignments.push(emptyDoctorAssignment());
+  }
+
+  return assignments;
+}
+
+function mapHospitalEventOptions(options: HospitalEventApiItem["options"]): HospitalEventOptionForm[] {
+  const mapped = (options ?? [])
+    .slice()
+    .sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0))
+    .map((option) => ({
+      name: option.name?.trim() ?? "",
+      session_count: String(Math.max(1, Number(option.session_count ?? 1))),
+      normal_price: formatPersistedNumber(option.normal_price),
+      event_price: formatPersistedNumber(option.event_price),
+    }))
+    .filter((option) => option.name || option.normal_price || option.event_price);
+
+  return mapped.length > 0 ? mapped : [emptyEventOption()];
+}
+
+function normalizeTextItemList(items?: string[] | null): string[] {
+  const normalized = (items ?? [])
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return normalized.length > 0 ? normalized : [""];
+}
+
+function normalizeHospitalEventCategoryUsage(value?: string | null): HospitalEventCategoryUsage | undefined {
+  if (value === "HOSPITAL_EVENT_SURGERY" || value === "HOSPITAL_EVENT_TREATMENT") {
+    return value;
+  }
+
+  return undefined;
+}
+
+function formatPersistedNumber(value?: number | null) {
+  const numberValue = Number(value ?? 0);
+  return numberValue > 0 ? formatNumberInput(String(numberValue)) : "";
+}
+
+function formatHospitalEventMediaFileName(media?: HospitalEventMedia | null) {
+  const metadata = media?.metadata;
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    const values = metadata as Record<string, unknown>;
+    const metadataName = values.original_name ?? values.file_name ?? values.name;
+    if (typeof metadataName === "string" && metadataName.trim()) {
+      return metadataName.trim();
+    }
+  }
+
+  const source = media?.path?.trim() || media?.url?.trim();
+  if (!source) return null;
+
+  const fileName = source.split("?")[0].split("/").filter(Boolean).pop();
+  if (!fileName) return null;
+
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
+}
+
 function InlineField({
   label,
   required = false,
@@ -1890,6 +2129,30 @@ async function validateImageFile(
   if (constraints.square && dimensions.width !== dimensions.height) return false;
 
   return true;
+}
+
+async function applyValidatedEventImageFile({
+  file,
+  onValidate,
+  validationMessage,
+  onUploadWarning,
+  onChange,
+}: {
+  file: File | null;
+  onValidate: (file: File) => Promise<boolean>;
+  validationMessage: string;
+  onUploadWarning: (message: string) => void;
+  onChange: (file: File | null) => void;
+}) {
+  if (!file) return;
+
+  const isValid = await onValidate(file);
+  if (!isValid) {
+    onUploadWarning(validationMessage);
+    return;
+  }
+
+  onChange(file);
 }
 
 function isAllowedEventImageFile(file: File) {
