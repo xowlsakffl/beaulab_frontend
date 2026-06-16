@@ -166,7 +166,7 @@ export function HashtagsDataTable({
     <DataTable
       title="해시태그 목록"
       description="검색어와 필터를 적용해 해시태그 운영 현황을 확인할 수 있습니다."
-      tableClassName="w-max min-w-[1020px]"
+      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

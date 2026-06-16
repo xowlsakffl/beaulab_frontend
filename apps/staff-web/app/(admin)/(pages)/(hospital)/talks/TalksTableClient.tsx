@@ -23,6 +23,7 @@ import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
 import { api, downloadFile, isApiRequestCanceledError } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
+import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_TALK_COMMENT_SORT,
   buildTalkCommentsQuery,
@@ -618,18 +619,16 @@ export default function TalksTableClient() {
       }
 
       setPendingVisibilityChange(null);
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      });
 
-      if (isBulkChange) {
-        setSelectedIds(new Set());
-        if (isCommentChange) {
-          await fetchTalkComments(true);
-        } else {
-          await fetchTalks(true);
-        }
-      } else if (isCommentChange) {
-        await fetchTalkComments(true);
+      if (isCommentChange) {
+        setCommentRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
       } else {
-        await fetchTalks(true);
+        setRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
       }
     } catch {
       setError(`${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경 중 오류가 발생했습니다.`);
@@ -645,7 +644,7 @@ export default function TalksTableClient() {
         });
       }
     }
-  }, [fetchTalkComments, fetchTalks, pendingVisibilityChange]);
+  }, [appliedFilters.visibilityStatus, pendingVisibilityChange]);
 
   const handleDownloadExcel = React.useCallback(async () => {
     const excelFilters: Filters = {

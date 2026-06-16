@@ -98,15 +98,36 @@ type EventCreateResponse = {
   id: number;
 };
 
+type HospitalEventFormMode = "create" | "edit" | "duplicate";
+
 export default function HospitalEventsCreateFormClient() {
-  return <HospitalEventsFormClient mode="create" />;
+  const searchParams = useSearchParams();
+  const duplicateSourceEventId = React.useMemo(() => {
+    const parsed = Number(searchParams.get("copyFrom") ?? "");
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [searchParams]);
+
+  return (
+    <HospitalEventsFormClient
+      mode={duplicateSourceEventId ? "duplicate" : "create"}
+      sourceEventId={duplicateSourceEventId ?? undefined}
+    />
+  );
 }
 
 export function HospitalEventsEditFormClient({ eventId }: { eventId: number }) {
   return <HospitalEventsFormClient mode="edit" eventId={eventId} />;
 }
 
-function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; eventId?: number }) {
+function HospitalEventsFormClient({
+  mode,
+  eventId,
+  sourceEventId,
+}: {
+  mode: HospitalEventFormMode;
+  eventId?: number;
+  sourceEventId?: number;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
@@ -119,7 +140,7 @@ function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; 
   const [existingThumbnailImage, setExistingThumbnailImage] = React.useState<HospitalEventMedia | null>(null);
   const [existingEventPageImage, setExistingEventPageImage] = React.useState<HospitalEventMedia | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(mode === "edit");
+  const [isLoading, setIsLoading] = React.useState(mode === "edit" || mode === "duplicate");
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const [isAppPreviewOpen, setIsAppPreviewOpen] = React.useState(false);
@@ -228,9 +249,9 @@ function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; 
   );
 
   const fetchEvent = React.useCallback(async () => {
-    if (mode !== "edit") return;
+    const targetEventId = mode === "edit" ? eventId : sourceEventId;
 
-    if (!eventId || !Number.isFinite(eventId) || eventId <= 0) {
+    if (!targetEventId || !Number.isFinite(targetEventId) || targetEventId <= 0) {
       setLoadError("잘못된 이벤트 경로입니다.");
       setIsLoading(false);
       return;
@@ -240,10 +261,10 @@ function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; 
     setLoadError(null);
 
     try {
-      const response = await api.get<HospitalEventApiItem>(`/hospital-events/${eventId}`);
+      const response = await api.get<HospitalEventApiItem>(`/hospital-events/${targetEventId}`);
 
       if (!isApiSuccess(response)) {
-        setLoadError(response.error.message || "이벤트 정보를 불러오지 못했습니다.");
+        setLoadError(response.error.message || (mode === "edit" ? "이벤트 정보를 불러오지 못했습니다." : "복제할 이벤트 정보를 불러오지 못했습니다."));
         return;
       }
 
@@ -279,14 +300,14 @@ function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; 
       const sectionKey = HOSPITAL_EVENT_CATEGORY_SECTIONS.find((section) => section.usage === categoryUsage)?.key;
       setCategorySectionKey(sectionKey ?? INITIAL_EVENT_CATEGORY_SECTION_KEY);
     } catch {
-      setLoadError("이벤트 정보를 불러오는 중 오류가 발생했습니다.");
+      setLoadError(mode === "edit" ? "이벤트 정보를 불러오는 중 오류가 발생했습니다." : "복제할 이벤트 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
-  }, [eventId, mode]);
+  }, [eventId, mode, sourceEventId]);
 
   React.useEffect(() => {
-    if (mode !== "edit") return;
+    if (mode !== "edit" && mode !== "duplicate") return;
 
     void fetchEvent();
   }, [fetchEvent, mode]);
@@ -443,17 +464,26 @@ function HospitalEventsFormClient({ mode, eventId }: { mode: "create" | "edit"; 
     event.preventDefault();
     if (!validate()) return;
     if (mode === "edit" && (!eventId || !Number.isFinite(eventId) || eventId <= 0)) return;
+    if (mode === "duplicate" && (!sourceEventId || !Number.isFinite(sourceEventId) || sourceEventId <= 0)) return;
 
     const formData = new FormData();
     appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
-      includeDefaultStatuses: mode === "create",
+      includeDefaultStatuses: mode !== "edit",
     });
     setIsSubmitting(true);
 
     try {
-      const response = mode === "edit"
-        ? await api.post<HospitalEventApiItem>(`/hospital-events/${eventId}`, formData)
-        : await api.post<EventCreateResponse>("/hospital-events", formData);
+      const response = await (async () => {
+        if (mode === "edit") {
+          return api.post<HospitalEventApiItem>(`/hospital-events/${eventId}`, formData);
+        }
+
+        if (mode === "duplicate") {
+          return api.post<EventCreateResponse>(`/hospital-events/${sourceEventId}/duplicate`, formData);
+        }
+
+        return api.post<EventCreateResponse>("/hospital-events", formData);
+      })();
 
       if (!isApiSuccess(response)) {
         const nextErrors = extractHospitalEventFieldErrors(response.error.details);

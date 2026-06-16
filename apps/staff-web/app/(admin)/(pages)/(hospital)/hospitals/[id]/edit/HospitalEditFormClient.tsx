@@ -65,15 +65,6 @@ export default function HospitalEditFormClient() {
   const rawHospitalId = Array.isArray(params.id) ? params.id[0] : params.id;
   const hospitalId = Number(rawHospitalId);
 
-  const detailPath = React.useMemo(() => {
-    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return "/hospitals";
-
-    const rawReturnTo = searchParams.get("returnTo");
-    return rawReturnTo
-      ? `/hospitals/${hospitalId}?returnTo=${encodeURIComponent(rawReturnTo)}`
-      : `/hospitals/${hospitalId}`;
-  }, [hospitalId, searchParams]);
-
   const [form, setForm] = React.useState<HospitalFormValues>(INITIAL_HOSPITAL_FORM);
   const [logo, setLogo] = React.useState<File | null>(null);
   const [gallery, setGallery] = React.useState<File[]>([]);
@@ -328,7 +319,7 @@ export default function HospitalEditFormClient() {
         title: "병의원 수정 완료",
         message: "수정된 병의원을 목록에서 확인할 수 있습니다.",
       });
-      router.push(detailPath);
+      router.push(getReturnToPath(Number(response.data.id ?? hospitalId)));
     } catch {
       showAlert({
         variant: "error",

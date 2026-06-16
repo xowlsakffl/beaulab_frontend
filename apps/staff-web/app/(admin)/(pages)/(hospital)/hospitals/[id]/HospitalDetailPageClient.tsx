@@ -28,6 +28,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Dropdown,
+  DropdownItem,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalPanel,
+  ModalTitle,
   MoreVertical,
   SpinnerBlock,
   Star,
@@ -60,6 +68,10 @@ export default function HospitalDetailPageClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [isActionMenuOpen, setIsActionMenuOpen] = React.useState(false);
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = React.useState(false);
+  const [suspendError, setSuspendError] = React.useState<string | null>(null);
+  const [suspending, setSuspending] = React.useState(false);
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -118,6 +130,44 @@ export default function HospitalDetailPageClient() {
     void fetchHospital();
   }, [fetchHospital]);
 
+  const openSuspendModal = React.useCallback(() => {
+    setIsActionMenuOpen(false);
+    setSuspendError(null);
+    setIsSuspendModalOpen(true);
+  }, []);
+
+  const closeSuspendModal = React.useCallback(() => {
+    if (suspending) return;
+
+    setIsSuspendModalOpen(false);
+    setSuspendError(null);
+  }, [suspending]);
+
+  const submitSuspend = React.useCallback(async () => {
+    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
+
+    setSuspending(true);
+    setSuspendError(null);
+
+    try {
+      const response = await api.patch<HospitalDetailResponse>(`/hospitals/${hospitalId}/status`, {
+        status: "SUSPENDED",
+      });
+
+      if (!isApiSuccess(response)) {
+        setSuspendError(response.error.message || "운영중지 등록에 실패했습니다.");
+        return;
+      }
+
+      setDetail(response.data);
+      setIsSuspendModalOpen(false);
+    } catch {
+      setSuspendError("운영중지 등록 중 오류가 발생했습니다.");
+    } finally {
+      setSuspending(false);
+    }
+  }, [hospitalId]);
+
   usePageHeaderExtra(headerAction);
 
   if (isLoading) {
@@ -151,7 +201,14 @@ export default function HospitalDetailPageClient() {
         />
 
         <div className="grid min-w-0 gap-3">
-          <HospitalInfoCard detail={detail} onPreview={setPreviewMedia} />
+          <HospitalInfoCard
+            detail={detail}
+            isActionMenuOpen={isActionMenuOpen}
+            onToggleActionMenu={() => setIsActionMenuOpen((prev) => !prev)}
+            onCloseActionMenu={() => setIsActionMenuOpen(false)}
+            onOpenSuspendModal={openSuspendModal}
+            onPreview={setPreviewMedia}
+          />
           <BusinessAccountCard detail={detail} />
         </div>
 
@@ -164,6 +221,27 @@ export default function HospitalDetailPageClient() {
       <HospitalImagesCard detail={detail} onPreview={setPreviewMedia} />
       <OperationInfoCard detail={detail} />
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <Modal isOpen={isSuspendModalOpen} onClose={closeSuspendModal} className="mx-4 max-w-md" showCloseButton={false}>
+        <ModalPanel>
+          <ModalHeader className="pr-0">
+            <ModalTitle>운영중지 처리</ModalTitle>
+          </ModalHeader>
+          <ModalBody className="mt-5 space-y-3">
+            <p className="whitespace-pre-line text-sm leading-6 text-gray-700 font-medium">
+              해당 병의원을 운영중지 등록 하시겠습니까?
+            </p>
+            {suspendError ? <p className="text-sm text-rose-600">{suspendError}</p> : null}
+          </ModalBody>
+          <ModalFooter>
+            <Button type="button" variant="outline" onClick={closeSuspendModal} disabled={suspending}>
+              취소
+            </Button>
+            <Button type="button" variant="brand" onClick={() => void submitSuspend()} disabled={suspending}>
+              {suspending ? "등록 중" : "등록"}
+            </Button>
+          </ModalFooter>
+        </ModalPanel>
+      </Modal>
     </div>
   );
 }
@@ -218,13 +296,22 @@ function HospitalLogoCard({
 function HospitalInfoCard({
   detail,
   className,
+  isActionMenuOpen,
+  onToggleActionMenu,
+  onCloseActionMenu,
+  onOpenSuspendModal,
   onPreview,
 }: {
   detail: HospitalDetailResponse;
   className?: string;
+  isActionMenuOpen: boolean;
+  onToggleActionMenu: () => void;
+  onCloseActionMenu: () => void;
+  onOpenSuspendModal: () => void;
   onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const statusHistoryText = buildStatusHistoryText(detail);
+  const cannotSuspend = detail.status === "SUSPENDED" || detail.status === "WITHDRAWN";
 
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
@@ -240,9 +327,36 @@ function HospitalInfoCard({
             <span className="text-xs text-gray-700">[{statusHistoryText}]</span>
           ) : null}
         </div>
-        <button type="button" className="rounded-full p-1 text-gray-700 hover:bg-white" aria-label="병의원 메뉴">
-          <MoreVertical className="size-4" />
-        </button>
+        <Can permission="beaulab.hospital.update">
+          <div className="relative">
+            <button
+              type="button"
+              className="dropdown-toggle rounded-full p-1 text-gray-700 hover:bg-gray-50"
+              aria-label="병의원 메뉴"
+              aria-expanded={isActionMenuOpen}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleActionMenu();
+              }}
+            >
+              <MoreVertical className="size-4" />
+            </button>
+            <Dropdown isOpen={isActionMenuOpen} onClose={onCloseActionMenu} className="w-36 overflow-hidden py-1">
+              <DropdownItem
+                disabled={cannotSuspend}
+                onItemClick={onCloseActionMenu}
+                onClick={onOpenSuspendModal}
+                baseClassName={
+                  cannotSuspend
+                    ? "block w-full cursor-not-allowed px-4 py-2 text-left text-sm font-semibold text-gray-300"
+                    : "block w-full px-4 py-2 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                }
+              >
+                운영중지
+              </DropdownItem>
+            </Dropdown>
+          </div>
+        </Can>
       </div>
 
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">

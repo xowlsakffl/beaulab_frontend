@@ -232,7 +232,7 @@ export function HospitalsDataTable({
   return (
     <DataTable
       refreshPlacement="left"
-      tableClassName="w-max min-w-[1440px]"
+      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

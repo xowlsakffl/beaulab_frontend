@@ -243,7 +243,7 @@ export function VideosDataTable({
     <DataTable
       title="동영상 목록"
       description="병의원 파트너가 신청한 동영상의 검수 상태와 배포 정보를 확인할 수 있습니다."
-      tableClassName="w-max min-w-[1350px]"
+      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

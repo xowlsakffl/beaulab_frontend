@@ -21,6 +21,7 @@ import { HospitalEvaluationsDataTable } from "@/components/hospital-evaluation/l
 import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation/list/HospitalEvaluationsFilterPanel";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
+import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_HOSPITAL_EVALUATION_FILTERS,
   DEFAULT_HOSPITAL_EVALUATION_SORT,
@@ -388,7 +389,7 @@ export function HospitalEvaluationsTableClient() {
         ids.forEach((id) => next.delete(id));
         return next;
       });
-      await fetchEvaluations(true);
+      setRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
     } catch {
       setActionError("평가 노출 상태 변경 중 오류가 발생했습니다.");
     } finally {
@@ -402,7 +403,7 @@ export function HospitalEvaluationsTableClient() {
         });
       }
     }
-  }, [fetchEvaluations, pendingVisibilityChange]);
+  }, [appliedFilters.visibilityStatus, pendingVisibilityChange]);
 
   const openEvaluationDetail = React.useCallback((row: HospitalEvaluationRow) => {
     const returnTo = queryString ? `${pathname}?${queryString}` : pathname;

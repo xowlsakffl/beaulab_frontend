@@ -187,6 +187,24 @@ export default function TalkDetailPageClient() {
     void fetchTalkDetail(false);
   }, [fetchTalkDetail]);
 
+  const applyVisibilityChangeLocally = React.useCallback((target: "talk" | "comment", id: number, status: string) => {
+    if (target === "comment") {
+      setCommentsBlock((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          items: (prev.items ?? []).map((comment) =>
+            comment.id === id ? { ...comment, status } : comment,
+          ),
+        };
+      });
+      return;
+    }
+
+    setDetail((prev) => prev ? { ...prev, status } : prev);
+  }, []);
+
   const fetchTalkComments = React.useCallback(
     async (manualRefresh = false) => {
       if (!Number.isFinite(talkId) || talkId <= 0) return;
@@ -351,7 +369,7 @@ export default function TalkDetailPageClient() {
       }
 
       setPendingVisibilityChange(null);
-      await refreshTalkPage(true);
+      applyVisibilityChangeLocally(target, id, status);
     } catch {
       setActionError(`${isCommentChange ? "댓글" : "토크"} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
@@ -365,7 +383,7 @@ export default function TalkDetailPageClient() {
         setTalkVisibilityUpdating(false);
       }
     }
-  }, [pendingVisibilityChange, refreshTalkPage]);
+  }, [applyVisibilityChangeLocally, pendingVisibilityChange]);
 
   const changeCommentsPage = React.useCallback(
     (page: number) => {

@@ -96,6 +96,7 @@ export default function HospitalEventsTableClient() {
   const [summary, setSummary] = React.useState<HospitalEventSummary | null>(null);
   const [majorCategoryItems, setMajorCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [middleCategoryItems, setMiddleCategoryItems] = React.useState<CategoryApiItem[]>([]);
+  const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -292,6 +293,22 @@ export default function HospitalEventsTableClient() {
   }, [fetchSummary]);
 
   React.useEffect(() => {
+    const highlightParam = searchParams.get("highlight");
+    if (!highlightParam) return;
+
+    const parsedHighlightId = Number(highlightParam);
+    if (!Number.isFinite(parsedHighlightId)) return;
+
+    setHighlightedRowId(parsedHighlightId);
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("highlight");
+
+    const nextQuery = nextSearchParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  React.useEffect(() => {
     void loadMajorCategories();
   }, [loadMajorCategories]);
 
@@ -415,6 +432,11 @@ export default function HospitalEventsTableClient() {
     router.push(`/events/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
   }, [pathname, queryString, router]);
 
+  const duplicateEvent = React.useCallback((row: HospitalEventRow) => {
+    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(`/events/new?copyFrom=${row.id}&returnTo=${encodeURIComponent(returnTo)}`);
+  }, [pathname, queryString, router]);
+
   const closePeriodEditModal = React.useCallback(() => {
     if (periodUpdating) return;
     setPeriodEdit(null);
@@ -499,6 +521,7 @@ export default function HospitalEventsTableClient() {
         return;
       }
 
+      setHighlightedRowId(periodEdit.row.id);
       setPeriodEdit(null);
       await Promise.all([fetchEvents(true), fetchSummary()]);
     } catch (error) {
@@ -554,9 +577,11 @@ export default function HospitalEventsTableClient() {
         loading={loading}
         refreshing={refreshing}
         error={error}
+        highlightedRowId={highlightedRowId}
         sortState={sortState}
         onToggleSort={toggleSort}
         onEditPeriod={openPeriodEditModal}
+        onDuplicate={duplicateEvent}
         onOpenDetail={openEventDetailPage}
         onRefresh={() => {
           void Promise.all([fetchEvents(true), fetchSummary()]);

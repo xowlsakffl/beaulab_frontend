@@ -82,7 +82,7 @@ export function HospitalReviewCommentsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)_minmax(0,0.7fr)_minmax(0,0.9fr)] gap-x-2 gap-y-3 max-[1800px]:grid-cols-[minmax(0,0.85fr)_minmax(0,1.45fr)_minmax(0,0.75fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)_minmax(0,0.7fr)_minmax(0,0.9fr)] gap-x-2 gap-y-3">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -147,7 +147,7 @@ export function HospitalReviewCommentsFilterPanel({
             </div>
           </div>
 
-          <div className={`${filterRowClass} max-[1800px]:col-span-2`}>
+          <div className={filterRowClass}>
             <span className={inlineLabelClass}>좋아요수</span>
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
               <InputField

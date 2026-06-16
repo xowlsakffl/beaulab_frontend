@@ -247,7 +247,7 @@ export function DoctorsDataTable({
   return (
     <DataTable
       refreshPlacement="left"
-      tableClassName="w-max min-w-[1260px]"
+      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

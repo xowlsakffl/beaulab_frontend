@@ -76,10 +76,12 @@ function buildHospitalEventColumns({
   sortState,
   onToggleSort,
   onEditPeriod,
+  onDuplicate,
 }: {
   sortState: HospitalEventSortState;
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
+  onDuplicate: (row: HospitalEventRow) => void;
 }): DataTableColumn<HospitalEventRow>[] {
   const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
   const cellBaseClass = "px-2 py-4 text-start align-top ";
@@ -135,7 +137,9 @@ function buildHospitalEventColumns({
               {row.name}
             </span>
             <div className="absolute bottom-0 right-0">
-              <EventInlineActionButton>복제</EventInlineActionButton>
+              <EventInlineActionButton disabled={false} onClick={() => onDuplicate(row)}>
+                복제
+              </EventInlineActionButton>
             </div>
           </div>
         </div>
@@ -248,9 +252,11 @@ type HospitalEventsDataTableProps = {
   loading: boolean;
   refreshing: boolean;
   error: string | null;
+  highlightedRowId: number | null;
   sortState: HospitalEventSortState;
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
+  onDuplicate: (row: HospitalEventRow) => void;
   onOpenDetail: (row: HospitalEventRow) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
@@ -262,27 +268,34 @@ export function HospitalEventsDataTable({
   loading,
   refreshing,
   error,
+  highlightedRowId,
   sortState,
   onToggleSort,
   onEditPeriod,
+  onDuplicate,
   onOpenDetail,
   onRefresh,
   onGoPage,
 }: HospitalEventsDataTableProps) {
   const columns = React.useMemo(
-    () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod }),
-    [sortState, onToggleSort, onEditPeriod],
+    () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod, onDuplicate }),
+    [sortState, onToggleSort, onEditPeriod, onDuplicate],
   );
 
   return (
     <DataTable
       refreshPlacement="left"
-      tableClassName="w-max min-w-[1440px]"
+      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
       loadingVariant="spinner"
       loadingLabel="이벤트 목록 불러오는 중"
+      getRowClassName={(row) =>
+        row.id === highlightedRowId
+          ? "bg-emerald-50/90 transition-colors duration-500 "
+          : undefined
+      }
       loading={loading}
       refreshing={refreshing}
       error={error}

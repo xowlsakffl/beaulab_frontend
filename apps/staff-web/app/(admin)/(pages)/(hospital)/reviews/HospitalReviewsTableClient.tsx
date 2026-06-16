@@ -24,6 +24,7 @@ import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/Ho
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import { preloadImageUrls } from "@/lib/common/media";
+import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
   buildHospitalReviewCommentsQuery,
@@ -811,9 +812,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         return next;
       });
       if (isCommentChange) {
-        await fetchComments(true);
+        setCommentRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
       } else {
-        await fetchReviews(true);
+        setRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
       }
     } catch {
       setActionError(`${isCommentChange ? "후기 댓글" : "후기"} 노출 상태 변경 중 오류가 발생했습니다.`);
@@ -828,7 +829,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         });
       }
     }
-  }, [fetchComments, fetchReviews, pendingVisibilityChange]);
+  }, [appliedFilters.visibilityStatus, pendingVisibilityChange]);
 
   const openReviewDetail = React.useCallback((row: HospitalReviewRow) => {
     const returnTo = queryString ? `${pathname}?${queryString}` : pathname;

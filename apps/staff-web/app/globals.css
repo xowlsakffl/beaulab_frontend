@@ -766,4 +766,4 @@ span.flatpickr-weekday,
 }
 
 .__probe__ { padding: 32px; background: red; color: white; }
-.__tw_probe__ { @apply p-8 bg-red-500 text-white; };
+.__tw_probe__ { @apply p-8 bg-red-500 text-white; }

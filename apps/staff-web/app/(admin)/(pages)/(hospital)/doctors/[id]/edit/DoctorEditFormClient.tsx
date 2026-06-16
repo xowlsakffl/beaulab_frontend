@@ -97,15 +97,6 @@ export default function DoctorEditFormClient() {
     [searchParams],
   );
 
-  const detailPath = React.useMemo(() => {
-    if (!Number.isFinite(doctorId) || doctorId <= 0) return "/doctors";
-
-    const rawReturnTo = searchParams.get("returnTo");
-    return rawReturnTo
-      ? `/doctors/${doctorId}?returnTo=${encodeURIComponent(rawReturnTo)}`
-      : `/doctors/${doctorId}`;
-  }, [doctorId, searchParams]);
-
   const clearError = React.useCallback((field: DoctorFieldName) => {
     setErrors((prev) => {
       if (!prev[field]) return prev;
@@ -332,9 +323,9 @@ export default function DoctorEditFormClient() {
       showAlert({
         variant: "success",
         title: "의료진 수정 완료",
-        message: "수정된 의료진 정보를 확인할 수 있습니다.",
+        message: "수정된 의료진을 목록에서 확인할 수 있습니다.",
       });
-      router.push(detailPath);
+      router.push(getReturnToPath(Number(response.data.id ?? doctorId)));
     } catch {
       showAlert({
         variant: "error",

@@ -196,6 +196,24 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
     void fetchReviewDetail(false);
   }, [fetchReviewDetail]);
 
+  const applyVisibilityChangeLocally = React.useCallback((target: "review" | "comment", id: number, status: string) => {
+    if (target === "comment") {
+      setCommentsBlock((prev) => {
+        if (!prev) return prev;
+
+        return {
+          ...prev,
+          items: (prev.items ?? []).map((comment) =>
+            comment.id === id ? { ...comment, status } : comment,
+          ),
+        };
+      });
+      return;
+    }
+
+    setDetail((prev) => prev ? { ...prev, status } : prev);
+  }, []);
+
   const fetchReviewComments = React.useCallback(
     async (manualRefresh = false) => {
       if (!Number.isFinite(reviewId) || reviewId <= 0) return;
@@ -363,7 +381,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
       }
 
       setPendingVisibilityChange(null);
-      await refreshReviewPage(true);
+      applyVisibilityChangeLocally(target, id, status);
     } catch {
       setActionError(`${isCommentChange ? "댓글" : "후기"} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
@@ -377,7 +395,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         setReviewVisibilityUpdating(false);
       }
     }
-  }, [pendingVisibilityChange, refreshReviewPage]);
+  }, [applyVisibilityChangeLocally, pendingVisibilityChange]);
 
   const changeCommentsPage = React.useCallback(
     (page: number) => {

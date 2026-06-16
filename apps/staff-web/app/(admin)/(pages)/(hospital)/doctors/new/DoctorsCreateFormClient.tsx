@@ -248,9 +248,9 @@ export default function DoctorsCreateFormClient() {
       showAlert({
         variant: "success",
         title: "의료진 등록 완료",
-        message: "등록된 의료진 정보를 확인할 수 있습니다.",
+        message: "등록된 의료진을 목록에서 확인할 수 있습니다.",
       });
-      router.push(`/doctors/${response.data.id}`);
+      router.push(getReturnToPath(response.data.id));
     } catch {
       showAlert({
         variant: "error",

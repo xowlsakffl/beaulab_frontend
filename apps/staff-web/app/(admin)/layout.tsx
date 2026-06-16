@@ -115,7 +115,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
 
     return (
         <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
-            <div className="flex min-h-dvh w-full min-w-[1660px] bg-gray-50">
+            <div className="min-h-dvh w-full overflow-x-hidden bg-gray-50">
                 <AppSidebar
                     menu={menuByActor}
                     topContent={sidebarTopContent}
@@ -139,7 +139,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                         ),
                     }}
                 />
-                <div className="ml-[290px] flex min-w-[1370px] flex-1 flex-col">
+                <div className="ml-[290px] h-dvh min-w-0 overflow-x-auto overflow-y-auto">
+                    <div className="flex min-h-dvh w-full min-w-[1370px] flex-col">
                     <AppHeader
                         pageTitle={headerTitle}
                         headerActions={pageHeaderExtra}
@@ -154,7 +155,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                             signOutItem: { label: "로그아웃", onClick: handleSignOut },
                         }}
                     />
-                    <main className="mx-auto w-full min-w-[1370px] max-w-[1800px] flex-1 px-4 py-5">{children}</main>
+                    <main className="mx-auto w-full max-w-[1800px] flex-1 px-4 py-5">{children}</main>
+                    </div>
                 </div>
             </div>
         </PageHeaderExtraProvider>
