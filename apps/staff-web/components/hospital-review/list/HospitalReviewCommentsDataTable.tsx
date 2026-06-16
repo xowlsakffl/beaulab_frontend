@@ -347,7 +347,7 @@ export function HospitalReviewCommentsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1040px] w-full lg:min-w-full lg:table-fixed"
+      tableClassName="w-max min-w-[1040px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

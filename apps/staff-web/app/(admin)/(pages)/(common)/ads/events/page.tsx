@@ -1,4 +1,3 @@
-import { PageBreadcrumb } from "@beaulab/ui-admin";
 import type { Metadata } from "next";
 
 import HospitalEventsTableClient from "@/app/(admin)/(pages)/(hospital)/events/HospitalEventsTableClient";
@@ -10,17 +9,6 @@ export const metadata: Metadata = {
 export default function AdsEventsPage() {
   return (
     <div className="space-y-6">
-      <div className="xl:hidden">
-        <PageBreadcrumb
-          pageTitle="이벤트 관리"
-          homeLabel="관리자"
-          items={[
-            { label: "광고 관리" },
-            { label: "이벤트 관리", href: "/ads/events" },
-          ]}
-        />
-      </div>
-
       <HospitalEventsTableClient />
     </div>
   );

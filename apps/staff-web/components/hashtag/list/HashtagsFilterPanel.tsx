@@ -68,7 +68,7 @@ export function HashtagsFilterPanel({
 
   return (
     <Card className="rounded-xl p-3 ">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)] gap-x-4 gap-y-4">
         <div className="flex min-w-0 items-center gap-4 py-1.5">
           <span className={inlineLabelClass}>운영 상태</span>
           <CheckboxFilterDropdown
@@ -125,7 +125,7 @@ export function HashtagsFilterPanel({
             onConfirm={onToggleUpdatedDatePicker}
           />
         </div>
-        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
+        <div className="col-span-full flex min-w-0 flex-row items-center gap-3 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">

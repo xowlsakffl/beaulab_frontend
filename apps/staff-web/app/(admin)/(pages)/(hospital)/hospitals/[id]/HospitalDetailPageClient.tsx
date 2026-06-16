@@ -20,7 +20,7 @@ import {
   type HospitalDetailResponse,
   type MediaAsset,
 } from "@/lib/hospital/detail";
-import { labelApprovalStatus } from "@/lib/hospital/list";
+import { hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
 import {
   Button,
   Card,
@@ -232,7 +232,7 @@ function HospitalInfoCard({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold text-gray-900">병의원정보</h2>
           {detail.status && detail.status !== "ACTIVE" ? (
-            <StatusBadge size="sm" color={statusBadgeColor(detail.status)}>
+            <StatusBadge size="sm" color={hospitalStatusBadgeColor(detail.status)}>
               {labelApprovalStatus(detail.status)}
             </StatusBadge>
           ) : null}
@@ -415,7 +415,7 @@ function OperationInfoCard({ detail }: { detail: HospitalDetailResponse }) {
   return (
     <Card className={cardClassName}>
       <h3 className="mb-5 text-sm font-bold text-gray-900">운영정보</h3>
-      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-2 2xl:grid-cols-[minmax(14rem,0.8fr)_minmax(16rem,1fr)_minmax(18rem,1fr)_minmax(18rem,1fr)]">
+      <div className="grid grid-cols-[minmax(14rem,0.8fr)_minmax(16rem,1fr)_minmax(18rem,1fr)_minmax(18rem,1fr)] gap-x-10 gap-y-6">
         <div className="space-y-4">
           <InfoField label="분과" value={detail.department_label ?? detail.department} compact />
           <BadgeInfoField label="진료과목" items={categoryLabels(detail.categories)} compact />
@@ -518,12 +518,6 @@ function CertificatePreviewField({
       </div>
     </div>
   );
-}
-
-function statusBadgeColor(status: string) {
-  if (status === "ACTIVE" || status === "APPROVED") return "success" as const;
-  if (status === "SUSPENDED" || status === "PENDING") return "warning" as const;
-  return "error" as const;
 }
 
 function mediaLabel(media?: MediaAsset | null) {

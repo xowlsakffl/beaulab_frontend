@@ -48,7 +48,7 @@ export function DetailImageMediaCard({
   return (
     <div
       className={[
-        "w-full max-w-[500px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:max-w-none  ",
+        "w-full max-w-none overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm",
         className,
       ]
         .join(" ")

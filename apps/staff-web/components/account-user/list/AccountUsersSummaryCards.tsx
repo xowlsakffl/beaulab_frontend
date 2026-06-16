@@ -20,7 +20,7 @@ export function AccountUsersSummaryCards({ summary }: AccountUsersSummaryCardsPr
   ];
 
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+    <div className="grid min-w-0 grid-cols-3 gap-3">
       {cards.map((card) => (
         <Card key={card.label} className="rounded-xl bg-white px-5 py-4 ">
           <div className="flex items-center justify-between gap-3">

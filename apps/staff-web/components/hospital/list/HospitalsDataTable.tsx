@@ -13,6 +13,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
+  hospitalStatusBadgeColor,
   labelApprovalStatus,
   labelReviewStatus,
   type HospitalRow,
@@ -153,7 +154,7 @@ function buildHospitalColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={row.hospitalStatus === "ACTIVE" ? "success" : row.hospitalStatus === "SUSPENDED" ? "warning" : "error"}>
+        <StatusBadge size="sm" color={hospitalStatusBadgeColor(row.hospitalStatus)}>
           {labelApprovalStatus(row.hospitalStatus)}
         </StatusBadge>
       ),
@@ -231,7 +232,7 @@ export function HospitalsDataTable({
   return (
     <DataTable
       refreshPlacement="left"
-      tableClassName="w-full table-fixed"
+      tableClassName="w-max min-w-[1440px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

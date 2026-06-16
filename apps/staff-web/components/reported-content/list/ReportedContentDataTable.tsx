@@ -518,7 +518,7 @@ export function ReportedContentDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-full table-fixed"
+      tableClassName="w-max min-w-[1280px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

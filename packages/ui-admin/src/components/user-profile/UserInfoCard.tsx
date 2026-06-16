@@ -25,7 +25,7 @@ export default function UserInfoCard({
           <h4 className="text-lg font-semibold text-gray-800  lg:mb-6">{title}</h4>
 
           {items.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
+      <div className="grid grid-cols-2 gap-y-7 gap-x-32">
               {items.map((item) => (
                 <div key={item.label}>
                   <p className="mb-2 text-xs leading-normal text-gray-500 ">{item.label}</p>

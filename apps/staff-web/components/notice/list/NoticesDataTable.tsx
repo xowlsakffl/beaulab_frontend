@@ -177,7 +177,7 @@ export function NoticesDataTable({
     <DataTable
       title="공지사항 목록"
       description="공지사항 채널과 운영 상태, 작성자와 조회 현황을 확인할 수 있습니다."
-      tableClassName="min-w-[1080px] w-full lg:min-w-0 lg:table-fixed"
+      tableClassName="w-max min-w-[1080px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

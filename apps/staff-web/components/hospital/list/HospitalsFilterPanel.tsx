@@ -83,7 +83,7 @@ export function HospitalsFilterPanel({
 
   return (
     <Card className="rounded-xl p-3 ">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[repeat(4,minmax(15rem,1fr))]">
+      <div className="grid grid-cols-[minmax(15rem,1fr)_minmax(13rem,0.85fr)_minmax(13rem,0.85fr)_minmax(13rem,0.85fr)] gap-x-4 gap-y-4">
         <div className="flex min-w-0 items-center gap-4 py-1.5">
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
@@ -91,7 +91,7 @@ export function HospitalsFilterPanel({
             hideLabel
             containerRef={datePickerRef}
             value={draftFilters.dateRange}
-              placeholder="가입일 기준 기간을 선택해 주세요."
+            placeholder="가입일 기준 기간을 선택해 주세요."
             selected={draftDateRange}
             isOpen={isDatePickerOpen}
             presetOptions={DATE_PRESET_OPTIONS}
@@ -147,7 +147,7 @@ export function HospitalsFilterPanel({
             onToggleAll={onToggleAllReviewStatus}
           />
         </div>
-        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
+        <div className="col-span-full flex min-w-0 flex-row items-center gap-3 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">

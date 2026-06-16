@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useSidebar } from "../context";
 import { ChevronDown } from "../icons";
 
 export type SidebarNavSubItem = {
@@ -46,7 +45,6 @@ export function AppSidebar({
   topContent,
   sectionLabels = { main: "Menu", others: "Other" },
 }: AppSidebarProps) {
-  const { isMobileOpen, closeMobileSidebar } = useSidebar();
   const pathname = usePathname();
   const mainItems = menu.main;
   const otherItems = menu.others ?? [];
@@ -79,70 +77,62 @@ export function AppSidebar({
 
             return (
               <>
-          {nav.subItems ? (
-            <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${isParentActive ? "menu-item-active" : "menu-item-inactive"} cursor-pointer`}
-              aria-label={nav.name}
-            >
-              <span
-                className={`${isParentActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}
-              >
-                {nav.icon ?? <span className="h-5 w-5" />}
-              </span>
+                {nav.subItems ? (
+                  <button
+                    onClick={() => handleSubmenuToggle(index, menuType)}
+                    className={`menu-item group ${
+                      isParentActive ? "menu-item-active" : "menu-item-inactive"
+                    } cursor-pointer`}
+                    aria-label={nav.name}
+                  >
+                    <span className={isParentActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
+                      {nav.icon ?? <span className="h-5 w-5" />}
+                    </span>
 
-              <span className="menu-item-text">{nav.name}</span>
+                    <span className="menu-item-text">{nav.name}</span>
 
-              <ChevronDown
-                className={`ml-auto h-5 w-5 transition-transform duration-200 ${
-                  isOpen ? "rotate-180 text-white" : "text-white/70"
-                }`}
-              />
-            </button>
-          ) : nav.path ? (
-            <Link
-              href={nav.path}
-              onClick={() => {
-                if (isMobileOpen) {
-                  closeMobileSidebar();
-                }
-              }}
-              className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}
-            >
-              <span className={`${isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}>
-                {nav.icon ?? <span className="h-5 w-5" />}
-              </span>
-              <span className="menu-item-text">{nav.name}</span>
-            </Link>
-          ) : null}
+                    <ChevronDown
+                      className={`ml-auto h-5 w-5 transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-white" : "text-white/70"
+                      }`}
+                    />
+                  </button>
+                ) : nav.path ? (
+                  <Link
+                    href={nav.path}
+                    className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}
+                  >
+                    <span className={isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
+                      {nav.icon ?? <span className="h-5 w-5" />}
+                    </span>
+                    <span className="menu-item-text">{nav.name}</span>
+                  </Link>
+                ) : null}
 
-          {nav.subItems ? (
-            <div
-              className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
-                isOpen
-                  ? "mt-2 grid-rows-[1fr] opacity-100"
-                  : "mt-0 grid-rows-[0fr] opacity-0"
-              }`}
-            >
-              <ul className="ml-9 min-h-0 space-y-1">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
-                    <Link
-                      href={subItem.path}
-                      onClick={() => {
-                        if (isMobileOpen) {
-                          closeMobileSidebar();
-                        }
-                      }}
-                      className={`menu-dropdown-item ${isActive(subItem.path) ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive"}`}
-                    >
-                      {subItem.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+                {nav.subItems ? (
+                  <div
+                    className={`grid overflow-hidden transition-all duration-300 ease-in-out ${
+                      isOpen ? "mt-2 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <ul className="ml-9 min-h-0 space-y-1">
+                      {nav.subItems.map((subItem) => (
+                        <li key={subItem.name}>
+                          <Link
+                            href={subItem.path}
+                            className={`menu-dropdown-item ${
+                              isActive(subItem.path)
+                                ? "menu-dropdown-item-active"
+                                : "menu-dropdown-item-inactive"
+                            }`}
+                          >
+                            {subItem.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </>
             );
           })()}
@@ -171,9 +161,7 @@ export function AppSidebar({
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-50 mt-16 flex h-screen w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white transition-transform duration-300 ease-in-out xl:mt-0 ${
-        isMobileOpen ? "translate-x-0" : "-translate-x-full"
-      } xl:translate-x-0`}
+      className="fixed left-0 top-0 z-50 flex h-screen w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white"
     >
       <div className="flex justify-start py-8">
         {brand ? (

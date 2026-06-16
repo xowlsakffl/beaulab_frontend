@@ -345,7 +345,7 @@ export function TalksDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1080px] w-full lg:min-w-full lg:table-fixed"
+      tableClassName="w-max min-w-[1080px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

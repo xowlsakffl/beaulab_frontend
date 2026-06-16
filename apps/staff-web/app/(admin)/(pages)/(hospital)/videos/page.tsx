@@ -1,4 +1,3 @@
-import { PageBreadcrumb } from "@beaulab/ui-admin";
 import type { Metadata } from "next";
 
 import VideosTableClient from "./VideosTableClient";
@@ -10,14 +9,6 @@ export const metadata: Metadata = {
 export default function VideosPage() {
   return (
     <div className="space-y-6">
-      <div className="xl:hidden">
-        <PageBreadcrumb
-          pageTitle="동영상"
-          homeLabel="관리자"
-          items={[{ label: "동영상 관리" }]}
-        />
-      </div>
-
       <VideosTableClient />
     </div>
   );

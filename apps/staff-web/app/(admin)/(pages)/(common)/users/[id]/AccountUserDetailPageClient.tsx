@@ -493,7 +493,7 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
           </div>
         </div>
 
-        <div className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_8.5rem]">
+              <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] gap-5">
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">신고게시물</h3>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

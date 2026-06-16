@@ -70,10 +70,10 @@ export function AccountUsersFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
-            <div className="flex min-w-0 flex-1 flex-col gap-3 xl:flex-row xl:items-center xl:gap-6">
+            <div className="flex min-w-0 flex-1 flex-row items-center gap-6">
               <DateRangeFilterDropdown
                 label="기간"
                 hideLabel
@@ -155,7 +155,7 @@ export function AccountUsersFilterPanel({
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">

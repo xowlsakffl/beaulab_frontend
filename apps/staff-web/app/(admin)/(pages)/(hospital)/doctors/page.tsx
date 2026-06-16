@@ -1,4 +1,3 @@
-import { PageBreadcrumb } from "@beaulab/ui-admin";
 import type { Metadata } from "next";
 
 import DoctorsTableClient from "./DoctorsTableClient";
@@ -10,14 +9,6 @@ export const metadata: Metadata = {
 export default function DoctorsPage() {
   return (
     <div className="space-y-6">
-      <div className="xl:hidden">
-        <PageBreadcrumb
-          pageTitle="의료진"
-          homeLabel="관리자"
-          items={[{ label: "병의원 관리" }]}
-        />
-      </div>
-
       <DoctorsTableClient />
     </div>
   );

@@ -1,4 +1,3 @@
-import { PageBreadcrumb } from "@beaulab/ui-admin";
 import type { Metadata } from "next";
 
 import VideoEditFormClient from "./VideoEditFormClient";
@@ -10,17 +9,6 @@ export const metadata: Metadata = {
 export default function VideoEditPage() {
   return (
     <div className="space-y-6">
-      <div className="xl:hidden">
-        <PageBreadcrumb
-          pageTitle="동영상 수정"
-          homeLabel="관리자"
-          items={[
-            { label: "동영상 관리" },
-            { label: "동영상", href: "/videos" },
-          ]}
-        />
-      </div>
-
       <VideoEditFormClient />
     </div>
   );

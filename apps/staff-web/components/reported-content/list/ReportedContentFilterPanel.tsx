@@ -88,16 +88,22 @@ export function ReportedContentFilterPanel({
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
   const firstGridClass = singleLineFilters
-    ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,2.6fr)]"
+    ? "grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,2.6fr)] gap-x-3 gap-y-3"
     : showVisibilityFilter && showReportStatusFilter
-    ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]"
+    ? "grid min-w-0 grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)_minmax(0,1.15fr)]"
     : showVisibilityFilter || showReportStatusFilter
-      ? "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]"
-      : "grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)]";
+      ? "grid min-w-0 grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)_minmax(0,1.15fr)]"
+      : "grid min-w-0 grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3";
+  const desktopSecondGridClass = showWarningFilter
+    ? "grid min-w-0 grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)] gap-x-4 gap-y-3 max-[1800px]:hidden"
+    : "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:hidden";
+  const compactSecondGridClass =
+    "hidden min-w-0 grid-cols-[minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,0.85fr)] gap-x-3 gap-y-3 max-[1800px]:grid";
+  const compactSearchGridClass = "hidden min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:grid";
   const dateControlsClass = dateTypeInline
     ? singleLineFilters
-      ? "flex min-w-0 flex-1 flex-col gap-2 2xl:flex-row 2xl:items-center 2xl:gap-3"
-      : "flex min-w-0 flex-1 flex-col gap-3 xl:flex-row xl:items-center xl:gap-6"
+      ? "flex min-w-0 flex-1 flex-row items-center gap-3"
+      : "flex min-w-0 flex-1 flex-row items-center gap-6"
     : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -145,8 +151,36 @@ export function ReportedContentFilterPanel({
       </div>
     </div>
   ) : null;
+  const visibilityFilter = showVisibilityFilter ? (
+    <div className={filterRowClass}>
+      <span className={inlineLabelClass}>노출여부</span>
+      <div className="min-w-0 flex-1">
+        <Select
+          value={draftFilters.visibilityStatus}
+          options={REPORTED_CONTENT_VISIBILITY_OPTIONS}
+          showPlaceholderOption={false}
+          onChange={onVisibilityChange}
+          className="h-11 px-3"
+        />
+      </div>
+    </div>
+  ) : null;
+  const reportStatusFilter = showReportStatusFilter ? (
+    <div className={filterRowClass}>
+      <span className={inlineLabelClass}>{reportStatusLabel}</span>
+      <div className="min-w-0 flex-1">
+        <Select
+          value={draftFilters.reportStatus}
+          options={reportStatusOptions}
+          showPlaceholderOption={false}
+          onChange={onReportStatusChange}
+          className="h-11 px-3"
+        />
+      </div>
+    </div>
+  ) : null;
   const searchFilter = (
-    <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
+    <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className={inlineLabelClass}>검색</span>
         <div className="min-w-0 flex-1">
@@ -241,43 +275,29 @@ export function ReportedContentFilterPanel({
 
           {reportCountFilter}
 
-          {showVisibilityFilter ? (
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>노출여부</span>
-            <div className="min-w-0 flex-1">
-              <Select
-                value={draftFilters.visibilityStatus}
-                options={REPORTED_CONTENT_VISIBILITY_OPTIONS}
-                showPlaceholderOption={false}
-                onChange={onVisibilityChange}
-                className="h-11 px-3"
-              />
-            </div>
-          </div>
-          ) : null}
-
-          {showReportStatusFilter ? (
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>{reportStatusLabel}</span>
-            <div className="min-w-0 flex-1">
-              <Select
-                value={draftFilters.reportStatus}
-                options={reportStatusOptions}
-                showPlaceholderOption={false}
-                onChange={onReportStatusChange}
-                className="h-11 px-3"
-              />
-            </div>
-          </div>
-          ) : null}
-
+          {singleLineFilters ? visibilityFilter : <div className="contents max-[1800px]:hidden">{visibilityFilter}</div>}
+          {singleLineFilters ? reportStatusFilter : <div className="contents max-[1800px]:hidden">{reportStatusFilter}</div>}
           {singleLineFilters ? warningFilter : null}
           {singleLineFilters ? searchFilter : null}
         </div>
 
         {singleLineFilters ? null : (
-          <div className={showWarningFilter ? "grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 xl:grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)]" : "grid min-w-0 grid-cols-1 gap-x-4 gap-y-3"}>
+          <div className={desktopSecondGridClass}>
             {warningFilter}
+            {searchFilter}
+          </div>
+        )}
+
+        {singleLineFilters ? null : (
+          <div className={compactSecondGridClass}>
+            {visibilityFilter}
+            {reportStatusFilter}
+            {warningFilter}
+          </div>
+        )}
+
+        {singleLineFilters ? null : (
+          <div className={compactSearchGridClass}>
             {searchFilter}
           </div>
         )}

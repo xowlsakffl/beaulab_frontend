@@ -11,13 +11,14 @@
   --font-notosans: 'Noto Sans KR';
 
   --breakpoint-*: initial;
-  --breakpoint-2xsm: 375px;
-  --breakpoint-xsm: 425px;
+  /* Staff admin is a fixed desktop surface. Small-to-xl variants render as desktop by default. */
+  --breakpoint-2xsm: 0px;
+  --breakpoint-xsm: 0px;
   --breakpoint-3xl: 2000px;
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1300px;
+  --breakpoint-sm: 0px;
+  --breakpoint-md: 0px;
+  --breakpoint-lg: 0px;
+  --breakpoint-xl: 0px;
   --breakpoint-2xl: 1536px;
 
   --text-title-2xl: 72px;

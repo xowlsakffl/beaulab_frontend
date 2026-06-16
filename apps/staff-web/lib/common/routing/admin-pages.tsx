@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PageBreadcrumb } from "@beaulab/ui-admin";
-
-type BreadcrumbItem = {
-    label: string;
-    href?: string;
-};
 
 export type AdminPageDefinition = {
     slug: string[];
     title: string;
     group?: string;
-    breadcrumbItems?: BreadcrumbItem[];
 };
 
 export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
@@ -280,19 +273,9 @@ export function renderAdminPage(path: string) {
     const page = resolveAdminPageByPath(path);
 
     if (!page) notFound();
-    const breadcrumbItems = page.breadcrumbItems
-        ?? (page.group && page.group !== page.title ? [{ label: page.group }] : []);
 
     return (
         <div className="space-y-6">
-            <div className="xl:hidden">
-                <PageBreadcrumb
-                    pageTitle={page.title}
-                    homeLabel="관리자"
-                    items={breadcrumbItems}
-                />
-            </div>
-
             <section className="rounded-2xl border border-gray-200 bg-white p-6">
                 <h3 className="text-lg font-semibold text-gray-800">{page.title}</h3>
             </section>

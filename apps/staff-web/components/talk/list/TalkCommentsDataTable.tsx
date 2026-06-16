@@ -322,7 +322,7 @@ export function TalkCommentsDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[980px] w-full lg:min-w-full lg:table-fixed"
+      tableClassName="w-max min-w-[980px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

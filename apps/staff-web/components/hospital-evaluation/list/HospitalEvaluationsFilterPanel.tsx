@@ -75,8 +75,7 @@ export function HospitalEvaluationsFilterPanel({
   onResetFilters,
 }: HospitalEvaluationsFilterPanelProps) {
   const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
-  const wideInlineLabelClass = "w-24 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const inlineLabelClass = "w-20 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -88,7 +87,7 @@ export function HospitalEvaluationsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.75fr)_minmax(0,0.75fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_minmax(0,0.75fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1.1fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-2 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -138,7 +137,7 @@ export function HospitalEvaluationsFilterPanel({
           </div>
 
           <div className={filterRowClass}>
-            <span className={wideInlineLabelClass}>시/수술비용</span>
+            <span className={inlineLabelClass}>시/수술비용</span>
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
               <InputField
                 type="number"
@@ -186,7 +185,9 @@ export function HospitalEvaluationsFilterPanel({
               />
             </div>
           </div>
+        </div>
 
+        <div className="grid min-w-0 grid-cols-[minmax(0,0.75fr)_minmax(0,0.9fr)_minmax(0,3.2fr)] gap-x-3 gap-y-3">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1">
@@ -199,9 +200,7 @@ export function HospitalEvaluationsFilterPanel({
               />
             </div>
           </div>
-        </div>
 
-        <div className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,3.2fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>후기유형</span>
             <CheckboxFilterDropdown
@@ -218,7 +217,7 @@ export function HospitalEvaluationsFilterPanel({
             />
           </div>
 
-          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center xl:pl-2">
+          <div className="flex min-w-0 flex-row items-center gap-3 py-1.5 pl-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">

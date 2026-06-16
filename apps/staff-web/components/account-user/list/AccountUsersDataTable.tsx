@@ -184,7 +184,7 @@ export function AccountUsersDataTable({
 
   return (
     <DataTable
-      tableClassName="min-w-[1370px] w-full xl:table-fixed"
+      tableClassName="w-max min-w-[1370px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

@@ -107,10 +107,10 @@ export function HospitalEventsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1.5fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,0.7fr)_minmax(0,1.55fr)_minmax(0,1.8fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.55fr)_minmax(0,1.15fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
-            <div className="flex min-w-0 flex-1 flex-col gap-3 2xl:flex-row 2xl:items-center">
+            <div className="flex min-w-0 flex-1 flex-row items-center gap-3">
               <DateRangeFilterDropdown
                 label="기간"
                 hideLabel
@@ -189,7 +189,7 @@ export function HospitalEventsFilterPanel({
           />
         </div>
 
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)_minmax(0,2.4fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)_minmax(0,2.4fr)] gap-x-3 gap-y-3">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>검수상태</span>
             <div className="min-w-0 flex-1">
@@ -219,7 +219,7 @@ export function HospitalEventsFilterPanel({
             onEnter={handleEnterToSearch}
           />
 
-          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center">
+          <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
@@ -263,6 +263,7 @@ export function HospitalEventsFilterPanel({
 }
 
 function MetricRangeFilter({
+  className,
   label,
   metricValue,
   metricOptions,
@@ -273,6 +274,7 @@ function MetricRangeFilter({
   onMaxChange,
   onEnter,
 }: {
+  className?: string;
   label: string;
   metricValue: string;
   metricOptions: { value: string; label: string }[];
@@ -286,9 +288,9 @@ function MetricRangeFilter({
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   return (
-    <div className="flex min-w-0 items-center gap-3 py-1.5">
+    <div className={["flex min-w-0 items-center gap-3 py-1.5", className].filter(Boolean).join(" ")}>
       <span className={inlineLabelClass}>{label}</span>
-      <div className="grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(8.5rem,1.25fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select
           value={metricValue}
           options={metricOptions}

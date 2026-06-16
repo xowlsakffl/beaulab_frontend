@@ -419,6 +419,12 @@ export function labelApprovalStatus(status: string) {
   return status;
 }
 
+export function hospitalStatusBadgeColor(status: string) {
+  if (status === "ACTIVE" || status === "APPROVED") return "success" as const;
+  if (status === "SUSPENDED" || status === "PENDING") return "warning" as const;
+  return "error" as const;
+}
+
 export function labelReviewStatus(status: string) {
   if (status === "PENDING") return "검수신청";
   if (status === "APPROVED") return "검수완료";

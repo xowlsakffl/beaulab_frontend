@@ -23,6 +23,7 @@ import {
   ModalTitle,
   Select,
   SpinnerBlock,
+  StatusBadge,
   X,
   type CategorySelectorItem,
   type CategorySelectorLoadParams,
@@ -41,7 +42,7 @@ import {
   type HospitalOperationDayKey,
   type HospitalOperationHoursFormValues,
 } from "@/lib/hospital/form";
-import { HOSPITAL_DEPARTMENT_OPTIONS, labelApprovalStatus } from "@/lib/hospital/list";
+import { HOSPITAL_DEPARTMENT_OPTIONS, hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
 import {
   getMediaFilename,
   isImageMedia,
@@ -392,9 +393,9 @@ function HospitalMainInfoEditCard({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold text-gray-900">병의원정보</h2>
           {!isCreate && form.status !== "ACTIVE" ? (
-            <span className="rounded bg-gray-700 px-2 py-0.5 text-xs font-semibold text-white">
+            <StatusBadge size="sm" color={hospitalStatusBadgeColor(form.status)}>
               {labelApprovalStatus(form.status)}
-            </span>
+            </StatusBadge>
           ) : null}
         </div>
       </div>
@@ -776,7 +777,7 @@ function HospitalOperationEditCard({
   return (
     <Card className={cardClassName}>
       <h3 className="mb-5 text-sm font-bold text-gray-900">운영정보</h3>
-      <div className="grid gap-10 xl:grid-cols-2 2xl:grid-cols-[minmax(14rem,0.8fr)_minmax(16rem,1fr)_minmax(18rem,1fr)_minmax(24rem,1.3fr)]">
+      <div className="grid grid-cols-[minmax(14rem,0.8fr)_minmax(16rem,1fr)_minmax(18rem,1fr)_minmax(24rem,1.3fr)] gap-10">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="department">분과</Label>

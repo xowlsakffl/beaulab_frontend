@@ -1,4 +1,3 @@
-import { PageBreadcrumb } from "@beaulab/ui-admin";
 import type { Metadata } from "next";
 
 import HashtagsPageClient from "./HashtagsPageClient";
@@ -10,14 +9,6 @@ export const metadata: Metadata = {
 export default function HashtagsPage() {
   return (
     <div className="space-y-6">
-      <div className="xl:hidden">
-        <PageBreadcrumb
-          pageTitle="해시태그"
-          homeLabel="관리자"
-          items={[{ label: "카테고리 / 해시태그 관리" }]}
-        />
-      </div>
-
       <HashtagsPageClient />
     </div>
   );

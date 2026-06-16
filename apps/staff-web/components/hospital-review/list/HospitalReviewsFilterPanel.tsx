@@ -96,7 +96,7 @@ export function HospitalReviewsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-1 gap-x-3 gap-y-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.45fr)_minmax(0,0.7fr)_minmax(0,1.55fr)_minmax(0,0.75fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,0.95fr)_minmax(0,1.45fr)_minmax(0,0.7fr)_minmax(0,1.55fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,0.75fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -153,10 +153,10 @@ export function HospitalReviewsFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} max-[1800px]:col-span-2`}>
             <span className={inlineLabelClass}>지표</span>
-            <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
-              <div className="min-w-0 max-sm:col-span-3">
+            <div className="grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+              <div className="min-w-0">
                 <Select
                   value={draftFilters.metricField}
                   options={HOSPITAL_REVIEW_METRIC_OPTIONS}
@@ -191,6 +191,9 @@ export function HospitalReviewsFilterPanel({
             </div>
           </div>
 
+        </div>
+
+        <div className="grid min-w-0 grid-cols-[minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,2.45fr)] gap-x-3 gap-y-3">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1">
@@ -203,9 +206,7 @@ export function HospitalReviewsFilterPanel({
               />
             </div>
           </div>
-        </div>
 
-        <div className="grid min-w-0 grid-cols-1 gap-x-5 gap-y-3 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,2.7fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>베스트</span>
             <div className="min-w-0 flex-1">
@@ -235,7 +236,7 @@ export function HospitalReviewsFilterPanel({
             />
           </div>
 
-          <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:flex-row lg:items-center xl:pl-2">
+          <div className="flex min-w-0 flex-row items-center gap-3 py-1.5 pl-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">

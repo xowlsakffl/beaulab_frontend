@@ -10,10 +10,10 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative p-6 bg-white z-1 sm:p-0">
-        <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col sm:p-0">
+    <div className="relative z-1 w-full min-w-[1440px] bg-white p-0">
+        <div className="relative flex h-screen w-full min-w-[1440px] flex-row justify-center p-0">
           {children}
-          <div className="lg:w-1/2 w-full h-full bg-brand-950 lg:grid items-center hidden">
+          <div className="grid h-full min-w-[720px] flex-1 items-center bg-brand-950">
             <div className="relative items-center justify-center  flex z-1">
               {/* <!-- ===== Common Grid Shape Start ===== --> */}
               <GridShape />

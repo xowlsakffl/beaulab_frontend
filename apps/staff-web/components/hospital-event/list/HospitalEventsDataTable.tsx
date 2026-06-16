@@ -277,7 +277,7 @@ export function HospitalEventsDataTable({
   return (
     <DataTable
       refreshPlacement="left"
-      tableClassName="w-full table-fixed"
+      tableClassName="w-max min-w-[1440px]"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}

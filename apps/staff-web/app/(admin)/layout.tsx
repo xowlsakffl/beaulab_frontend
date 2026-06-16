@@ -15,8 +15,6 @@ import {
 import {
     AppHeader,
     AppSidebar,
-    Backdrop,
-    SidebarProvider,
 } from "@beaulab/ui-admin";
 import { resolveAdminPageByPath } from "@/lib/common/routing/admin-pages";
 import { PageHeaderExtraProvider } from "@/lib/common/routing/page-header-extra";
@@ -28,9 +26,7 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <Guard>
-            <SidebarProvider>
-                <AdminLayoutInner>{children}</AdminLayoutInner>
-            </SidebarProvider>
+            <AdminLayoutInner>{children}</AdminLayoutInner>
         </Guard>
     );
 }
@@ -119,7 +115,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
 
     return (
         <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
-            <div className="min-h-dvh bg-gray-50 xl:flex">
+            <div className="flex min-h-dvh w-full min-w-[1660px] bg-gray-50">
                 <AppSidebar
                     menu={menuByActor}
                     topContent={sidebarTopContent}
@@ -143,21 +139,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                         ),
                     }}
                 />
-                <Backdrop />
-
-                <div className="min-w-0 flex flex-1 flex-col xl:ml-[290px]">
+                <div className="ml-[290px] flex min-w-[1370px] flex-1 flex-col">
                     <AppHeader
-                        mobileHomeHref="/"
-                        mobileLogo={
-                            <Image
-                                src="/images/logo/logo.png"
-                                alt="뷰랩"
-                                width={36}
-                                height={36}
-                                className="h-9 w-9"
-                                priority
-                            />
-                        }
                         pageTitle={headerTitle}
                         headerActions={pageHeaderExtra}
                         showSearch={false}
@@ -171,7 +154,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                             signOutItem: { label: "로그아웃", onClick: handleSignOut },
                         }}
                     />
-                    <main className="min-w-0 w-full flex-1 px-2 py-4 md:px-4 md:py-5">{children}</main>
+                    <main className="mx-auto w-full min-w-[1370px] max-w-[1800px] flex-1 px-4 py-5">{children}</main>
                 </div>
             </div>
         </PageHeaderExtraProvider>

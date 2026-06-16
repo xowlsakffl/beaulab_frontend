@@ -104,7 +104,7 @@ export function DoctorsFilterPanel({
 
   return (
     <Card className="rounded-xl p-3 ">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-4 lg:grid-cols-2 2xl:grid-cols-[minmax(14rem,1.25fr)_minmax(10.5rem,0.9fr)_minmax(10.5rem,0.9fr)_minmax(9.5rem,0.8fr)_minmax(10.5rem,0.9fr)_minmax(24rem,1.8fr)]">
+      <div className="grid grid-cols-[minmax(14rem,1.25fr)_minmax(10.5rem,0.9fr)_minmax(10.5rem,0.9fr)_minmax(9.5rem,0.8fr)_minmax(10.5rem,0.9fr)_minmax(24rem,1.8fr)] gap-x-4 gap-y-4 max-[1800px]:grid-cols-[minmax(14rem,1.1fr)_minmax(12rem,0.9fr)_minmax(14rem,1fr)]">
         <div className={filterRowClass}>
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
@@ -189,8 +189,8 @@ export function DoctorsFilterPanel({
 
         <div className={filterRowClass}>
           <span className={inlineLabelClass}>지표</span>
-          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
-            <div className="min-w-0 max-sm:col-span-3">
+          <div className="grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+            <div className="min-w-0">
               <Select
                 value={draftFilters.metric}
                 options={[...DOCTOR_METRIC_OPTIONS]}
@@ -223,7 +223,7 @@ export function DoctorsFilterPanel({
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3 py-1.5 lg:col-span-2 lg:flex-row lg:items-center 2xl:col-span-full">
+        <div className="col-span-full flex min-w-0 flex-row items-center gap-3 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
