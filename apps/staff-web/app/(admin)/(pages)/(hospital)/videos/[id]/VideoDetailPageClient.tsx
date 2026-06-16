@@ -22,7 +22,6 @@ import {
 } from "@/components/common/DetailMediaCard";
 import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   formatBytes,
   getVideoMediaFilename,
@@ -53,17 +52,6 @@ export default function VideoDetailPageClient() {
   const [detail, setDetail] = React.useState<VideoViewResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/videos",
-        allowedPrefix: "/videos",
-        highlightId,
-      }),
-    [searchParams],
-  );
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");

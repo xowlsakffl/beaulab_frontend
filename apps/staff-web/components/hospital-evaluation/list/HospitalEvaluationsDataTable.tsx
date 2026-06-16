@@ -99,6 +99,7 @@ function renderReceipt(row: HospitalEvaluationRow) {
 function ReportStatusBadge({ label, status }: { label: string; status: string }) {
   if (!label) return <span className="text-sm text-gray-400">-</span>;
   const toneClassNames: Record<string, string> = {
+    INACTIVE: "bg-red-100 text-red-700  ",
     AUTO_BLOCKED: "bg-red-100 text-red-700  ",
     ADMIN_HIDDEN: "bg-orange-100 text-orange-800  ",
     NORMAL_VISIBLE: "bg-green-100 text-green-700  ",

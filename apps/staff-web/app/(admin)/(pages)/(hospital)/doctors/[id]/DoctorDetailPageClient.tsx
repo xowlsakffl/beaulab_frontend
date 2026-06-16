@@ -9,7 +9,6 @@ import {
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   resolveDoctorMediaUrl,
@@ -49,17 +48,6 @@ export default function DoctorDetailPageClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/doctors",
-        allowedPrefix: "/doctors",
-        highlightId,
-      }),
-    [searchParams],
-  );
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");

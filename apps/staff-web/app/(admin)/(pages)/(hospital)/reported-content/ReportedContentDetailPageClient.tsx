@@ -23,10 +23,13 @@ import {
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
   HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE,
@@ -36,8 +39,6 @@ import {
   formatHospitalEvaluationDetailDate,
   formatHospitalEvaluationDetailDateTime,
   formatHospitalEvaluationDetailRating,
-  formatHospitalEvaluationHistoryReason,
-  labelHospitalEvaluationHistoryChange,
   resolveHospitalEvaluationMediaUrl,
   titleHospitalEvaluationDetailReviewType,
   type HospitalEvaluationAssessment,
@@ -54,9 +55,7 @@ import {
   formatHospitalReviewDetailDate,
   formatHospitalReviewDetailDateTime,
   formatHospitalReviewDetailRating,
-  formatHospitalReviewHistoryReason,
   getHospitalReviewDetailCategoryFullPaths,
-  labelHospitalReviewHistoryChange,
   type HospitalReviewDetailResponse,
   type HospitalReviewOperationHistory,
 } from "@/lib/hospital-review/detail";
@@ -71,8 +70,6 @@ import {
   formatTalkAuthorName,
   formatTalkDetailCategory,
   formatTalkDetailDateTime,
-  formatTalkHistoryReason,
-  labelTalkHistoryChange,
   labelTalkVisibilityStatus,
   type TalkDetailResponse,
   type TalkMediaAsset,
@@ -213,17 +210,6 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const [receiptUpdating, setReceiptUpdating] = React.useState(false);
   const [receiptModalError, setReceiptModalError] = React.useState<string | null>(null);
   const hasLoadedRef = React.useRef(false);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: config.listPath,
-        allowedPrefix: config.listPath,
-        highlightId,
-      }),
-    [config.listPath, searchParams],
-  );
 
   const syncDetailQuery = React.useCallback(
     (nextHistoriesPage: number) => {
@@ -489,7 +475,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
           <div className="space-y-6">
-            <ReportedTalkMemberSummaryCard detail={talk} onBack={() => router.push(getReturnToPath())} />
+            <ReportedTalkMemberSummaryCard detail={talk} />
             <ReportedTalkContentCard
               detail={talk}
               visibilityUpdating={reviewVisibilityUpdating}
@@ -590,7 +576,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
           <div className="space-y-6">
-            <ReportedReviewMemberSummaryCard detail={review} onBack={() => router.push(getReturnToPath(review.id))} />
+            <ReportedReviewMemberSummaryCard detail={review} />
             <ReportedReviewContentCard
               boardTitle={HOSPITAL_REVIEW_BOARD_CONFIGS[config.boardType === "treatment-reviews" ? "treatment" : "surgery"].title}
               detail={review}
@@ -691,7 +677,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         ) : null}
 
         <div className="grid gap-6 xl:grid-cols-2">
-          <ReportedEvaluationMemberSummaryCard detail={evaluation} onBack={() => router.push(getReturnToPath(evaluation.id))} />
+          <ReportedEvaluationMemberSummaryCard detail={evaluation} />
           <ReportedEvaluationHospitalSummaryCard detail={evaluation} />
         </div>
 
@@ -774,10 +760,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
 
 function ReportedTalkMemberSummaryCard({
   detail,
-  onBack,
 }: {
   detail: TalkDetailResponse;
-  onBack: () => void;
 }) {
   return (
     <Card as="section">
@@ -932,10 +916,8 @@ function ReportedTalkPollBar({ option, totalVotes }: { option: TalkPollOption; t
 
 function ReportedReviewMemberSummaryCard({
   detail,
-  onBack,
 }: {
   detail: HospitalReviewDetailResponse;
-  onBack: () => void;
 }) {
   return (
     <Card as="section">
@@ -1094,10 +1076,8 @@ function ReportedReviewVisibilityButtons({
 
 function ReportedEvaluationMemberSummaryCard({
   detail,
-  onBack,
 }: {
   detail: HospitalEvaluationDetailResponse;
-  onBack: () => void;
 }) {
   return (
     <Card as="section">
@@ -1661,9 +1641,11 @@ function ReportedOriginalHistoryCard({
                   {formatHistoryDate(kind, history)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span className="font-medium">{labelHistoryChange(kind, history)}</span>
+                <span>
+                  <OperationHistoryActionBadge history={history} />
+                </span>
                 <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  {formatHistoryReason(kind, history)}
+                  <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
@@ -1855,20 +1837,6 @@ function formatHistoryDate(kind: ReportedContentDetailKind, history: DetailHisto
   if (kind === "evaluation") return formatHospitalEvaluationDetailDateTime(history.created_at);
 
   return formatHospitalReviewDetailDateTime(history.created_at);
-}
-
-function labelHistoryChange(kind: ReportedContentDetailKind, history: DetailHistory) {
-  if (kind === "talk") return labelTalkHistoryChange(history as TalkOperationHistory);
-  if (kind === "evaluation") return labelHospitalEvaluationHistoryChange(history as HospitalEvaluationOperationHistory);
-
-  return labelHospitalReviewHistoryChange(history as HospitalReviewOperationHistory);
-}
-
-function formatHistoryReason(kind: ReportedContentDetailKind, history: DetailHistory) {
-  if (kind === "talk") return formatTalkHistoryReason(history as TalkOperationHistory);
-  if (kind === "evaluation") return formatHospitalEvaluationHistoryReason(history as HospitalEvaluationOperationHistory);
-
-  return formatHospitalReviewHistoryReason(history as HospitalReviewOperationHistory);
 }
 
 function getImageKey(image: unknown, index: number) {

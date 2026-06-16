@@ -28,10 +28,13 @@ import {
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   HOSPITAL_REVIEW_BOARD_CONFIGS,
   resolveHospitalReviewMediaUrl,
@@ -44,11 +47,7 @@ import {
   formatHospitalReviewDetailAuthorName,
   formatHospitalReviewDetailDate,
   formatHospitalReviewDetailDateTime,
-  formatHospitalReviewCommentHistoryReason,
-  formatHospitalReviewHistoryReason,
   getHospitalReviewDetailCategoryFullPaths,
-  labelHospitalReviewCommentHistoryChange,
-  labelHospitalReviewHistoryChange,
   type PaginatedBlock,
   type HospitalReviewCommentHistory,
   type HospitalReviewDetailComment,
@@ -122,17 +121,6 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
     () => new Set(),
   );
   const hasLoadedRef = React.useRef(false);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: config.listPath,
-        allowedPrefix: config.listPath,
-        highlightId,
-      }),
-    [config.listPath, searchParams],
-  );
 
   const syncDetailQuery = React.useCallback(
     ({
@@ -347,6 +335,9 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
 
     const { target, id, status, hiddenReason } = pendingVisibilityChange;
     const isCommentChange = target === "comment";
+    const previousStatus = isCommentChange
+      ? commentsBlock?.items?.find((comment) => comment.id === id)?.status
+      : detail?.status;
     const normalizedHiddenReason = status === "INACTIVE" ? hiddenReason?.trim() : "";
     const requestPayload: VisibilityUpdatePayload = {
       ids: [id],
@@ -368,6 +359,8 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
     }
 
     setActionError(null);
+    setPendingVisibilityChange(null);
+    applyVisibilityChangeLocally(target, id, status);
 
     try {
       const response = await api.patch<VisibilityUpdateResponse>(
@@ -376,13 +369,23 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
       );
 
       if (!isApiSuccess(response)) {
+        if (previousStatus) {
+          applyVisibilityChangeLocally(target, id, previousStatus);
+        }
         setActionError(response.error.message || `${isCommentChange ? "댓글" : "후기"} 노출 상태 변경에 실패했습니다.`);
         return;
       }
 
-      setPendingVisibilityChange(null);
-      applyVisibilityChangeLocally(target, id, status);
+      if (isCommentChange) {
+        void fetchReviewComments(true);
+      } else {
+        void fetchReviewDetail(true);
+      }
+      void fetchReviewOperationHistories(true);
     } catch {
+      if (previousStatus) {
+        applyVisibilityChangeLocally(target, id, previousStatus);
+      }
       setActionError(`${isCommentChange ? "댓글" : "후기"} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
       if (isCommentChange) {
@@ -395,7 +398,15 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         setReviewVisibilityUpdating(false);
       }
     }
-  }, [applyVisibilityChangeLocally, pendingVisibilityChange]);
+  }, [
+    applyVisibilityChangeLocally,
+    commentsBlock,
+    detail,
+    fetchReviewComments,
+    fetchReviewDetail,
+    fetchReviewOperationHistories,
+    pendingVisibilityChange,
+  ]);
 
   const changeCommentsPage = React.useCallback(
     (page: number) => {
@@ -479,7 +490,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
         <div className="space-y-6">
-          <MemberSummaryCard detail={detail} onBack={() => router.push(getReturnToPath(detail.id))} />
+          <MemberSummaryCard detail={detail} />
           <HospitalReviewContentCard
             boardTitle={config.title}
             detail={detail}
@@ -577,10 +588,8 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
 
 function MemberSummaryCard({
   detail,
-  onBack,
 }: {
   detail: HospitalReviewDetailResponse;
-  onBack: () => void;
 }) {
   return (
     <Card as="section">
@@ -696,9 +705,11 @@ function HospitalReviewHistoryCard({
                   {formatHospitalReviewDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span className="font-medium">{labelHospitalReviewHistoryChange(history)}</span>
+                <span>
+                  <OperationHistoryActionBadge history={history} />
+                </span>
                 <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  {formatHospitalReviewHistoryReason(history)}
+                  <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
@@ -891,14 +902,25 @@ function CommentItem({
 }
 
 function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory }) {
+  const historyForDisplay = {
+    ...history,
+    action: history.action ?? "STATUS_UPDATED",
+    field: history.field ?? "status",
+    after_value: history.after_value ?? history.status,
+  };
+
   return (
     <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)] ">
       <span className="whitespace-nowrap text-gray-500 ">
         {formatHospitalReviewDetailDateTime(history.created_at)}
       </span>
       <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-      <span className="font-semibold">{labelHospitalReviewCommentHistoryChange(history)}</span>
-      <span className="min-w-0 break-words">{formatHospitalReviewCommentHistoryReason(history)}</span>
+      <span>
+        <OperationHistoryActionBadge history={historyForDisplay} />
+      </span>
+      <span className="min-w-0 break-words">
+        <OperationHistoryReason history={historyForDisplay} />
+      </span>
     </div>
   );
 }

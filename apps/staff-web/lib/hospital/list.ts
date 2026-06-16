@@ -13,6 +13,8 @@ export type HospitalApiItem = {
   tel: string;
   view_count?: number;
   viewCount?: number;
+  event_count?: number;
+  eventCount?: number;
   evaluation?: {
     count?: number;
     average_rating?: number;
@@ -374,7 +376,7 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
     accountEmail: item.account?.email || item.email || "-",
     tel: item.tel,
     viewCount: item.viewCount ?? item.view_count ?? 0,
-    eventCount: 0,
+    eventCount: item.eventCount ?? item.event_count ?? 0,
     consultationCount: 0,
     evaluationCount: evaluation?.count ?? 0,
     evaluationAverageRating: evaluation?.averageRating ?? evaluation?.average_rating ?? 0,

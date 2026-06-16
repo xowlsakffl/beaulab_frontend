@@ -16,6 +16,8 @@ import {
 import {
   formatHospitalEventPoint,
   formatHospitalEventPrice,
+  hospitalEventAllowStatusColor,
+  hospitalEventVisibilityStatusColor,
   labelHospitalEventAllowStatus,
   labelHospitalEventVisibilityStatus,
   type HospitalEventRow,
@@ -26,14 +28,6 @@ import {
 function renderSortMark(field: HospitalEventSortField, sortState: HospitalEventSortState) {
   if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
   return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
-
-function allowStatusColor(status: string): "success" | "warning" | "error" | "info" | "light" {
-  if (status === "APPROVED") return "success";
-  if (status === "PENDING" || status === "REVIEWING") return "warning";
-  if (status === "REJECTED" || status === "PARTNER_CANCELED") return "error";
-
-  return "light";
 }
 
 function categoryBadges(row: HospitalEventRow) {
@@ -201,7 +195,7 @@ function buildHospitalEventColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={row.status === "ACTIVE" ? "success" : "error"}>
+        <StatusBadge size="sm" color={hospitalEventVisibilityStatusColor(row.status)}>
           {labelHospitalEventVisibilityStatus(row.status)}
         </StatusBadge>
       ),
@@ -216,7 +210,7 @@ function buildHospitalEventColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={allowStatusColor(row.allowStatus)}>
+        <StatusBadge size="sm" color={hospitalEventAllowStatusColor(row.allowStatus)}>
           {labelHospitalEventAllowStatus(row.allowStatus)}
         </StatusBadge>
       ),

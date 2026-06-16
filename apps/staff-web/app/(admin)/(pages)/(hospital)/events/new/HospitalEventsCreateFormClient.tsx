@@ -191,6 +191,15 @@ function HospitalEventsFormClient({
     [searchParams],
   );
 
+  const detailPath = React.useMemo(() => {
+    if (mode !== "edit" || !eventId || !Number.isFinite(eventId) || eventId <= 0) return "/events";
+
+    const rawReturnTo = searchParams.get("returnTo");
+    return rawReturnTo
+      ? `/events/${eventId}?returnTo=${encodeURIComponent(rawReturnTo)}`
+      : `/events/${eventId}`;
+  }, [eventId, mode, searchParams]);
+
   const clearError = React.useCallback((field: HospitalEventFieldName) => {
     setErrors((prev) => {
       if (!prev[field]) return prev;
@@ -503,9 +512,9 @@ function HospitalEventsFormClient({
       showAlert({
         variant: "success",
         title: mode === "edit" ? "이벤트 수정 완료" : "이벤트 등록 완료",
-        message: mode === "edit" ? "수정한 이벤트를 목록에서 확인할 수 있습니다." : "등록된 이벤트를 목록에서 확인할 수 있습니다.",
+        message: mode === "edit" ? "수정한 이벤트 정보를 확인할 수 있습니다." : "등록된 이벤트를 목록에서 확인할 수 있습니다.",
       });
-      router.push(getReturnToPath(Number(response.data.id)));
+      router.push(mode === "edit" ? detailPath : getReturnToPath(Number(response.data.id)));
     } catch {
       showAlert({
         variant: "error",

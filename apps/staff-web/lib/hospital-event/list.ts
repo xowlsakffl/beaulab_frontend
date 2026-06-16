@@ -280,6 +280,10 @@ export function labelHospitalEventVisibilityStatus(status?: string | null) {
   return status === "INACTIVE" ? "미노출" : "노출";
 }
 
+export function hospitalEventVisibilityStatusColor(status?: string | null) {
+  return status === "ACTIVE" ? "success" : "error";
+}
+
 export function labelHospitalEventAllowStatus(status?: string | null) {
   switch (status) {
     case "PENDING":
@@ -295,6 +299,14 @@ export function labelHospitalEventAllowStatus(status?: string | null) {
     default:
       return "-";
   }
+}
+
+export function hospitalEventAllowStatusColor(status?: string | null) {
+  if (status === "APPROVED") return "success";
+  if (status === "PENDING" || status === "REVIEWING") return "warning";
+  if (status === "REJECTED" || status === "PARTNER_CANCELED") return "error";
+
+  return "light";
 }
 
 export function formatHospitalEventDate(value?: string | null) {

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
@@ -22,7 +22,6 @@ import {
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
 import {
   ACCOUNT_USER_ADMIN_NOTE_TARGET_TYPE,
@@ -40,15 +39,12 @@ import {
 
 type AccountUserUpdateResponse = AccountUserDetail;
 
-const listPath = "/users";
 const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm font-medium text-gray-800";
 const cardHeaderClassName = "mb-5";
 
 export default function AccountUserDetailPageClient() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const rawUserId = Array.isArray(params.id) ? params.id[0] : params.id;
   const userId = Number(rawUserId);
 
@@ -117,15 +113,6 @@ export default function AccountUserDetailPageClient() {
     void fetchUser();
     void fetchNotes();
   }, [fetchNotes, fetchUser]);
-
-  const goBackToList = React.useCallback(() => {
-    router.push(buildReturnToPath({
-      searchParams,
-      fallbackPath: listPath,
-      allowedPrefix: listPath,
-      highlightId: Number.isFinite(userId) ? userId : undefined,
-    }));
-  }, [router, searchParams, userId]);
 
   const openBlockModal = React.useCallback(() => {
     setIsMenuOpen(false);
@@ -442,7 +429,9 @@ function AdminMemoCard({
       <CardContent>
         <div className="max-h-44 overflow-y-auto border-t border-gray-200">
           {notes.length === 0 ? (
-            <p className="py-6 text-center text-sm text-gray-500">등록된 관리자 메모가 없습니다.</p>
+            <div className="mt-4 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+              등록된 관리자 메모가 없습니다.
+            </div>
           ) : (
             <div className="divide-y divide-gray-100">
               {notes.map((note) => (

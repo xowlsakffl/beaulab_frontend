@@ -28,10 +28,13 @@ import {
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE,
@@ -41,8 +44,6 @@ import {
   formatHospitalEvaluationDetailDate,
   formatHospitalEvaluationDetailDateTime,
   formatHospitalEvaluationDetailRating,
-  formatHospitalEvaluationHistoryReason,
-  labelHospitalEvaluationHistoryChange,
   resolveHospitalEvaluationMediaUrl,
   titleHospitalEvaluationDetailReviewType,
   type HospitalEvaluationAssessment,
@@ -87,7 +88,6 @@ type PendingVisibilityChange = {
 } | null;
 
 const historiesDefaultPage = 1;
-const detailListPath = "/reviews/hospital-evaluations";
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
 const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
@@ -120,17 +120,6 @@ export default function HospitalEvaluationDetailPageClient() {
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const hasLoadedRef = React.useRef(false);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: detailListPath,
-        allowedPrefix: detailListPath,
-        highlightId,
-      }),
-    [searchParams],
-  );
 
   const syncDetailQuery = React.useCallback(
     ({ nextHistoriesPage = historiesPage }: { nextHistoriesPage?: number }) => {
@@ -259,6 +248,7 @@ export default function HospitalEvaluationDetailPageClient() {
     if (!detail || !pendingVisibilityChange) return;
 
     const { status, hiddenReason } = pendingVisibilityChange;
+    const previousStatus = detail.status;
     const normalizedHiddenReason = status === "INACTIVE" ? hiddenReason?.trim() : "";
     const payload: VisibilityUpdatePayload = {
       ids: [detail.id],
@@ -268,18 +258,21 @@ export default function HospitalEvaluationDetailPageClient() {
 
     setVisibilityUpdating(true);
     setActionError(null);
+    setPendingVisibilityChange(null);
+    setDetail((prev) => prev ? { ...prev, status } : prev);
 
     try {
       const response = await api.patch<VisibilityUpdateResponse>("/hospital-evaluations/status", payload);
 
       if (!isApiSuccess(response)) {
+        setDetail((prev) => prev ? { ...prev, status: previousStatus } : prev);
         setActionError(response.error.message || "평가 노출 상태 변경에 실패했습니다.");
         return;
       }
 
-      setPendingVisibilityChange(null);
-      await refreshEvaluationPage(true);
+      void refreshEvaluationPage(true);
     } catch {
+      setDetail((prev) => prev ? { ...prev, status: previousStatus } : prev);
       setActionError("평가 노출 상태 변경 중 오류가 발생했습니다.");
     } finally {
       setVisibilityUpdating(false);
@@ -401,7 +394,7 @@ export default function HospitalEvaluationDetailPageClient() {
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <MemberSummaryCard detail={detail} onBack={() => router.push(getReturnToPath(detail.id))} />
+        <MemberSummaryCard detail={detail} />
         <HospitalSummaryCard detail={detail} />
       </div>
 
@@ -513,10 +506,8 @@ export default function HospitalEvaluationDetailPageClient() {
 
 function MemberSummaryCard({
   detail,
-  onBack,
 }: {
   detail: HospitalEvaluationDetailResponse;
-  onBack: () => void;
 }) {
   return (
     <Card as="section">
@@ -732,9 +723,11 @@ function HospitalEvaluationHistoryCard({
                   {formatHospitalEvaluationDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span className="font-medium">{labelHospitalEvaluationHistoryChange(history)}</span>
+                <span>
+                  <OperationHistoryActionBadge history={history} />
+                </span>
                 <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  {formatHospitalEvaluationHistoryReason(history)}
+                  <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}

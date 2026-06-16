@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
@@ -18,8 +18,11 @@ import {
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   formatReportedContentAuthorName,
   formatReportedContentDetailDate,
@@ -52,14 +55,11 @@ type ReportedChatMessageDisplay = {
 type ChatReportMember = ReportedContentDetailAuthor | NonNullable<ReportedContentDetailReportItem["reporter"]>;
 
 const targetType = "chat_message";
-const listPath = "/reported-content/chats";
 const labelClassName = "text-xs font-semibold text-gray-500 ";
 const valueClassName = "text-sm font-medium text-gray-800 ";
 
 export default function ReportedChatDetailPageClient() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
   const [detail, setDetail] = React.useState<ReportedChatDetailResponse | null>(null);
@@ -72,17 +72,6 @@ export default function ReportedChatDetailPageClient() {
   const [isWarningUnavailableModalOpen, setIsWarningUnavailableModalOpen] = React.useState(false);
   const [modalError, setModalError] = React.useState<string | null>(null);
   const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
-
-  const getReturnToPath = React.useCallback(
-    () =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: listPath,
-        allowedPrefix: listPath,
-        highlightId: targetId,
-      }),
-    [searchParams, targetId],
-  );
 
   const fetchDetail = React.useCallback(async () => {
     if (!Number.isFinite(targetId) || targetId <= 0) {
@@ -259,7 +248,6 @@ export default function ReportedChatDetailPageClient() {
             ip={target?.author_ip}
             dateLabel="작성일"
             date={target?.created_at}
-            onBack={() => router.push(getReturnToPath())}
           />
           <ChatMemberInfoCard
             title="신고자 회원정보"
@@ -402,14 +390,12 @@ function ChatMemberInfoCard({
   ip,
   dateLabel,
   date,
-  onBack,
 }: {
   title: string;
   user?: ChatReportMember | null;
   ip?: string | null;
   dateLabel: string;
   date?: string | null;
-  onBack?: () => void;
 }) {
   return (
     <Card>
@@ -498,9 +484,11 @@ function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOpe
                   {formatReportedContentDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span className="font-medium">{labelChatHistoryChange(history)}</span>
+                <span>
+                  <OperationHistoryActionBadge history={history} />
+                </span>
                 <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  {history.reason?.trim() || "-"}
+                  <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
@@ -513,17 +501,6 @@ function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOpe
       </CardContent>
     </Card>
   );
-}
-
-function labelChatHistoryChange(history: ReportedContentOperationHistory) {
-  const metadata = history.metadata ?? {};
-  const afterLabel = typeof metadata.after_label === "string" ? metadata.after_label.trim() : "";
-
-  if (afterLabel) {
-    return afterLabel;
-  }
-
-  return history.field === "warning_status" ? "경고여부" : "신고여부";
 }
 
 function ChatReportActionCard({

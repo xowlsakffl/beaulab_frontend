@@ -41,16 +41,35 @@ export type TalkOperationHistory = {
   id: number;
   actor_label?: string | null;
   action?: string | null;
+  action_label?: string | null;
   field?: string | null;
   before_value?: unknown;
   after_value?: unknown;
   reason?: string | null;
   metadata?: Record<string, unknown> | null;
+  changes?: TalkOperationHistoryChange[] | null;
   created_at?: string | null;
+};
+
+export type TalkOperationHistoryChange = {
+  id?: number | null;
+  field_key?: string | null;
+  field_label?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  before_display?: string | null;
+  after_display?: string | null;
+  sort_order?: number | null;
 };
 
 export type TalkCommentHistory = {
   actor_label?: string | null;
+  action?: string | null;
+  action_label?: string | null;
+  field?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  changes?: TalkOperationHistoryChange[] | null;
   status?: string | null;
   created_at?: string | null;
   reason?: string | null;

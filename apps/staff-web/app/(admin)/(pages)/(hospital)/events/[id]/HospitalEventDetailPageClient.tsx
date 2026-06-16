@@ -28,6 +28,10 @@ import {
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { Can } from "@/components/common/guard";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
 import {
   HospitalMediaPreviewModal,
@@ -69,6 +73,7 @@ type OperationHistoryItem = {
   actor_label?: string | null;
   field?: string | null;
   action?: string | null;
+  action_label?: string | null;
   changes?: OperationHistoryChangeItem[] | null;
   before_value?: unknown;
   after_value?: unknown;
@@ -117,6 +122,7 @@ export default function HospitalEventDetailPageClient() {
   const [historiesLoading, setHistoriesLoading] = React.useState(false);
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
+  const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
 
   const getReturnToPath = React.useCallback(
     (highlightId?: number) =>
@@ -268,6 +274,7 @@ export default function HospitalEventDetailPageClient() {
       if (!detail || updatingStatus || detail.allow_status === allowStatus) return;
 
       setPendingAllowStatusChange({ allowStatus, reason: "" });
+      setPendingAllowStatusError(null);
     },
     [detail, updatingStatus],
   );
@@ -326,10 +333,12 @@ export default function HospitalEventDetailPageClient() {
   const closeAllowStatusConfirmModal = React.useCallback(() => {
     if (updatingStatus) return;
     setPendingAllowStatusChange(null);
+    setPendingAllowStatusError(null);
   }, [updatingStatus]);
 
   const updatePendingAllowStatusReason = React.useCallback((reason: string) => {
     setPendingAllowStatusChange((prev) => prev ? { ...prev, reason } : prev);
+    setPendingAllowStatusError(null);
   }, []);
 
   const confirmAllowStatusChange = React.useCallback(async () => {
@@ -337,15 +346,16 @@ export default function HospitalEventDetailPageClient() {
 
     const reason = pendingAllowStatusChange.reason.trim();
     if (pendingAllowStatusChange.allowStatus === "REJECTED" && !reason) {
-      showAlert({ variant: "error", title: "검수반려 사유 확인", message: "검수반려 사유를 입력해주세요." });
+      setPendingAllowStatusError("검수반려 사유를 입력해주세요.");
       return;
     }
 
     const succeeded = await updateAllowStatus(pendingAllowStatusChange.allowStatus, reason);
     if (succeeded) {
       setPendingAllowStatusChange(null);
+      setPendingAllowStatusError(null);
     }
-  }, [pendingAllowStatusChange, showAlert, updateAllowStatus]);
+  }, [pendingAllowStatusChange, updateAllowStatus]);
 
   const saveNote = React.useCallback(async () => {
     const note = noteInput.trim();
@@ -516,6 +526,8 @@ export default function HospitalEventDetailPageClient() {
                   onChange={(event) => updatePendingAllowStatusReason(event.target.value)}
                   disabled={updatingStatus}
                   placeholder="검수반려 사유를 입력해주세요."
+                  error={Boolean(pendingAllowStatusError)}
+                  hint={pendingAllowStatusError ?? undefined}
                 />
               </div>
             ) : null}
@@ -711,7 +723,9 @@ function AdminNotesCard({
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-500">등록된 관리자 메모가 없습니다.</p>
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+          등록된 관리자 메모가 없습니다.
+        </div>
       )}
     </Card>
   );
@@ -761,8 +775,12 @@ function OperationHistoryCard({
                   <div className="grid grid-cols-[6.5rem_5rem_5rem_minmax(0,1fr)_2rem] items-start gap-3 text-xs text-gray-600">
                     <span>{formatDateTime(history.created_at)}</span>
                     <span>{history.actor_label || "-"}</span>
-                    <span>{historyValueLabel(history)}</span>
-                    <span className="break-words">{historyReasonLabel(history)}</span>
+                    <span>
+                      <OperationHistoryActionBadge history={history} />
+                    </span>
+                    <span className="break-words">
+                      <OperationHistoryReason history={history} />
+                    </span>
                     {canExpand ? (
                       isExpanded ? (
                         <Button
@@ -810,7 +828,9 @@ function OperationHistoryCard({
           ) : null}
         </div>
       ) : (
-        <p className="text-sm text-gray-500">등록된 히스토리가 없습니다.</p>
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+          등록된 히스토리가 없습니다.
+        </div>
       )}
     </Card>
   );
@@ -1077,46 +1097,4 @@ function stringifyHistoryValue(value: unknown) {
   } catch {
     return String(value);
   }
-}
-
-function historyReasonLabel(history: OperationHistoryItem) {
-  const reason = history.reason?.trim();
-  if (reason) {
-    return reason;
-  }
-
-  if (history.action !== "UPDATED") {
-    return "-";
-  }
-
-  const labels = (history.changes ?? [])
-    .map((change) => (change.field_label || change.field_key || "").trim())
-    .filter(Boolean);
-
-  if (labels.length === 0) {
-    return "수정";
-  }
-
-  const uniqueLabels = Array.from(new Set(labels));
-
-  return `${uniqueLabels.join(", ")} 수정`;
-}
-
-function historyValueLabel(history: OperationHistoryItem) {
-  const firstChange = history.changes?.[0] ?? null;
-  const field = firstChange?.field_key ?? history.field ?? null;
-
-  if (history.action === "UPDATED") {
-    return "수정";
-  }
-
-  if (field === "status") {
-    return firstChange ? historyChangeDisplay(firstChange, "after") : historyRawValueLabel(field, history.after_value);
-  }
-
-  if (field === "allow_status") {
-    return firstChange ? historyChangeDisplay(firstChange, "after") : historyRawValueLabel(field, history.after_value);
-  }
-
-  return firstChange?.field_label || history.field || history.action || "-";
 }

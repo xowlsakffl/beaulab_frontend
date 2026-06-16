@@ -24,13 +24,16 @@ import {
 
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import {
   TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS,
@@ -38,10 +41,6 @@ import {
   formatTalkAuthorName,
   formatTalkDetailCategory,
   formatTalkDetailDateTime,
-  formatTalkCommentHistoryReason,
-  formatTalkHistoryReason,
-  labelTalkCommentHistoryChange,
-  labelTalkHistoryChange,
   labelTalkVisibilityStatus,
   type PaginatedBlock,
   type TalkCommentHistory,
@@ -113,17 +112,6 @@ export default function TalkDetailPageClient() {
     () => new Set(),
   );
   const hasLoadedRef = React.useRef(false);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/talks",
-        allowedPrefix: "/talks",
-        highlightId,
-      }),
-    [searchParams],
-  );
 
   const syncDetailQuery = React.useCallback(
     ({
@@ -335,6 +323,9 @@ export default function TalkDetailPageClient() {
 
     const { target, id, status, hiddenReason } = pendingVisibilityChange;
     const isCommentChange = target === "comment";
+    const previousStatus = isCommentChange
+      ? commentsBlock?.items?.find((comment) => comment.id === id)?.status
+      : detail?.status;
     const normalizedHiddenReason = status === "INACTIVE" ? hiddenReason?.trim() : "";
     const requestPayload: VisibilityUpdatePayload = {
       ids: [id],
@@ -356,6 +347,8 @@ export default function TalkDetailPageClient() {
     }
 
     setActionError(null);
+    setPendingVisibilityChange(null);
+    applyVisibilityChangeLocally(target, id, status);
 
     try {
       const response = await api.patch<VisibilityUpdateResponse>(
@@ -364,13 +357,23 @@ export default function TalkDetailPageClient() {
       );
 
       if (!isApiSuccess(response)) {
+        if (previousStatus) {
+          applyVisibilityChangeLocally(target, id, previousStatus);
+        }
         setActionError(response.error.message || `${isCommentChange ? "댓글" : "토크"} 노출 상태 변경에 실패했습니다.`);
         return;
       }
 
-      setPendingVisibilityChange(null);
-      applyVisibilityChangeLocally(target, id, status);
+      if (isCommentChange) {
+        void fetchTalkComments(true);
+      } else {
+        void fetchTalkDetail(true);
+      }
+      void fetchTalkOperationHistories(true);
     } catch {
+      if (previousStatus) {
+        applyVisibilityChangeLocally(target, id, previousStatus);
+      }
       setActionError(`${isCommentChange ? "댓글" : "토크"} 노출 상태 변경 중 오류가 발생했습니다.`);
     } finally {
       if (isCommentChange) {
@@ -383,7 +386,15 @@ export default function TalkDetailPageClient() {
         setTalkVisibilityUpdating(false);
       }
     }
-  }, [applyVisibilityChangeLocally, pendingVisibilityChange]);
+  }, [
+    applyVisibilityChangeLocally,
+    commentsBlock,
+    detail,
+    fetchTalkComments,
+    fetchTalkDetail,
+    fetchTalkOperationHistories,
+    pendingVisibilityChange,
+  ]);
 
   const changeCommentsPage = React.useCallback(
     (page: number) => {
@@ -467,7 +478,7 @@ export default function TalkDetailPageClient() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
         <div className="space-y-6">
-          <MemberSummaryCard detail={detail} onBack={() => router.push(getReturnToPath())} />
+          <MemberSummaryCard detail={detail} />
           <TalkContentCard
             detail={detail}
             visibilityLocked={talkVisibilityLocked}
@@ -561,10 +572,8 @@ export default function TalkDetailPageClient() {
 
 function MemberSummaryCard({
   detail,
-  onBack,
 }: {
   detail: TalkDetailResponse;
-  onBack: () => void;
 }) {
   return (
     <Card as="section">
@@ -685,9 +694,11 @@ function TalkHistoryCard({
                   {formatTalkDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span className="font-medium">{labelTalkHistoryChange(history)}</span>
+                <span>
+                  <OperationHistoryActionBadge history={history} />
+                </span>
                 <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  {formatTalkHistoryReason(history)}
+                  <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
@@ -878,14 +889,25 @@ function CommentItem({
 }
 
 function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
+  const historyForDisplay = {
+    ...history,
+    action: history.action ?? "STATUS_UPDATED",
+    field: history.field ?? "status",
+    after_value: history.after_value ?? history.status,
+  };
+
   return (
     <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)] ">
       <span className="whitespace-nowrap text-gray-500 ">
         {formatTalkDetailDateTime(history.created_at)}
       </span>
       <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-      <span className="font-semibold">{labelTalkCommentHistoryChange(history)}</span>
-      <span className="min-w-0 break-words">{formatTalkCommentHistoryReason(history)}</span>
+      <span>
+        <OperationHistoryActionBadge history={historyForDisplay} />
+      </span>
+      <span className="min-w-0 break-words">
+        <OperationHistoryReason history={historyForDisplay} />
+      </span>
     </div>
   );
 }

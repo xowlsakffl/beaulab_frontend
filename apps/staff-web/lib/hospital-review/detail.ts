@@ -16,16 +16,35 @@ export type HospitalReviewOperationHistory = {
   id: number;
   actor_label?: string | null;
   action?: string | null;
+  action_label?: string | null;
   field?: string | null;
   before_value?: unknown;
   after_value?: unknown;
   reason?: string | null;
   metadata?: Record<string, unknown> | null;
+  changes?: HospitalReviewOperationHistoryChange[] | null;
   created_at?: string | null;
+};
+
+export type HospitalReviewOperationHistoryChange = {
+  id?: number | null;
+  field_key?: string | null;
+  field_label?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  before_display?: string | null;
+  after_display?: string | null;
+  sort_order?: number | null;
 };
 
 export type HospitalReviewCommentHistory = {
   actor_label?: string | null;
+  action?: string | null;
+  action_label?: string | null;
+  field?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  changes?: HospitalReviewOperationHistoryChange[] | null;
   status?: string | null;
   created_at?: string | null;
   reason?: string | null;

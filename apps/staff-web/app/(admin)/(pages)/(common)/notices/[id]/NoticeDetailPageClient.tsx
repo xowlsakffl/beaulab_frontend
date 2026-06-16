@@ -8,7 +8,6 @@ import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Spin
 import { Can } from "@/components/common/guard";
 import { DetailCompactMediaCard, DetailEmptyState } from "@/components/common/DetailMediaCard";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   formatBytes,
   formatLocalDateTime,
@@ -35,17 +34,6 @@ export default function NoticeDetailPageClient() {
   const [detail, setDetail] = React.useState<NoticeDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/notices",
-        allowedPrefix: "/notices",
-        highlightId,
-      }),
-    [searchParams],
-  );
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");

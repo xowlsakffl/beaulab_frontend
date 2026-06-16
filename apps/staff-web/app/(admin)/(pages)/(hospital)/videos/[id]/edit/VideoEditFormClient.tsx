@@ -12,7 +12,6 @@ import { VideoPublishSection } from "@/components/video/form/VideoPublishSection
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import type { VideoCategoryItem, VideoDetailResponse, VideoMediaAsset } from "@/lib/video/detail";
 import {
   buildVideoExistingFileItem,
@@ -50,16 +49,14 @@ export default function VideoEditFormClient() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const initialVideoFileIdRef = React.useRef<string | number | null>(null);
 
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/videos",
-        allowedPrefix: "/videos",
-        highlightId,
-      }),
-    [searchParams],
-  );
+  const detailPath = React.useMemo(() => {
+    if (!Number.isFinite(videoId) || videoId <= 0) return "/videos";
+
+    const rawReturnTo = searchParams.get("returnTo");
+    return rawReturnTo
+      ? `/videos/${videoId}?returnTo=${encodeURIComponent(rawReturnTo)}`
+      : `/videos/${videoId}`;
+  }, [videoId, searchParams]);
 
   const clearError = React.useCallback((field: VideoFieldName) => {
     setErrors((prev) => {
@@ -233,9 +230,9 @@ export default function VideoEditFormClient() {
       showAlert({
         variant: "success",
         title: "동영상 수정 완료",
-        message: "수정된 동영상을 목록에서 확인할 수 있습니다.",
+        message: "수정된 동영상을 확인할 수 있습니다.",
       });
-      router.push(getReturnToPath(videoId));
+      router.push(detailPath);
     } catch {
       showAlert({
         variant: "error",

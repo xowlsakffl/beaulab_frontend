@@ -1,10 +1,9 @@
 "use client";
 
 import React from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import {
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -15,9 +14,12 @@ import {
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import {
   buildHospitalReviewCommentContentPreview,
   type HospitalReviewCommentApiItem,
@@ -29,9 +31,7 @@ import {
   type HospitalReviewMediaAsset,
 } from "@/lib/hospital-review/list";
 import {
-  formatHospitalReviewHistoryReason,
   getHospitalReviewDetailCategoryFullPaths,
-  labelHospitalReviewHistoryChange,
   type HospitalReviewOperationHistory,
 } from "@/lib/hospital-review/detail";
 import {
@@ -42,11 +42,7 @@ import {
 import {
   formatTalkCategoryName,
 } from "@/lib/talk/list";
-import {
-  formatTalkHistoryReason,
-  labelTalkHistoryChange,
-  type TalkOperationHistory,
-} from "@/lib/talk/detail";
+import type { TalkOperationHistory } from "@/lib/talk/detail";
 import type { TalkCommentApiItem } from "@/lib/talk/comment-list";
 
 type ReportedContentCommentDetailType =
@@ -111,8 +107,6 @@ export default function ReportedContentCommentDetailPageClient({
 }: ReportedContentCommentDetailPageClientProps) {
   const config = COMMENT_DETAIL_CONFIGS[type];
   const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
   const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(null);
@@ -122,17 +116,6 @@ export default function ReportedContentCommentDetailPageClient({
   const [error, setError] = React.useState<string | null>(null);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
   const [historiesPage, setHistoriesPage] = React.useState(1);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: `${config.listPath}?board=comments`,
-        allowedPrefix: config.listPath,
-        highlightId,
-      }),
-    [config.listPath, searchParams],
-  );
 
   const fetchDetail = React.useCallback(async () => {
     if (!Number.isFinite(targetId) || targetId <= 0) {
@@ -226,10 +209,9 @@ export default function ReportedContentCommentDetailPageClient({
     <div className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
         <div className="space-y-6">
-          {renderCommentSummary(config, target, () => router.push(getReturnToPath(Number(detail.target_id ?? targetId))))}
+          {renderCommentSummary(config, target)}
           {renderCommentContent(config, target)}
           <CommentHistoryCard
-            config={config}
             histories={histories}
             meta={historiesMeta}
             refreshing={refreshing}
@@ -253,7 +235,6 @@ export default function ReportedContentCommentDetailPageClient({
 function renderCommentSummary(
   config: ReportedContentCommentDetailConfig,
   target: CommentTarget | null | undefined,
-  onBack: () => void,
 ) {
   return (
     <Card as="section">
@@ -318,14 +299,12 @@ function renderCommentContent(config: ReportedContentCommentDetailConfig, target
 }
 
 function CommentHistoryCard({
-  config,
   histories,
   meta,
   refreshing,
   error,
   onGoPage,
 }: {
-  config: ReportedContentCommentDetailConfig;
   histories: CommentHistory[];
   meta: DataTableMeta | null;
   refreshing: boolean;
@@ -353,9 +332,11 @@ function CommentHistoryCard({
                   {formatReportedContentDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span className="font-medium">{labelCommentHistoryChange(config, history)}</span>
+                <span>
+                  <OperationHistoryActionBadge history={history} />
+                </span>
                 <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  {formatCommentHistoryReason(config, history)}
+                  <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
@@ -489,26 +470,4 @@ function labelVisibility(status?: string | null) {
   if (!status) return "-";
 
   return status === "ACTIVE" ? "노출" : "미노출";
-}
-
-function labelCommentHistoryChange(
-  config: ReportedContentCommentDetailConfig,
-  history: CommentHistory,
-) {
-  if (config.kind === "talk-comment") {
-    return labelTalkHistoryChange(history as TalkOperationHistory);
-  }
-
-  return labelHospitalReviewHistoryChange(history as HospitalReviewOperationHistory);
-}
-
-function formatCommentHistoryReason(
-  config: ReportedContentCommentDetailConfig,
-  history: CommentHistory,
-) {
-  if (config.kind === "talk-comment") {
-    return formatTalkHistoryReason(history as TalkOperationHistory);
-  }
-
-  return formatHospitalReviewHistoryReason(history as HospitalReviewOperationHistory);
 }

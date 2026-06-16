@@ -10,7 +10,6 @@ import { NoticeMainSection } from "@/components/notice/form/NoticeMainSection";
 import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempImages";
 import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import type { NoticeAttachment, NoticeDetailResponse } from "@/lib/notice/detail";
 import {
   appendNoticeFormData,
@@ -56,16 +55,14 @@ export default function NoticeEditFormClient() {
     };
   }, [cleanupAllTempImages]);
 
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/notices",
-        allowedPrefix: "/notices",
-        highlightId,
-      }),
-    [searchParams],
-  );
+  const detailPath = React.useMemo(() => {
+    if (!Number.isFinite(noticeId) || noticeId <= 0) return "/notices";
+
+    const rawReturnTo = searchParams.get("returnTo");
+    return rawReturnTo
+      ? `/notices/${noticeId}?returnTo=${encodeURIComponent(rawReturnTo)}`
+      : `/notices/${noticeId}`;
+  }, [noticeId, searchParams]);
 
   const clearError = React.useCallback((field: NoticeFieldName) => {
     setErrors((prev) => {
@@ -179,9 +176,9 @@ export default function NoticeEditFormClient() {
       showAlert({
         variant: "success",
         title: "공지사항 수정 완료",
-        message: "수정된 공지사항을 목록에서 확인할 수 있습니다.",
+        message: "수정된 공지사항을 확인할 수 있습니다.",
       });
-      router.push(getReturnToPath(noticeId));
+      router.push(detailPath);
     } catch {
       showAlert({
         variant: "error",
