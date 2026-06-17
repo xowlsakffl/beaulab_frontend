@@ -7,6 +7,7 @@ export { default as FormRadioSm } from "./input/RadioSm";
 export { default as FormTextArea } from "./input/TextArea";
 export { CheckboxFilterDropdown } from "./filters/CheckboxFilterDropdown";
 export type { CheckboxFilterOption } from "./filters/CheckboxFilterDropdown";
+export { SingleCheckboxFilterDropdown } from "./filters/SingleCheckboxFilterDropdown";
 export { DateRangeFilterDropdown } from "./filters/DateRangeFilterDropdown";
 export type { DatePresetOption } from "./filters/DateRangeFilterDropdown";
 export { FormSettingToggleRow } from "./FormSettingToggleRow";
