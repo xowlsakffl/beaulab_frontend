@@ -170,11 +170,11 @@ export function AccountUsersFilterPanel({
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 shrink-0 px-5">
+            <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
               검색
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={onResetFilters} className="h-11 shrink-0 px-5">
-              검색초기화
+            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
+              검색 초기화
             </Button>
           </div>
         </div>

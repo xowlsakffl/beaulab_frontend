@@ -1,4 +1,4 @@
-import type { DatePresetOption } from "@beaulab/ui-admin";
+import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import { CATEGORY_USAGES } from "@/lib/common/category";
@@ -280,7 +280,7 @@ export function labelHospitalEventVisibilityStatus(status?: string | null) {
   return status === "INACTIVE" ? "미노출" : "노출";
 }
 
-export function hospitalEventVisibilityStatusColor(status?: string | null) {
+export function hospitalEventVisibilityStatusColor(status?: string | null): BadgeColor {
   return status === "ACTIVE" ? "success" : "error";
 }
 
@@ -301,7 +301,7 @@ export function labelHospitalEventAllowStatus(status?: string | null) {
   }
 }
 
-export function hospitalEventAllowStatusColor(status?: string | null) {
+export function hospitalEventAllowStatusColor(status?: string | null): BadgeColor {
   if (status === "APPROVED") return "success";
   if (status === "PENDING" || status === "REVIEWING") return "warning";
   if (status === "REJECTED" || status === "PARTNER_CANCELED") return "error";

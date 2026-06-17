@@ -1871,12 +1871,12 @@ function HospitalEventAppPreviewModal({
         </div>
 
         <div className="grid shrink-0 grid-cols-[4.25rem_minmax(0,1fr)] gap-2 border-t border-gray-100 bg-white px-4 py-3">
-          <button type="button" className="h-11 rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-700">
+          <Button type="button" variant="outline" size="auth" className="rounded-xl font-bold text-gray-700">
             병원
-          </button>
-          <button type="button" className="h-11 rounded-xl bg-brand-500 text-sm font-bold text-white">
+          </Button>
+          <Button type="button" variant="brand" size="auth" className="rounded-xl font-bold">
             상담 신청
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

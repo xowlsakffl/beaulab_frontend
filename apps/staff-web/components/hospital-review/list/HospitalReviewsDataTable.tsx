@@ -22,6 +22,7 @@ import {
   type HospitalReviewSortField,
   type HospitalReviewSortState,
 } from "@/lib/hospital-review/list";
+import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 function renderSortMark(field: HospitalReviewSortField, sortState: HospitalReviewSortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -89,24 +90,6 @@ function SelectionCheckbox({
 function FeatureBadge({ label }: { label: string }) {
   return (
     <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600  ">
-      {label}
-    </span>
-  );
-}
-
-function ReportStatusBadge({ label, status }: { label: string; status: string }) {
-  if (!label) return <span className="text-sm text-gray-400">-</span>;
-  const toneClassNames: Record<string, string> = {
-    INACTIVE: "bg-red-100 text-red-700  ",
-    AUTO_BLOCKED: "bg-red-100 text-red-700  ",
-    ADMIN_HIDDEN: "bg-orange-100 text-orange-800  ",
-    NORMAL_VISIBLE: "bg-green-100 text-green-700  ",
-    REEXPOSED: "bg-blue-100 text-blue-700  ",
-  };
-  const toneClassName = toneClassNames[status] ?? "bg-gray-100 text-gray-600  ";
-
-  return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${toneClassName}`}>
       {label}
     </span>
   );

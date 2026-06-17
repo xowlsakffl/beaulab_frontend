@@ -2,13 +2,13 @@
 
 import React from "react";
 import { ArrowRight, StatusBadge } from "@beaulab/ui-admin";
+import type { BadgeColor } from "@beaulab/ui-admin";
 
+import { reportStatusBadgeColor } from "@/components/common/ReportStatusBadge";
 import {
   hospitalEventAllowStatusColor,
   labelHospitalEventAllowStatus,
 } from "@/lib/hospital-event/list";
-
-type BadgeColor = "primary" | "success" | "error" | "warning" | "pink" | "info" | "light";
 
 export type OperationHistoryChangeLike = {
   field_key?: string | null;
@@ -192,9 +192,9 @@ function HistoryStatusValueBadge({
 
   if (transition.field === "report_status") {
     return (
-      <span className={`inline-flex h-5 items-center rounded-full px-2 text-[11px] font-semibold leading-none ${reportStatusToneClassName(rawValue)}`}>
+      <StatusBadge size="sm" color={reportStatusBadgeColor(stringifyHistoryValue(rawValue))} className="h-5 px-2 text-[11px] leading-none">
         {statusDisplayLabel(transition.field, rawValue, label)}
-      </span>
+      </StatusBadge>
     );
   }
 
@@ -203,26 +203,6 @@ function HistoryStatusValueBadge({
       {statusDisplayLabel(transition.field, rawValue, label)}
     </StatusBadge>
   );
-}
-
-function reportStatusToneClassName(value: unknown) {
-  switch (stringifyHistoryValue(value)) {
-    case "REPORTED":
-    case "RECEIVED":
-      return "bg-yellow-100 text-yellow-800";
-    case "AUTO_BLOCKED":
-    case "INVALID":
-      return "bg-red-100 text-red-700";
-    case "ADMIN_HIDDEN":
-      return "bg-orange-100 text-orange-800";
-    case "NORMAL_VISIBLE":
-    case "VALID":
-      return "bg-green-100 text-green-700";
-    case "REEXPOSED":
-      return "bg-blue-100 text-blue-700";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
 }
 
 function statusDisplayLabel(field?: string | null, value?: unknown, fallbackLabel?: string) {

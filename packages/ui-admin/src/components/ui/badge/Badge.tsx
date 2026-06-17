@@ -1,15 +1,22 @@
 import React from "react";
 
-type BadgeVariant = "light" | "solid";
-type BadgeSize = "sm" | "md";
-type BadgeColor =
+export type BadgeVariant = "light" | "solid";
+export type BadgeSize = "sm" | "md";
+export type BadgeColor =
   | "primary"
   | "success"
   | "error"
   | "warning"
   | "pink"
   | "info"
-  | "light";
+  | "light"
+  | "red"
+  | "orange"
+  | "yellow"
+  | "green"
+  | "blue"
+  | "purple"
+  | "gray";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -34,6 +41,13 @@ const variantStyles: Record<BadgeVariant, Record<BadgeColor, string>> = {
     pink: "bg-[#FA2875]/10 text-[#FA2875]  ",
     info: "bg-blue-light-50 text-blue-light-500  ",
     light: "bg-gray-100 text-gray-700  ",
+    red: "bg-red-100 text-red-700  ",
+    orange: "bg-orange-100 text-orange-800  ",
+    yellow: "bg-yellow-100 text-yellow-800  ",
+    green: "bg-green-100 text-green-700  ",
+    blue: "bg-blue-100 text-blue-700  ",
+    purple: "bg-purple-100 text-purple-700  ",
+    gray: "bg-gray-100 text-gray-700  ",
   },
   solid: {
     primary: "bg-brand-500 text-white ",
@@ -43,6 +57,13 @@ const variantStyles: Record<BadgeVariant, Record<BadgeColor, string>> = {
     pink: "bg-[#FA2875] text-white ",
     info: "bg-blue-light-500 text-white ",
     light: "bg-gray-400  text-white ",
+    red: "bg-red-500 text-white ",
+    orange: "bg-orange-500 text-white ",
+    yellow: "bg-yellow-500 text-white ",
+    green: "bg-green-500 text-white ",
+    blue: "bg-blue-500 text-white ",
+    purple: "bg-purple-500 text-white ",
+    gray: "bg-gray-500 text-white ",
   },
 };
 

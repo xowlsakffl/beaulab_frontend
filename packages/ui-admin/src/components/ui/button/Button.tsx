@@ -4,15 +4,16 @@ import * as React from "react";
 
 import { cn } from "../../../lib/utils";
 
-type ButtonVariant =
+export type ButtonVariant =
   | "default"
   | "destructive"
   | "outline"
   | "secondary"
   | "ghost"
   | "link"
-  | "brand";
-type ButtonSize = "default" | "sm" | "lg" | "icon" | "auth";
+  | "brand"
+  | "brandOutline";
+export type ButtonSize = "default" | "sm" | "lg" | "icon" | "auth" | "filter";
 
 const baseClassName =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20  aria-invalid:border-destructive";
@@ -27,6 +28,8 @@ const variantClassNames: Record<ButtonVariant, string> = {
   ghost: "hover:bg-accent hover:text-accent-foreground",
   link: "text-primary underline-offset-4 hover:underline",
   brand: "bg-brand-500 text-white shadow-xs hover:bg-brand-600 focus-visible:ring-brand-500/20",
+  brandOutline:
+    "border border-brand-500 bg-white text-brand-500 shadow-xs hover:bg-brand-50 focus-visible:ring-brand-500/20",
 };
 
 const sizeClassNames: Record<ButtonSize, string> = {
@@ -35,6 +38,7 @@ const sizeClassNames: Record<ButtonSize, string> = {
   lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
   icon: "size-9",
   auth: "h-11 rounded-lg px-5 py-3 has-[>svg]:px-4",
+  filter: "h-11 rounded-lg px-5 has-[>svg]:px-4",
 };
 
 export interface ButtonProps extends React.ComponentProps<"button"> {

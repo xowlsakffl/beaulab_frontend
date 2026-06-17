@@ -232,15 +232,15 @@ export function HospitalEvaluationsFilterPanel({
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" onClick={onApplyFilters} size="sm" className="h-11 shrink-0 px-5">
+              <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
                 검색
               </Button>
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="brandOutline"
+                size="filter"
                 onClick={onResetFilters}
-                className="h-11 border-brand-500 px-5 text-brand-500 hover:bg-gray-100 "
+                className="shrink-0"
               >
                 검색 초기화
               </Button>

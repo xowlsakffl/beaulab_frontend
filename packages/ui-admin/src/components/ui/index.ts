@@ -1,4 +1,5 @@
 export { Button, buttonVariants } from "./button/Button";
+export type { ButtonSize, ButtonVariant } from "./button/Button";
 export { CircleRemoveButton } from "./button/CircleRemoveButton";
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card/Card";
 export * from "./spinner/Spinner";
@@ -10,6 +11,7 @@ export * from "./alert/Alert";
 export * from "./avatar/Avatar";
 export * from "./avatar/AvatarText";
 export { default as StatusBadge } from "./badge/Badge";
+export type { BadgeColor, BadgeSize, BadgeVariant } from "./badge/Badge";
 export * from "./badge/CategoryBadgeList";
 export * from "./images/ResponsiveImage";
 export * from "./images/ThreeColumnImageGrid";

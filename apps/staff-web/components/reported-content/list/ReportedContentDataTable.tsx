@@ -7,6 +7,7 @@ import {
   ChevronUp,
   ChevronsUpDown,
   DataTable,
+  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -19,6 +20,7 @@ import {
   type ReportedContentSortField,
   type ReportedContentSortState,
 } from "@/lib/reported-content/list";
+import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 type ReportedContentDataTableProps = {
   kind: ReportedContentKind;
@@ -69,33 +71,6 @@ function SortHeader({
   );
 }
 
-function StatusBadge({ label, tone }: { label: string; tone: "yellow" | "orange" | "red" | "green" | "blue" | "gray" }) {
-  const toneClassName = {
-    yellow: "bg-yellow-100 text-yellow-800  ",
-    orange: "bg-orange-100 text-orange-800  ",
-    red: "bg-red-100 text-red-700  ",
-    green: "bg-green-100 text-green-700  ",
-    blue: "bg-blue-100 text-blue-700  ",
-    gray: "bg-gray-100 text-gray-700  ",
-  }[tone];
-
-  return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${toneClassName}`}>
-      {label}
-    </span>
-  );
-}
-
-function reportStatusTone(status: string): "yellow" | "orange" | "red" | "green" | "blue" | "gray" {
-  if (status === "REPORTED") return "yellow";
-  if (status === "AUTO_BLOCKED") return "red";
-  if (status === "ADMIN_HIDDEN") return "orange";
-  if (status === "NORMAL_VISIBLE") return "green";
-  if (status === "REEXPOSED") return "blue";
-
-  return "gray";
-}
-
 function renderImagePreview(row: ReportedContentRow) {
   const imageUrl = resolveReportedReviewImageUrl(row.image);
 
@@ -138,8 +113,8 @@ function buildColumns({
     cellClassName: `${nowrapCellClass} w-[70px]`,
     header: "경고",
     render: (row) => {
-      if (row.hasWarning) return <StatusBadge label="경고" tone="red" />;
-      if (row.hasIgnoredWarning) return <StatusBadge label="무시" tone="gray" />;
+      if (row.hasWarning) return <StatusBadge size="sm" color="red">경고</StatusBadge>;
+      if (row.hasIgnoredWarning) return <StatusBadge size="sm" color="gray">무시</StatusBadge>;
 
       return "-";
     },
@@ -182,7 +157,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[96px]`,
       cellClassName: `${nowrapCellClass} w-[96px]`,
       header: <SortHeader field="report_status" label="신고상태" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => <StatusBadge label={row.statusLabel} tone={reportStatusTone(row.status)} />,
+      render: (row) => <ReportStatusBadge label={row.statusLabel} status={row.status} />,
     },
     warningColumn,
   ];
