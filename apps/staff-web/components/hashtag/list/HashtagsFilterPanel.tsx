@@ -69,7 +69,7 @@ export function HashtagsFilterPanel({
   return (
     <Card className="rounded-xl p-3 ">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)] gap-x-4 gap-y-4">
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>운영 상태</span>
           <CheckboxFilterDropdown
             label="운영 상태"
@@ -83,7 +83,7 @@ export function HashtagsFilterPanel({
             onToggleAll={onToggleAllStatus}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>등록일</span>
           <DateRangeFilterDropdown
             label="등록일"
@@ -104,7 +104,7 @@ export function HashtagsFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>수정일</span>
           <DateRangeFilterDropdown
             label="수정일"
@@ -125,8 +125,8 @@ export function HashtagsFilterPanel({
             onConfirm={onToggleUpdatedDatePicker}
           />
         </div>
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-3 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField

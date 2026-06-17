@@ -8,7 +8,7 @@ import {
   DateRangeFilterDropdown,
   FormCheckbox,
   InputField,
-  Select,
+  SingleCheckboxFilterDropdown,
 } from "@beaulab/ui-admin";
 
 import {
@@ -70,7 +70,7 @@ export function AccountUsersFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
             <div className="flex min-w-0 flex-1 flex-row items-center gap-6">
@@ -108,12 +108,12 @@ export function AccountUsersFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>가입경로</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="가입경로"
+                hideLabel
                 value={draftFilters.signupChannel}
                 options={ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onSignupChannelChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -121,12 +121,12 @@ export function AccountUsersFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>회원상태</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="회원상태"
+                hideLabel
                 value={draftFilters.status}
                 options={ACCOUNT_USER_STATUS_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onStatusChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -155,7 +155,7 @@ export function AccountUsersFilterPanel({
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
+        <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">

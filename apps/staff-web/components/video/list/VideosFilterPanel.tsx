@@ -93,7 +93,7 @@ export function VideosFilterPanel({
   return (
     <Card className="rounded-xl p-3 ">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)] gap-x-4 gap-y-4">
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>운영 상태</span>
           <CheckboxFilterDropdown
             label="운영 상태"
@@ -107,7 +107,7 @@ export function VideosFilterPanel({
             onToggleAll={onToggleAllOperatingStatus}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>검수 상태</span>
           <CheckboxFilterDropdown
             label="검수 상태"
@@ -121,7 +121,7 @@ export function VideosFilterPanel({
             onToggleAll={onToggleAllApprovalStatus}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>배포 채널</span>
           <CheckboxFilterDropdown
             label="배포 채널"
@@ -135,7 +135,7 @@ export function VideosFilterPanel({
             onToggleAll={onToggleAllDistributionChannel}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>등록일</span>
           <DateRangeFilterDropdown
             label="등록일"
@@ -156,7 +156,7 @@ export function VideosFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-4 py-1.5">
+        <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>검수 처리</span>
           <DateRangeFilterDropdown
             label="검수 처리 시각"
@@ -177,8 +177,8 @@ export function VideosFilterPanel({
             onConfirm={onToggleAllowedDatePicker}
           />
         </div>
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-3 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField

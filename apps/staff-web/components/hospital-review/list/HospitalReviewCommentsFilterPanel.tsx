@@ -8,6 +8,7 @@ import {
   DateRangeFilterDropdown,
   InputField,
   Select,
+  SingleCheckboxFilterDropdown,
 } from "@beaulab/ui-admin";
 
 import {
@@ -137,12 +138,12 @@ export function HospitalReviewCommentsFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>노출여부</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="노출여부"
+                hideLabel
                 value={draftFilters.visibilityStatus}
                 options={HOSPITAL_REVIEW_VISIBILITY_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onVisibilityChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -178,12 +179,12 @@ export function HospitalReviewCommentsFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="상태"
+                hideLabel
                 value={draftFilters.reportStatus}
                 options={HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onReportStatusChange}
-                className="h-11 px-3"
               />
             </div>
           </div>

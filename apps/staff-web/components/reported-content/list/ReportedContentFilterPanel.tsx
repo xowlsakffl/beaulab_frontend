@@ -8,7 +8,7 @@ import {
   DateRangeFilterDropdown,
   FormCheckbox,
   InputField,
-  Select,
+  SingleCheckboxFilterDropdown,
 } from "@beaulab/ui-admin";
 
 import {
@@ -88,12 +88,12 @@ export function ReportedContentFilterPanel({
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
   const firstGridClass = singleLineFilters
-    ? "grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,2.6fr)] gap-x-3 gap-y-3"
+    ? "grid min-w-0 grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,2.55fr)] gap-x-3 gap-y-3"
     : showVisibilityFilter && showReportStatusFilter
-    ? "grid min-w-0 grid-cols-[minmax(0,2.25fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)_minmax(0,1.15fr)]"
+    ? "grid min-w-0 grid-cols-[minmax(0,2.15fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
     : showVisibilityFilter || showReportStatusFilter
-      ? "grid min-w-0 grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)_minmax(0,1.15fr)]"
-      : "grid min-w-0 grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3";
+      ? "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
+      : "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3";
   const desktopSecondGridClass = showWarningFilter
     ? "grid min-w-0 grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)] gap-x-4 gap-y-3 max-[1800px]:hidden"
     : "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:hidden";
@@ -102,7 +102,7 @@ export function ReportedContentFilterPanel({
   const compactSearchGridClass = "hidden min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:grid";
   const dateControlsClass = dateTypeInline
     ? singleLineFilters
-      ? "flex min-w-0 flex-1 flex-row items-center gap-3"
+      ? "flex min-w-0 flex-1 flex-row items-center gap-2"
       : "flex min-w-0 flex-1 flex-row items-center gap-6"
     : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -141,12 +141,12 @@ export function ReportedContentFilterPanel({
     <div className={filterRowClass}>
       <span className={inlineLabelClass}>경고</span>
       <div className="min-w-0 flex-1">
-        <Select
+        <SingleCheckboxFilterDropdown
+          label="경고"
+          hideLabel
           value={draftFilters.warningStatus}
           options={REPORTED_CONTENT_WARNING_OPTIONS}
-          showPlaceholderOption={false}
           onChange={onWarningStatusChange}
-          className="h-11 px-3"
         />
       </div>
     </div>
@@ -155,12 +155,12 @@ export function ReportedContentFilterPanel({
     <div className={filterRowClass}>
       <span className={inlineLabelClass}>노출여부</span>
       <div className="min-w-0 flex-1">
-        <Select
+        <SingleCheckboxFilterDropdown
+          label="노출여부"
+          hideLabel
           value={draftFilters.visibilityStatus}
           options={REPORTED_CONTENT_VISIBILITY_OPTIONS}
-          showPlaceholderOption={false}
           onChange={onVisibilityChange}
-          className="h-11 px-3"
         />
       </div>
     </div>
@@ -169,18 +169,18 @@ export function ReportedContentFilterPanel({
     <div className={filterRowClass}>
       <span className={inlineLabelClass}>{reportStatusLabel}</span>
       <div className="min-w-0 flex-1">
-        <Select
+        <SingleCheckboxFilterDropdown
+          label={reportStatusLabel}
+          hideLabel
           value={draftFilters.reportStatus}
           options={reportStatusOptions}
-          showPlaceholderOption={false}
           onChange={onReportStatusChange}
-          className="h-11 px-3"
         />
       </div>
     </div>
   ) : null;
   const searchFilter = (
-    <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
+    <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className={inlineLabelClass}>검색</span>
         <div className="min-w-0 flex-1">
@@ -219,12 +219,12 @@ export function ReportedContentFilterPanel({
             <span className={inlineLabelClass}>기간</span>
             <div className={dateControlsClass}>
               {dateTypeInline ? null : (
-                <Select
+                <SingleCheckboxFilterDropdown
+                  label="기간 기준"
+                  hideLabel
                   value={draftFilters.dateType}
                   options={dateTypeOptions}
-                  showPlaceholderOption={false}
                   onChange={onDateTypeChange}
-                  className="h-11 px-3"
                 />
               )}
               <DateRangeFilterDropdown
@@ -263,12 +263,12 @@ export function ReportedContentFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>신고사유</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="신고사유"
+                hideLabel
                 value={draftFilters.reportReason}
                 options={REPORTED_CONTENT_REASON_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onReportReasonChange}
-                className="h-11 px-3"
               />
             </div>
           </div>

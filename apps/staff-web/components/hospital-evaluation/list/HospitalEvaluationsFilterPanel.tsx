@@ -8,7 +8,7 @@ import {
   CheckboxFilterDropdown,
   DateRangeFilterDropdown,
   InputField,
-  Select,
+  SingleCheckboxFilterDropdown,
   type CheckboxFilterOption,
 } from "@beaulab/ui-admin";
 
@@ -74,7 +74,7 @@ export function HospitalEvaluationsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEvaluationsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-20 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -87,7 +87,7 @@ export function HospitalEvaluationsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.65fr)] gap-x-2 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,0.75fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)] gap-x-2 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,0.95fr)]">
           <div className={`${filterRowClass} order-1`}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
@@ -113,12 +113,12 @@ export function HospitalEvaluationsFilterPanel({
           <div className={`${filterRowClass} order-2`}>
             <span className={inlineLabelClass}>노출여부</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="노출여부"
+                hideLabel
                 value={draftFilters.visibilityStatus}
                 options={HOSPITAL_EVALUATION_VISIBILITY_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onVisibilityChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -126,12 +126,12 @@ export function HospitalEvaluationsFilterPanel({
           <div className={`${filterRowClass} order-4 max-[1800px]:order-3`}>
             <span className={inlineLabelClass}>평점</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="평점"
+                hideLabel
                 value={draftFilters.rating}
                 options={HOSPITAL_EVALUATION_RATING_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onRatingChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -189,12 +189,12 @@ export function HospitalEvaluationsFilterPanel({
           <div className={`${filterRowClass} order-6 max-[1800px]:order-6`}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="상태"
+                hideLabel
                 value={draftFilters.reportStatus}
                 options={HOSPITAL_EVALUATION_REPORT_STATUS_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onReportStatusChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -217,8 +217,8 @@ export function HospitalEvaluationsFilterPanel({
             />
           </div>
 
-          <div className="flex min-w-0 flex-row items-center gap-3 py-1.5 pl-2">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5 pl-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField

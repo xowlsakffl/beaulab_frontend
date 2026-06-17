@@ -6,7 +6,7 @@ import {
   ChevronUp,
   ChevronsUpDown,
   DataTable,
-  Select,
+  SingleCheckboxFilterDropdown,
   StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
@@ -263,13 +263,15 @@ export function VideosDataTable({
       onRowClick={onRowClick}
       rightActions={(
         <div className="flex items-center gap-2">
-          <Select
-            defaultValue={String(perPage)}
+          <SingleCheckboxFilterDropdown
+            label="개수"
+            hideLabel
+            value={String(perPage)}
             options={PER_PAGE_OPTIONS}
-            showPlaceholderOption={false}
             onChange={(value) => onPerPageChange(Number(value))}
-            placeholder="개수 선택"
-            className="w-[70px] px-2 text-xs"
+            emptyLabel="개수 선택"
+            className="w-[86px]"
+            triggerClassName="h-9 px-2 text-xs"
           />
         </div>
       )}

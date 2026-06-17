@@ -11,6 +11,7 @@ import {
   FormCheckbox,
   InputField,
   Select,
+  SingleCheckboxFilterDropdown,
   SquarePlus,
 } from "@beaulab/ui-admin";
 
@@ -95,7 +96,7 @@ export function HospitalEventsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEventsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -110,7 +111,7 @@ export function HospitalEventsFilterPanel({
         <div className="grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,0.7fr)_minmax(0,1.55fr)_minmax(0,1.8fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.55fr)_minmax(0,1.15fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
-            <div className="flex min-w-0 flex-1 flex-row items-center gap-3">
+            <div className="flex min-w-0 flex-1 flex-row items-center gap-2">
               <DateRangeFilterDropdown
                 label="기간"
                 hideLabel
@@ -145,12 +146,12 @@ export function HospitalEventsFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>노출여부</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="노출여부"
+                hideLabel
                 value={draftFilters.visibilityStatus}
                 options={HOSPITAL_EVENT_VISIBILITY_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onVisibilityChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -219,8 +220,8 @@ export function HospitalEventsFilterPanel({
             onEnter={handleEnterToSearch}
           />
 
-          <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField
@@ -288,7 +289,7 @@ function MetricRangeFilter({
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   return (
-    <div className={["flex min-w-0 items-center gap-3 py-1.5", className].filter(Boolean).join(" ")}>
+    <div className={["flex min-w-0 items-center gap-2 py-1.5", className].filter(Boolean).join(" ")}>
       <span className={inlineLabelClass}>{label}</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(8.5rem,1.25fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select

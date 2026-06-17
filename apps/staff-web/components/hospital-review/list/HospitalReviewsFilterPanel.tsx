@@ -9,6 +9,7 @@ import {
   DateRangeFilterDropdown,
   InputField,
   Select,
+  SingleCheckboxFilterDropdown,
 } from "@beaulab/ui-admin";
 
 import {
@@ -84,7 +85,7 @@ export function HospitalReviewsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalReviewsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -143,12 +144,12 @@ export function HospitalReviewsFilterPanel({
           <div className={`${filterRowClass} col-span-2 max-[1800px]:col-span-4`}>
             <span className={inlineLabelClass}>노출여부</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="노출여부"
+                hideLabel
                 value={draftFilters.visibilityStatus}
                 options={HOSPITAL_REVIEW_VISIBILITY_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onVisibilityChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -194,12 +195,12 @@ export function HospitalReviewsFilterPanel({
           <div className={`${filterRowClass} col-span-2 max-[1800px]:col-span-4`}>
             <span className={inlineLabelClass}>베스트</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="베스트"
+                hideLabel
                 value={draftFilters.best}
                 options={HOSPITAL_REVIEW_BEST_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onBestChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -223,18 +224,18 @@ export function HospitalReviewsFilterPanel({
           <div className={`${filterRowClass} col-span-2 max-[1800px]:col-span-2`}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1 max-w-[180px]">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="상태"
+                hideLabel
                 value={draftFilters.reportStatus}
                 options={HOSPITAL_REVIEW_REPORT_STATUS_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onReportStatusChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
 
-          <div className="col-span-6 flex min-w-0 flex-row items-center gap-3 py-1.5 pl-2 max-[1800px]:col-span-10">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="col-span-6 flex min-w-0 flex-row items-center gap-2 py-1.5 pl-2 max-[1800px]:col-span-10">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField

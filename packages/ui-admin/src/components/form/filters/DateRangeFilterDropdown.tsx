@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { createPortal } from "react-dom";
 import { DayFlag, DayPicker, SelectionState, UI, getDefaultClassNames, type DateRange, type Locale } from "react-day-picker";
 import { ko } from "react-day-picker/locale";
 import { ChevronDown } from "../../../icons";
@@ -55,6 +56,41 @@ export function DateRangeFilterDropdown({
   triggerClassName,
 }: DateRangeFilterDropdownProps) {
   const defaultClassNames = React.useMemo(() => getDefaultClassNames(), []);
+  const triggerContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const popupRef = React.useRef<HTMLDivElement | null>(null);
+  const [popupStyle, setPopupStyle] = React.useState<React.CSSProperties | undefined>(undefined);
+  const [isPopupPositioned, setIsPopupPositioned] = React.useState(false);
+  const setTriggerContainerRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      triggerContainerRef.current = node;
+
+      if (containerRef) {
+        (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    },
+    [containerRef],
+  );
+  const updatePopupPosition = React.useCallback(() => {
+    const trigger = triggerContainerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const margin = 16;
+    const popupWidth = popupRef.current?.offsetWidth ?? 360;
+    const left = Math.min(
+      Math.max(margin, rect.right - popupWidth),
+      Math.max(margin, window.innerWidth - popupWidth - margin),
+    );
+
+    setPopupStyle({
+      position: "fixed",
+      top: rect.bottom + 4,
+      left,
+      zIndex: 100002,
+      maxWidth: `calc(100vw - ${margin * 2}px)`,
+    });
+    setIsPopupPositioned(true);
+  }, []);
   const dayPickerClassNames = React.useMemo(
     () => ({
       ...defaultClassNames,
@@ -93,10 +129,95 @@ export function DateRangeFilterDropdown({
       }) as React.CSSProperties,
     [],
   );
+  React.useLayoutEffect(() => {
+    if (!isOpen) {
+      setPopupStyle(undefined);
+      setIsPopupPositioned(false);
+      return;
+    }
+
+    updatePopupPosition();
+    const frameId = window.requestAnimationFrame(updatePopupPosition);
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [isOpen, updatePopupPosition]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    window.addEventListener("resize", updatePopupPosition);
+    window.addEventListener("scroll", updatePopupPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePopupPosition);
+      window.removeEventListener("scroll", updatePopupPosition, true);
+    };
+  }, [isOpen, updatePopupPosition]);
+
+  const resolvedPopupStyle: React.CSSProperties = {
+    ...(popupStyle ?? {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      zIndex: 100002,
+      maxWidth: "calc(100vw - 32px)",
+    }),
+    visibility: isPopupPositioned ? "visible" : "hidden",
+  };
+
+  const popup = isOpen ? (
+    <div
+      ref={popupRef}
+      style={resolvedPopupStyle}
+      className="z-[100002]"
+      onMouseDown={(event) => event.stopPropagation()}
+    >
+      <Card className="rounded-lg p-3 shadow-lg">
+        <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3 ">
+          {presetOptions.map((preset) => (
+            <Button
+              key={preset.key}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onPresetSelect(preset.key)}
+              className="h-8 px-3 text-xs"
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+        <DayPicker
+          mode="range"
+          selected={selected}
+          locale={locale}
+          onSelect={(range, selectedDay) => onSelect(range, selectedDay)}
+          classNames={dayPickerClassNames}
+          style={dayPickerStyles}
+        />
+        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 ">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onReset}
+            disabled={!selected?.from && !selected?.to}
+            className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 "
+          >
+            초기화
+          </Button>
+          <Button type="button" variant="brand" size="sm" onClick={onConfirm} className="h-8 px-3 text-xs">
+            확인
+          </Button>
+        </div>
+      </Card>
+    </div>
+  ) : null;
+
   return (
-    <div className="min-w-0 w-full">
+    <div className={cn("min-w-0 w-full", isOpen ? "relative z-[100001]" : undefined)}>
       {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}
-      <div ref={containerRef} className="relative">
+      <div ref={setTriggerContainerRef} className="relative">
         <Button
           type="button"
           variant="outline"
@@ -111,47 +232,7 @@ export function DateRangeFilterDropdown({
           <span className="min-w-0 flex-1 truncate text-left">{value || placeholder}</span>
           <ChevronDown className="size-4" />
         </Button>
-        {isOpen ? (
-          <Card className="absolute left-0 z-[100000] mt-1 max-w-[calc(100vw-2rem)] rounded-lg p-3 shadow-lg   sm:left-auto sm:right-0">
-            <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3 ">
-              {presetOptions.map((preset) => (
-                <Button
-                  key={preset.key}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPresetSelect(preset.key)}
-                  className="h-8 px-3 text-xs"
-                >
-                  {preset.label}
-                </Button>
-              ))}
-            </div>
-            <DayPicker
-              mode="range"
-              selected={selected}
-              locale={locale}
-              onSelect={(range, selectedDay) => onSelect(range, selectedDay)}
-              classNames={dayPickerClassNames}
-              style={dayPickerStyles}
-            />
-            <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 ">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onReset}
-                disabled={!selected?.from && !selected?.to}
-                className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 "
-              >
-                초기화
-              </Button>
-              <Button type="button" variant="brand" size="sm" onClick={onConfirm} className="h-8 px-3 text-xs">
-                확인
-              </Button>
-            </div>
-          </Card>
-        ) : null}
+        {popup && typeof document !== "undefined" ? createPortal(popup, document.body) : null}
       </div>
     </div>
   );

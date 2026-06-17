@@ -152,7 +152,7 @@ function buildHospitalEvaluationColumns({
       key: "id",
       headerClassName: `${headerBaseClass} lg:w-[58px] xl:w-[5%]`,
       cellClassName: `${nowrapCellClass} lg:w-[58px] xl:w-[5%]`,
-      header: <SortHeader field="id" label="평가ID" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader field="id" label="ID" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.id,
     },
     {

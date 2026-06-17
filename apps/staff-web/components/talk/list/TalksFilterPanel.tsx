@@ -7,6 +7,7 @@ import {
   DateRangeFilterDropdown,
   InputField,
   Select,
+  SingleCheckboxFilterDropdown,
 } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
@@ -72,7 +73,7 @@ export function TalksFilterPanel({
   onResetFilters,
 }: TalksFilterPanelProps) {
   const isCommentBoard = board === "comments";
-  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -124,12 +125,12 @@ export function TalksFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>노출여부</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="노출여부"
+                hideLabel
                 value={draftFilters.visibilityStatus}
                 options={TALK_VISIBILITY_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onVisibilityChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
@@ -180,20 +181,20 @@ export function TalksFilterPanel({
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1">
-              <Select
+              <SingleCheckboxFilterDropdown
+                label="상태"
+                hideLabel
                 value={draftFilters.reportStatus}
                 options={TALK_REPORT_STATUS_OPTIONS}
-                showPlaceholderOption={false}
                 onChange={onReportStatusChange}
-                className="h-11 px-3"
               />
             </div>
           </div>
         </div>
 
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3">
-          <div className="flex min-w-0 flex-row items-center gap-3 py-1.5">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField

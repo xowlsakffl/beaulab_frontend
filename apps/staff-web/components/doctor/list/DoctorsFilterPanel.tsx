@@ -100,11 +100,11 @@ export function DoctorsFilterPanel({
   onResetFilters,
 }: DoctorsFilterPanelProps) {
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
-  const filterRowClass = "flex min-w-0 items-center gap-3 py-1.5";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
 
   return (
     <Card className="rounded-xl p-3 ">
-      <div className="grid grid-cols-[minmax(14rem,1.25fr)_minmax(10.5rem,0.9fr)_minmax(10.5rem,0.9fr)_minmax(9.5rem,0.8fr)_minmax(10.5rem,0.9fr)_minmax(24rem,1.8fr)] gap-x-4 gap-y-4 max-[1800px]:grid-cols-[minmax(14rem,1.1fr)_minmax(12rem,0.9fr)_minmax(14rem,1fr)]">
+      <div className="grid grid-cols-[minmax(13rem,1.4fr)_minmax(13rem,1.1fr)_minmax(13.5rem,1.15fr)_minmax(5rem,1fr)_minmax(9.5rem,1fr)_minmax(10rem,1.8fr)] gap-x-3 gap-y-4 max-[1800px]:grid-cols-[minmax(14rem,1.1fr)_minmax(13.5rem,1fr)_minmax(15rem,1.05fr)]">
         <div className={filterRowClass}>
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
@@ -223,8 +223,8 @@ export function DoctorsFilterPanel({
           </div>
         </div>
 
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-3 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField
