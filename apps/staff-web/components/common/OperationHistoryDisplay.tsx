@@ -52,7 +52,7 @@ type OperationHistoryReasonProps = {
 
 export function OperationHistoryReason({ history, fallbackReason }: OperationHistoryReasonProps) {
   const transition = resolveTransition(history);
-  const reason = history.reason?.trim() || fallbackReason?.trim() || "";
+  const reason = normalizeDisplayReason(history.reason?.trim() || fallbackReason?.trim() || "");
 
   if (transition && isStatusField(transition.field)) {
     return (
@@ -94,6 +94,36 @@ function HistoryReasonNote({ reason }: { reason: string }) {
       <span className="min-w-0 break-words text-gray-600">{reason}</span>
     </span>
   );
+}
+
+function normalizeDisplayReason(reason: string) {
+  if (!reason) return "";
+
+  const legacyPrefixes = [
+    "신고 처리 노출중지 - ",
+    "신고 처리 - ",
+    "신고 무시 처리 - ",
+  ];
+
+  for (const prefix of legacyPrefixes) {
+    if (reason.startsWith(prefix)) {
+      return reason.slice(prefix.length).trim();
+    }
+  }
+
+  const systemReasons = new Set([
+    "신고 처리 노출중지",
+    "신고 처리 정상노출",
+    "신고 처리 재노출",
+    "신고 처리",
+    "신고 무시 처리",
+    "신고 경고 처리",
+    "신고 경고 처리 - 누적 10회 차단",
+    "신고 경고 무시",
+    "신고 경고 무시 - 누적 차단 해제",
+  ]);
+
+  return systemReasons.has(reason) ? "" : reason;
 }
 
 function normalizeAction(action?: string | null, fallbackAction?: string) {

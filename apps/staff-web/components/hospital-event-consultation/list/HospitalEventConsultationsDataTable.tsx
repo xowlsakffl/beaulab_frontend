@@ -75,7 +75,7 @@ function DetailLink({
   className?: string;
 }) {
   const composedClassName = [
-    "text-gray-800 transition hover:text-brand-500",
+    "inline text-gray-800 underline decoration-gray-300 underline-offset-4 transition hover:text-brand-500 hover:decoration-brand-500",
     className,
   ].filter(Boolean).join(" ");
 
@@ -129,7 +129,7 @@ function buildColumns({
         <DetailLink
           href={row.hospitalId ? `/hospitals/${row.hospitalId}` : null}
           title={row.hospitalName}
-          className="line-clamp-2 break-words font-medium"
+          className="break-words font-medium"
         >
           {row.hospitalName}
         </DetailLink>
@@ -144,7 +144,7 @@ function buildColumns({
         <DetailLink
           href={row.eventId ? `/events/${row.eventId}` : null}
           title={row.eventName}
-          className="line-clamp-2 break-words"
+          className="break-words"
         >
           {row.eventName}
         </DetailLink>
@@ -159,7 +159,7 @@ function buildColumns({
         <DetailLink
           href={row.doctorId ? `/doctors/${row.doctorId}` : null}
           title={row.doctorName}
-          className="line-clamp-2 break-words"
+          className="break-words"
         >
           {row.doctorName}
         </DetailLink>

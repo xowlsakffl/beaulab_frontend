@@ -108,6 +108,7 @@ export const ACCOUNT_USER_DATE_TYPE_OPTIONS: AccountUserOption<AccountUserDateTy
 
 export const ACCOUNT_USER_DATE_PRESET_OPTIONS: DatePresetOption[] = [
   { key: "today", label: "오늘" },
+  { key: "yesterday", label: "어제" },
   { key: "last7days", label: "최근 7일" },
   { key: "last30days", label: "최근 30일" },
 ];
@@ -261,6 +262,12 @@ export function buildAccountUserPresetDateRange(preset: string): DateRange | und
   const start = normalizeDate(today);
 
   if (preset === "today") {
+    return { from: start, to: end };
+  }
+
+  if (preset === "yesterday") {
+    start.setDate(start.getDate() - 1);
+    end.setDate(end.getDate() - 1);
     return { from: start, to: end };
   }
 

@@ -160,6 +160,7 @@ export const DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT: HospitalEventConsultation
 
 export const HOSPITAL_EVENT_CONSULTATION_DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
+  { key: "yesterday", label: "어제" },
   { key: "recent7", label: "최근 7일" },
   { key: "recent30", label: "최근 30일" },
 ] as const satisfies readonly DatePresetOption[];
@@ -231,7 +232,7 @@ export function labelHospitalEventConsultationStatus(status?: string | null) {
 }
 
 export function hospitalEventConsultationStatusColor(status?: string | null): BadgeColor {
-  if (status === "CONFIRMED") return "success";
+  if (status === "CONFIRMED") return "gray";
   if (status === "DUPLICATE") return "warning";
 
   return "info";
@@ -423,6 +424,12 @@ export function buildHospitalEventConsultationPresetDateRange(preset: HospitalEv
   const today = normalizeRangeDate(new Date());
 
   if (preset === "today") return { from: today, to: today };
+
+  if (preset === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return { from: yesterday, to: yesterday };
+  }
 
   const days = preset === "recent7" ? 6 : 29;
   const from = new Date(today);
