@@ -139,7 +139,7 @@ function buildColumns({
       key: "id",
       headerClassName: `${headerBaseClass} w-[72px]`,
       cellClassName: `${nowrapCellClass} w-[72px]`,
-      header: <SortHeader label="RMID" field="id" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader label="RDID" field="id" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => row.id,
     },
     {

@@ -23,6 +23,9 @@ export type HospitalEventRealModelDBFilters = {
   dateRange: string;
   startDate: string;
   endDate: string;
+  birthDateRange: string;
+  birthStartDate: string;
+  birthEndDate: string;
   gender: string;
   status: string;
 };
@@ -37,6 +40,8 @@ export type HospitalEventRealModelDBQuery = {
   q?: string;
   start_date?: string;
   end_date?: string;
+  birth_start_date?: string;
+  birth_end_date?: string;
   genders?: string;
   statuses?: string;
   sort: HospitalEventRealModelDBSortField;
@@ -146,6 +151,9 @@ export const DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS: HospitalEventRealMode
   dateRange: "",
   startDate: "",
   endDate: "",
+  birthDateRange: "",
+  birthStartDate: "",
+  birthEndDate: "",
   gender: "",
   status: "",
 };
@@ -264,7 +272,12 @@ export function normalizeHospitalEventRealModelDB(
 export function parseHospitalEventRealModelDBsTableState(searchParams: URLSearchParams) {
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
+  const birthStartDate = searchParams.get("birth_start_date") ?? "";
+  const birthEndDate = searchParams.get("birth_end_date") ?? "";
   const dateState = buildHospitalEventRealModelDBDateState(startDate, endDate);
+  const birthDateState = buildHospitalEventRealModelDBDateState(birthStartDate, birthEndDate, {
+    fullYear: true,
+  });
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const parsedPage = Number(searchParams.get("page"));
@@ -280,10 +293,14 @@ export function parseHospitalEventRealModelDBsTableState(searchParams: URLSearch
       dateRange: dateState.label,
       startDate,
       endDate,
+      birthDateRange: birthDateState.label,
+      birthStartDate,
+      birthEndDate,
       gender: normalizeOptionValue(searchParams.get("genders"), GENDER_VALUES),
       status: normalizeOptionValue(searchParams.get("statuses"), STATUS_VALUES),
     },
     draftDateRange: dateState.range,
+    draftBirthDateRange: birthDateState.range,
     sortState: {
       field: sortField,
       direction: sortDirectionParam === "asc" ? "asc" : "desc",
@@ -316,6 +333,8 @@ export function buildHospitalEventRealModelDBsQuery({
   if (q) query.q = q;
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
+  if (appliedFilters.birthStartDate) query.birth_start_date = appliedFilters.birthStartDate;
+  if (appliedFilters.birthEndDate) query.birth_end_date = appliedFilters.birthEndDate;
   if (appliedFilters.gender) query.genders = appliedFilters.gender;
   if (appliedFilters.status) query.statuses = appliedFilters.status;
 
@@ -356,6 +375,14 @@ export function mapDateRangeToHospitalEventRealModelDBFilter(range?: DateRange) 
   };
 }
 
+export function mapBirthDateRangeToHospitalEventRealModelDBFilter(range?: DateRange) {
+  return {
+    label: formatDateRange(range, { fullYear: true }),
+    startDate: range?.from ? formatLocalDate(range.from) : "",
+    endDate: range?.to ? formatLocalDate(range.to) : "",
+  };
+}
+
 export function buildHospitalEventRealModelDBPresetDateRange(
   preset: HospitalEventRealModelDBDatePresetKey,
 ): DateRange {
@@ -380,24 +407,29 @@ export function normalizeRangeDate(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function buildHospitalEventRealModelDBDateState(startDate: string, endDate: string) {
+function buildHospitalEventRealModelDBDateState(
+  startDate: string,
+  endDate: string,
+  options: { fullYear?: boolean } = {},
+) {
   const from = startDate ? parseDateParam(startDate) : undefined;
   const to = endDate ? parseDateParam(endDate) : undefined;
   const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
 
   return {
     range,
-    label: formatDateRange(range),
+    label: formatDateRange(range, options),
   };
 }
 
-function formatDateRange(range?: DateRange) {
+function formatDateRange(range?: DateRange, options: { fullYear?: boolean } = {}) {
   if (!range?.from) return "";
 
-  const fromDate = formatLocalDate(range.from);
+  const formatter = options.fullYear ? formatLocalDate : formatFilterDisplayDate;
+  const fromDate = formatter(range.from);
   if (!range.to) return fromDate;
 
-  return `${fromDate} ~ ${formatLocalDate(range.to)}`;
+  return `${fromDate} ~ ${formatter(range.to)}`;
 }
 
 function formatDateString(value?: string | null) {
@@ -431,6 +463,14 @@ function parseDateParam(value: string) {
 
 function formatLocalDate(date: Date) {
   const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatFilterDisplayDate(date: Date) {
+  const year = String(date.getFullYear() % 100).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 

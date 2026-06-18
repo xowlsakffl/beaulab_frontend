@@ -22,12 +22,18 @@ type HospitalEventRealModelDBsFilterPanelProps = {
   searchInput: string;
   draftFilters: HospitalEventRealModelDBFilters;
   draftDateRange?: DateRange;
+  draftBirthDateRange?: DateRange;
   isDatePickerOpen: boolean;
+  isBirthDatePickerOpen: boolean;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
+  birthDatePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
   onToggleDatePicker: () => void;
+  onToggleBirthDatePicker: () => void;
   onApplyDateRange: (nextRange?: DateRange) => void;
+  onApplyBirthDateRange: (nextRange?: DateRange) => void;
   onApplyDatePreset: (preset: HospitalEventRealModelDBDatePresetKey) => void;
+  onApplyBirthDatePreset: (preset: HospitalEventRealModelDBDatePresetKey) => void;
   onGenderChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onApplyFilters: () => void;
@@ -38,12 +44,18 @@ export function HospitalEventRealModelDBsFilterPanel({
   searchInput,
   draftFilters,
   draftDateRange,
+  draftBirthDateRange,
   isDatePickerOpen,
+  isBirthDatePickerOpen,
   datePickerRef,
+  birthDatePickerRef,
   onSearchChange,
   onToggleDatePicker,
+  onToggleBirthDatePicker,
   onApplyDateRange,
+  onApplyBirthDateRange,
   onApplyDatePreset,
+  onApplyBirthDatePreset,
   onGenderChange,
   onStatusChange,
   onApplyFilters,
@@ -62,12 +74,12 @@ export function HospitalEventRealModelDBsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3 ">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.85fr)_minmax(0,3fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(0,0.9fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1.45fr)_minmax(0,0.65fr)_minmax(0,0.8fr)_minmax(0,1.45fr)] gap-x-3 gap-y-3">
           <div className={filterRowClass}>
-            <span className={inlineLabelClass}>기간</span>
+            <span className={inlineLabelClass}>신청일</span>
             <div className="min-w-0 flex-1">
               <DateRangeFilterDropdown
-                label="기간"
+                label="신청일"
                 hideLabel
                 containerRef={datePickerRef}
                 value={draftFilters.dateRange}
@@ -113,7 +125,31 @@ export function HospitalEventRealModelDBsFilterPanel({
             </div>
           </div>
 
-          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5 max-[1800px]:col-span-full">
+          <div className={filterRowClass}>
+            <span className={inlineLabelClass}>생년월일</span>
+            <div className="min-w-0 flex-1">
+              <DateRangeFilterDropdown
+                label="생년월일"
+                hideLabel
+                containerRef={birthDatePickerRef}
+                value={draftFilters.birthDateRange}
+                placeholder="생년월일 기간 선택"
+                selected={draftBirthDateRange}
+                isOpen={isBirthDatePickerOpen}
+                presetOptions={HOSPITAL_EVENT_REAL_MODEL_DB_DATE_PRESET_OPTIONS}
+                onToggleOpen={onToggleBirthDatePicker}
+                onSelect={onApplyBirthDateRange}
+                onPresetSelect={(presetKey) => onApplyBirthDatePreset(presetKey as HospitalEventRealModelDBDatePresetKey)}
+                onReset={() => {
+                  onApplyBirthDateRange(undefined);
+                  onToggleBirthDatePicker();
+                }}
+                onConfirm={onToggleBirthDatePicker}
+              />
+            </div>
+          </div>
+
+          <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
@@ -121,7 +157,7 @@ export function HospitalEventRealModelDBsFilterPanel({
                   value={searchInput}
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
-                  placeholder="RMID, 병의원, 이벤트, 이름, 전화번호, 지원부위를 입력해주세요"
+                  placeholder="RDID, 병의원, 이벤트, 이름을 입력해주세요"
                   className="w-full bg-white "
                 />
               </div>
