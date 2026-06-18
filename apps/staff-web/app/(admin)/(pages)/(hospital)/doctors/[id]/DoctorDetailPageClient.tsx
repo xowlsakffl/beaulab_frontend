@@ -33,7 +33,8 @@ import {
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
-const labelClassName = "text-xs font-bold text-gray-800";
+const cardTitleClassName = "text-sm font-semibold text-gray-800";
+const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 
 export default function DoctorDetailPageClient() {
@@ -206,7 +207,7 @@ function DoctorBasicInfoCard({
 }) {
   return (
     <Card className={`${infoCardClassName} flex min-h-[18rem] flex-col`}>
-      <h2 className="mb-6 text-sm font-bold text-gray-900">의료진정보</h2>
+      <h2 className={`mb-6 ${cardTitleClassName}`}>의료진정보</h2>
       <div className="grid min-w-0 flex-1 gap-x-16 gap-y-6 md:grid-cols-2">
         <div className="space-y-6">
           <InfoRow label="병의원" value={detail.hospital_name} />
@@ -245,7 +246,7 @@ function InfoRow({
   const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
 
   return (
-    <div className="grid min-w-0 grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-5">
+    <div className="grid min-w-0 grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-4">
       <p className={labelClassName}>{label}</p>
       <div className="flex min-w-0 items-center gap-2">
         <p className={`${valueClassName} min-w-0 flex-1`}>{displayValue}</p>
@@ -295,7 +296,7 @@ function InfoPanel({
 }) {
   return (
     <Card className={`${infoCardClassName} min-h-[12rem]`}>
-      <h3 className="mb-5 text-sm font-bold text-gray-900">{title}</h3>
+      <h3 className={`mb-5 ${cardTitleClassName}`}>{title}</h3>
       {children}
     </Card>
   );

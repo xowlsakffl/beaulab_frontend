@@ -32,6 +32,7 @@ type HospitalEventRealModelDBsDataTableProps = {
   onToggleSort: (field: HospitalEventRealModelDBSortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
+  onOpenDetail: (row: HospitalEventRealModelDBRow) => void;
 };
 
 function renderSortMark(
@@ -92,7 +93,7 @@ function DetailLink({
   }
 
   return (
-    <Link href={href} className={composedClassName} title={title}>
+    <Link href={href} className={composedClassName} title={title} onClick={(event) => event.stopPropagation()}>
       {children}
     </Link>
   );
@@ -242,6 +243,7 @@ export function HospitalEventRealModelDBsDataTable({
   onToggleSort,
   onRefresh,
   onGoPage,
+  onOpenDetail,
 }: HospitalEventRealModelDBsDataTableProps) {
   const columns = React.useMemo(
     () => buildColumns({ sortState, onToggleSort }),
@@ -260,6 +262,7 @@ export function HospitalEventRealModelDBsDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
+      onRowClick={onOpenDetail}
       onRefresh={onRefresh}
       refreshPlacement="left"
       onGoPage={onGoPage}

@@ -346,10 +346,20 @@ function normalizeDate(date: Date) {
 
 function formatDateRangeLabel(startDate: string, endDate: string) {
   if (!startDate && !endDate) return "전체";
-  if (startDate && endDate) return `${startDate} ~ ${endDate}`;
-  if (startDate) return `${startDate} ~`;
+  const displayStartDate = formatFilterDisplayDateString(startDate);
+  const displayEndDate = formatFilterDisplayDateString(endDate);
 
-  return `~ ${endDate}`;
+  if (startDate && endDate) return `${displayStartDate} ~ ${displayEndDate}`;
+  if (startDate) return `${displayStartDate} ~`;
+
+  return `~ ${displayEndDate}`;
+}
+
+function formatFilterDisplayDateString(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+
+  return `${match[1].slice(2)}-${match[2]}-${match[3]}`;
 }
 
 function formatApiDateTime(value?: string | null) {

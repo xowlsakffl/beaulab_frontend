@@ -78,6 +78,9 @@ export type HospitalEventRealModelDBApiItem = {
   event?: {
     id?: number | null;
     name?: string | null;
+    normal_price?: number | null;
+    event_price?: number | null;
+    thumbnail_image?: HospitalEventRealModelDBMediaAsset | null;
   } | null;
   account_user?: {
     id?: number | null;
@@ -114,6 +117,7 @@ export type HospitalEventRealModelDBApiItem = {
     label?: string | null;
   } | null;
   first_image?: HospitalEventRealModelDBMediaAsset | null;
+  images?: HospitalEventRealModelDBMediaAsset[] | null;
   image_count?: number | null;
   author_ip?: string | null;
   user_agent?: string | null;

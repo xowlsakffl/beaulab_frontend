@@ -148,7 +148,7 @@ export default function HospitalEventRealModelDBsTableClient() {
             to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
           }
         : undefined;
-    const mapped = mapBirthDateRangeToHospitalEventRealModelDBFilter(normalizedRange);
+    const mapped = mapDateRangeToHospitalEventRealModelDBFilter(normalizedRange);
 
     setDraftDateRange(normalizedRange);
     setDraftFilters((prev) => ({
@@ -172,7 +172,7 @@ export default function HospitalEventRealModelDBsTableClient() {
             to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
           }
         : undefined;
-    const mapped = mapDateRangeToHospitalEventRealModelDBFilter(normalizedRange);
+    const mapped = mapBirthDateRangeToHospitalEventRealModelDBFilter(normalizedRange);
 
     setDraftBirthDateRange(normalizedRange);
     setDraftFilters((prev) => ({
@@ -243,6 +243,7 @@ export default function HospitalEventRealModelDBsTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={toggleSort}
+        onOpenDetail={(row) => router.push(`/customer-db/real-models/${row.id}`)}
         onRefresh={() => void fetchRealModelDBs(true)}
         onGoPage={setPage}
       />
