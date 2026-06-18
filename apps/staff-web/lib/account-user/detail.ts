@@ -8,9 +8,9 @@ export type AccountUserNotificationSettings = {
 };
 
 export type AccountUserConsultationInfo = {
-  event_applications?: number | null;
+  event_dbs?: number | null;
   remote_consultations?: number | null;
-  real_model_applications?: number | null;
+  real_model_dbs?: number | null;
 };
 
 export type AccountUserActivityBlock = {

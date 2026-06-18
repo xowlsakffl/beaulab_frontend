@@ -45,7 +45,7 @@ import {
   HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT,
   INITIAL_HOSPITAL_EVENT_FORM,
   appendHospitalEventFormData,
-  calculateHospitalEventConsultationBasePrice,
+  calculateHospitalEventDBBasePrice,
   calculateHospitalEventDiscountRate,
   emptyDoctorAssignment,
   emptyEventOption,
@@ -957,7 +957,7 @@ function EventInfoCard({
   const [isEventDatePickerOpen, setIsEventDatePickerOpen] = React.useState(false);
   const [consultationPriceResetValue, setConsultationPriceResetValue] = React.useState<number | null>(null);
   const eventPriceValue = parseNumberInput(form.event_price);
-  const baseConsultationPrice = calculateHospitalEventConsultationBasePrice(eventPriceValue);
+  const baseConsultationPrice = calculateHospitalEventDBBasePrice(eventPriceValue);
   const eventDateRange = React.useMemo<DateRange | undefined>(() => {
     if (!form.event_start_at) return undefined;
 

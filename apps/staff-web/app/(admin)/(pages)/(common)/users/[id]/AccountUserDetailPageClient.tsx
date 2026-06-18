@@ -372,9 +372,9 @@ function ConsultationInfoCard({ user }: { user: AccountUserDetail }) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <CountBox label="이벤트 신청" value={Number(consultation?.event_applications ?? 0)} />
+          <CountBox label="이벤트 DB" value={Number(consultation?.event_dbs ?? 0)} />
           <CountBox label="비대면 상담신청" value={Number(consultation?.remote_consultations ?? 0)} />
-          <CountBox label="리얼모델관리" value={Number(consultation?.real_model_applications ?? 0)} />
+          <CountBox label="리얼모델 DB" value={Number(consultation?.real_model_dbs ?? 0)} />
         </div>
       </CardContent>
     </Card>

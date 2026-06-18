@@ -1,7 +1,13 @@
-import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/admin-pages";
+import { buildAdminPageMetadata } from "@/lib/common/routing/admin-pages";
+
+import HospitalEventRealModelDBsTableClient from "./HospitalEventRealModelDBsTableClient";
 
 export const metadata = buildAdminPageMetadata("/customer-db/real-models");
 
 export default function CustomerDbRealModelsPage() {
-    return renderAdminPage("/customer-db/real-models");
+    return (
+        <div className="space-y-4">
+            <HospitalEventRealModelDBsTableClient />
+        </div>
+    );
 }

@@ -1,21 +1,21 @@
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-export type HospitalEventConsultationOption<T extends string = string> = {
+export type HospitalEventDBOption<T extends string = string> = {
   value: T;
   label: string;
 };
 
-export type HospitalEventConsultationStatus = "NEW" | "CONFIRMED" | "DUPLICATE";
-export type HospitalEventConsultationAllowStatus =
+export type HospitalEventDBStatus = "NEW" | "CONFIRMED" | "DUPLICATE";
+export type HospitalEventDBAllowStatus =
   | "UNVERIFIED_REPORTED"
   | "UNVERIFIED_CONFIRMED"
   | "NORMAL_CONFIRMED";
-export type HospitalEventConsultationContactMethod = "KAKAO" | "PHONE" | "SMS";
-export type HospitalEventConsultationPreferredTime = "MORNING" | "AFTERNOON" | "ANYTIME";
-export type HospitalEventConsultationAmountMetric = "all" | "event_price" | "consultation_price";
-export type HospitalEventConsultationSortDirection = "asc" | "desc";
-export type HospitalEventConsultationSortField =
+export type HospitalEventDBContactMethod = "KAKAO" | "PHONE" | "SMS";
+export type HospitalEventDBPreferredTime = "MORNING" | "AFTERNOON" | "ANYTIME";
+export type HospitalEventDBAmountMetric = "all" | "event_price" | "consultation_price";
+export type HospitalEventDBSortDirection = "asc" | "desc";
+export type HospitalEventDBSortField =
   | "id"
   | "event_price"
   | "consultation_price"
@@ -24,43 +24,43 @@ export type HospitalEventConsultationSortField =
   | "created_at"
   | "updated_at";
 
-export type HospitalEventConsultationFilters = {
+export type HospitalEventDBFilters = {
   dateRange: string;
   startDate: string;
   endDate: string;
   contactMethod: string;
   preferredTime: string;
-  amountMetric: HospitalEventConsultationAmountMetric;
+  amountMetric: HospitalEventDBAmountMetric;
   amountMin: string;
   amountMax: string;
   status: string;
   allowStatus: string;
 };
 
-export type HospitalEventConsultationSortState = {
-  field: HospitalEventConsultationSortField;
-  direction: HospitalEventConsultationSortDirection;
+export type HospitalEventDBSortState = {
+  field: HospitalEventDBSortField;
+  direction: HospitalEventDBSortDirection;
   enabled: boolean;
 };
 
-export type HospitalEventConsultationQuery = {
+export type HospitalEventDBQuery = {
   q?: string;
   start_date?: string;
   end_date?: string;
   contact_methods?: string;
   preferred_times?: string;
-  amount_metric?: HospitalEventConsultationAmountMetric;
+  amount_metric?: HospitalEventDBAmountMetric;
   amount_min?: string;
   amount_max?: string;
   statuses?: string;
   allow_statuses?: string;
-  sort: HospitalEventConsultationSortField;
-  direction: HospitalEventConsultationSortDirection;
+  sort: HospitalEventDBSortField;
+  direction: HospitalEventDBSortDirection;
   per_page: number;
   page: number;
 };
 
-export type HospitalEventConsultationApiItem = {
+export type HospitalEventDBApiItem = {
   id?: number | null;
   hospital?: {
     id?: number | null;
@@ -112,7 +112,7 @@ export type HospitalEventConsultationApiItem = {
   updated_at?: string | null;
 };
 
-export type HospitalEventConsultationRow = {
+export type HospitalEventDBRow = {
   id: number;
   createdAt: string;
   hospitalId: number | null;
@@ -137,9 +137,9 @@ export type HospitalEventConsultationRow = {
   authorIp: string;
 };
 
-export const HOSPITAL_EVENT_CONSULTATIONS_PER_PAGE = 15;
+export const HOSPITAL_EVENT_DBS_PER_PAGE = 15;
 
-export const DEFAULT_HOSPITAL_EVENT_CONSULTATION_FILTERS: HospitalEventConsultationFilters = {
+export const DEFAULT_HOSPITAL_EVENT_DB_FILTERS: HospitalEventDBFilters = {
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -152,57 +152,57 @@ export const DEFAULT_HOSPITAL_EVENT_CONSULTATION_FILTERS: HospitalEventConsultat
   allowStatus: "",
 };
 
-export const DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT: HospitalEventConsultationSortState = {
+export const DEFAULT_HOSPITAL_EVENT_DB_SORT: HospitalEventDBSortState = {
   field: "id",
   direction: "desc",
   enabled: true,
 };
 
-export const HOSPITAL_EVENT_CONSULTATION_DATE_PRESET_OPTIONS = [
+export const HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
   { key: "yesterday", label: "어제" },
   { key: "recent7", label: "최근 7일" },
   { key: "recent30", label: "최근 30일" },
 ] as const satisfies readonly DatePresetOption[];
 
-export type HospitalEventConsultationDatePresetKey =
-  (typeof HOSPITAL_EVENT_CONSULTATION_DATE_PRESET_OPTIONS)[number]["key"];
+export type HospitalEventDBDatePresetKey =
+  (typeof HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS)[number]["key"];
 
-export const HOSPITAL_EVENT_CONSULTATION_CONTACT_METHOD_OPTIONS: HospitalEventConsultationOption[] = [
+export const HOSPITAL_EVENT_DB_CONTACT_METHOD_OPTIONS: HospitalEventDBOption[] = [
   { value: "", label: "전체" },
   { value: "KAKAO", label: "카카오톡" },
   { value: "PHONE", label: "전화" },
   { value: "SMS", label: "문자" },
 ];
 
-export const HOSPITAL_EVENT_CONSULTATION_PREFERRED_TIME_OPTIONS: HospitalEventConsultationOption[] = [
+export const HOSPITAL_EVENT_DB_PREFERRED_TIME_OPTIONS: HospitalEventDBOption[] = [
   { value: "", label: "전체" },
   { value: "MORNING", label: "오전" },
   { value: "AFTERNOON", label: "오후" },
   { value: "ANYTIME", label: "상시" },
 ];
 
-export const HOSPITAL_EVENT_CONSULTATION_AMOUNT_METRIC_OPTIONS: HospitalEventConsultationOption<HospitalEventConsultationAmountMetric>[] = [
+export const HOSPITAL_EVENT_DB_AMOUNT_METRIC_OPTIONS: HospitalEventDBOption<HospitalEventDBAmountMetric>[] = [
   { value: "all", label: "전체" },
   { value: "event_price", label: "이벤트가격" },
   { value: "consultation_price", label: "소진단가" },
 ];
 
-export const HOSPITAL_EVENT_CONSULTATION_STATUS_OPTIONS: HospitalEventConsultationOption[] = [
+export const HOSPITAL_EVENT_DB_STATUS_OPTIONS: HospitalEventDBOption[] = [
   { value: "", label: "전체" },
   { value: "NEW", label: "신규" },
   { value: "CONFIRMED", label: "확인" },
   { value: "DUPLICATE", label: "중복" },
 ];
 
-export const HOSPITAL_EVENT_CONSULTATION_ALLOW_STATUS_OPTIONS: HospitalEventConsultationOption[] = [
+export const HOSPITAL_EVENT_DB_ALLOW_STATUS_OPTIONS: HospitalEventDBOption[] = [
   { value: "", label: "전체" },
   { value: "UNVERIFIED_REPORTED", label: "미인증DB 신고" },
   { value: "UNVERIFIED_CONFIRMED", label: "미인증DB 확정" },
   { value: "NORMAL_CONFIRMED", label: "정상DB 확정" },
 ];
 
-const HOSPITAL_EVENT_CONSULTATION_SORT_FIELDS = new Set<HospitalEventConsultationSortField>([
+const HOSPITAL_EVENT_DB_SORT_FIELDS = new Set<HospitalEventDBSortField>([
   "id",
   "event_price",
   "consultation_price",
@@ -212,13 +212,13 @@ const HOSPITAL_EVENT_CONSULTATION_SORT_FIELDS = new Set<HospitalEventConsultatio
   "updated_at",
 ]);
 
-const CONTACT_METHOD_VALUES = new Set(HOSPITAL_EVENT_CONSULTATION_CONTACT_METHOD_OPTIONS.map((option) => option.value));
-const PREFERRED_TIME_VALUES = new Set(HOSPITAL_EVENT_CONSULTATION_PREFERRED_TIME_OPTIONS.map((option) => option.value));
-const STATUS_VALUES = new Set(HOSPITAL_EVENT_CONSULTATION_STATUS_OPTIONS.map((option) => option.value));
-const ALLOW_STATUS_VALUES = new Set(HOSPITAL_EVENT_CONSULTATION_ALLOW_STATUS_OPTIONS.map((option) => option.value));
-const AMOUNT_METRIC_VALUES = new Set(HOSPITAL_EVENT_CONSULTATION_AMOUNT_METRIC_OPTIONS.map((option) => option.value));
+const CONTACT_METHOD_VALUES = new Set(HOSPITAL_EVENT_DB_CONTACT_METHOD_OPTIONS.map((option) => option.value));
+const PREFERRED_TIME_VALUES = new Set(HOSPITAL_EVENT_DB_PREFERRED_TIME_OPTIONS.map((option) => option.value));
+const STATUS_VALUES = new Set(HOSPITAL_EVENT_DB_STATUS_OPTIONS.map((option) => option.value));
+const ALLOW_STATUS_VALUES = new Set(HOSPITAL_EVENT_DB_ALLOW_STATUS_OPTIONS.map((option) => option.value));
+const AMOUNT_METRIC_VALUES = new Set(HOSPITAL_EVENT_DB_AMOUNT_METRIC_OPTIONS.map((option) => option.value));
 
-export function labelHospitalEventConsultationStatus(status?: string | null) {
+export function labelHospitalEventDBStatus(status?: string | null) {
   switch (status) {
     case "NEW":
       return "신규";
@@ -231,14 +231,14 @@ export function labelHospitalEventConsultationStatus(status?: string | null) {
   }
 }
 
-export function hospitalEventConsultationStatusColor(status?: string | null): BadgeColor {
+export function hospitalEventDBStatusColor(status?: string | null): BadgeColor {
   if (status === "CONFIRMED") return "gray";
   if (status === "DUPLICATE") return "warning";
 
   return "info";
 }
 
-export function labelHospitalEventConsultationAllowStatus(status?: string | null) {
+export function labelHospitalEventDBAllowStatus(status?: string | null) {
   switch (status) {
     case "UNVERIFIED_REPORTED":
       return "미인증DB 신고";
@@ -251,7 +251,7 @@ export function labelHospitalEventConsultationAllowStatus(status?: string | null
   }
 }
 
-export function hospitalEventConsultationAllowStatusColor(status?: string | null): BadgeColor {
+export function hospitalEventDBAllowStatusColor(status?: string | null): BadgeColor {
   if (status === "NORMAL_CONFIRMED") return "gray";
   if (status === "UNVERIFIED_CONFIRMED") return "purple";
   if (status === "UNVERIFIED_REPORTED") return "orange";
@@ -259,11 +259,11 @@ export function hospitalEventConsultationAllowStatusColor(status?: string | null
   return "light";
 }
 
-export function formatHospitalEventConsultationPrice(value: number) {
+export function formatHospitalEventDBPrice(value: number) {
   return `${value.toLocaleString()}원`;
 }
 
-export function formatHospitalEventConsultationDateTime(value?: string | null) {
+export function formatHospitalEventDBDateTime(value?: string | null) {
   if (!value) return "-";
 
   const date = new Date(value);
@@ -275,7 +275,7 @@ export function formatHospitalEventConsultationDateTime(value?: string | null) {
   return `${formatLocalDate(date)} ${hours}:${minutes}`;
 }
 
-export function normalizeHospitalEventConsultation(item: HospitalEventConsultationApiItem): HospitalEventConsultationRow {
+export function normalizeHospitalEventDB(item: HospitalEventDBApiItem): HospitalEventDBRow {
   const status = item.status?.code?.trim() || "NEW";
   const allowStatus = item.allow_status?.code?.trim() || "";
   const contactMethod = item.contact_method?.code?.trim() || "";
@@ -283,7 +283,7 @@ export function normalizeHospitalEventConsultation(item: HospitalEventConsultati
 
   return {
     id: Number(item.id ?? 0),
-    createdAt: formatHospitalEventConsultationDateTime(item.created_at),
+    createdAt: formatHospitalEventDBDateTime(item.created_at),
     hospitalId: normalizeNullableId(item.hospital?.id),
     hospitalName: item.hospital?.name?.trim() || "-",
     eventId: normalizeNullableId(item.event?.id),
@@ -300,37 +300,37 @@ export function normalizeHospitalEventConsultation(item: HospitalEventConsultati
     eventPrice: Number(item.event_price ?? 0),
     consultationPrice: Number(item.consultation_price ?? 0),
     status,
-    statusLabel: item.status?.label?.trim() || labelHospitalEventConsultationStatus(status),
+    statusLabel: item.status?.label?.trim() || labelHospitalEventDBStatus(status),
     allowStatus,
-    allowStatusLabel: item.allow_status?.label?.trim() || labelHospitalEventConsultationAllowStatus(allowStatus),
+    allowStatusLabel: item.allow_status?.label?.trim() || labelHospitalEventDBAllowStatus(allowStatus),
     authorIp: item.author_ip?.trim() || "-",
   };
 }
 
-export function parseHospitalEventConsultationsTableState(searchParams: URLSearchParams) {
+export function parseHospitalEventDBsTableState(searchParams: URLSearchParams) {
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
-  const dateState = buildHospitalEventConsultationDateState(startDate, endDate);
+  const dateState = buildHospitalEventDBDateState(startDate, endDate);
   const amountMetric = searchParams.get("amount_metric");
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const sortField = sortFieldParam && HOSPITAL_EVENT_CONSULTATION_SORT_FIELDS.has(sortFieldParam as HospitalEventConsultationSortField)
-    ? (sortFieldParam as HospitalEventConsultationSortField)
-    : DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT.field;
+  const sortField = sortFieldParam && HOSPITAL_EVENT_DB_SORT_FIELDS.has(sortFieldParam as HospitalEventDBSortField)
+    ? (sortFieldParam as HospitalEventDBSortField)
+    : DEFAULT_HOSPITAL_EVENT_DB_SORT.field;
 
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      ...DEFAULT_HOSPITAL_EVENT_CONSULTATION_FILTERS,
+      ...DEFAULT_HOSPITAL_EVENT_DB_FILTERS,
       dateRange: dateState.label,
       startDate,
       endDate,
       contactMethod: normalizeOptionValue(searchParams.get("contact_methods"), CONTACT_METHOD_VALUES),
       preferredTime: normalizeOptionValue(searchParams.get("preferred_times"), PREFERRED_TIME_VALUES),
-      amountMetric: amountMetric && AMOUNT_METRIC_VALUES.has(amountMetric as HospitalEventConsultationAmountMetric)
-        ? (amountMetric as HospitalEventConsultationAmountMetric)
+      amountMetric: amountMetric && AMOUNT_METRIC_VALUES.has(amountMetric as HospitalEventDBAmountMetric)
+        ? (amountMetric as HospitalEventDBAmountMetric)
         : "all",
       amountMin: normalizeNumberBound(searchParams.get("amount_min")),
       amountMax: normalizeNumberBound(searchParams.get("amount_max")),
@@ -342,26 +342,26 @@ export function parseHospitalEventConsultationsTableState(searchParams: URLSearc
       field: sortField,
       direction: sortDirectionParam === "asc" ? "asc" : "desc",
       enabled: Boolean(sortFieldParam || sortDirectionParam),
-    } satisfies HospitalEventConsultationSortState,
+    } satisfies HospitalEventDBSortState,
     page,
   };
 }
 
-export function buildHospitalEventConsultationsQuery({
+export function buildHospitalEventDBsQuery({
   searchKeyword,
   appliedFilters,
   sortState,
   page,
 }: {
   searchKeyword: string;
-  appliedFilters: HospitalEventConsultationFilters;
-  sortState: HospitalEventConsultationSortState;
+  appliedFilters: HospitalEventDBFilters;
+  sortState: HospitalEventDBSortState;
   page: number;
-}): HospitalEventConsultationQuery {
-  const query: HospitalEventConsultationQuery = {
-    sort: sortState.enabled ? sortState.field : DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT.field,
-    direction: sortState.enabled ? sortState.direction : DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT.direction,
-    per_page: HOSPITAL_EVENT_CONSULTATIONS_PER_PAGE,
+}): HospitalEventDBQuery {
+  const query: HospitalEventDBQuery = {
+    sort: sortState.enabled ? sortState.field : DEFAULT_HOSPITAL_EVENT_DB_SORT.field,
+    direction: sortState.enabled ? sortState.direction : DEFAULT_HOSPITAL_EVENT_DB_SORT.direction,
+    per_page: HOSPITAL_EVENT_DBS_PER_PAGE,
     page,
   };
 
@@ -385,15 +385,15 @@ export function buildHospitalEventConsultationsQuery({
   return query;
 }
 
-export function buildHospitalEventConsultationsQueryString(query: HospitalEventConsultationQuery) {
+export function buildHospitalEventDBsQueryString(query: HospitalEventDBQuery) {
   const params = new URLSearchParams();
 
   Object.entries(query).forEach(([key, value]) => {
     if (value === undefined || value === null || value === "") return;
     if (key === "amount_metric" && value === "all" && !query.amount_min && !query.amount_max) return;
-    if (key === "sort" && value === DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT.field) return;
-    if (key === "direction" && value === DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT.direction) return;
-    if (key === "per_page" && value === HOSPITAL_EVENT_CONSULTATIONS_PER_PAGE) return;
+    if (key === "sort" && value === DEFAULT_HOSPITAL_EVENT_DB_SORT.field) return;
+    if (key === "direction" && value === DEFAULT_HOSPITAL_EVENT_DB_SORT.direction) return;
+    if (key === "per_page" && value === HOSPITAL_EVENT_DBS_PER_PAGE) return;
     if (key === "page" && value === 1) return;
 
     params.set(key, String(value));
@@ -402,17 +402,17 @@ export function buildHospitalEventConsultationsQueryString(query: HospitalEventC
   return params.toString();
 }
 
-export function nextHospitalEventConsultationSortState(
-  prev: HospitalEventConsultationSortState,
-  field: HospitalEventConsultationSortField,
-): HospitalEventConsultationSortState {
+export function nextHospitalEventDBSortState(
+  prev: HospitalEventDBSortState,
+  field: HospitalEventDBSortField,
+): HospitalEventDBSortState {
   if (prev.field !== field) return { field, direction: "desc", enabled: true };
   if (prev.direction === "desc") return { field, direction: "asc", enabled: true };
 
-  return { ...DEFAULT_HOSPITAL_EVENT_CONSULTATION_SORT, enabled: false };
+  return { ...DEFAULT_HOSPITAL_EVENT_DB_SORT, enabled: false };
 }
 
-export function mapDateRangeToHospitalEventConsultationFilter(range?: DateRange) {
+export function mapDateRangeToHospitalEventDBFilter(range?: DateRange) {
   return {
     label: formatDateRange(range),
     startDate: range?.from ? formatLocalDate(range.from) : "",
@@ -420,7 +420,7 @@ export function mapDateRangeToHospitalEventConsultationFilter(range?: DateRange)
   };
 }
 
-export function buildHospitalEventConsultationPresetDateRange(preset: HospitalEventConsultationDatePresetKey): DateRange {
+export function buildHospitalEventDBPresetDateRange(preset: HospitalEventDBDatePresetKey): DateRange {
   const today = normalizeRangeDate(new Date());
 
   if (preset === "today") return { from: today, to: today };
@@ -450,14 +450,14 @@ export function normalizeNumberBound(value: string | null | undefined) {
 }
 
 function labelContactMethod(value?: string | null) {
-  return HOSPITAL_EVENT_CONSULTATION_CONTACT_METHOD_OPTIONS.find((option) => option.value === value)?.label || "-";
+  return HOSPITAL_EVENT_DB_CONTACT_METHOD_OPTIONS.find((option) => option.value === value)?.label || "-";
 }
 
 function labelPreferredTime(value?: string | null) {
-  return HOSPITAL_EVENT_CONSULTATION_PREFERRED_TIME_OPTIONS.find((option) => option.value === value)?.label || "-";
+  return HOSPITAL_EVENT_DB_PREFERRED_TIME_OPTIONS.find((option) => option.value === value)?.label || "-";
 }
 
-function buildHospitalEventConsultationDateState(startDate: string, endDate: string) {
+function buildHospitalEventDBDateState(startDate: string, endDate: string) {
   const from = startDate ? parseDateParam(startDate) : undefined;
   const to = endDate ? parseDateParam(endDate) : undefined;
   const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;

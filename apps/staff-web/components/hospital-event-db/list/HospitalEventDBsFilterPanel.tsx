@@ -12,30 +12,30 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
-  HOSPITAL_EVENT_CONSULTATION_ALLOW_STATUS_OPTIONS,
-  HOSPITAL_EVENT_CONSULTATION_AMOUNT_METRIC_OPTIONS,
-  HOSPITAL_EVENT_CONSULTATION_CONTACT_METHOD_OPTIONS,
-  HOSPITAL_EVENT_CONSULTATION_DATE_PRESET_OPTIONS,
-  HOSPITAL_EVENT_CONSULTATION_PREFERRED_TIME_OPTIONS,
-  HOSPITAL_EVENT_CONSULTATION_STATUS_OPTIONS,
-  type HospitalEventConsultationAmountMetric,
-  type HospitalEventConsultationDatePresetKey,
-  type HospitalEventConsultationFilters,
-} from "@/lib/hospital-event-consultation/list";
+  HOSPITAL_EVENT_DB_ALLOW_STATUS_OPTIONS,
+  HOSPITAL_EVENT_DB_AMOUNT_METRIC_OPTIONS,
+  HOSPITAL_EVENT_DB_CONTACT_METHOD_OPTIONS,
+  HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS,
+  HOSPITAL_EVENT_DB_PREFERRED_TIME_OPTIONS,
+  HOSPITAL_EVENT_DB_STATUS_OPTIONS,
+  type HospitalEventDBAmountMetric,
+  type HospitalEventDBDatePresetKey,
+  type HospitalEventDBFilters,
+} from "@/lib/hospital-event-db/list";
 
-type HospitalEventConsultationsFilterPanelProps = {
+type HospitalEventDBsFilterPanelProps = {
   searchInput: string;
-  draftFilters: HospitalEventConsultationFilters;
+  draftFilters: HospitalEventDBFilters;
   draftDateRange?: DateRange;
   isDatePickerOpen: boolean;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
   onToggleDatePicker: () => void;
   onApplyDateRange: (nextRange?: DateRange) => void;
-  onApplyDatePreset: (preset: HospitalEventConsultationDatePresetKey) => void;
+  onApplyDatePreset: (preset: HospitalEventDBDatePresetKey) => void;
   onContactMethodChange: (value: string) => void;
   onPreferredTimeChange: (value: string) => void;
-  onAmountMetricChange: (value: HospitalEventConsultationAmountMetric) => void;
+  onAmountMetricChange: (value: HospitalEventDBAmountMetric) => void;
   onAmountMinChange: (value: string) => void;
   onAmountMaxChange: (value: string) => void;
   onStatusChange: (value: string) => void;
@@ -44,7 +44,7 @@ type HospitalEventConsultationsFilterPanelProps = {
   onResetFilters: () => void;
 };
 
-export function HospitalEventConsultationsFilterPanel({
+export function HospitalEventDBsFilterPanel({
   searchInput,
   draftFilters,
   draftDateRange,
@@ -63,7 +63,7 @@ export function HospitalEventConsultationsFilterPanel({
   onAllowStatusChange,
   onApplyFilters,
   onResetFilters,
-}: HospitalEventConsultationsFilterPanelProps) {
+}: HospitalEventDBsFilterPanelProps) {
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
@@ -89,10 +89,10 @@ export function HospitalEventConsultationsFilterPanel({
                 placeholder="신청일 기간 선택"
                 selected={draftDateRange}
                 isOpen={isDatePickerOpen}
-                presetOptions={HOSPITAL_EVENT_CONSULTATION_DATE_PRESET_OPTIONS}
+                presetOptions={HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS}
                 onToggleOpen={onToggleDatePicker}
                 onSelect={onApplyDateRange}
-                onPresetSelect={(presetKey) => onApplyDatePreset(presetKey as HospitalEventConsultationDatePresetKey)}
+                onPresetSelect={(presetKey) => onApplyDatePreset(presetKey as HospitalEventDBDatePresetKey)}
                 onReset={() => {
                   onApplyDateRange(undefined);
                   onToggleDatePicker();
@@ -109,7 +109,7 @@ export function HospitalEventConsultationsFilterPanel({
                 label="연락수단"
                 hideLabel
                 value={draftFilters.contactMethod}
-                options={HOSPITAL_EVENT_CONSULTATION_CONTACT_METHOD_OPTIONS}
+                options={HOSPITAL_EVENT_DB_CONTACT_METHOD_OPTIONS}
                 onChange={onContactMethodChange}
               />
             </div>
@@ -122,7 +122,7 @@ export function HospitalEventConsultationsFilterPanel({
                 label="선호시간"
                 hideLabel
                 value={draftFilters.preferredTime}
-                options={HOSPITAL_EVENT_CONSULTATION_PREFERRED_TIME_OPTIONS}
+                options={HOSPITAL_EVENT_DB_PREFERRED_TIME_OPTIONS}
                 onChange={onPreferredTimeChange}
               />
             </div>
@@ -135,7 +135,7 @@ export function HospitalEventConsultationsFilterPanel({
                 label="상담여부"
                 hideLabel
                 value={draftFilters.status}
-                options={HOSPITAL_EVENT_CONSULTATION_STATUS_OPTIONS}
+                options={HOSPITAL_EVENT_DB_STATUS_OPTIONS}
                 onChange={onStatusChange}
               />
             </div>
@@ -148,7 +148,7 @@ export function HospitalEventConsultationsFilterPanel({
                 label="검증상태"
                 hideLabel
                 value={draftFilters.allowStatus}
-                options={HOSPITAL_EVENT_CONSULTATION_ALLOW_STATUS_OPTIONS}
+                options={HOSPITAL_EVENT_DB_ALLOW_STATUS_OPTIONS}
                 onChange={onAllowStatusChange}
               />
             </div>
@@ -159,7 +159,7 @@ export function HospitalEventConsultationsFilterPanel({
             metricValue={draftFilters.amountMetric}
             minValue={draftFilters.amountMin}
             maxValue={draftFilters.amountMax}
-            onMetricChange={(value) => onAmountMetricChange(value as HospitalEventConsultationAmountMetric)}
+            onMetricChange={(value) => onAmountMetricChange(value as HospitalEventDBAmountMetric)}
             onMinChange={onAmountMinChange}
             onMaxChange={onAmountMaxChange}
             onEnter={handleEnterToSearch}
@@ -207,7 +207,7 @@ function AmountRangeFilter({
   onEnter,
 }: {
   label: string;
-  metricValue: HospitalEventConsultationAmountMetric;
+  metricValue: HospitalEventDBAmountMetric;
   minValue: string;
   maxValue: string;
   onMetricChange: (value: string) => void;
@@ -221,7 +221,7 @@ function AmountRangeFilter({
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select
           value={metricValue}
-          options={HOSPITAL_EVENT_CONSULTATION_AMOUNT_METRIC_OPTIONS}
+          options={HOSPITAL_EVENT_DB_AMOUNT_METRIC_OPTIONS}
           showPlaceholderOption={false}
           onChange={onMetricChange}
           className="h-11 px-3"

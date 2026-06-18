@@ -6,51 +6,49 @@ import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
-import { HospitalEventConsultationsDataTable } from "@/components/hospital-event-consultation/list/HospitalEventConsultationsDataTable";
-import { HospitalEventConsultationsFilterPanel } from "@/components/hospital-event-consultation/list/HospitalEventConsultationsFilterPanel";
+import { HospitalEventRealModelDBsDataTable } from "@/components/hospital-event-real-model-db/list/HospitalEventRealModelDBsDataTable";
+import { HospitalEventRealModelDBsFilterPanel } from "@/components/hospital-event-real-model-db/list/HospitalEventRealModelDBsFilterPanel";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
-  DEFAULT_HOSPITAL_EVENT_CONSULTATION_FILTERS,
-  buildHospitalEventConsultationPresetDateRange,
-  buildHospitalEventConsultationsQuery,
-  buildHospitalEventConsultationsQueryString,
-  mapDateRangeToHospitalEventConsultationFilter,
-  nextHospitalEventConsultationSortState,
-  normalizeHospitalEventConsultation,
-  normalizeNumberBound,
+  DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS,
+  buildHospitalEventRealModelDBPresetDateRange,
+  buildHospitalEventRealModelDBsQuery,
+  buildHospitalEventRealModelDBsQueryString,
+  mapDateRangeToHospitalEventRealModelDBFilter,
+  nextHospitalEventRealModelDBSortState,
+  normalizeHospitalEventRealModelDB,
   normalizeRangeDate,
-  parseHospitalEventConsultationsTableState,
-  type HospitalEventConsultationAmountMetric,
-  type HospitalEventConsultationApiItem,
-  type HospitalEventConsultationDatePresetKey,
-  type HospitalEventConsultationFilters,
-  type HospitalEventConsultationRow,
-  type HospitalEventConsultationSortField,
-  type HospitalEventConsultationSortState,
-} from "@/lib/hospital-event-consultation/list";
+  parseHospitalEventRealModelDBsTableState,
+  type HospitalEventRealModelDBApiItem,
+  type HospitalEventRealModelDBDatePresetKey,
+  type HospitalEventRealModelDBFilters,
+  type HospitalEventRealModelDBRow,
+  type HospitalEventRealModelDBSortField,
+  type HospitalEventRealModelDBSortState,
+} from "@/lib/hospital-event-real-model-db/list";
 
-export default function HospitalEventConsultationsTableClient() {
+export default function HospitalEventRealModelDBsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalEventConsultationsTableState> | null>(null);
+  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalEventRealModelDBsTableState> | null>(null);
   const requestKeyRef = React.useRef("");
   const hasFetchedRef = React.useRef(false);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHospitalEventConsultationsTableState(new URLSearchParams(searchParams.toString()));
+    initialTableStateRef.current = parseHospitalEventRealModelDBsTableState(new URLSearchParams(searchParams.toString()));
   }
 
   const initialTableState = initialTableStateRef.current;
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftFilters, setDraftFilters] = React.useState<HospitalEventConsultationFilters>(initialTableState.filters);
-  const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventConsultationFilters>(initialTableState.filters);
-  const [sortState, setSortState] = React.useState<HospitalEventConsultationSortState>(initialTableState.sortState);
+  const [draftFilters, setDraftFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
+  const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
+  const [sortState, setSortState] = React.useState<HospitalEventRealModelDBSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<HospitalEventConsultationRow[]>([]);
+  const [rows, setRows] = React.useState<HospitalEventRealModelDBRow[]>([]);
   const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -59,7 +57,7 @@ export default function HospitalEventConsultationsTableClient() {
 
   const query = React.useMemo(
     () =>
-      buildHospitalEventConsultationsQuery({
+      buildHospitalEventRealModelDBsQuery({
         searchKeyword,
         appliedFilters,
         sortState,
@@ -68,7 +66,7 @@ export default function HospitalEventConsultationsTableClient() {
     [appliedFilters, page, searchKeyword, sortState],
   );
 
-  const queryString = React.useMemo(() => buildHospitalEventConsultationsQueryString(query), [query]);
+  const queryString = React.useMemo(() => buildHospitalEventRealModelDBsQueryString(query), [query]);
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -77,7 +75,7 @@ export default function HospitalEventConsultationsTableClient() {
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
 
-  const fetchConsultations = React.useCallback(
+  const fetchRealModelDBs = React.useCallback(
     async (manualRefresh = false) => {
       const requestKey = JSON.stringify(query);
       if (!manualRefresh && requestKeyRef.current === requestKey) return;
@@ -91,16 +89,16 @@ export default function HospitalEventConsultationsTableClient() {
       let shouldFinalize = true;
 
       try {
-        const response = await api.get<HospitalEventConsultationApiItem[]>("/hospital-event-consultations", query, {
-          latestKey: "hospital-event-consultations:list",
+        const response = await api.get<HospitalEventRealModelDBApiItem[]>("/hospital-event-real-model-dbs", query, {
+          latestKey: "hospital-event-real-model-dbs:list",
         });
 
         if (!isApiSuccess(response)) {
-          setError(response.error.message || "이벤트 DB 목록 조회에 실패했습니다.");
+          setError(response.error.message || "리얼모델 신청 목록 조회에 실패했습니다.");
           return;
         }
 
-        setRows(response.data.map(normalizeHospitalEventConsultation));
+        setRows(response.data.map(normalizeHospitalEventRealModelDB));
         setMeta((response.meta as DataTableMeta | null) ?? null);
         hasFetchedRef.current = true;
       } catch (error) {
@@ -109,7 +107,7 @@ export default function HospitalEventConsultationsTableClient() {
           return;
         }
 
-        setError("이벤트 DB 목록 조회 중 오류가 발생했습니다.");
+        setError("리얼모델 신청 목록 조회 중 오류가 발생했습니다.");
       } finally {
         if (shouldFinalize) {
           setLoading(false);
@@ -121,8 +119,8 @@ export default function HospitalEventConsultationsTableClient() {
   );
 
   React.useEffect(() => {
-    void fetchConsultations(false);
-  }, [fetchConsultations]);
+    void fetchRealModelDBs(false);
+  }, [fetchRealModelDBs]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -143,7 +141,7 @@ export default function HospitalEventConsultationsTableClient() {
             to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
           }
         : undefined;
-    const mapped = mapDateRangeToHospitalEventConsultationFilter(normalizedRange);
+    const mapped = mapDateRangeToHospitalEventRealModelDBFilter(normalizedRange);
 
     setDraftDateRange(normalizedRange);
     setDraftFilters((prev) => ({
@@ -154,24 +152,20 @@ export default function HospitalEventConsultationsTableClient() {
     }));
   };
 
-  const applyDatePreset = (preset: HospitalEventConsultationDatePresetKey) => {
-    applyDateRange(buildHospitalEventConsultationPresetDateRange(preset));
+  const applyDatePreset = (preset: HospitalEventRealModelDBDatePresetKey) => {
+    applyDateRange(buildHospitalEventRealModelDBPresetDateRange(preset));
     setIsDatePickerOpen(false);
   };
 
   const applyFilters = () => {
     setPage(1);
     setSearchKeyword(searchInput.trim());
-    setAppliedFilters({
-      ...draftFilters,
-      amountMin: normalizeNumberBound(draftFilters.amountMin),
-      amountMax: normalizeNumberBound(draftFilters.amountMax),
-    });
+    setAppliedFilters(draftFilters);
   };
 
   const resetFilters = () => {
-    setDraftFilters(DEFAULT_HOSPITAL_EVENT_CONSULTATION_FILTERS);
-    setAppliedFilters(DEFAULT_HOSPITAL_EVENT_CONSULTATION_FILTERS);
+    setDraftFilters(DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS);
+    setAppliedFilters(DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS);
     setDraftDateRange(undefined);
     setSearchInput("");
     setSearchKeyword("");
@@ -179,14 +173,14 @@ export default function HospitalEventConsultationsTableClient() {
     setIsDatePickerOpen(false);
   };
 
-  const toggleSort = React.useCallback((field: HospitalEventConsultationSortField) => {
+  const toggleSort = React.useCallback((field: HospitalEventRealModelDBSortField) => {
     setPage(1);
-    setSortState((prev) => nextHospitalEventConsultationSortState(prev, field));
+    setSortState((prev) => nextHospitalEventRealModelDBSortState(prev, field));
   }, []);
 
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalEventConsultationsFilterPanel
+      <HospitalEventRealModelDBsFilterPanel
         searchInput={searchInput}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
@@ -196,18 +190,13 @@ export default function HospitalEventConsultationsTableClient() {
         onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
         onApplyDateRange={applyDateRange}
         onApplyDatePreset={applyDatePreset}
-        onContactMethodChange={(value) => setDraftFilters((prev) => ({ ...prev, contactMethod: value }))}
-        onPreferredTimeChange={(value) => setDraftFilters((prev) => ({ ...prev, preferredTime: value }))}
-        onAmountMetricChange={(value: HospitalEventConsultationAmountMetric) => setDraftFilters((prev) => ({ ...prev, amountMetric: value }))}
-        onAmountMinChange={(value) => setDraftFilters((prev) => ({ ...prev, amountMin: value }))}
-        onAmountMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, amountMax: value }))}
+        onGenderChange={(value) => setDraftFilters((prev) => ({ ...prev, gender: value }))}
         onStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, status: value }))}
-        onAllowStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, allowStatus: value }))}
         onApplyFilters={applyFilters}
         onResetFilters={resetFilters}
       />
 
-      <HospitalEventConsultationsDataTable
+      <HospitalEventRealModelDBsDataTable
         rows={rows}
         meta={meta}
         loading={loading}
@@ -215,7 +204,7 @@ export default function HospitalEventConsultationsTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={() => void fetchConsultations(true)}
+        onRefresh={() => void fetchRealModelDBs(true)}
         onGoPage={setPage}
       />
     </div>

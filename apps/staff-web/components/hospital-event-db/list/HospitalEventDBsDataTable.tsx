@@ -13,27 +13,27 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
-  formatHospitalEventConsultationPrice,
-  hospitalEventConsultationAllowStatusColor,
-  hospitalEventConsultationStatusColor,
-  type HospitalEventConsultationRow,
-  type HospitalEventConsultationSortField,
-  type HospitalEventConsultationSortState,
-} from "@/lib/hospital-event-consultation/list";
+  formatHospitalEventDBPrice,
+  hospitalEventDBAllowStatusColor,
+  hospitalEventDBStatusColor,
+  type HospitalEventDBRow,
+  type HospitalEventDBSortField,
+  type HospitalEventDBSortState,
+} from "@/lib/hospital-event-db/list";
 
-type HospitalEventConsultationsDataTableProps = {
-  rows: HospitalEventConsultationRow[];
+type HospitalEventDBsDataTableProps = {
+  rows: HospitalEventDBRow[];
   meta: DataTableMeta | null;
   loading: boolean;
   refreshing: boolean;
   error: string | null;
-  sortState: HospitalEventConsultationSortState;
-  onToggleSort: (field: HospitalEventConsultationSortField) => void;
+  sortState: HospitalEventDBSortState;
+  onToggleSort: (field: HospitalEventDBSortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
 
-function renderSortMark(field: HospitalEventConsultationSortField, sortState: HospitalEventConsultationSortState) {
+function renderSortMark(field: HospitalEventDBSortField, sortState: HospitalEventDBSortState) {
   if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
 
   return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
@@ -46,9 +46,9 @@ function SortHeader({
   onToggleSort,
 }: {
   label: string;
-  field: HospitalEventConsultationSortField;
-  sortState: HospitalEventConsultationSortState;
-  onToggleSort: (field: HospitalEventConsultationSortField) => void;
+  field: HospitalEventDBSortField;
+  sortState: HospitalEventDBSortState;
+  onToggleSort: (field: HospitalEventDBSortField) => void;
 }) {
   return (
     <Button
@@ -98,9 +98,9 @@ function buildColumns({
   sortState,
   onToggleSort,
 }: {
-  sortState: HospitalEventConsultationSortState;
-  onToggleSort: (field: HospitalEventConsultationSortField) => void;
-}): DataTableColumn<HospitalEventConsultationRow>[] {
+  sortState: HospitalEventDBSortState;
+  onToggleSort: (field: HospitalEventDBSortField) => void;
+}): DataTableColumn<HospitalEventDBRow>[] {
   const headerBaseClass = "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
   const cellBaseClass = "px-3 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
@@ -206,14 +206,14 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[120px]`,
       cellClassName: `${nowrapCellClass} w-[120px]`,
       header: <SortHeader label="이벤트가격" field="event_price" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => formatHospitalEventConsultationPrice(row.eventPrice),
+      render: (row) => formatHospitalEventDBPrice(row.eventPrice),
     },
     {
       key: "consultationPrice",
       headerClassName: `${headerBaseClass} w-[110px]`,
       cellClassName: `${nowrapCellClass} w-[110px]`,
       header: <SortHeader label="소진단가" field="consultation_price" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => formatHospitalEventConsultationPrice(row.consultationPrice),
+      render: (row) => formatHospitalEventDBPrice(row.consultationPrice),
     },
     {
       key: "status",
@@ -221,7 +221,7 @@ function buildColumns({
       cellClassName: `${nowrapCellClass} w-[90px]`,
       header: <SortHeader label="상담여부" field="status" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventConsultationStatusColor(row.status)}>
+        <StatusBadge size="sm" color={hospitalEventDBStatusColor(row.status)}>
           {row.statusLabel}
         </StatusBadge>
       ),
@@ -232,7 +232,7 @@ function buildColumns({
       cellClassName: `${nowrapCellClass} w-[130px]`,
       header: <SortHeader label="검증상태" field="allow_status" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventConsultationAllowStatusColor(row.allowStatus)}>
+        <StatusBadge size="sm" color={hospitalEventDBAllowStatusColor(row.allowStatus)}>
           {row.allowStatusLabel}
         </StatusBadge>
       ),
@@ -240,7 +240,7 @@ function buildColumns({
   ];
 }
 
-export function HospitalEventConsultationsDataTable({
+export function HospitalEventDBsDataTable({
   rows,
   meta,
   loading,
@@ -250,7 +250,7 @@ export function HospitalEventConsultationsDataTable({
   onToggleSort,
   onRefresh,
   onGoPage,
-}: HospitalEventConsultationsDataTableProps) {
+}: HospitalEventDBsDataTableProps) {
   const columns = React.useMemo(
     () => buildColumns({ sortState, onToggleSort }),
     [sortState, onToggleSort],

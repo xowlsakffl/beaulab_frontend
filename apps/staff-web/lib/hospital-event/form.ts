@@ -200,7 +200,7 @@ export function calculateHospitalEventDiscountRate(normalPrice: number, eventPri
   return Math.max(0, Math.round((1 - eventPrice / normalPrice) * 100));
 }
 
-export function calculateHospitalEventConsultationBasePrice(eventPrice: number): number {
+export function calculateHospitalEventDBBasePrice(eventPrice: number): number {
   if (eventPrice <= 50000) return 10000;
   if (eventPrice <= 100000) return 12500;
   if (eventPrice <= 200000) return 15000;
@@ -270,7 +270,7 @@ export function validateCreateHospitalEventForm(
   const normalPrice = parseNumberInput(form.normal_price);
   const eventPrice = parseNumberInput(form.event_price);
   const consultationPrice = parseNumberInput(form.consultation_price);
-  const baseConsultationPrice = calculateHospitalEventConsultationBasePrice(eventPrice);
+  const baseConsultationPrice = calculateHospitalEventDBBasePrice(eventPrice);
 
   if (!form.hospital_id) errors.hospital_id = "병의원을 선택해 주세요.";
   if (form.category_ids.length === 0) errors.category_ids = "카테고리를 1개 이상 선택해 주세요.";
@@ -341,7 +341,7 @@ export function appendHospitalEventFormData(
   formData.append("event_price", String(parseNumberInput(form.event_price)));
   formData.append("is_vat_included", form.is_vat_included ? "1" : "0");
   const consultationPrice =
-    parseNumberInput(form.consultation_price) || calculateHospitalEventConsultationBasePrice(parseNumberInput(form.event_price));
+    parseNumberInput(form.consultation_price) || calculateHospitalEventDBBasePrice(parseNumberInput(form.event_price));
   formData.append("consultation_price", String(consultationPrice));
   if (options.includeDefaultStatuses ?? true) {
     formData.append("allow_status", "PENDING");
