@@ -22,18 +22,14 @@ type HospitalEventRealModelDBsFilterPanelProps = {
   searchInput: string;
   draftFilters: HospitalEventRealModelDBFilters;
   draftDateRange?: DateRange;
-  draftBirthDateRange?: DateRange;
   isDatePickerOpen: boolean;
-  isBirthDatePickerOpen: boolean;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
-  birthDatePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
   onToggleDatePicker: () => void;
-  onToggleBirthDatePicker: () => void;
   onApplyDateRange: (nextRange?: DateRange) => void;
-  onApplyBirthDateRange: (nextRange?: DateRange) => void;
   onApplyDatePreset: (preset: HospitalEventRealModelDBDatePresetKey) => void;
-  onApplyBirthDatePreset: (preset: HospitalEventRealModelDBDatePresetKey) => void;
+  onBirthYearMinChange: (value: string) => void;
+  onBirthYearMaxChange: (value: string) => void;
   onGenderChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onApplyFilters: () => void;
@@ -44,18 +40,14 @@ export function HospitalEventRealModelDBsFilterPanel({
   searchInput,
   draftFilters,
   draftDateRange,
-  draftBirthDateRange,
   isDatePickerOpen,
-  isBirthDatePickerOpen,
   datePickerRef,
-  birthDatePickerRef,
   onSearchChange,
   onToggleDatePicker,
-  onToggleBirthDatePicker,
   onApplyDateRange,
-  onApplyBirthDateRange,
   onApplyDatePreset,
-  onApplyBirthDatePreset,
+  onBirthYearMinChange,
+  onBirthYearMaxChange,
   onGenderChange,
   onStatusChange,
   onApplyFilters,
@@ -126,25 +118,22 @@ export function HospitalEventRealModelDBsFilterPanel({
           </div>
 
           <div className={filterRowClass}>
-            <span className={inlineLabelClass}>생년월일</span>
-            <div className="min-w-0 flex-1">
-              <DateRangeFilterDropdown
-                label="생년월일"
-                hideLabel
-                containerRef={birthDatePickerRef}
-                value={draftFilters.birthDateRange}
-                placeholder="생년월일 기간 선택"
-                selected={draftBirthDateRange}
-                isOpen={isBirthDatePickerOpen}
-                presetOptions={HOSPITAL_EVENT_REAL_MODEL_DB_DATE_PRESET_OPTIONS}
-                onToggleOpen={onToggleBirthDatePicker}
-                onSelect={onApplyBirthDateRange}
-                onPresetSelect={(presetKey) => onApplyBirthDatePreset(presetKey as HospitalEventRealModelDBDatePresetKey)}
-                onReset={() => {
-                  onApplyBirthDateRange(undefined);
-                  onToggleBirthDatePicker();
-                }}
-                onConfirm={onToggleBirthDatePicker}
+            <span className={inlineLabelClass}>출생연도</span>
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <InputField
+                value={draftFilters.birthYearMin}
+                onChange={(event) => onBirthYearMinChange(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                onKeyDown={handleEnterToSearch}
+                placeholder="1990"
+                className="w-full bg-white"
+              />
+              <span className="shrink-0 text-sm text-gray-400">~</span>
+              <InputField
+                value={draftFilters.birthYearMax}
+                onChange={(event) => onBirthYearMaxChange(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                onKeyDown={handleEnterToSearch}
+                placeholder="2000"
+                className="w-full bg-white"
               />
             </div>
           </div>

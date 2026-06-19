@@ -15,7 +15,6 @@ import {
   buildHospitalEventRealModelDBsQuery,
   buildHospitalEventRealModelDBsQueryString,
   mapDateRangeToHospitalEventRealModelDBFilter,
-  mapBirthDateRangeToHospitalEventRealModelDBFilter,
   nextHospitalEventRealModelDBSortState,
   normalizeHospitalEventRealModelDB,
   normalizeRangeDate,
@@ -36,7 +35,6 @@ export default function HospitalEventRealModelDBsTableClient() {
   const requestKeyRef = React.useRef("");
   const hasFetchedRef = React.useRef(false);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
-  const birthDatePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   if (!initialTableStateRef.current) {
     initialTableStateRef.current = parseHospitalEventRealModelDBsTableState(new URLSearchParams(searchParams.toString()));
@@ -46,7 +44,6 @@ export default function HospitalEventRealModelDBsTableClient() {
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftBirthDateRange, setDraftBirthDateRange] = React.useState<DateRange | undefined>(initialTableState.draftBirthDateRange);
   const [draftFilters, setDraftFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<HospitalEventRealModelDBSortState>(initialTableState.sortState);
@@ -57,7 +54,6 @@ export default function HospitalEventRealModelDBsTableClient() {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = React.useState(false);
 
   const query = React.useMemo(
     () =>
@@ -131,9 +127,6 @@ export default function HospitalEventRealModelDBsTableClient() {
       if (!datePickerRef.current?.contains(event.target as Node)) {
         setIsDatePickerOpen(false);
       }
-      if (!birthDatePickerRef.current?.contains(event.target as Node)) {
-        setIsBirthDatePickerOpen(false);
-      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -164,30 +157,6 @@ export default function HospitalEventRealModelDBsTableClient() {
     setIsDatePickerOpen(false);
   };
 
-  const applyBirthDateRange = (nextRange?: DateRange) => {
-    const normalizedRange =
-      nextRange?.from || nextRange?.to
-        ? {
-            from: nextRange?.from ? normalizeRangeDate(nextRange.from) : undefined,
-            to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
-          }
-        : undefined;
-    const mapped = mapBirthDateRangeToHospitalEventRealModelDBFilter(normalizedRange);
-
-    setDraftBirthDateRange(normalizedRange);
-    setDraftFilters((prev) => ({
-      ...prev,
-      birthDateRange: mapped.label,
-      birthStartDate: mapped.startDate,
-      birthEndDate: mapped.endDate,
-    }));
-  };
-
-  const applyBirthDatePreset = (preset: HospitalEventRealModelDBDatePresetKey) => {
-    applyBirthDateRange(buildHospitalEventRealModelDBPresetDateRange(preset));
-    setIsBirthDatePickerOpen(false);
-  };
-
   const applyFilters = () => {
     setPage(1);
     setSearchKeyword(searchInput.trim());
@@ -198,12 +167,10 @@ export default function HospitalEventRealModelDBsTableClient() {
     setDraftFilters(DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS);
     setAppliedFilters(DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS);
     setDraftDateRange(undefined);
-    setDraftBirthDateRange(undefined);
     setSearchInput("");
     setSearchKeyword("");
     setPage(1);
     setIsDatePickerOpen(false);
-    setIsBirthDatePickerOpen(false);
   };
 
   const toggleSort = React.useCallback((field: HospitalEventRealModelDBSortField) => {
@@ -217,18 +184,14 @@ export default function HospitalEventRealModelDBsTableClient() {
         searchInput={searchInput}
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
-        draftBirthDateRange={draftBirthDateRange}
         isDatePickerOpen={isDatePickerOpen}
-        isBirthDatePickerOpen={isBirthDatePickerOpen}
         datePickerRef={datePickerRef}
-        birthDatePickerRef={birthDatePickerRef}
         onSearchChange={setSearchInput}
         onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
-        onToggleBirthDatePicker={() => setIsBirthDatePickerOpen((prev) => !prev)}
         onApplyDateRange={applyDateRange}
-        onApplyBirthDateRange={applyBirthDateRange}
         onApplyDatePreset={applyDatePreset}
-        onApplyBirthDatePreset={applyBirthDatePreset}
+        onBirthYearMinChange={(value) => setDraftFilters((prev) => ({ ...prev, birthYearMin: value }))}
+        onBirthYearMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, birthYearMax: value }))}
         onGenderChange={(value) => setDraftFilters((prev) => ({ ...prev, gender: value }))}
         onStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, status: value }))}
         onApplyFilters={applyFilters}
