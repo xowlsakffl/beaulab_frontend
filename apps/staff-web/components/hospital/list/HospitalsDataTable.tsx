@@ -68,7 +68,7 @@ function buildHospitalColumns({
         </Button>
       ),
       render: (row) => (
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-400">
             {row.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
