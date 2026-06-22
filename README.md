@@ -4,33 +4,27 @@
 
 현재 실제 운영 중심 앱은 `apps/staff-web` 관리자 웹입니다. 현재 `apps/user-web`은 앱 사용자 간 1:1 채팅과 Reverb 실시간 이벤트를 브라우저에서 수동 검증하기 위한 기능만 있습니다. 공통 HTTP, 인증, 타입, 관리자 UI는 `packages/*` 워크스페이스 패키지로 분리합니다.
 
-이 저장소는 뷰랩 플랫폼의 관리자 화면, 공통 UI 시스템, Actor별 세션/권한 처리, API client, 채팅 테스트 화면을 담당합니다. 백엔드 API와 연결해 병원/뷰티 파트너 관리, 콘텐츠 관리, 신고/게시물 운영, 공지사항, FAQ, 유저 관리, 동영상 관리, 유저 간 채팅 검증 흐름을 제공합니다.
+이 저장소는 뷰랩 플랫폼의 관리자 화면, 공통 UI 시스템, Actor별 세션/권한 처리, API client, 채팅 테스트 화면을 담당합니다. 현재 프론트 코드 기준으로 실제 앱은 `apps/staff-web`와 `apps/user-web`뿐이며, Hospital/Beauty 파트너 웹은 별도 앱으로 구현되어 있지 않습니다.
 
 ## 서비스 범위
 
-이 README의 서비스 범위는 현재 구현된 화면과 성형·뷰티 추천 플랫폼으로 확장할 예정인 프론트엔드 영역을 함께 포함합니다.
+이 README의 서비스 범위는 현재 코드에 존재하는 앱과 화면을 먼저 적고, 아직 구현되지 않은 확장 예정 영역은 아래 `확장 예정 범위`에 분리합니다.
 
 - Staff Web
   - Staff 로그인, 세션 복구, 로그아웃, 프로필 관리
   - 병의원/뷰티 도메인 토글 기반 관리자 shell
-  - 병의원 대시보드, 뷰티 대시보드
+  - 병의원 대시보드
   - 성형/시술 병원 관리
   - 병원 의료진 관리
   - 병원 동영상 관리
-  - 병원 토크/댓글, 성형후기/시술후기/댓글, 병의원 평가, 신고 콘텐츠 관리
-  - 병원 광고, 이벤트, 상품, 상품 캘린더 관리
-  - 병원 고객 DB, 비대면상담 DB, 리얼모델 DB 관리
-  - 뷰티샵 관리
-  - 뷰티 전문가 관리
-  - 뷰티 후기, 리뷰, 토크, 신고 콘텐츠 관리
-  - 뷰티 광고, 이벤트, 상품, 상품 캘린더 관리
-  - 뷰티 고객 DB, 비대면상담 DB, 리얼모델 DB 관리
-  - 공지사항, FAQ, 1:1 문의 관리
-  - 일반 회원, 카테고리, 해시태그 관리
-  - 배너, 팝업, 상단 타이틀 등 공통 콘텐츠 관리
-  - 충전금, 통계, 유해성 단어, 닉네임, 직원 설정 관리
-- Hospital Web
-- Beauty web
+  - 병원 이벤트 관리
+  - 병원 이벤트 DB, 리얼모델 DB 관리
+  - 병원 토크/댓글, 성형후기/시술후기/댓글, 병의원 평가 관리
+  - 신고 콘텐츠 관리(토크, 후기, 평가, 채팅)
+  - 공지사항 관리
+  - 일반 회원 관리
+  - 해시태그 관리
+  - 메뉴/placeholder만 있는 영역: 뷰티 대시보드, 뷰티샵/전문가, 충전금, 비대면상담 DB, 광고/상품/캘린더, FAQ, 1:1 문의, 카테고리, 배너/팝업/상단 타이틀, 통계, 유해성 단어, 닉네임, 직원 설정
 - User Web
   - 일반 사용자 로그인 테스트
   - 유저 간 1:1 채팅방 목록 조회
@@ -80,9 +74,10 @@
 
 | 영역 | 포함 기능 | 설명 |
 | --- | --- | --- |
-| Hospital Admin | `hospitals`, `doctors`, `videos`, `talks`, `reviews` | 성형/시술 병원, 의료진, 영상, 병원 토크, 성형후기, 시술후기, 병의원 평가 운영 |
-| Beauty Admin | `beauties`, `experts`, `beauty-*` pages | 미용실/필라테스/피부샵/네일샵 등 뷰티 업체와 전문가 운영 |
-| Common Admin | `notices`, `faqs`, `users`, `categories`, `hashtags`, `content`, `settings` | 병원/뷰티 공통 운영 화면 |
+| Hospital Admin | `hospitals`, `doctors`, `videos`, `events`, `customer-db`, `talks`, `reviews`, `reported-content` | 병원, 의료진, 영상, 이벤트, 이벤트 DB/리얼모델 DB, 병원 토크, 성형후기, 시술후기, 병의원 평가, 신고 콘텐츠 운영 |
+| Beauty Admin | `beauty-*` placeholder pages | 현재 프론트에는 뷰티 도메인 메뉴/placeholder 화면만 있고, 뷰티 CRUD 전용 화면은 구현되어 있지 않음 |
+| Common Admin | `notices`, `users`, `hashtags`, `profile` | 현재 구현된 공통 운영 화면 |
+| Common Placeholder | `faqs`, `inquiries`, `categories`, `content`, `statistics`, `settings` | 메뉴와 placeholder만 존재하는 공통 운영 예정 화면 |
 | Communication Test | `apps/user-web` | 유저 간 채팅, 읽음, 알림, Reverb 이벤트 검증 |
 | Shared UI | `packages/ui-admin` | 제품 비의존 관리자 UI 컴포넌트와 layout |
 | Shared Runtime | `packages/api-client`, `packages/auth`, `packages/types` | API 요청, token/session storage, 공통 타입 |
@@ -144,6 +139,13 @@ Page
   - 병원/의사 옵션 조회
   - 게시기간, 카테고리, 썸네일, 영상 파일 처리
   - 영상 파일 다운로드
+- 병원 이벤트 관리
+  - 목록, 상세, 생성, 수정
+  - 병원/의료진/카테고리 연결
+  - 이벤트 기간, 이미지, 옵션, 상태 관리
+- 고객 DB 관리
+  - 이벤트 DB 목록과 상태 변경
+  - 리얼모델 DB 목록/상세와 상태 변경
 - 공지사항 관리
   - 목록, 상세, 생성, 수정
   - RichTextEditor 기반 본문 작성
@@ -166,7 +168,13 @@ Page
   - 병의원 평가 목록/상세 조회
   - 평점 평균, 비용, 조회수, 영수증 상태 조회
   - 영수증 인증/부적합 처리
-- 뷰티 영역 placeholder/관리 화면
+- 신고 콘텐츠 관리
+  - 토크, 후기, 평가, 채팅 신고 목록/상세 조회
+  - 신고 상태와 경고/무시 처리
+- 일반 회원 관리
+  - 목록, 상세 조회
+  - 회원 상태 수정
+- 현재 placeholder 화면
   - 뷰티 대시보드
   - 뷰티샵, 뷰티전문가
   - 뷰티 충전금
@@ -174,10 +182,8 @@ Page
   - 뷰티 광고/상품
   - 뷰티 후기/리뷰/토크
   - 뷰티 신고 콘텐츠
-- 공통 운영 화면
   - FAQ, 1:1 문의
-  - 일반 회원
-  - 카테고리, 해시태그
+  - 카테고리
   - 배너, 팝업, 상단 타이틀
   - 통계
   - 유해성 단어, 닉네임, 직원 설정
@@ -271,13 +277,20 @@ beaulab_frontend/
 │   │   │   ├── (admin)/              # 관리자 보호 영역
 │   │   │   └── (auth)/               # 로그인/회원가입 영역
 │   │   ├── components/
+│   │   │   ├── account-user/         # 일반 회원 목록/상세 컴포넌트
 │   │   │   ├── common/               # staff-web 전용 공통 adapter
-│   │   │   ├── hospital/             # 병의원 폼/목록 컴포넌트
 │   │   │   ├── doctor/               # 의료진 폼/목록 컴포넌트
-│   │   │   ├── video/                # 동영상 폼/목록 컴포넌트
-│   │   │   ├── notice/               # 공지사항 폼/목록 컴포넌트
 │   │   │   ├── hashtag/              # 해시태그 목록/모달
-│   │   │   └── talk/                 # 토크 목록
+│   │   │   ├── hospital/             # 병의원 폼/목록 컴포넌트
+│   │   │   ├── hospital-evaluation/  # 병의원 평가 목록/상세 컴포넌트
+│   │   │   ├── hospital-event/       # 병원 이벤트 폼/목록/상세 컴포넌트
+│   │   │   ├── hospital-event-db/    # 이벤트 DB 목록 컴포넌트
+│   │   │   ├── hospital-event-real-model-db/ # 리얼모델 DB 목록/상세 컴포넌트
+│   │   │   ├── hospital-review/      # 병의원 후기 목록/상세 컴포넌트
+│   │   │   ├── notice/               # 공지사항 폼/목록 컴포넌트
+│   │   │   ├── reported-content/     # 신고 콘텐츠 목록/상세 컴포넌트
+│   │   │   ├── talk/                 # 토크 목록/상세 컴포넌트
+│   │   │   └── video/                # 동영상 폼/목록 컴포넌트
 │   │   ├── hooks/
 │   │   │   ├── common/               # 도메인 비의존 훅
 │   │   │   ├── hospital/
@@ -285,13 +298,20 @@ beaulab_frontend/
 │   │   │   ├── video/
 │   │   │   └── notice/
 │   │   └── lib/
+│   │       ├── account-user/
 │   │       ├── common/               # API, auth, routing, navigation
-│   │       ├── hospital/
 │   │       ├── doctor/
-│   │       ├── video/
-│   │       ├── notice/
 │   │       ├── hashtag/
-│   │       └── talk/
+│   │       ├── hospital/
+│   │       ├── hospital-evaluation/
+│   │       ├── hospital-event/
+│   │       ├── hospital-event-db/
+│   │       ├── hospital-event-real-model-db/
+│   │       ├── hospital-review/
+│   │       ├── notice/
+│   │       ├── reported-content/
+│   │       ├── talk/
+│   │       └── video/
 │   └── user-web/
 │       └── app/                      # 채팅/Reverb 수동 검증 화면
 ├── packages/
