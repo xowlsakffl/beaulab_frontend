@@ -556,7 +556,7 @@ function RealModelImageTile({
       onClick={handlePreview}
       disabled={!canPreview}
       className="relative flex aspect-[76/49] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left disabled:cursor-default"
-      aria-label={canPreview ? `${badgeText} 미리보기` : undefined}
+      aria-label={canPreview ? `${badgeText} 원본보기` : undefined}
     >
       <span className="absolute left-2 top-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
         {badgeText}

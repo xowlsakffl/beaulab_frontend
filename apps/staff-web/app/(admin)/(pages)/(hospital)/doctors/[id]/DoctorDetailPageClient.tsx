@@ -282,7 +282,7 @@ function PreviewButton({
       }
       className="h-7 shrink-0 px-2 text-xs"
     >
-      미리보기
+      원본보기
     </Button>
   );
 }
