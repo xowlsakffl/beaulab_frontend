@@ -30,6 +30,12 @@ export type HospitalEntrySummary = {
   approved: number;
 };
 
+export type HospitalEntrySummaryApiResponse = {
+  pending_entries?: number | null;
+  rejected_entries?: number | null;
+  approved_entries?: number | null;
+};
+
 export type SortField =
   | "id"
   | "created_at"
@@ -222,6 +228,14 @@ export function normalizeHospitalEntry(item: HospitalEntryApiItem): HospitalEntr
   };
 }
 
+export function normalizeHospitalEntrySummary(summary: HospitalEntrySummaryApiResponse): HospitalEntrySummary {
+  return {
+    pending: Number(summary.pending_entries ?? 0),
+    rejected: Number(summary.rejected_entries ?? 0),
+    approved: Number(summary.approved_entries ?? 0),
+  };
+}
+
 export function nextSortState(prev: SortState, field: SortField): SortState {
   if (prev.field !== field) return { field, direction: "desc", enabled: true };
   if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
@@ -324,4 +338,3 @@ export function buildHospitalEntriesQueryString(query: HospitalEntriesQuery) {
 
   return params.toString();
 }
-

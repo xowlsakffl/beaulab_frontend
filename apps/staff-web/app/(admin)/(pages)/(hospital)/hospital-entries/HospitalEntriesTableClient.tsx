@@ -17,6 +17,7 @@ import {
   mapDateRangeToFilter,
   nextSortState,
   normalizeHospitalEntry,
+  normalizeHospitalEntrySummary,
   parseHospitalEntriesTableState,
   type DateFilterKey,
   type DatePresetKey,
@@ -24,17 +25,12 @@ import {
   type HospitalEntryApiItem,
   type HospitalEntryRow,
   type HospitalEntrySummary,
+  type HospitalEntrySummaryApiResponse,
   type SortField,
   type SortState,
 } from "@/lib/hospital-entry/list";
 import { isApiSuccess } from "@beaulab/types";
 import type { DataTableMeta } from "@beaulab/ui-admin";
-
-const SUMMARY_STATUSES = [
-  ["pending", "PENDING"],
-  ["rejected", "REJECTED"],
-  ["approved", "APPROVED"],
-] as const;
 
 export default function HospitalEntriesTableClient() {
   const router = useRouter();
@@ -94,24 +90,16 @@ export default function HospitalEntriesTableClient() {
 
   const fetchSummary = React.useCallback(async () => {
     try {
-      const entries = await Promise.all(
-        SUMMARY_STATUSES.map(async ([key, status]) => {
-          const response = await api.get<HospitalEntryApiItem[]>("/hospital-entries", {
-            allow_status: status,
-            per_page: 1,
-            page: 1,
-          }, {
-            latestKey: `hospital-entries:summary:${status}`,
-          });
+      const response = await api.get<HospitalEntrySummaryApiResponse>("/hospital-entries/summary", undefined, {
+        latestKey: "hospital-entries:summary",
+      });
 
-          if (!isApiSuccess(response)) return [key, 0] as const;
+      if (!isApiSuccess(response)) {
+        setSummary(null);
+        return;
+      }
 
-          const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-          return [key, Number(responseMeta?.total ?? response.data.length)] as const;
-        }),
-      );
-
-      setSummary(Object.fromEntries(entries) as HospitalEntrySummary);
+      setSummary(normalizeHospitalEntrySummary(response.data));
     } catch (error) {
       if (isApiRequestCanceledError(error)) return;
       setSummary(null);
@@ -295,4 +283,3 @@ export default function HospitalEntriesTableClient() {
     </div>
   );
 }
-
