@@ -146,6 +146,7 @@ type HospitalEntriesDataTableProps = {
   onToggleSort: (field: SortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
+  onRowClick: (row: HospitalEntryRow) => void;
 };
 
 export function HospitalEntriesDataTable({
@@ -158,6 +159,7 @@ export function HospitalEntriesDataTable({
   onToggleSort,
   onRefresh,
   onGoPage,
+  onRowClick,
 }: HospitalEntriesDataTableProps) {
   const columns = React.useMemo(
     () => buildHospitalEntryColumns({ sortState, onToggleSort }),
@@ -179,6 +181,7 @@ export function HospitalEntriesDataTable({
       meta={meta}
       onRefresh={onRefresh}
       onGoPage={onGoPage}
+      onRowClick={onRowClick}
       footerCenter={
         meta ? (
           <Pagination
@@ -193,4 +196,3 @@ export function HospitalEntriesDataTable({
     />
   );
 }
-

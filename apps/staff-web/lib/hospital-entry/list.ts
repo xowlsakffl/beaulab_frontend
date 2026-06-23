@@ -3,6 +3,13 @@ import type { DateRange } from "react-day-picker";
 
 export type HospitalEntryAllowStatus = "PENDING" | "APPROVED" | "REJECTED";
 
+export type HospitalEntryAllowStatusValue =
+  | string
+  | {
+      code?: string | null;
+      label?: string | null;
+    };
+
 export type HospitalEntryApiItem = {
   id: number;
   hospital_name?: string | null;
@@ -10,7 +17,7 @@ export type HospitalEntryApiItem = {
   address_detail?: string | null;
   ceo_name?: string | null;
   applicant_name?: string | null;
-  allow_status?: string | null;
+  allow_status?: HospitalEntryAllowStatusValue | null;
   created_at?: string | null;
 };
 
@@ -216,6 +223,12 @@ function formatAddress(address?: string | null, addressDetail?: string | null) {
   return [address?.trim(), addressDetail?.trim()].filter(Boolean).join(" ") || "-";
 }
 
+function resolveAllowStatusCode(status?: HospitalEntryAllowStatusValue | null) {
+  if (!status) return "";
+  if (typeof status === "string") return status;
+  return status.code?.trim() || "";
+}
+
 export function normalizeHospitalEntry(item: HospitalEntryApiItem): HospitalEntryRow {
   return {
     id: Number(item.id),
@@ -224,7 +237,7 @@ export function normalizeHospitalEntry(item: HospitalEntryApiItem): HospitalEntr
     address: formatAddress(item.address, item.address_detail),
     ceoName: item.ceo_name?.trim() || "-",
     applicantName: item.applicant_name?.trim() || "-",
-    allowStatus: item.allow_status || "",
+    allowStatus: resolveAllowStatusCode(item.allow_status),
   };
 }
 

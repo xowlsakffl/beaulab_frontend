@@ -99,34 +99,41 @@ export function HospitalEntriesFilterPanel({
           />
         </div>
 
-        <div className={filterRowClass}>
-          <span className={inlineLabelClass}>검색</span>
-          <div className="min-w-0 flex-1">
-            <InputField
-              value={searchInput}
-              onChange={(event) => onSearchChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  onApplyFilters();
-                }
-              }}
-              placeholder="ID, 병의원명, 주소, 사업자번호, 대표자, 신청자 검색"
-              className="bg-white"
-            />
+        <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className={inlineLabelClass}>검색</span>
+            <div className="min-w-0 flex-1">
+              <InputField
+                value={searchInput}
+                onChange={(event) => onSearchChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    onApplyFilters();
+                  }
+                }}
+                placeholder="ID, 병의원명, 대표자, 신청자 검색"
+                className="bg-white"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="col-span-full flex justify-end gap-2">
-          <Button type="button" variant="brand" size="filter" onClick={onApplyFilters}>
-            검색
-          </Button>
-          <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters}>
-            검색 초기화
-          </Button>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <Button type="button" variant="brand" size="filter" onClick={onApplyFilters} className="shrink-0">
+              검색
+            </Button>
+            <Button
+              type="button"
+              variant="brandOutline"
+              size="filter"
+              onClick={onResetFilters}
+              className="shrink-0"
+            >
+              검색 초기화
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
   );
 }
-

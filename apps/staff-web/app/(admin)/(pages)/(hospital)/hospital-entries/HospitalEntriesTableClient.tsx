@@ -81,6 +81,11 @@ export default function HospitalEntriesTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEntriesQueryString(query), [query]);
 
+  const buildReturnToPath = React.useCallback(() => {
+    const rawQueryString = searchParams.toString();
+    return rawQueryString ? `${pathname}?${rawQueryString}` : pathname;
+  }, [pathname, searchParams]);
+
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
@@ -279,6 +284,10 @@ export default function HospitalEntriesTableClient() {
           void fetchSummary();
         }}
         onGoPage={setPage}
+        onRowClick={(row) => {
+          const returnTo = buildReturnToPath();
+          router.push(`/hospital-entries/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+        }}
       />
     </div>
   );
