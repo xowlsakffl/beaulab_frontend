@@ -19,6 +19,7 @@ import { buildUrl, type Query } from "./url";
 type CreateClientOptions = {
     baseURL: string; // ex: http://localhost:8000/api/v1/staff
     actor: ActorType;
+    onUnauthorized?: (context: ApiUnauthorizedContext) => void;
 };
 
 /** 원래 fetch는 RequestInit을 받음
@@ -29,6 +30,16 @@ type RequestOptions = Omit<RequestInit, "body"> & {
     query?: Query;
     body?: unknown; // object | FormData | string | etc
     latestKey?: string;
+    skipUnauthorizedHandler?: boolean;
+};
+
+export type ApiUnauthorizedContext = {
+    actor: ActorType;
+    path: string;
+    url: string;
+    status: number;
+    response: Response;
+    payload: ApiResponse<unknown>;
 };
 
 type LatestRequest = {
@@ -73,10 +84,10 @@ function shouldJsonify(body: unknown): boolean {
 
 //baseURL+actor를 클로저로 고정
 export function createClient(options: CreateClientOptions) {
-    const { baseURL, actor } = options;
+    const { baseURL, actor, onUnauthorized } = options;
 
     async function request<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponse<T>> {
-        const { query, body: rawBody, latestKey, ...rest } = opts;
+        const { query, body: rawBody, latestKey, skipUnauthorizedHandler, ...rest } = opts;
 
         const url = buildUrl(baseURL, path, query);
         let latestRequest: LatestRequest | null = null;
@@ -138,6 +149,17 @@ export function createClient(options: CreateClientOptions) {
 
             if (latestKey && latestRequests.get(latestKey)?.requestId !== latestRequest?.requestId) {
                 throw new ApiRequestCanceledError("Stale API response ignored");
+            }
+
+            if (!skipUnauthorizedHandler && (res.status === 401 || res.status === 419)) {
+                onUnauthorized?.({
+                    actor,
+                    path,
+                    url,
+                    status: res.status,
+                    response: res,
+                    payload: payload as ApiResponse<unknown>,
+                });
             }
 
             return payload;

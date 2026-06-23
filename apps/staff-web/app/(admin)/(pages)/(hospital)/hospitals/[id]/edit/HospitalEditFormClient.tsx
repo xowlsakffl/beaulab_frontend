@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { HospitalFormLayout } from "@/components/hospital/form/HospitalFormLayout";
 import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
 import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSearch";
@@ -25,11 +26,6 @@ import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   SpinnerBlock,
   useGlobalAlert,
 } from "@beaulab/ui-admin";
@@ -369,17 +365,11 @@ export default function HospitalEditFormClient() {
 
   if (loadError) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>병의원 정보를 불러오지 못했습니다.</CardTitle>
-          <CardDescription>{loadError}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchHospital()}>
-            다시 불러오기
-          </Button>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="병의원 정보를 불러오지 못했습니다."
+        message={loadError}
+        onRetry={() => void fetchHospital()}
+      />
     );
   }
 

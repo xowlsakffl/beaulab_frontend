@@ -1,0 +1,132 @@
+"use client";
+
+import React from "react";
+import type { DateRange } from "react-day-picker";
+
+import {
+  Button,
+  Card,
+  CheckboxFilterDropdown,
+  DateRangeFilterDropdown,
+  InputField,
+} from "@beaulab/ui-admin";
+
+import {
+  DATE_PRESET_OPTIONS,
+  HOSPITAL_ENTRY_ALLOW_STATUS_OPTIONS,
+  type DateFilterKey,
+  type DatePresetKey,
+  type Filters,
+} from "@/lib/hospital-entry/list";
+
+type HospitalEntriesFilterPanelProps = {
+  draftFilters: Filters;
+  draftDateRange?: DateRange;
+  isAllowStatusDropdownOpen: boolean;
+  isDatePickerOpen: boolean;
+  allowStatusDropdownRef: React.RefObject<HTMLDivElement | null>;
+  datePickerRef: React.RefObject<HTMLDivElement | null>;
+  searchInput: string;
+  onSearchChange: (value: string) => void;
+  onToggleAllowStatusDropdown: () => void;
+  onToggleDatePicker: () => void;
+  onToggleAllowStatus: (value: string) => void;
+  onToggleAllAllowStatus: () => void;
+  onApplyDateRange: (key: DateFilterKey, nextRange?: DateRange) => void;
+  onApplyDatePreset: (key: DateFilterKey, preset: DatePresetKey) => void;
+  onApplyFilters: () => void;
+  onResetFilters: () => void;
+};
+
+export function HospitalEntriesFilterPanel({
+  draftFilters,
+  draftDateRange,
+  isAllowStatusDropdownOpen,
+  isDatePickerOpen,
+  allowStatusDropdownRef,
+  datePickerRef,
+  searchInput,
+  onSearchChange,
+  onToggleAllowStatusDropdown,
+  onToggleDatePicker,
+  onToggleAllowStatus,
+  onToggleAllAllowStatus,
+  onApplyDateRange,
+  onApplyDatePreset,
+  onApplyFilters,
+  onResetFilters,
+}: HospitalEntriesFilterPanelProps) {
+  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
+
+  return (
+    <Card className="rounded-xl p-3">
+      <div className="grid grid-cols-[minmax(14rem,1fr)_minmax(12rem,0.8fr)_minmax(18rem,1.7fr)] gap-x-3 gap-y-4 max-[1280px]:grid-cols-1">
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>기간</span>
+          <DateRangeFilterDropdown
+            label="기간"
+            hideLabel
+            containerRef={datePickerRef}
+            value={draftFilters.dateRange}
+            placeholder="신청일 기간 선택"
+            selected={draftDateRange}
+            isOpen={isDatePickerOpen}
+            presetOptions={DATE_PRESET_OPTIONS}
+            onToggleOpen={onToggleDatePicker}
+            onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
+            onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
+            onReset={() => {
+              onApplyDateRange("created", undefined);
+              onToggleDatePicker();
+            }}
+            onConfirm={onToggleDatePicker}
+          />
+        </div>
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>승인상태</span>
+          <CheckboxFilterDropdown
+            label="승인상태"
+            hideLabel
+            containerRef={allowStatusDropdownRef}
+            selectedValues={draftFilters.allowStatuses}
+            options={HOSPITAL_ENTRY_ALLOW_STATUS_OPTIONS}
+            isOpen={isAllowStatusDropdownOpen}
+            onToggleOpen={onToggleAllowStatusDropdown}
+            onToggleValue={onToggleAllowStatus}
+            onToggleAll={onToggleAllAllowStatus}
+          />
+        </div>
+
+        <div className={filterRowClass}>
+          <span className={inlineLabelClass}>검색</span>
+          <div className="min-w-0 flex-1">
+            <InputField
+              value={searchInput}
+              onChange={(event) => onSearchChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  onApplyFilters();
+                }
+              }}
+              placeholder="ID, 병의원명, 주소, 사업자번호, 대표자, 신청자 검색"
+              className="bg-white"
+            />
+          </div>
+        </div>
+
+        <div className="col-span-full flex justify-end gap-2">
+          <Button type="button" variant="brand" size="filter" onClick={onApplyFilters}>
+            검색
+          </Button>
+          <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters}>
+            검색 초기화
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+

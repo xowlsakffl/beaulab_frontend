@@ -15,6 +15,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { Can } from "@/components/common/guard";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
   DetailCompactMediaCard,
   DetailEmptyState,
@@ -99,17 +100,11 @@ export default function VideoDetailPageClient() {
 
   if (loadError || !detail) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>동영상 정보를 불러오지 못했습니다.</CardTitle>
-          <CardDescription>{loadError ?? "동영상 정보를 찾을 수 없습니다."}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchVideo()}>
-            다시 불러오기
-          </Button>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="동영상 정보를 불러오지 못했습니다."
+        message={loadError ?? "동영상 정보를 찾을 수 없습니다."}
+        onRetry={() => void fetchVideo()}
+      />
     );
   }
 

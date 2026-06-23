@@ -6,10 +6,6 @@ import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   CategoryBadgeList,
   FormTextArea,
   InputField,
@@ -28,6 +24,7 @@ import {
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { Can } from "@/components/common/guard";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
   OperationHistoryActionBadge,
   OperationHistoryReason,
@@ -409,20 +406,11 @@ export default function HospitalEventDetailPageClient() {
 
   if (loadError || !detail) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>이벤트 정보를 불러오지 못했습니다.</CardTitle>
-          <CardDescription>{loadError ?? "이벤트 정보를 찾을 수 없습니다."}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchEvent()}>
-            다시 불러오기
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.push(getReturnToPath())}>
-            취소
-          </Button>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="이벤트 정보를 불러오지 못했습니다."
+        message={loadError ?? "이벤트 정보를 찾을 수 없습니다."}
+        onRetry={() => void fetchEvent()}
+      />
     );
   }
 

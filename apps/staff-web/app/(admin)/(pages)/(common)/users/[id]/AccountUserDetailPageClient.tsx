@@ -21,6 +21,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { api } from "@/lib/common/api";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
 import {
@@ -211,11 +212,14 @@ export default function AccountUserDetailPageClient() {
 
   if (loadError || !user) {
     return (
-      <Card>
-        <CardContent className="flex min-h-[240px] flex-col items-center justify-center gap-4">
-          <p className="text-sm text-rose-600">{loadError || "회원 상세 정보가 없습니다."}</p>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="회원 상세 정보를 불러오지 못했습니다."
+        message={loadError || "회원 상세 정보가 없습니다."}
+        onRetry={() => {
+          void fetchUser();
+          void fetchNotes();
+        }}
+      />
     );
   }
 

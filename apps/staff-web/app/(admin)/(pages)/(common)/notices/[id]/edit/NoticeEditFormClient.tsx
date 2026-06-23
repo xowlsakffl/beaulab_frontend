@@ -3,8 +3,9 @@
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
+import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { NoticeAttachmentSection } from "@/components/notice/form/NoticeAttachmentSection";
 import { NoticeMainSection } from "@/components/notice/form/NoticeMainSection";
 import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempImages";
@@ -196,17 +197,11 @@ export default function NoticeEditFormClient() {
 
   if (loadError) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>공지사항 정보를 불러오지 못했습니다.</CardTitle>
-          <CardDescription>{loadError}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchNotice()}>
-            다시 불러오기
-          </Button>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="공지사항 정보를 불러오지 못했습니다."
+        message={loadError}
+        onRetry={() => void fetchNotice()}
+      />
     );
   }
 

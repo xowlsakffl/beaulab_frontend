@@ -73,6 +73,7 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             subItems: [
                 routeSubItem({name: "병의원", path: "/hospitals"}),
                 routeSubItem({name: "의료진", path: "/doctors"}),
+                routeSubItem({name: "입점신청", path: "/hospital-entries"}),
             ],
         },
         {

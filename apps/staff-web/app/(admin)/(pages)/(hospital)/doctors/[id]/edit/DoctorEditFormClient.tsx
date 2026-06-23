@@ -15,6 +15,7 @@ import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useDoctorFieldFocus } from "@/hooks/doctor/useDoctorFieldFocus";
 import { api } from "@/lib/common/api";
@@ -37,11 +38,6 @@ import {
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
   Modal,
   ModalBody,
   ModalFooter,
@@ -368,17 +364,11 @@ export default function DoctorEditFormClient() {
 
   if (loadError) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>의료진 정보를 불러오지 못했습니다.</CardTitle>
-          <CardDescription>{loadError}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void fetchDoctor()}>
-            다시 불러오기
-          </Button>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="의료진 정보를 불러오지 못했습니다."
+        message={loadError}
+        onRetry={() => void fetchDoctor()}
+      />
     );
   }
 

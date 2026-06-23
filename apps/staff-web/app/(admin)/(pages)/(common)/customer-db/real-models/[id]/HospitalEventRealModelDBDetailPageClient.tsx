@@ -7,7 +7,6 @@ import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
-  CardContent,
   Modal,
   ModalBody,
   ModalFooter,
@@ -23,6 +22,7 @@ import {
   type HospitalMediaPreviewItem,
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   normalizeHospitalEventRealModelDBDetail,
@@ -174,11 +174,11 @@ export default function HospitalEventRealModelDBDetailPageClient() {
 
   if (loadError || !detail) {
     return (
-      <Card className={infoCardClassName}>
-        <CardContent className="p-10 text-center text-sm text-rose-600">
-          {loadError || "리얼모델 DB 상세 정보가 없습니다."}
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="리얼모델 DB 상세 정보를 불러오지 못했습니다."
+        message={loadError || "리얼모델 DB 상세 정보가 없습니다."}
+        onRetry={() => void fetchDetail()}
+      />
     );
   }
 

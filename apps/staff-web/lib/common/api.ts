@@ -1,11 +1,30 @@
-import { createClient } from "@beaulab/api-client";
-import { tokenStorage } from "@beaulab/auth";
+import { createClient, type ApiUnauthorizedContext } from "@beaulab/api-client";
+import { sessionStorage, tokenStorage } from "@beaulab/auth";
 
 export { isApiRequestCanceledError } from "@beaulab/api-client";
+
+let isRedirectingToLogin = false;
+
+function redirectToLoginAfterUnauthorized(context: ApiUnauthorizedContext) {
+    if (typeof window === "undefined" || isRedirectingToLogin) return;
+
+    tokenStorage.clear(context.actor);
+    sessionStorage.clear(context.actor);
+
+    if (window.location.pathname === "/login") return;
+
+    isRedirectingToLogin = true;
+
+    const currentPath = `${window.location.pathname}${window.location.search}`;
+    const next = currentPath ? `?next=${encodeURIComponent(currentPath)}` : "";
+
+    window.location.replace(`/login${next}`);
+}
 
 export const api = createClient({
     baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/staff`,
     actor: "staff",
+    onUnauthorized: redirectToLoginAfterUnauthorized,
 });
 
 function parseContentDispositionFileName(headerValue: string | null): string | null {
@@ -46,6 +65,25 @@ export async function downloadFile(pathOrUrl: string, fallbackFileName?: string)
         method: "GET",
         headers,
     });
+
+    if (response.status === 401 || response.status === 419) {
+        redirectToLoginAfterUnauthorized({
+            actor: "staff",
+            path: pathOrUrl,
+            url,
+            status: response.status,
+            response,
+            payload: {
+                success: false,
+                error: {
+                    code: response.status === 419 ? "TOKEN_ERROR" : "UNAUTHORIZED",
+                    message: "인증이 필요합니다.",
+                },
+                traceId: response.headers.get("X-Request-Id"),
+            },
+        });
+        throw new Error("인증이 필요합니다.");
+    }
 
     if (!response.ok) {
         const contentType = response.headers.get("content-type") ?? "";

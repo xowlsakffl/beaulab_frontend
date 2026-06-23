@@ -88,6 +88,11 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         group: "병의원 관리",
     },
     {
+        slug: ["hospital-entries"],
+        title: "입점신청",
+        group: "병의원 관리",
+    },
+    {
         slug: ["wallet", "deposits"],
         title: "입금/충전 관리",
         group: "충전금",

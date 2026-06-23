@@ -32,6 +32,7 @@ import {
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useDoctorHospitalOptions } from "@/hooks/doctor/useDoctorHospitalOptions";
 import { useVideoDoctorOptions } from "@/hooks/video/useVideoDoctorOptions";
@@ -551,17 +552,11 @@ function HospitalEventsFormClient({
 
   if (loadError) {
     return (
-      <Card className="space-y-4 p-6">
-        <div>
-          <h2 className="text-base font-bold text-gray-900">이벤트 정보를 불러오지 못했습니다.</h2>
-          <p className="mt-2 text-sm text-gray-500">{loadError}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="brand" onClick={() => void fetchEvent()}>
-            다시 불러오기
-          </Button>
-        </div>
-      </Card>
+      <LoadErrorState
+        title="이벤트 정보를 불러오지 못했습니다."
+        message={loadError}
+        onRetry={() => void fetchEvent()}
+      />
     );
   }
 

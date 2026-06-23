@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   InputField,
@@ -30,6 +29,7 @@ import {
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
   OperationHistoryActionBadge,
   OperationHistoryReason,
@@ -439,17 +439,11 @@ export default function TalkDetailPageClient() {
 
   if (loadError || !detail) {
     return (
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle>토크 상세 정보를 불러오지 못했습니다.</CardTitle>
-          <CardDescription>{loadError ?? "토크 상세 정보를 찾을 수 없습니다."}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2 pt-0">
-          <Button type="button" variant="brand" onClick={() => void refreshTalkPage(true)}>
-            다시 불러오기
-          </Button>
-        </CardContent>
-      </Card>
+      <LoadErrorState
+        title="토크 상세 정보를 불러오지 못했습니다."
+        message={loadError ?? "토크 상세 정보를 찾을 수 없습니다."}
+        onRetry={() => void refreshTalkPage(true)}
+      />
     );
   }
 

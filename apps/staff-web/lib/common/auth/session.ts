@@ -36,7 +36,9 @@ function resolveAuth(data: AuthFields): Partial<ActorAuthorization> | undefined 
 }
 
 export async function login(payload: LoginPayload): Promise<StaffSession> {
-  const res = await api.post<LoginResponse>("/auth/login", payload);
+  const res = await api.post<LoginResponse>("/auth/login", payload, undefined, {
+    skipUnauthorizedHandler: true,
+  });
 
   if (!isApiSuccess(res)) throw res;
 
@@ -76,11 +78,14 @@ export function getSession(): StaffSession | null {
 }
 
 export async function ensureSession(): Promise<StaffSession | null> {
+  const token = tokenStorage.get("staff");
+  if (!token) {
+    sessionStorage.clear("staff");
+    return null;
+  }
+
   const cached = getSession();
   if (cached) return cached;
-
-  const token = tokenStorage.get("staff");
-  if (!token) return null;
 
   try {
     return await restoreSession();

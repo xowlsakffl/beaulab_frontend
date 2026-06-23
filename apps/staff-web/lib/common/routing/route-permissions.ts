@@ -8,6 +8,7 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/profile": ["common.profile.show"],
   "/hospitals": ["beaulab.hospital.show"],
   "/doctors": ["beaulab.doctor.show"],
+  "/hospital-entries": ["beaulab.hospital_entry.show"],
   "/videos": ["beaulab.video.show"],
   "/notices": ["beaulab.notice.show"],
   "/beauty-dashboard": ["common.dashboard.show"],
