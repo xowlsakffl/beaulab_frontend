@@ -21,12 +21,13 @@ import {
   type HospitalDetailResponse,
   type MediaAsset,
 } from "@/lib/hospital/detail";
-import { hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
+import { hospitalStatusBadgeColor, labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
 import {
   Button,
   Card,
   Dropdown,
   DropdownItem,
+  InputField,
   Modal,
   ModalBody,
   ModalFooter,
@@ -69,6 +70,12 @@ export default function HospitalDetailPageClient() {
   const [isSuspendModalOpen, setIsSuspendModalOpen] = React.useState(false);
   const [suspendError, setSuspendError] = React.useState<string | null>(null);
   const [suspending, setSuspending] = React.useState(false);
+  const [updatingAllowStatus, setUpdatingAllowStatus] = React.useState(false);
+  const [allowStatusError, setAllowStatusError] = React.useState<string | null>(null);
+  const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<{
+    allowStatus: string;
+    reason: string;
+  } | null>(null);
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -171,6 +178,64 @@ export default function HospitalDetailPageClient() {
     }
   }, [hospitalId]);
 
+  const requestAllowStatusChange = React.useCallback(
+    (allowStatus: string) => {
+      if (!detail || updatingAllowStatus || detail.allow_status === allowStatus) return;
+
+      setAllowStatusError(null);
+      setPendingAllowStatusChange({ allowStatus, reason: "" });
+    },
+    [detail, updatingAllowStatus],
+  );
+
+  const closeAllowStatusModal = React.useCallback(() => {
+    if (updatingAllowStatus) return;
+
+    setPendingAllowStatusChange(null);
+    setAllowStatusError(null);
+  }, [updatingAllowStatus]);
+
+  const updateAllowStatusReason = React.useCallback((reason: string) => {
+    setPendingAllowStatusChange((prev) => prev ? { ...prev, reason } : prev);
+    setAllowStatusError(null);
+  }, []);
+
+  const confirmAllowStatusChange = React.useCallback(async () => {
+    if (!detail || !pendingAllowStatusChange) return;
+
+    const reason = pendingAllowStatusChange.reason.trim();
+    if (pendingAllowStatusChange.allowStatus === "REJECTED" && !reason) {
+      setAllowStatusError("반려 사유를 입력해주세요.");
+      return;
+    }
+
+    setUpdatingAllowStatus(true);
+    setAllowStatusError(null);
+
+    try {
+      const response = await api.patch<{ updated_count?: number; allow_status?: string; ids?: number[] }>(
+        "/hospitals/allow-status",
+        {
+          ids: [detail.id],
+          allow_status: pendingAllowStatusChange.allowStatus,
+          ...(reason ? { reason } : {}),
+        },
+      );
+
+      if (!isApiSuccess(response)) {
+        setAllowStatusError(response.error.message || "검수상태 변경에 실패했습니다.");
+        return;
+      }
+
+      setDetail((prev) => prev ? { ...prev, allow_status: pendingAllowStatusChange.allowStatus } : prev);
+      setPendingAllowStatusChange(null);
+    } catch {
+      setAllowStatusError("검수상태 변경 중 오류가 발생했습니다.");
+    } finally {
+      setUpdatingAllowStatus(false);
+    }
+  }, [detail, pendingAllowStatusChange]);
+
   usePageHeaderExtra(headerAction);
 
   if (isLoading) {
@@ -188,36 +253,54 @@ export default function HospitalDetailPageClient() {
   }
 
   return (
-    <div className="min-w-0 space-y-6">
-      <section className="grid min-w-0 grid-cols-1 items-stretch gap-3 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
+    <div className="min-w-0 space-y-4">
+      <section className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
         <HospitalLogoCard
           logo={detail.logo ?? null}
           hospitalName={detail.name}
-          className="xl:h-full"
+          className="xl:col-start-1 xl:row-start-1 xl:self-start"
           onPreview={setPreviewMedia}
         />
 
-        <div className="grid min-w-0 gap-3">
-          <HospitalInfoCard
-            detail={detail}
-            isActionMenuOpen={isActionMenuOpen}
-            onToggleActionMenu={() => setIsActionMenuOpen((prev) => !prev)}
-            onCloseActionMenu={() => setIsActionMenuOpen(false)}
-            onOpenSuspendModal={openSuspendModal}
-            onPreview={setPreviewMedia}
-          />
-          <BusinessAccountCard detail={detail} />
-        </div>
+        <HospitalInfoCard
+          detail={detail}
+          className="xl:col-start-2 xl:row-start-1"
+          isActionMenuOpen={isActionMenuOpen}
+          onToggleActionMenu={() => setIsActionMenuOpen((prev) => !prev)}
+          onCloseActionMenu={() => setIsActionMenuOpen(false)}
+          onOpenSuspendModal={openSuspendModal}
+          onPreview={setPreviewMedia}
+        />
 
-        <div className="flex min-w-0 flex-col gap-3">
+        <BusinessAccountCard detail={detail} className="xl:col-start-2 xl:row-start-2" />
+
+        <VerifiedAccountContactCard detail={detail} className="h-full xl:col-start-2 xl:row-start-3" />
+
+        <div className="flex min-w-0 flex-col gap-4 xl:col-start-3 xl:row-span-2 xl:row-start-1 xl:h-full">
           <PointCard detail={detail} onOpenNewEventDBs={openNewEventDBs} />
           <AdReceptionCard detail={detail} className="xl:flex-1" />
         </div>
+
+        <AllowStatusCard
+          detail={detail}
+          updating={updatingAllowStatus}
+          error={allowStatusError}
+          onChange={requestAllowStatusChange}
+          className="h-full xl:col-start-3 xl:row-start-3"
+        />
       </section>
 
       <HospitalImagesCard detail={detail} onPreview={setPreviewMedia} />
       <OperationInfoCard detail={detail} />
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <AllowStatusConfirmModal
+        pending={pendingAllowStatusChange}
+        updating={updatingAllowStatus}
+        error={allowStatusError}
+        onReasonChange={updateAllowStatusReason}
+        onClose={closeAllowStatusModal}
+        onConfirm={() => void confirmAllowStatusChange()}
+      />
       <Modal isOpen={isSuspendModalOpen} onClose={closeSuspendModal} className="mx-4 max-w-md" showCloseButton={false}>
         <ModalPanel>
           <ModalHeader className="pr-0">
@@ -381,6 +464,139 @@ function BusinessAccountCard({ detail, className }: { detail: HospitalDetailResp
         <InfoField label="예금주명" value={settlementAccount?.account_holder} />
       </div>
     </Card>
+  );
+}
+
+function VerifiedAccountContactCard({ detail, className }: { detail: HospitalDetailResponse; className?: string }) {
+  return (
+    <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
+      <div className="space-y-3">
+        <InfoField label="전화번호" value={detail.account_hospital?.phone} compact />
+        <InfoField label="이메일" value={detail.account_hospital?.email ?? detail.email} compact />
+      </div>
+    </Card>
+  );
+}
+
+function AllowStatusCard({
+  detail,
+  updating,
+  error,
+  onChange,
+  className,
+}: {
+  detail: HospitalDetailResponse;
+  updating: boolean;
+  error: string | null;
+  onChange: (status: string) => void;
+  className?: string;
+}) {
+  return (
+    <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
+      <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
+        <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
+        <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
+      </div>
+      {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
+    </Card>
+  );
+}
+
+function AllowStatusButtons({
+  detail,
+  updating,
+  onChange,
+}: {
+  detail: HospitalDetailResponse;
+  updating: boolean;
+  onChange: (status: string) => void;
+}) {
+  const statuses = [
+    ["REVIEWING", "검수"],
+    ["APPROVED", "승인"],
+    ["REJECTED", "반려"],
+  ] as const;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {statuses.map(([value, label]) => {
+        const active = detail.allow_status === value;
+
+        return (
+          <Button
+            key={value}
+            type="button"
+            variant={active ? "brand" : "outline"}
+            disabled={updating || active}
+            onClick={() => onChange(value)}
+            className="h-10 min-w-16 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {label}
+          </Button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AllowStatusConfirmModal({
+  pending,
+  updating,
+  error,
+  onReasonChange,
+  onClose,
+  onConfirm,
+}: {
+  pending: { allowStatus: string; reason: string } | null;
+  updating: boolean;
+  error: string | null;
+  onReasonChange: (reason: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const statusLabel = pending ? labelReviewStatus(pending.allowStatus) : "";
+  const requiresReason = pending?.allowStatus === "REJECTED";
+
+  return (
+    <Modal isOpen={pending !== null} onClose={onClose} className="mx-4 max-w-md" showCloseButton={false}>
+      <ModalPanel>
+        <ModalHeader className="pr-0">
+          <ModalTitle>검수상태 변경</ModalTitle>
+        </ModalHeader>
+        <ModalBody className="mt-5 space-y-4">
+          <p className="text-sm font-medium text-gray-800">
+            해당 병의원을 {statusLabel} 상태로 변경하시겠습니까?
+          </p>
+          {requiresReason ? (
+            <div className="mt-4">
+              <label htmlFor="hospital-rejected-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
+                반려 사유
+              </label>
+              <InputField
+                id="hospital-rejected-reason"
+                name="rejected_reason"
+                value={pending?.reason ?? ""}
+                onChange={(event) => onReasonChange(event.target.value)}
+                disabled={updating}
+                placeholder="반려 사유를 입력해주세요."
+                error={Boolean(error)}
+                hint={error ?? undefined}
+              />
+            </div>
+          ) : null}
+          {error && !requiresReason ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
+        </ModalBody>
+        <ModalFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
+            취소
+          </Button>
+          <Button type="button" variant="brand" onClick={onConfirm} disabled={updating}>
+            {updating ? "변경 중" : "확인"}
+          </Button>
+        </ModalFooter>
+      </ModalPanel>
+    </Modal>
   );
 }
 

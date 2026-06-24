@@ -45,6 +45,7 @@ export type AccountHospitalAsset = {
   name?: string | null;
   nickname?: string | null;
   email?: string | null;
+  phone?: string | null;
   status?: string | null;
   last_login_at?: string | null;
   created_at?: string | null;
