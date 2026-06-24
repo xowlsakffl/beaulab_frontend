@@ -95,6 +95,12 @@ export default function HospitalDetailPageClient() {
     );
   }, [editPath, hospitalId, router]);
 
+  const openNewEventDBs = React.useCallback(() => {
+    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
+
+    router.push(`/customer-db/events?hospital_id=${hospitalId}&statuses=NEW`);
+  }, [hospitalId, router]);
+
   const fetchHospital = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) {
       setLoadError("올바르지 않은 병의원 경로입니다.");
@@ -204,7 +210,7 @@ export default function HospitalDetailPageClient() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-3">
-          <PointCard />
+          <PointCard detail={detail} onOpenNewEventDBs={openNewEventDBs} />
           <AdReceptionCard detail={detail} className="xl:flex-1" />
         </div>
       </section>
@@ -378,12 +384,25 @@ function BusinessAccountCard({ detail, className }: { detail: HospitalDetailResp
   );
 }
 
-function PointCard({ className }: { className?: string }) {
+function PointCard({
+  detail,
+  className,
+  onOpenNewEventDBs,
+}: {
+  detail: HospitalDetailResponse;
+  className?: string;
+  onOpenNewEventDBs: () => void;
+}) {
+  const newEventDBCount = Number(detail.new_event_db_count ?? 0);
+
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[5rem] flex-col justify-between gap-3">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-gray-900">현재 포인트 잔액</h3>
+          <Button type="button" variant="brand" size="sm" onClick={onOpenNewEventDBs} className="h-8 px-3 text-xs">
+            미확인 DB {newEventDBCount.toLocaleString()}건
+          </Button>
         </div>
         <p className="text-right text-sm font-bold text-gray-900">0 P</p>
       </div>

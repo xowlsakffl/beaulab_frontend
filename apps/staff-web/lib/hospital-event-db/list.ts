@@ -26,6 +26,7 @@ export type HospitalEventDBSortField =
 
 export type HospitalEventDBFilters = {
   accountUserId: string;
+  hospitalId: string;
   dateRange: string;
   startDate: string;
   endDate: string;
@@ -47,6 +48,7 @@ export type HospitalEventDBSortState = {
 export type HospitalEventDBQuery = {
   q?: string;
   account_user_id?: string;
+  hospital_id?: string;
   start_date?: string;
   end_date?: string;
   contact_methods?: string;
@@ -143,6 +145,7 @@ export const HOSPITAL_EVENT_DBS_PER_PAGE = 15;
 
 export const DEFAULT_HOSPITAL_EVENT_DB_FILTERS: HospitalEventDBFilters = {
   accountUserId: "",
+  hospitalId: "",
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -328,6 +331,7 @@ export function parseHospitalEventDBsTableState(searchParams: URLSearchParams) {
     filters: {
       ...DEFAULT_HOSPITAL_EVENT_DB_FILTERS,
       accountUserId: normalizeIdParam(searchParams.get("account_user_id")),
+      hospitalId: normalizeIdParam(searchParams.get("hospital_id")),
       dateRange: dateState.label,
       startDate,
       endDate,
@@ -375,6 +379,7 @@ export function buildHospitalEventDBsQuery({
 
   if (q) query.q = q;
   if (appliedFilters.accountUserId) query.account_user_id = appliedFilters.accountUserId;
+  if (appliedFilters.hospitalId) query.hospital_id = appliedFilters.hospitalId;
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
   if (appliedFilters.contactMethod) query.contact_methods = appliedFilters.contactMethod;

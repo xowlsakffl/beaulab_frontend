@@ -101,6 +101,7 @@ export type HospitalDetailResponse = {
   allow_status?: string | null;
   status?: string | null;
   latest_status_history?: HospitalStatusHistory | null;
+  new_event_db_count?: number | null;
   logo?: MediaAsset | null;
   gallery?: MediaAsset[] | null;
   categories?: HospitalCategoryItem[] | null;
