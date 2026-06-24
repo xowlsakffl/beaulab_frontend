@@ -112,7 +112,8 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     }
 
     try {
-      const response = await api.get<ReportedContentSummary>(`${activeApiPath}/summary`, undefined, {
+      const summaryQuery = query.target_author_id ? { target_author_id: query.target_author_id } : undefined;
+      const response = await api.get<ReportedContentSummary>(`${activeApiPath}/summary`, summaryQuery, {
         latestKey: "reported-content:summary",
       });
 
@@ -126,7 +127,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
 
       setSummary(null);
     }
-  }, [activeApiPath, showSummaryCards]);
+  }, [activeApiPath, query.target_author_id, showSummaryCards]);
 
   const fetchRows = React.useCallback(
     async (manualRefresh = false) => {
@@ -224,7 +225,10 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const changeBoard = React.useCallback((nextBoard: ReportedContentBoardMode) => {
     if (nextBoard === activeBoard || (nextBoard === "comments" && !supportsComments)) return;
 
-    const defaultFilters = defaultReportedContentFilters(config);
+    const defaultFilters = {
+      ...defaultReportedContentFilters(config),
+      targetAuthorId: appliedFilters.targetAuthorId,
+    };
 
     setActiveBoard(nextBoard);
     setSearchInput("");
@@ -241,7 +245,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     setError(null);
     hasFetchedRef.current = false;
     requestKeyRef.current = "";
-  }, [activeBoard, config, supportsComments]);
+  }, [activeBoard, appliedFilters.targetAuthorId, config, supportsComments]);
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToReportedContentFilter(nextRange);

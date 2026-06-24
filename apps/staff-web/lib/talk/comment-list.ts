@@ -74,6 +74,7 @@ export type TalkCommentSortState = {
 
 export type TalkCommentsQuery = {
   q?: string;
+  author_id?: string;
   status?: string;
   report_status?: string;
   category_ids?: string;
@@ -177,6 +178,7 @@ export function buildTalkCommentsQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
+  if (appliedFilters.authorId) query.author_id = appliedFilters.authorId;
   if (TALK_COMMENT_VISIBILITY_SET.has(appliedFilters.visibilityStatus) && appliedFilters.visibilityStatus) {
     query.status = appliedFilters.visibilityStatus;
   }
@@ -206,6 +208,7 @@ export function buildTalkCommentsQueryString(query: TalkCommentsQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
+  if (query.author_id) params.set("author_id", query.author_id);
   if (query.status) params.set("status", query.status);
   if (query.report_status) params.set("report_status", query.report_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);

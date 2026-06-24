@@ -25,6 +25,7 @@ export type HospitalEventDBSortField =
   | "updated_at";
 
 export type HospitalEventDBFilters = {
+  accountUserId: string;
   dateRange: string;
   startDate: string;
   endDate: string;
@@ -45,6 +46,7 @@ export type HospitalEventDBSortState = {
 
 export type HospitalEventDBQuery = {
   q?: string;
+  account_user_id?: string;
   start_date?: string;
   end_date?: string;
   contact_methods?: string;
@@ -140,6 +142,7 @@ export type HospitalEventDBRow = {
 export const HOSPITAL_EVENT_DBS_PER_PAGE = 15;
 
 export const DEFAULT_HOSPITAL_EVENT_DB_FILTERS: HospitalEventDBFilters = {
+  accountUserId: "",
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -324,6 +327,7 @@ export function parseHospitalEventDBsTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       ...DEFAULT_HOSPITAL_EVENT_DB_FILTERS,
+      accountUserId: normalizeIdParam(searchParams.get("account_user_id")),
       dateRange: dateState.label,
       startDate,
       endDate,
@@ -370,6 +374,7 @@ export function buildHospitalEventDBsQuery({
   const amountMax = normalizeNumberBound(appliedFilters.amountMax);
 
   if (q) query.q = q;
+  if (appliedFilters.accountUserId) query.account_user_id = appliedFilters.accountUserId;
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
   if (appliedFilters.contactMethod) query.contact_methods = appliedFilters.contactMethod;
@@ -518,6 +523,12 @@ function normalizeOptionValue(value: string | null | undefined, availableValues:
   const firstValue = (value ?? "").split(",")[0]?.trim() ?? "";
 
   return availableValues.has(firstValue) ? firstValue : "";
+}
+
+function normalizeIdParam(value: string | null | undefined) {
+  const normalized = (value ?? "").trim();
+
+  return /^[1-9]\d*$/.test(normalized) ? normalized : "";
 }
 
 function normalizeNullableId(value: number | null | undefined) {

@@ -41,7 +41,7 @@ import {
 type AccountUserUpdateResponse = AccountUserDetail;
 
 const labelClassName = "text-xs font-semibold text-gray-500";
-const valueClassName = "min-w-0 break-words text-sm font-medium text-gray-800";
+const valueClassName = "min-w-0 break-words text-sm text-gray-800";
 const cardHeaderClassName = "mb-5";
 
 export default function AccountUserDetailPageClient() {
@@ -207,7 +207,7 @@ export default function AccountUserDetailPageClient() {
   }, [noteInput, userId]);
 
   if (loading) {
-    return <SpinnerBlock className="min-h-[360px]" label="회원 상세 정보를 불러오는 중" />;
+    return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="회원 상세 정보를 불러오는 중" />;
   }
 
   if (loadError || !user) {
@@ -367,7 +367,12 @@ function MemberInfoCard({
 }
 
 function ConsultationInfoCard({ user }: { user: AccountUserDetail }) {
+  const router = useRouter();
   const consultation = user.consultation_info;
+  const accountUserId = Number(user.id ?? 0);
+  const accountUserQuery = Number.isInteger(accountUserId) && accountUserId > 0
+    ? `?account_user_id=${accountUserId}`
+    : "";
 
   return (
     <Card>
@@ -376,9 +381,17 @@ function ConsultationInfoCard({ user }: { user: AccountUserDetail }) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <CountBox label="이벤트 DB" value={Number(consultation?.event_dbs ?? 0)} />
+          <ClickableCountBox
+            label="이벤트 DB"
+            value={Number(consultation?.event_dbs ?? 0).toLocaleString()}
+            onClick={() => router.push(`/customer-db/events${accountUserQuery}`)}
+          />
           <CountBox label="비대면 상담신청" value={Number(consultation?.remote_consultations ?? 0)} />
-          <CountBox label="리얼모델 DB" value={Number(consultation?.real_model_dbs ?? 0)} />
+          <ClickableCountBox
+            label="리얼모델 DB"
+            value={Number(consultation?.real_model_dbs ?? 0).toLocaleString()}
+            onClick={() => router.push(`/customer-db/real-models${accountUserQuery}`)}
+          />
         </div>
       </CardContent>
     </Card>
@@ -455,7 +468,13 @@ function AdminMemoCard({
 
 function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
   const router = useRouter();
-  const nicknameQuery = user.nickname ? `?q=${encodeURIComponent(user.nickname)}` : "";
+  const accountUserId = Number(user.id ?? 0);
+  const authorQuery = Number.isInteger(accountUserId) && accountUserId > 0
+    ? `?author_id=${accountUserId}`
+    : "";
+  const reportedAuthorQuery = Number.isInteger(accountUserId) && accountUserId > 0
+    ? `?target_author_id=${accountUserId}`
+    : "";
   const activity = user.activity_info;
   const reported = user.reported_info;
   const warningCount = Number(reported?.warnings?.count ?? user.warning_count ?? 0);
@@ -471,17 +490,17 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
             <ClickableCountBox
               label="성형후기/댓글"
               value={compactPostCommentCount(activity?.hospital_reviews)}
-              onClick={() => router.push(`/reviews/surgery-reviews${nicknameQuery}`)}
+              onClick={() => router.push(`/reviews/surgery-reviews${authorQuery}`)}
             />
             <ClickableCountBox
               label="토크/댓글"
               value={compactPostCommentCount(activity?.talks)}
-              onClick={() => router.push(`/talks${nicknameQuery}`)}
+              onClick={() => router.push(`/talks${authorQuery}`)}
             />
             <ClickableCountBox
               label="병의원평가"
               value={totalCount(activity?.hospital_evaluations)}
-              onClick={() => router.push(`/reviews/hospital-evaluations${nicknameQuery}`)}
+              onClick={() => router.push(`/reviews/hospital-evaluations${authorQuery}`)}
             />
           </div>
         </div>
@@ -493,22 +512,22 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
               <ClickableCountBox
                 label="성형후기/댓글"
                 value={compactPostCommentCount(reported?.hospital_reviews)}
-                onClick={() => router.push(`/reported-content/surgery-reviews${nicknameQuery}`)}
+                onClick={() => router.push(`/reported-content/surgery-reviews${reportedAuthorQuery}`)}
               />
               <ClickableCountBox
                 label="토크/댓글"
                 value={compactPostCommentCount(reported?.talks)}
-                onClick={() => router.push(`/reported-content/talks${nicknameQuery}`)}
+                onClick={() => router.push(`/reported-content/talks${reportedAuthorQuery}`)}
               />
               <ClickableCountBox
                 label="병의원평가"
                 value={totalCount(reported?.hospital_evaluations)}
-                onClick={() => router.push(`/reported-content/hospital-evaluations${nicknameQuery}`)}
+                onClick={() => router.push(`/reported-content/hospital-evaluations${reportedAuthorQuery}`)}
               />
               <ClickableCountBox
                 label="채팅"
                 value={totalCount(reported?.chats)}
-                onClick={() => router.push(`/reported-content/chats${nicknameQuery}`)}
+                onClick={() => router.push(`/reported-content/chats${reportedAuthorQuery}`)}
               />
             </div>
           </div>

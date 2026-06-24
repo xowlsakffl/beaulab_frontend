@@ -106,7 +106,7 @@ function renderImagePreview(row: HospitalEventRealModelDBRow) {
   if (!imageUrl) {
     return (
       <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}>
-        {row.imageCount > 0 ? `${row.imageCount}+` : "0"}
+        {row.imageCount > 0 ? `${row.imageCount}+` : "-"}
       </div>
     );
   }

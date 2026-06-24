@@ -656,7 +656,10 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const changeBoard = React.useCallback((board: HospitalReviewBoard) => {
     if (board === activeBoard) return;
 
-    const nextFilters = board === "comments" ? resetHospitalReviewCommentFilters() : DEFAULT_HOSPITAL_REVIEW_FILTERS;
+    const nextFilters = {
+      ...(board === "comments" ? resetHospitalReviewCommentFilters() : DEFAULT_HOSPITAL_REVIEW_FILTERS),
+      authorId: appliedFilters.authorId,
+    };
 
     requestKeyRef.current = "";
     hasFetchedRef.current = false;
@@ -675,7 +678,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     setError(null);
     setActionError(null);
     setMeta(null);
-  }, [activeBoard]);
+  }, [activeBoard, appliedFilters.authorId]);
 
   const toggleRow = React.useCallback((row: HospitalReviewRow, checked: boolean) => {
     if (row.visibilityChangeLocked) return;

@@ -342,6 +342,7 @@ export default function TalksTableClient() {
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
+      authorId: draftFilters.authorId,
       categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
       reportStatus: draftFilters.reportStatus,
@@ -460,13 +461,18 @@ export default function TalksTableClient() {
     if (board === activeBoard) return;
 
     requestKeyRef.current = "";
+    const nextFilters = {
+      ...DEFAULT_FILTERS,
+      authorId: appliedFilters.authorId,
+    };
+
     setActiveBoard(board);
     setPage(1);
     setSearchInput("");
     setSearchKeyword("");
     setDraftDateRange(undefined);
-    setDraftFilters(DEFAULT_FILTERS);
-    setAppliedFilters(DEFAULT_FILTERS);
+    setDraftFilters(nextFilters);
+    setAppliedFilters(nextFilters);
     setSortState(DEFAULT_SORT);
     setCommentSortState(DEFAULT_TALK_COMMENT_SORT);
     setIsCategoryDropdownOpen(false);
@@ -476,7 +482,7 @@ export default function TalksTableClient() {
     setPendingVisibilityChange(null);
     setExcelValidationMessage(null);
     setError(null);
-  }, [activeBoard]);
+  }, [activeBoard, appliedFilters.authorId]);
 
   const handleToggleSort = React.useCallback((field: SortField) => {
     setPage(1);
@@ -648,6 +654,7 @@ export default function TalksTableClient() {
 
   const handleDownloadExcel = React.useCallback(async () => {
     const excelFilters: Filters = {
+      authorId: draftFilters.authorId,
       categoryIds: [...draftFilters.categoryIds],
       visibilityStatus: draftFilters.visibilityStatus,
       reportStatus: draftFilters.reportStatus,

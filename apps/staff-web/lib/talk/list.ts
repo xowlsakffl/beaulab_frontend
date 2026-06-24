@@ -89,6 +89,7 @@ export type SortState = {
 };
 
 export type Filters = {
+  authorId: string;
   categoryIds: string[];
   visibilityStatus: string;
   reportStatus: string;
@@ -104,6 +105,7 @@ export type TalkMetricField = "" | "like_count" | "save_count" | "comment_count"
 
 export type TalksQuery = {
   q?: string;
+  author_id?: string;
   status?: string;
   report_status?: string;
   category_ids?: string;
@@ -138,6 +140,7 @@ export const TALK_METRIC_OPTIONS: { value: TalkMetricField; label: string }[] = 
 ];
 
 export const DEFAULT_FILTERS: Filters = {
+  authorId: "",
   categoryIds: [],
   visibilityStatus: "",
   reportStatus: "",
@@ -338,6 +341,12 @@ function normalizePositiveIdListParam(value: string | null) {
     .filter((item) => /^[1-9]\d*$/.test(item));
 }
 
+function normalizePositiveIdParam(value: string | null) {
+  const normalized = (value ?? "").trim();
+
+  return /^[1-9]\d*$/.test(normalized) ? normalized : "";
+}
+
 export function normalizeTalk(item: TalkApiItem): TalkRow {
   const categoryName = formatTalkCategoryName(item.category)
     || item.categoryName?.trim()
@@ -410,6 +419,7 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
+      authorId: normalizePositiveIdParam(searchParams.get("author_id")),
       categoryIds,
       visibilityStatus: TALK_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       reportStatus: VISIBLE_REPORT_STATUS_VALUE_SET.has(reportStatus) ? reportStatus : "",
@@ -451,6 +461,7 @@ export function buildTalksQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
+  if (appliedFilters.authorId) query.author_id = appliedFilters.authorId;
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
@@ -492,6 +503,7 @@ function buildTalksQuerySearchParams(query: TalksQuery, { includePage }: { inclu
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
+  if (query.author_id) params.set("author_id", query.author_id);
   if (query.status) params.set("status", query.status);
   if (query.report_status) params.set("report_status", query.report_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);

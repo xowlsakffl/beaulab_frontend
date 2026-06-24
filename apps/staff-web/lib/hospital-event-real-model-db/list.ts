@@ -20,6 +20,7 @@ export type HospitalEventRealModelDBSortField =
   | "updated_at";
 
 export type HospitalEventRealModelDBFilters = {
+  accountUserId: string;
   dateRange: string;
   startDate: string;
   endDate: string;
@@ -37,6 +38,7 @@ export type HospitalEventRealModelDBSortState = {
 
 export type HospitalEventRealModelDBQuery = {
   q?: string;
+  account_user_id?: string;
   start_date?: string;
   end_date?: string;
   birth_year_min?: string;
@@ -151,6 +153,7 @@ export type HospitalEventRealModelDBRow = {
 export const HOSPITAL_EVENT_REAL_MODEL_DBS_PER_PAGE = 15;
 
 export const DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS: HospitalEventRealModelDBFilters = {
+  accountUserId: "",
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -289,6 +292,7 @@ export function parseHospitalEventRealModelDBsTableState(searchParams: URLSearch
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       ...DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS,
+      accountUserId: normalizeIdParam(searchParams.get("account_user_id")),
       dateRange: dateState.label,
       startDate,
       endDate,
@@ -328,6 +332,7 @@ export function buildHospitalEventRealModelDBsQuery({
   const q = searchKeyword.trim();
 
   if (q) query.q = q;
+  if (appliedFilters.accountUserId) query.account_user_id = appliedFilters.accountUserId;
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
   if (appliedFilters.birthYearMin) query.birth_year_min = appliedFilters.birthYearMin;
@@ -471,6 +476,12 @@ function normalizeYearParam(value: string | null | undefined) {
   const normalized = (value ?? "").trim();
 
   return /^\d{4}$/.test(normalized) ? normalized : "";
+}
+
+function normalizeIdParam(value: string | null | undefined) {
+  const normalized = (value ?? "").trim();
+
+  return /^[1-9]\d*$/.test(normalized) ? normalized : "";
 }
 
 function normalizeNullableId(value: number | null | undefined) {

@@ -3,7 +3,10 @@
 import React from "react";
 import { Card } from "@beaulab/ui-admin";
 
-import type { AccountUserSummary } from "@/lib/account-user/list";
+import {
+  ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS,
+  type AccountUserSummary,
+} from "@/lib/account-user/list";
 
 type AccountUsersSummaryCardsProps = {
   summary: AccountUserSummary | null;
@@ -36,13 +39,33 @@ export function AccountUsersSummaryCards({ summary }: AccountUsersSummaryCardsPr
 }
 
 export function AccountUsersSignupChannelCard({ summary }: AccountUsersSummaryCardsProps) {
+  const signupChannels = React.useMemo(() => {
+    const summaryByChannel = new Map(
+      (summary?.signup_channels ?? [])
+        .filter((item) => item.channel?.trim())
+        .map((item) => [item.channel?.trim(), item]),
+    );
+
+    return ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS
+      .filter((option) => option.value)
+      .map((option) => {
+        const item = summaryByChannel.get(option.value);
+
+        return {
+          channel: option.value,
+          label: item?.label?.trim() || option.label,
+          count: Number(item?.count ?? 0),
+        };
+      });
+  }, [summary]);
+
   return (
     <Card className="h-full rounded-xl bg-white p-5 ">
       <h3 className="text-sm font-semibold text-gray-900 ">가입경로상세</h3>
       <div className="mt-4 space-y-2">
-        {(summary?.signup_channels ?? []).map((item) => (
-          <div key={item.channel ?? item.label ?? "unknown"} className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-gray-600 ">{item.label?.trim() || "-"}</span>
+        {signupChannels.map((item) => (
+          <div key={item.channel} className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-gray-600 ">{item.label}</span>
             <span className="font-semibold text-gray-900 ">{Number(item.count ?? 0).toLocaleString()}명</span>
           </div>
         ))}

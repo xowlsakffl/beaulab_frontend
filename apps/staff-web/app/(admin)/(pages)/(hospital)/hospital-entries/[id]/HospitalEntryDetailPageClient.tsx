@@ -339,9 +339,9 @@ function AllowStatusButtons({
             key={value}
             type="button"
             variant={active ? "brand" : "outline"}
-            disabled={updating}
+            disabled={updating || active}
             onClick={() => onChange(value)}
-            className="h-9 min-w-24 px-4 text-sm font-semibold"
+            className="h-9 min-w-24 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
           >
             {label}
           </Button>

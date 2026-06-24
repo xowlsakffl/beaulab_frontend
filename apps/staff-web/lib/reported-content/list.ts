@@ -161,6 +161,7 @@ export type ReportedContentRow = {
 };
 
 export type ReportedContentFilters = {
+  targetAuthorId: string;
   dateType: ReportedContentDateType;
   searchType: ReportedContentSearchType;
   dateRange: string;
@@ -176,6 +177,7 @@ export type ReportedContentFilters = {
 
 export type ReportedContentQuery = {
   q?: string;
+  target_author_id?: string;
   search_type?: ReportedContentSearchType;
   date_type?: ReportedContentDateType;
   start_date?: string;
@@ -276,6 +278,7 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
 };
 
 export const DEFAULT_REPORTED_CONTENT_FILTERS: ReportedContentFilters = {
+  targetAuthorId: "",
   dateType: "first_reported_at",
   searchType: "nickname",
   dateRange: "",
@@ -429,6 +432,7 @@ export function parseReportedContentTableState(searchParams: URLSearchParams, co
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
+      targetAuthorId: normalizePositiveIdParam(searchParams.get("target_author_id")),
       dateType: dateTypeSet.has(dateTypeParam)
         ? (dateTypeParam as ReportedContentDateType)
         : defaultFilters.dateType,
@@ -477,6 +481,7 @@ export function buildReportedContentQuery({
   if (trimmedSearch) {
     query.q = trimmedSearch;
   }
+  if (appliedFilters.targetAuthorId) query.target_author_id = appliedFilters.targetAuthorId;
   if (appliedFilters.dateType) query.date_type = appliedFilters.dateType;
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
@@ -494,6 +499,7 @@ export function buildReportedContentQueryString(query: ReportedContentQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
+  if (query.target_author_id) params.set("target_author_id", query.target_author_id);
   if (query.date_type && query.date_type !== DEFAULT_REPORTED_CONTENT_FILTERS.dateType) params.set("date_type", query.date_type);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
@@ -854,4 +860,10 @@ function normalizeNumberBound(value: string | null | undefined) {
   if (!/^\d+$/.test(trimmedValue)) return "";
 
   return trimmedValue.replace(/^0+(?=\d)/, "");
+}
+
+function normalizePositiveIdParam(value: string | null | undefined) {
+  const normalized = (value ?? "").trim();
+
+  return /^[1-9]\d*$/.test(normalized) ? normalized : "";
 }

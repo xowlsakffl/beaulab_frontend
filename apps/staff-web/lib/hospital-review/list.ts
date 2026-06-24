@@ -141,6 +141,7 @@ export type HospitalReviewSortState = {
 };
 
 export type HospitalReviewFilters = {
+  authorId: string;
   categoryIds: string[];
   majorCategoryId: string;
   middleCategoryId: string;
@@ -159,6 +160,7 @@ export type HospitalReviewFilters = {
 
 export type HospitalReviewsQuery = {
   q?: string;
+  author_id?: string;
   status?: string;
   report_status?: string;
   category_domain: string;
@@ -202,6 +204,7 @@ export const DEFAULT_HOSPITAL_REVIEW_SORT: HospitalReviewSortState = {
 };
 
 export const DEFAULT_HOSPITAL_REVIEW_FILTERS: HospitalReviewFilters = {
+  authorId: "",
   categoryIds: [],
   majorCategoryId: "",
   middleCategoryId: "",
@@ -523,6 +526,7 @@ export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
+      authorId: normalizePositiveIdParam(searchParams.get("author_id")),
       categoryIds,
       majorCategoryId: "",
       middleCategoryId: "",
@@ -571,6 +575,7 @@ export function buildHospitalReviewsQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
+  if (appliedFilters.authorId) query.author_id = appliedFilters.authorId;
   if (appliedFilters.visibilityStatus === "ACTIVE" || appliedFilters.visibilityStatus === "INACTIVE") {
     query.status = appliedFilters.visibilityStatus;
   }
@@ -610,6 +615,7 @@ export function buildHospitalReviewsQueryString(query: HospitalReviewsQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
+  if (query.author_id) params.set("author_id", query.author_id);
   if (query.status) params.set("status", query.status);
   if (query.report_status) params.set("report_status", query.report_status);
   params.set("category_domain", query.category_domain);
@@ -638,6 +644,12 @@ function normalizeListParam(value: string | null) {
 
 function normalizePositiveIdListParam(value: string | null) {
   return normalizeListParam(value).filter((item) => /^[1-9]\d*$/.test(item));
+}
+
+function normalizePositiveIdParam(value: string | null) {
+  const normalized = (value ?? "").trim();
+
+  return /^[1-9]\d*$/.test(normalized) ? normalized : "";
 }
 
 function parseBooleanParam(value: string | null) {
