@@ -272,6 +272,7 @@ export default function HospitalsCreateFormClient() {
     formData.append("department", form.department);
     formData.append("company_name", form.company_name.trim() || form.name.trim());
     formData.append("description", form.description.trim());
+    formData.append("youtube_link", form.youtube_link.trim());
     formData.append("consulting_hours", form.consulting_hours.trim());
     formData.append("direction", form.direction.trim());
     formData.append("address", form.address.trim());

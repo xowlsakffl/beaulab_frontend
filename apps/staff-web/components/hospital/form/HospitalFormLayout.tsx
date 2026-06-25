@@ -42,11 +42,12 @@ import {
   type HospitalOperationDayKey,
   type HospitalOperationHoursFormValues,
 } from "@/lib/hospital/form";
-import { HOSPITAL_DEPARTMENT_OPTIONS, hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
+import { HOSPITAL_DEPARTMENT_OPTIONS, hospitalStatusBadgeColor, labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
 import {
   getMediaFilename,
   isImageMedia,
   resolveMediaUrl,
+  type AccountHospitalAsset,
   type HospitalCategoryItem,
   type HospitalFeatureItem,
   type MediaAsset,
@@ -54,6 +55,7 @@ import {
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
+const readonlyValueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 const fileSelectButtonClassName = "h-8 px-3 text-xs";
 const HOSPITAL_LOGO_MAX_BYTES = 5 * 1024 * 1024;
 const HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -76,6 +78,15 @@ const operationDayLabels: Array<[HospitalOperationDayKey, string]> = [
   ["sat", "토"],
   ["sun", "일"],
 ];
+
+const timeOptions = Array.from({ length: 48 }, (_, index) => {
+  const minutes = index * 30;
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+
+  return { value, label: value };
+});
 
 const settlementBankOptions = [
   { value: "국민은행", label: "국민은행" },
@@ -104,6 +115,7 @@ type HospitalFormLayoutProps = {
   galleryOrder?: string[];
   businessRegistrationFile: File | null;
   existingCertificate?: MediaAsset | null;
+  accountHospital?: AccountHospitalAsset | null;
   selectedCategoryItems?: HospitalCategoryItem[];
   hospitalFeatures: HospitalFeatureItem[];
   isHospitalFeaturesLoading: boolean;
@@ -138,6 +150,7 @@ export function HospitalFormLayout({
   galleryOrder,
   businessRegistrationFile,
   existingCertificate = null,
+  accountHospital = null,
   selectedCategoryItems,
   hospitalFeatures,
   isHospitalFeaturesLoading,
@@ -166,42 +179,53 @@ export function HospitalFormLayout({
   return (
     <>
       <form id={formId} onSubmit={onSubmit} autoComplete="off" className="min-w-0 space-y-6">
-        <div className="grid min-w-0 grid-cols-1 items-stretch gap-3 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
+        <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-[20rem_minmax(0,1fr)_19rem]">
           <HospitalLogoEditCard
             logo={logo}
             existingLogo={existingLogo}
             hospitalName={form.name}
-          error={errors.logo}
-          onChange={onLogoChange}
-          onPreview={setPreviewMedia}
-          onUploadValidationError={setImageUploadWarning}
-        />
+            error={errors.logo}
+            className="h-full xl:col-start-1 xl:row-start-1"
+            onChange={onLogoChange}
+            onPreview={setPreviewMedia}
+            onUploadValidationError={setImageUploadWarning}
+          />
 
-          <div className="grid min-w-0 gap-3">
-            <HospitalMainInfoEditCard
-              mode={mode}
-              form={form}
-              errors={errors}
-              businessRegistrationFile={businessRegistrationFile}
-              existingCertificate={existingCertificate}
-              onFieldChange={onFieldChange}
-              onNameChange={onNameChange}
-              onNameBlur={onNameBlur}
-              onBusinessNumberChange={onBusinessNumberChange}
-              onBusinessNumberBlur={onBusinessNumberBlur}
-              onBusinessRegistrationFileChange={onBusinessRegistrationFileChange}
-              onExistingCertificateChange={onExistingCertificateChange}
-              onOpenAddressSearch={onOpenAddressSearch}
-              onPreview={setPreviewMedia}
-            />
+          <HospitalMainInfoEditCard
+            mode={mode}
+            form={form}
+            errors={errors}
+            businessRegistrationFile={businessRegistrationFile}
+            existingCertificate={existingCertificate}
+            className="xl:col-start-2 xl:row-start-1"
+            onFieldChange={onFieldChange}
+            onNameChange={onNameChange}
+            onNameBlur={onNameBlur}
+            onBusinessNumberChange={onBusinessNumberChange}
+            onBusinessNumberBlur={onBusinessNumberBlur}
+            onBusinessRegistrationFileChange={onBusinessRegistrationFileChange}
+            onExistingCertificateChange={onExistingCertificateChange}
+            onOpenAddressSearch={onOpenAddressSearch}
+            onPreview={setPreviewMedia}
+          />
 
-            <HospitalBusinessAccountEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
-          </div>
+          <HospitalBusinessAccountEditCard
+            form={form}
+            errors={errors}
+            className="xl:col-start-2 xl:row-start-2"
+            onFieldChange={onFieldChange}
+          />
 
-          <div className="flex min-w-0 flex-col gap-3">
+          {isCreate ? null : (
+            <HospitalVerifiedAccountContactEditCard accountHospital={accountHospital} className="h-full xl:col-start-2 xl:row-start-3" />
+          )}
+
+          <div className="flex min-w-0 flex-col gap-4 xl:col-start-3 xl:row-span-2 xl:row-start-1 xl:h-full">
             <HospitalPointEditCard />
             <HospitalAdReceptionEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
           </div>
+
+          {isCreate ? null : <HospitalAllowStatusReadOnlyCard allowStatus={form.allow_status} className="h-full xl:col-start-3 xl:row-start-3" />}
         </div>
 
         <HospitalGalleryEditCard
@@ -261,6 +285,7 @@ function HospitalLogoEditCard({
   existingLogo,
   hospitalName,
   error,
+  className,
   onChange,
   onPreview,
   onUploadValidationError,
@@ -269,6 +294,7 @@ function HospitalLogoEditCard({
   existingLogo: MediaAsset | null;
   hospitalName: string;
   error?: string;
+  className?: string;
   onChange: (file: File | null) => void;
   onPreview: (preview: HospitalMediaPreviewState) => void;
   onUploadValidationError: (message: string) => void;
@@ -295,7 +321,12 @@ function HospitalLogoEditCard({
     <Card
       data-media-collection="logo"
       tabIndex={-1}
-      className="flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white p-4"
+      className={[
+        "flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white p-4",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <input
         ref={inputRef}
@@ -360,6 +391,7 @@ function HospitalMainInfoEditCard({
   errors,
   businessRegistrationFile,
   existingCertificate,
+  className,
   onFieldChange,
   onNameChange,
   onNameBlur,
@@ -375,6 +407,7 @@ function HospitalMainInfoEditCard({
   errors: HospitalFormErrors;
   businessRegistrationFile: File | null;
   existingCertificate: MediaAsset | null;
+  className?: string;
   onFieldChange: (key: keyof HospitalFormValues, value: HospitalFormValues[keyof HospitalFormValues]) => void;
   onNameChange?: (value: string) => void;
   onNameBlur?: (value: string) => void;
@@ -388,7 +421,7 @@ function HospitalMainInfoEditCard({
   const isCreate = mode === "create";
 
   return (
-    <Card className={cardClassName}>
+    <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="mb-4 flex items-center gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold text-gray-900">병의원정보</h2>
@@ -402,18 +435,22 @@ function HospitalMainInfoEditCard({
 
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
         <EditField label="병의원명" required error={errors.name}>
-          <InputField
-            id="name"
-            name="name"
-            value={form.name}
-            placeholder="예: 뷰랩성형외과"
-            readOnly={!isCreate}
-            disabled={!isCreate}
-            onChange={(event) => onNameChange?.(event.target.value)}
-            onBlur={(event) => onNameBlur?.(event.target.value)}
-            error={Boolean(errors.name)}
-            className="h-9 bg-white px-3 py-1.5"
-          />
+          {isCreate ? (
+            <InputField
+              id="name"
+              name="name"
+              value={form.name}
+              placeholder="예: 뷰랩성형외과"
+              onChange={(event) => onNameChange?.(event.target.value)}
+              onBlur={(event) => onNameBlur?.(event.target.value)}
+              error={Boolean(errors.name)}
+              className="h-9 bg-white px-3 py-1.5"
+            />
+          ) : (
+            <p id="name" className={readonlyValueClassName}>
+              {form.name.trim() || "-"}
+            </p>
+          )}
         </EditField>
         <EditField label="대표자" required error={errors.ceo_name}>
           <InputField
@@ -521,6 +558,18 @@ function HospitalMainInfoEditCard({
             className="h-9 bg-white px-3 py-1.5"
           />
         </EditField>
+        <EditField label="유튜브 링크" error={errors.youtube_link} className="md:col-span-2">
+          <InputField
+            id="youtube_link"
+            name="youtube_link"
+            type="url"
+            value={form.youtube_link}
+            placeholder="https://www.youtube.com/@..."
+            onChange={(event) => onFieldChange("youtube_link", event.target.value)}
+            error={Boolean(errors.youtube_link)}
+            className="h-9 bg-white px-3 py-1.5"
+          />
+        </EditField>
       </div>
     </Card>
   );
@@ -529,14 +578,17 @@ function HospitalMainInfoEditCard({
 function HospitalBusinessAccountEditCard({
   form,
   errors,
+  className,
   onFieldChange,
 }: {
   form: HospitalFormValues;
   errors: HospitalFormErrors;
+  className?: string;
   onFieldChange: (key: keyof HospitalFormValues, value: HospitalFormValues[keyof HospitalFormValues]) => void;
 }) {
   return (
-    <Card className={cardClassName}>
+    <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">사업자 계좌정보</h3>
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
         <EditField label="세금계산서 이메일" error={errors.tax_invoice_email} className="md:col-span-2">
           <InputField
@@ -587,6 +639,65 @@ function HospitalBusinessAccountEditCard({
   );
 }
 
+function HospitalVerifiedAccountContactEditCard({
+  accountHospital,
+  className,
+}: {
+  accountHospital: AccountHospitalAsset | null;
+  className?: string;
+}) {
+  return (
+    <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
+      <div className="space-y-3">
+        <ReadonlyInfoField label="전화번호" value={accountHospital?.phone} compact />
+        <ReadonlyInfoField label="이메일" value={accountHospital?.email} compact />
+      </div>
+    </Card>
+  );
+}
+
+function HospitalAllowStatusReadOnlyCard({ allowStatus, className }: { allowStatus: string; className?: string }) {
+  return (
+    <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
+      <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
+        <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
+        <StatusBadge size="md" color={hospitalStatusBadgeColor(allowStatus)}>
+          {labelReviewStatus(allowStatus)}
+        </StatusBadge>
+      </div>
+    </Card>
+  );
+}
+
+function ReadonlyInfoField({
+  label,
+  value,
+  compact = false,
+  className,
+}: {
+  label: string;
+  value?: string | number | null;
+  compact?: boolean;
+  className?: string;
+}) {
+  const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
+
+  return (
+    <div
+      className={[
+        compact ? "grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3" : "grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <p className={labelClassName}>{label}</p>
+      <p className={readonlyValueClassName}>{displayValue}</p>
+    </div>
+  );
+}
+
 function HospitalPointEditCard() {
   return (
     <Card className={cardClassName}>
@@ -596,6 +707,74 @@ function HospitalPointEditCard() {
       </div>
     </Card>
   );
+}
+
+function TimeSelect({
+  id,
+  label,
+  value,
+  disabled,
+  options = timeOptions,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  disabled?: boolean;
+  options?: typeof timeOptions;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <>
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <Select
+        id={id}
+        name={id}
+        value={value}
+        placeholder="시간"
+        options={options}
+        onChange={onChange}
+        disabled={disabled}
+        className="h-9 bg-white px-3 py-1.5 pr-8 text-xs"
+      />
+    </>
+  );
+}
+
+function endTimeOptions(startTime: string) {
+  const startMinutes = timeToMinutes(startTime);
+
+  if (startMinutes === null) return timeOptions;
+
+  return timeOptions.filter((option) => {
+    const optionMinutes = timeToMinutes(option.value);
+
+    return optionMinutes !== null && optionMinutes >= startMinutes;
+  });
+}
+
+function isBeforeTime(value: string, baseValue: string) {
+  const valueMinutes = timeToMinutes(value);
+  const baseMinutes = timeToMinutes(baseValue);
+
+  if (valueMinutes === null || baseMinutes === null) return false;
+
+  return valueMinutes < baseMinutes;
+}
+
+function timeToMinutes(value: string) {
+  const match = /^(\d{2}):([0-5]\d)$/.exec(value);
+
+  if (!match) return null;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+
+  if (hour < 0 || hour > 23) return null;
+
+  return hour * 60 + minute;
 }
 
 function HospitalAdReceptionEditCard({
@@ -774,6 +953,15 @@ function HospitalOperationEditCard({
     });
   };
 
+  const updateStartTime = (dayKey: HospitalOperationDayKey, start: string) => {
+    const currentEnd = form.operation_hours[dayKey].end;
+
+    updateOperationHours(dayKey, {
+      start,
+      end: isBeforeTime(currentEnd, start) ? start : currentEnd,
+    });
+  };
+
   return (
     <Card className={cardClassName}>
       <h3 className="mb-5 text-sm font-bold text-gray-900">운영정보</h3>
@@ -836,22 +1024,23 @@ function HospitalOperationEditCard({
                 const item = form.operation_hours[dayKey];
 
                 return (
-                  <div key={dayKey} className="grid grid-cols-[1.5rem_5.5rem_1rem_5.5rem_auto] items-center gap-2">
+                  <div key={dayKey} className="grid grid-cols-[1.5rem_6.75rem_1rem_6.75rem_auto] items-center gap-2">
                     <span className="text-sm font-semibold text-gray-700">{dayLabel}</span>
-                    <InputField
-                      type="time"
+                    <TimeSelect
+                      id={`operation-hours-${dayKey}-start`}
+                      label={`${dayLabel} 시작 시간`}
                       value={item.start}
                       disabled={item.is_closed}
-                      onChange={(event) => updateOperationHours(dayKey, { start: event.target.value })}
-                      className="h-9 bg-white px-2 py-1.5"
+                      onChange={(value) => updateStartTime(dayKey, value)}
                     />
                     <span className="text-center text-sm text-gray-500">~</span>
-                    <InputField
-                      type="time"
+                    <TimeSelect
+                      id={`operation-hours-${dayKey}-end`}
+                      label={`${dayLabel} 종료 시간`}
                       value={item.end}
                       disabled={item.is_closed}
-                      onChange={(event) => updateOperationHours(dayKey, { end: event.target.value })}
-                      className="h-9 bg-white px-2 py-1.5"
+                      options={endTimeOptions(item.start)}
+                      onChange={(value) => updateOperationHours(dayKey, { end: value })}
                     />
                     <div className="w-fit justify-self-start">
                       <FormCheckbox

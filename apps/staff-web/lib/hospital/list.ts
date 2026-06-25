@@ -141,9 +141,10 @@ export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
 ];
 
 export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "PENDING", label: "검수신청" },
-  { value: "APPROVED", label: "검수완료" },
-  { value: "REJECTED", label: "검수반려" },
+  { value: "PENDING", label: "신청" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ];
 
 export const HOSPITAL_DEPARTMENT_OPTIONS: CheckboxFilterOption[] = [
@@ -423,14 +424,15 @@ export function labelApprovalStatus(status: string) {
 
 export function hospitalStatusBadgeColor(status: string) {
   if (status === "ACTIVE" || status === "APPROVED") return "success" as const;
-  if (status === "SUSPENDED" || status === "PENDING") return "warning" as const;
+  if (status === "SUSPENDED" || status === "PENDING" || status === "REVIEWING") return "warning" as const;
   return "error" as const;
 }
 
 export function labelReviewStatus(status: string) {
-  if (status === "PENDING") return "검수신청";
-  if (status === "APPROVED") return "검수완료";
-  if (status === "REJECTED") return "검수반려";
+  if (status === "PENDING") return "신청";
+  if (status === "REVIEWING") return "검수";
+  if (status === "APPROVED") return "승인";
+  if (status === "REJECTED") return "반려";
   return status;
 }
 

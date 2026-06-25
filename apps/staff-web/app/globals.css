@@ -213,6 +213,12 @@
     min-height: 100%;
     @apply relative font-normal font-notosans z-1 bg-gray-50;
   }
+
+  html.admin-shell-scroll-lock,
+  body.admin-shell-scroll-lock {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 @utility menu-item {

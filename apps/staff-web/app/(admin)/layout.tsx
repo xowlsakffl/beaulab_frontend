@@ -61,6 +61,16 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     const headerTitle = resolveHeaderPageTitle(pathname, activeDomain, menuByActor);
     const [pageHeaderExtra, setPageHeaderExtra] = React.useState<ReactNode | null>(null);
 
+    React.useEffect(() => {
+        document.documentElement.classList.add("admin-shell-scroll-lock");
+        document.body.classList.add("admin-shell-scroll-lock");
+
+        return () => {
+            document.documentElement.classList.remove("admin-shell-scroll-lock");
+            document.body.classList.remove("admin-shell-scroll-lock");
+        };
+    }, []);
+
     const handleSignOut = () => {
         logout();
         router.replace("/login");
@@ -115,7 +125,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
 
     return (
         <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
-            <div className="min-h-dvh w-full overflow-x-hidden bg-gray-50">
+            <div className="h-dvh w-full overflow-hidden bg-gray-50">
                 <AppSidebar
                     menu={menuByActor}
                     topContent={sidebarTopContent}
@@ -139,23 +149,25 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                         ),
                     }}
                 />
-                <div className="ml-[290px] h-dvh min-w-0 overflow-x-auto overflow-y-auto">
-                    <div className="flex min-h-dvh w-full min-w-[1370px] flex-col">
-                    <AppHeader
-                        pageTitle={headerTitle}
-                        headerActions={pageHeaderExtra}
-                        showSearch={false}
-                        notifications={null}
-                        userMenu={{
-                            name: displayName,
-                            subtitle,
-                            description,
-                            avatarSrc: "/images/user/owner.png",
-                            actionItems: [{ label: "내 프로필", href: "/profile" }],
-                            signOutItem: { label: "로그아웃", onClick: handleSignOut },
-                        }}
-                    />
-                    <main className="mx-auto w-full max-w-[1800px] flex-1 px-4 py-5">{children}</main>
+                <div className="ml-[290px] flex h-dvh min-w-0 flex-col overflow-hidden">
+                    <div className="flex h-full min-w-0 flex-col overflow-x-auto overflow-y-hidden">
+                        <div className="flex h-full min-w-[1370px] flex-col">
+                            <AppHeader
+                                pageTitle={headerTitle}
+                                headerActions={pageHeaderExtra}
+                                showSearch={false}
+                                notifications={null}
+                                userMenu={{
+                                    name: displayName,
+                                    subtitle,
+                                    description,
+                                    avatarSrc: "/images/user/owner.png",
+                                    actionItems: [{ label: "내 프로필", href: "/profile" }],
+                                    signOutItem: { label: "로그아웃", onClick: handleSignOut },
+                                }}
+                            />
+                            <main className="mx-auto min-h-0 w-full max-w-[1800px] flex-1 overflow-y-auto px-4 py-5">{children}</main>
+                        </div>
                     </div>
                 </div>
             </div>

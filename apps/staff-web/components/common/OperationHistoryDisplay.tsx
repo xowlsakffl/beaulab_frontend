@@ -33,14 +33,17 @@ export type OperationHistoryLike = {
 type OperationHistoryActionBadgeProps = {
   history: OperationHistoryLike;
   fallbackAction?: string;
+  actionLabelOverride?: (history: OperationHistoryLike, label: string) => string | null | undefined;
 };
 
 export function OperationHistoryActionBadge({
   history,
   fallbackAction,
+  actionLabelOverride,
 }: OperationHistoryActionBadgeProps) {
   const action = normalizeAction(history.action, fallbackAction);
-  const label = history.action_label?.trim() || labelHistoryAction(action) || fallbackAction || "-";
+  const baseLabel = history.action_label?.trim() || labelHistoryAction(action) || fallbackAction || "-";
+  const label = actionLabelOverride?.(history, baseLabel) || baseLabel;
 
   return <span className="whitespace-nowrap text-xs font-medium text-gray-700">{label}</span>;
 }
@@ -48,9 +51,18 @@ export function OperationHistoryActionBadge({
 type OperationHistoryReasonProps = {
   history: OperationHistoryLike;
   fallbackReason?: string | null;
+  statusLabel?: (status: string, fallbackLabel?: string) => string;
+  statusBadgeColor?: (status: string) => BadgeColor;
+  allowStatusLabel?: (status: string, fallbackLabel?: string) => string;
 };
 
-export function OperationHistoryReason({ history, fallbackReason }: OperationHistoryReasonProps) {
+export function OperationHistoryReason({
+  history,
+  fallbackReason,
+  statusLabel,
+  statusBadgeColor,
+  allowStatusLabel,
+}: OperationHistoryReasonProps) {
   const transition = resolveTransition(history);
   const reason = normalizeDisplayReason(history.reason?.trim() || fallbackReason?.trim() || "");
 
@@ -58,11 +70,23 @@ export function OperationHistoryReason({ history, fallbackReason }: OperationHis
     return (
       <span className="inline-flex min-w-0 flex-col gap-1">
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <HistoryStatusValueBadge transition={transition} side="before" />
+          <HistoryStatusValueBadge
+            transition={transition}
+            side="before"
+            statusLabel={statusLabel}
+            statusBadgeColor={statusBadgeColor}
+            allowStatusLabel={allowStatusLabel}
+          />
           {transition.beforeLabel !== "-" && transition.afterLabel !== "-" ? (
             <ArrowRight className="size-3 text-brand-500" strokeWidth={2.4} />
           ) : null}
-          <HistoryStatusValueBadge transition={transition} side="after" />
+          <HistoryStatusValueBadge
+            transition={transition}
+            side="after"
+            statusLabel={statusLabel}
+            statusBadgeColor={statusBadgeColor}
+            allowStatusLabel={allowStatusLabel}
+          />
         </span>
         {reason ? <HistoryReasonNote reason={reason} /> : null}
       </span>
@@ -209,9 +233,15 @@ function isStatusField(field?: string | null) {
 function HistoryStatusValueBadge({
   transition,
   side,
+  statusLabel,
+  statusBadgeColor,
+  allowStatusLabel,
 }: {
   transition: NonNullable<ReturnType<typeof resolveTransition>>;
   side: "before" | "after";
+  statusLabel?: (status: string, fallbackLabel?: string) => string;
+  statusBadgeColor?: (status: string) => BadgeColor;
+  allowStatusLabel?: (status: string, fallbackLabel?: string) => string;
 }) {
   const rawValue = side === "before" ? transition.beforeRaw : transition.afterRaw;
   const label = side === "before" ? transition.beforeLabel : transition.afterLabel;
@@ -223,25 +253,39 @@ function HistoryStatusValueBadge({
   if (transition.field === "report_status") {
     return (
       <StatusBadge size="sm" color={reportStatusBadgeColor(stringifyHistoryValue(rawValue))} className="h-5 px-2 text-[11px] leading-none">
-        {statusDisplayLabel(transition.field, rawValue, label)}
+        {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
       </StatusBadge>
     );
   }
 
   return (
-    <StatusBadge size="sm" color={statusColor(transition.field, rawValue)} className="h-5 px-2 text-[11px] leading-none">
-      {statusDisplayLabel(transition.field, rawValue, label)}
+    <StatusBadge size="sm" color={statusColor(transition.field, rawValue, statusBadgeColor)} className="h-5 px-2 text-[11px] leading-none">
+      {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
     </StatusBadge>
   );
 }
 
-function statusDisplayLabel(field?: string | null, value?: unknown, fallbackLabel?: string) {
+function statusDisplayLabel(
+  field?: string | null,
+  value?: unknown,
+  fallbackLabel?: string,
+  statusLabel?: (status: string, fallbackLabel?: string) => string,
+  allowStatusLabel?: (status: string, fallbackLabel?: string) => string,
+) {
   const normalized = stringifyHistoryValue(value);
   if (field === "status") {
+    if (statusLabel) {
+      return statusLabel(normalized, fallbackLabel) || fallbackLabel || normalized || "-";
+    }
+
     return normalized === "INACTIVE" ? "미노출" : normalized === "ACTIVE" ? "노출" : fallbackLabel || normalized || "-";
   }
 
   if (field === "allow_status") {
+    if (allowStatusLabel) {
+      return allowStatusLabel(normalized, fallbackLabel) || fallbackLabel || normalized || "-";
+    }
+
     const label = labelHospitalEventAllowStatus(normalized);
     return label === "-" ? fallbackLabel || normalized || "-" : label;
   }
@@ -261,9 +305,13 @@ function statusDisplayLabel(field?: string | null, value?: unknown, fallbackLabe
   return fallbackLabel || normalized || "-";
 }
 
-function statusColor(field?: string | null, value?: unknown): BadgeColor {
+function statusColor(field?: string | null, value?: unknown, statusBadgeColor?: (status: string) => BadgeColor): BadgeColor {
   const normalized = stringifyHistoryValue(value);
   if (field === "status") {
+    if (statusBadgeColor) {
+      return statusBadgeColor(normalized);
+    }
+
     return normalized === "ACTIVE" ? "success" : normalized === "INACTIVE" ? "error" : "light";
   }
 

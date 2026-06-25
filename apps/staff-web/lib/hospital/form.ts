@@ -25,6 +25,7 @@ export type HospitalFormValues = {
   latitude: string;
   longitude: string;
   description: string;
+  youtube_link: string;
   consulting_hours: string;
   operation_hours: HospitalOperationHoursFormValues;
   direction: string;
@@ -93,6 +94,7 @@ export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "business_number",
   "ceo_name",
   "business_type",
+  "youtube_link",
   "business_item",
   "business_address",
   "business_address_detail",
@@ -135,6 +137,7 @@ export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
   latitude: "",
   longitude: "",
   description: "",
+  youtube_link: "",
   consulting_hours: "",
   operation_hours: INITIAL_OPERATION_HOURS,
   direction: "",
@@ -195,9 +198,10 @@ export const HOSPITAL_STATUS_OPTIONS = [
 ] as const;
 
 export const HOSPITAL_ALLOW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "검수신청" },
-  { value: "APPROVED", label: "검수완료" },
-  { value: "REJECTED", label: "검수반려" },
+  { value: "PENDING", label: "신청" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ] as const;
 
 export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
@@ -221,6 +225,7 @@ export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "ceo_name",
   "issued_at",
   "business_type",
+  "youtube_link",
   "business_item",
   "business_registration_file",
   "business_address",
@@ -285,6 +290,20 @@ export function normalizeBusinessNumber(value: string): string {
   return value.replace(/\D+/g, "");
 }
 
+export function isValidYoutubeLink(value: string): boolean {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      (hostname === "youtube.com" || hostname === "youtu.be" || hostname.endsWith(".youtube.com"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalFormValues {
   const businessRegistration = data.business_registration;
   const settlementAccount = businessRegistration?.settlement_account;
@@ -306,6 +325,7 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     latitude: data.latitude !== null && data.latitude !== undefined ? String(data.latitude) : "",
     longitude: data.longitude !== null && data.longitude !== undefined ? String(data.longitude) : "",
     description: data.description ?? "",
+    youtube_link: data.youtube_link ?? "",
     consulting_hours: data.consulting_hours ?? "",
     operation_hours: normalizeOperationHours(data.operation_hours),
     direction: data.direction ?? "",
@@ -397,6 +417,10 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     nextErrors.email = "올바른 이메일 형식이 아닙니다.";
+  }
+
+  if (form.youtube_link.trim() && !isValidYoutubeLink(form.youtube_link.trim())) {
+    nextErrors.youtube_link = "유튜브 링크 형식이 올바르지 않습니다.";
   }
 
   if (form.tax_invoice_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.tax_invoice_email)) {

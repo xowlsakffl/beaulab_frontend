@@ -4,9 +4,13 @@ import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 
-import { CategoryBadgeList } from "@beaulab/ui-admin";
+import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import {
+  OperationHistoryActionBadge,
+  OperationHistoryReason,
+} from "@/components/common/OperationHistoryDisplay";
 import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewItem,
@@ -25,8 +29,10 @@ import { hospitalStatusBadgeColor, labelApprovalStatus, labelReviewStatus } from
 import {
   Button,
   Card,
+  CategoryBadgeList,
   Dropdown,
   DropdownItem,
+  FormTextArea,
   InputField,
   Modal,
   ModalBody,
@@ -35,14 +41,51 @@ import {
   ModalPanel,
   ModalTitle,
   MoreVertical,
+  Pagination,
   SpinnerBlock,
   Star,
   StatusBadge,
+  useGlobalAlert,
+  type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
+const HOSPITAL_ADMIN_NOTE_TARGET = "hospital";
+const HISTORY_PER_PAGE = 10;
+
+type AdminNoteItem = {
+  id: number;
+  note?: string | null;
+  creator_name?: string | null;
+  created_at?: string | null;
+};
+
+type OperationHistoryChangeItem = {
+  id?: number;
+  field_key?: string | null;
+  field_label?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  before_display?: string | null;
+  after_display?: string | null;
+  sort_order?: number | null;
+};
+
+type OperationHistoryItem = {
+  id: number;
+  actor_label?: string | null;
+  field?: string | null;
+  action?: string | null;
+  action_label?: string | null;
+  changes?: OperationHistoryChangeItem[] | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  reason?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+};
 
 const dayLabels = [
   ["mon", "월"],
@@ -58,6 +101,7 @@ export default function HospitalDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showAlert } = useGlobalAlert();
 
   const rawHospitalId = Array.isArray(params.id) ? params.id[0] : params.id;
   const hospitalId = Number(rawHospitalId);
@@ -72,6 +116,15 @@ export default function HospitalDetailPageClient() {
   const [suspending, setSuspending] = React.useState(false);
   const [updatingAllowStatus, setUpdatingAllowStatus] = React.useState(false);
   const [allowStatusError, setAllowStatusError] = React.useState<string | null>(null);
+  const [notes, setNotes] = React.useState<AdminNoteItem[]>([]);
+  const [notesLoading, setNotesLoading] = React.useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = React.useState(false);
+  const [noteInput, setNoteInput] = React.useState("");
+  const [savingNote, setSavingNote] = React.useState(false);
+  const [histories, setHistories] = React.useState<OperationHistoryItem[]>([]);
+  const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
+  const [historyPage, setHistoryPage] = React.useState(1);
+  const [historiesLoading, setHistoriesLoading] = React.useState(false);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<{
     allowStatus: string;
     reason: string;
@@ -136,9 +189,67 @@ export default function HospitalDetailPageClient() {
     }
   }, [hospitalId]);
 
+  const fetchNotes = React.useCallback(async () => {
+    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
+
+    setNotesLoading(true);
+
+    try {
+      const response = await api.get<AdminNoteItem[]>("/notes", {
+        target_type: HOSPITAL_ADMIN_NOTE_TARGET,
+        target_id: hospitalId,
+      });
+
+      if (isApiSuccess(response)) {
+        setNotes(response.data);
+      }
+    } finally {
+      setNotesLoading(false);
+    }
+  }, [hospitalId]);
+
+  const fetchHistories = React.useCallback(async () => {
+    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
+
+    setHistoriesLoading(true);
+
+    try {
+      const response = await api.get<OperationHistoryItem[]>(`/hospitals/${hospitalId}/operation-histories`, {
+        operation_histories_page: historyPage,
+        operation_histories_per_page: HISTORY_PER_PAGE,
+      });
+
+      if (isApiSuccess(response)) {
+        setHistories(response.data);
+        setHistoryMeta((response.meta as DataTableMeta | null) ?? null);
+      }
+    } catch {
+      // Keep the current history list if only the refresh fails.
+    } finally {
+      setHistoriesLoading(false);
+    }
+  }, [hospitalId, historyPage]);
+
+  const refreshHistoriesFromFirstPage = React.useCallback(async () => {
+    if (historyPage !== 1) {
+      setHistoryPage(1);
+      return;
+    }
+
+    await fetchHistories();
+  }, [fetchHistories, historyPage]);
+
   React.useEffect(() => {
     void fetchHospital();
   }, [fetchHospital]);
+
+  React.useEffect(() => {
+    void fetchNotes();
+  }, [fetchNotes]);
+
+  React.useEffect(() => {
+    void fetchHistories();
+  }, [fetchHistories]);
 
   const openSuspendModal = React.useCallback(() => {
     setIsActionMenuOpen(false);
@@ -171,12 +282,13 @@ export default function HospitalDetailPageClient() {
 
       setDetail(response.data);
       setIsSuspendModalOpen(false);
+      await refreshHistoriesFromFirstPage();
     } catch {
       setSuspendError("운영중지 등록 중 오류가 발생했습니다.");
     } finally {
       setSuspending(false);
     }
-  }, [hospitalId]);
+  }, [hospitalId, refreshHistoriesFromFirstPage]);
 
   const requestAllowStatusChange = React.useCallback(
     (allowStatus: string) => {
@@ -229,12 +341,44 @@ export default function HospitalDetailPageClient() {
 
       setDetail((prev) => prev ? { ...prev, allow_status: pendingAllowStatusChange.allowStatus } : prev);
       setPendingAllowStatusChange(null);
+      await refreshHistoriesFromFirstPage();
     } catch {
       setAllowStatusError("검수상태 변경 중 오류가 발생했습니다.");
     } finally {
       setUpdatingAllowStatus(false);
     }
-  }, [detail, pendingAllowStatusChange]);
+  }, [detail, pendingAllowStatusChange, refreshHistoriesFromFirstPage]);
+
+  const saveNote = React.useCallback(async () => {
+    const note = noteInput.trim();
+    if (!note || savingNote) return;
+
+    setSavingNote(true);
+
+    try {
+      const response = await api.post<AdminNoteItem>("/notes", {
+        target_type: HOSPITAL_ADMIN_NOTE_TARGET,
+        target_id: hospitalId,
+        note,
+        is_internal: true,
+      });
+
+      if (!isApiSuccess(response)) {
+        showAlert({
+          variant: "error",
+          title: "관리자 메모 저장 실패",
+          message: response.error.message || "관리자 메모를 저장하지 못했습니다.",
+        });
+        return;
+      }
+
+      setNoteInput("");
+      setIsNoteModalOpen(false);
+      await fetchNotes();
+    } finally {
+      setSavingNote(false);
+    }
+  }, [fetchNotes, hospitalId, noteInput, savingNote, showAlert]);
 
   usePageHeaderExtra(headerAction);
 
@@ -292,6 +436,19 @@ export default function HospitalDetailPageClient() {
 
       <HospitalImagesCard detail={detail} onPreview={setPreviewMedia} />
       <OperationInfoCard detail={detail} />
+      <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+        <OperationHistoryCard
+          histories={histories}
+          meta={historyMeta}
+          loading={historiesLoading}
+          onPageChange={setHistoryPage}
+        />
+        <AdminNotesCard
+          notes={notes}
+          loading={notesLoading}
+          onAdd={() => setIsNoteModalOpen(true)}
+        />
+      </section>
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
@@ -300,6 +457,17 @@ export default function HospitalDetailPageClient() {
         onReasonChange={updateAllowStatusReason}
         onClose={closeAllowStatusModal}
         onConfirm={() => void confirmAllowStatusChange()}
+      />
+      <NoteCreateModal
+        isOpen={isNoteModalOpen}
+        value={noteInput}
+        saving={savingNote}
+        onChange={setNoteInput}
+        onClose={() => {
+          if (savingNote) return;
+          setIsNoteModalOpen(false);
+        }}
+        onSave={saveNote}
       />
       <Modal isOpen={isSuspendModalOpen} onClose={closeSuspendModal} className="mx-4 max-w-md" showCloseButton={false}>
         <ModalPanel>
@@ -448,6 +616,7 @@ function HospitalInfoCard({
         <CertificatePreviewField media={detail.business_registration?.certificate_media} onPreview={onPreview} />
         <InfoField label="업태" value={detail.business_registration?.business_type} />
         <InfoField label="종목" value={detail.business_registration?.business_item} />
+        <LinkInfoField label="유튜브 링크" href={detail.youtube_link} className="md:col-span-2" />
       </div>
     </Card>
   );
@@ -458,6 +627,7 @@ function BusinessAccountCard({ detail, className }: { detail: HospitalDetailResp
 
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">사업자 계좌정보</h3>
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
         <InfoField label="세금계산서 이메일" value={settlementAccount?.tax_invoice_email} className="md:col-span-2" />
         <InfoField label="정산 계좌번호" value={settlementAccountNumber(settlementAccount)} />
@@ -726,22 +896,20 @@ function HospitalImageTile({
       type="button"
       onClick={handlePreview}
       disabled={!canPreview}
-      className="relative flex aspect-[76/49] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left disabled:cursor-default"
+      className="relative flex aspect-[76/49] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm disabled:cursor-default"
       aria-label={canPreview ? `${getMediaFilename(media)} 원본보기` : undefined}
     >
       <span className="absolute left-2 top-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
         {badgeText}
       </span>
       {isRepresentative ? (
-        <span className="absolute right-2 top-2 z-10 rounded-full bg-white/90 p-1 text-brand-500">
-          <Star className="size-4 fill-current" />
+        <span className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm">
+          <Star className="size-4 fill-yellow-400 text-yellow-500" />
         </span>
       ) : null}
       {mediaUrl && isImage ? (
-        <div className="flex h-full w-full items-center justify-center bg-gray-50 p-2">
-          {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
-          <img src={mediaUrl} alt={getMediaFilename(media)} className="h-auto w-auto max-h-full max-w-full object-contain" />
-        </div>
+        // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
+        <img src={mediaUrl} alt={getMediaFilename(media)} className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full items-center justify-center px-4 text-center text-sm text-gray-500">
           미리보기를 지원하지 않는 파일입니다.
@@ -775,6 +943,192 @@ function OperationInfoCard({ detail }: { detail: HospitalDetailResponse }) {
   );
 }
 
+function OperationHistoryCard({
+  histories,
+  meta,
+  loading,
+  onPageChange,
+}: {
+  histories: OperationHistoryItem[];
+  meta: DataTableMeta | null;
+  loading: boolean;
+  onPageChange: (page: number) => void;
+}) {
+  const [expandedHistoryIds, setExpandedHistoryIds] = React.useState<Set<number>>(() => new Set());
+  const hasHistories = histories.length > 0;
+
+  const toggleExpandedHistory = React.useCallback((historyId: number) => {
+    setExpandedHistoryIds((current) => {
+      const next = new Set(current);
+      if (next.has(historyId)) {
+        next.delete(historyId);
+      } else {
+        next.add(historyId);
+      }
+
+      return next;
+    });
+  }, []);
+
+  return (
+    <Card className={cardClassName}>
+      <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">히스토리</h3>
+      {hasHistories ? (
+        <div className={["space-y-3", loading ? "pointer-events-none opacity-60" : ""].filter(Boolean).join(" ")} aria-busy={loading}>
+          <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
+            {histories.map((history) => {
+              const changes = history.changes ?? [];
+              const canExpand = history.action === "UPDATED" && changes.length > 0;
+              const isExpanded = expandedHistoryIds.has(history.id);
+
+              return (
+                <div key={history.id} className="space-y-2 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+                  <div className="grid grid-cols-[6.5rem_5rem_5rem_minmax(0,1fr)_2rem] items-start gap-3 text-xs text-gray-600">
+                    <span>{formatDateTime(history.created_at)}</span>
+                    <span>{history.actor_label || "-"}</span>
+                    <span>
+                      <OperationHistoryActionBadge history={history} actionLabelOverride={hospitalHistoryActionLabel} />
+                    </span>
+                    <span className="break-words">
+                      <OperationHistoryReason
+                        history={history}
+                        statusLabel={labelApprovalStatus}
+                        statusBadgeColor={hospitalStatusBadgeColor}
+                        allowStatusLabel={labelReviewStatus}
+                      />
+                    </span>
+                    {canExpand ? (
+                      isExpanded ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="변경 상세 닫기"
+                          className="ml-auto size-7 rounded-full border border-gray-300 bg-white p-0 text-brand-600 shadow-none hover:border-gray-300 hover:bg-white hover:text-brand-600"
+                          onClick={() => toggleExpandedHistory(history.id)}
+                        >
+                          <span className="text-sm leading-none">-</span>
+                        </Button>
+                      ) : (
+                        <AddCircleButton label="변경 상세 열기" className="ml-auto" onClick={() => toggleExpandedHistory(history.id)} />
+                      )
+                    ) : (
+                      <span aria-hidden="true" />
+                    )}
+                  </div>
+                  {canExpand && isExpanded ? (
+                    <div className="space-y-2 rounded-lg bg-gray-50 p-3">
+                      {changes.map((change, index) => (
+                        <div key={`${history.id}-${change.field_key ?? index}`} className="space-y-1 text-xs text-gray-600">
+                          <p className="font-semibold text-gray-900">{change.field_label || change.field_key || "변경 항목"}</p>
+                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
+                            <span className="font-semibold text-gray-500">변경 전</span>
+                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "before")}</span>
+                          </div>
+                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
+                            <span className="font-semibold text-brand-600">변경 후</span>
+                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "after")}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+          {meta ? (
+            <div className="flex justify-center pt-2">
+              <Pagination currentPage={meta.current_page} totalPages={Math.max(1, meta.last_page)} onPageChange={onPageChange} />
+            </div>
+          ) : null}
+        </div>
+      ) : loading ? (
+        <div className="flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+          히스토리를 불러오는 중입니다.
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+          등록된 히스토리가 없습니다.
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function AdminNotesCard({
+  notes,
+  loading,
+  onAdd,
+}: {
+  notes: AdminNoteItem[];
+  loading: boolean;
+  onAdd: () => void;
+}) {
+  return (
+    <Card className={cardClassName}>
+      <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
+        <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
+        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} />
+      </div>
+      {loading ? (
+        <p className="text-sm text-gray-500">메모를 불러오는 중입니다.</p>
+      ) : notes.length > 0 ? (
+        <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
+          {notes.map((note) => (
+            <div key={note.id} className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600">
+              <span>{formatDateTime(note.created_at)}</span>
+              <span>{note.creator_name || "-"}</span>
+              <span className="break-words">{note.note || "-"}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+          등록된 관리자 메모가 없습니다.
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function NoteCreateModal({
+  isOpen,
+  value,
+  saving,
+  onChange,
+  onClose,
+  onSave,
+}: {
+  isOpen: boolean;
+  value: string;
+  saving: boolean;
+  onChange: (value: string) => void;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-lg">
+      <ModalPanel>
+        <ModalHeader className="pr-0">
+          <ModalTitle>관리자 메모 등록</ModalTitle>
+        </ModalHeader>
+        <ModalBody className="mt-5">
+          <FormTextArea value={value} onChange={(next) => onChange(next.slice(0, 1000))} rows={5} placeholder="관리자 메모를 입력해 주세요." />
+        </ModalBody>
+        <ModalFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+            취소
+          </Button>
+          <Button type="button" variant="brand" onClick={onSave} disabled={saving || !value.trim()}>
+            등록
+          </Button>
+        </ModalFooter>
+      </ModalPanel>
+    </Modal>
+  );
+}
+
 function InfoField({
   label,
   value,
@@ -801,6 +1155,36 @@ function InfoField({
     >
       <p className={labelClassName}>{label}</p>
       <p className={`${valueClassName} ${multiline ? "whitespace-pre-line" : ""}`}>{displayValue}</p>
+    </div>
+  );
+}
+
+function LinkInfoField({
+  label,
+  href,
+  className,
+}: {
+  label: string;
+  href?: string | null;
+  className?: string;
+}) {
+  const value = href?.trim();
+
+  return (
+    <div className={["grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4", className].filter(Boolean).join(" ")}>
+      <p className={labelClassName}>{label}</p>
+      {value ? (
+        <a
+          href={value}
+          target="_blank"
+          rel="noreferrer"
+          className={`${valueClassName} transition-colors hover:text-brand-500 hover:underline`}
+        >
+          {value}
+        </a>
+      ) : (
+        <p className={valueClassName}>-</p>
+      )}
     </div>
   );
 }
@@ -920,6 +1304,162 @@ function buildStatusHistoryText(detail: HospitalDetailResponse) {
   const createdAt = formatShortDateTime(history.created_at);
 
   return [reason, createdAt].filter(Boolean).join(" · ");
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const year = String(date.getFullYear()).slice(2);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours()).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  return `${year}.${month}.${day} ${hour}:${minute}`;
+}
+
+function historyChangeDisplay(change: OperationHistoryChangeItem, side: "before" | "after") {
+  const display = side === "after" ? change.after_display : change.before_display;
+  const value = side === "after" ? change.after_value : change.before_value;
+  const field = change.field_key ?? null;
+
+  if (typeof display === "string" && display.trim() !== "") {
+    return historyRawValueLabel(field, display);
+  }
+
+  return historyRawValueLabel(field, value);
+}
+
+function historyRawValueLabel(field: string | null, value: unknown) {
+  if (field === "status") {
+    const label = labelApprovalStatus(String(value ?? ""));
+    return label === "-" ? stringifyHistoryValue(value) : label;
+  }
+
+  if (field === "allow_status") {
+    const label = labelReviewStatus(String(value ?? ""));
+    return label === "-" ? stringifyHistoryValue(value) : label;
+  }
+
+  if (field === "categories") {
+    return categoryHistoryValueLabel(value);
+  }
+
+  if (field === "operation_hours") {
+    return operationHoursHistoryValueLabel(value);
+  }
+
+  return stringifyHistoryValue(value);
+}
+
+function hospitalHistoryActionLabel(
+  history: {
+    action?: string | null;
+    field?: string | null;
+    changes?: Array<{ field_key?: string | null }> | null;
+  },
+  defaultLabel: string,
+) {
+  const field = history.changes?.[0]?.field_key ?? history.field ?? null;
+
+  if (history.action === "STATUS_UPDATED" && field === "allow_status") {
+    return "검수 상태 변경";
+  }
+
+  if (history.action === "STATUS_UPDATED" && field === "status") {
+    return "상태 변경";
+  }
+
+  return defaultLabel;
+}
+
+function categoryHistoryValueLabel(value: unknown) {
+  if (typeof value === "string") {
+    return stripPrimaryMarker(value);
+  }
+
+  if (Array.isArray(value)) {
+    const paths = value
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const path = "path" in item ? item.path : null;
+        return typeof path === "string" ? stripPrimaryMarker(path) : null;
+      })
+      .filter((item): item is string => Boolean(item));
+
+    return paths.length > 0 ? paths.join("\n") : "-";
+  }
+
+  return stringifyHistoryValue(value);
+}
+
+function stripPrimaryMarker(value: string) {
+  return value.replace(/^\[대표\]\s*/gm, "");
+}
+
+function operationHoursHistoryValueLabel(value: unknown) {
+  const operationHours = parseOperationHoursHistoryValue(value);
+  if (!operationHours) {
+    return stringifyHistoryValue(value);
+  }
+
+  const lines = dayLabels
+    .map(([key, label]) => {
+      const item = operationHours[key];
+      if (!item || typeof item !== "object") return null;
+
+      if (isOperationDayClosed(item.is_closed)) {
+        return `${label} 진료안함`;
+      }
+
+      const start = String(item.start ?? "").trim() || "-";
+      const end = String(item.end ?? "").trim() || "-";
+      return `${label} ${start} ~ ${end}`;
+    })
+    .filter((item): item is string => Boolean(item));
+
+  return lines.length > 0 ? lines.join("\n") : "-";
+}
+
+function isOperationDayClosed(value: unknown) {
+  return value === true || value === 1 || value === "1" || value === "true" || value === "TRUE";
+}
+
+function parseOperationHoursHistoryValue(value: unknown) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, { start?: unknown; end?: unknown; is_closed?: unknown }>;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+  if (!trimmedValue.startsWith("{")) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmedValue);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, { start?: unknown; end?: unknown; is_closed?: unknown }>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function stringifyHistoryValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 function formatShortDateTime(value?: string | null) {

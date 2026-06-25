@@ -85,6 +85,7 @@ export type HospitalDetailResponse = {
   department?: string | null;
   department_label?: string | null;
   description?: string | null;
+  youtube_link?: string | null;
   address?: string | null;
   address_detail?: string | null;
   latitude?: string | number | null;
