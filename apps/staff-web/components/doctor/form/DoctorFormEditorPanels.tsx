@@ -6,7 +6,7 @@ import { AddCircleButton } from "@/components/common/AddCircleButton";
 import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { useDoctorHospitalOptions } from "@/hooks/doctor/useDoctorHospitalOptions";
 import type { DoctorCategoryItem } from "@/lib/doctor/detail";
-import { formatCareerPeriod } from "@/lib/doctor/list";
+import { doctorApprovalStatusBadgeColor, formatCareerPeriod, labelDoctorApprovalStatus } from "@/lib/doctor/list";
 import {
   DOCTOR_GENDER_OPTIONS,
   DOCTOR_POSITION_OPTIONS,
@@ -28,6 +28,7 @@ import {
   Select,
   SingleDatePickerField,
   SpinnerBlock,
+  StatusBadge,
   X,
   type CategorySelectorItem,
   type ExistingMediaItem,
@@ -154,6 +155,7 @@ export function DoctorInfoEditorCard({
   onExistingLicenseImageChange,
   onSpecialistCertificateImageChange,
   onExistingSpecialistCertificateImageChange,
+  showCurrentAllowStatus = false,
 }: {
   form: DoctorFormValues;
   errors: DoctorFormErrors;
@@ -168,6 +170,7 @@ export function DoctorInfoEditorCard({
   onExistingLicenseImageChange: (file: ExistingMediaItem | null) => void;
   onSpecialistCertificateImageChange: (file: File | null) => void;
   onExistingSpecialistCertificateImageChange: (file: ExistingMediaItem | null) => void;
+  showCurrentAllowStatus?: boolean;
 }) {
   return (
     <Card className={cardClassName}>
@@ -298,6 +301,13 @@ export function DoctorInfoEditorCard({
               />
             </div>
           </EditField>
+          {showCurrentAllowStatus ? (
+            <EditField label="검수상태" target="allow_status">
+              <StatusBadge size="sm" color={doctorApprovalStatusBadgeColor(form.allow_status)}>
+                {labelDoctorApprovalStatus(form.allow_status)}
+              </StatusBadge>
+            </EditField>
+          ) : null}
         </div>
       </div>
     </Card>
@@ -585,8 +595,8 @@ export function RepeaterPanel({
   };
 
   return (
-    <Card className={cardClassName} data-field-target={field} tabIndex={-1}>
-      <div className="flex min-h-48 flex-col">
+    <Card className={cx(cardClassName, "h-full")} data-field-target={field} tabIndex={-1}>
+      <div className="flex h-full min-h-48 flex-col">
         <h3 className="mb-4 text-sm font-bold text-gray-900">{title}</h3>
         <div className="flex-1 space-y-2">
           {displayValues.map((value, index) => (
@@ -612,19 +622,21 @@ export function RepeaterPanel({
           ))}
         </div>
 
-        <AddCircleButton
-          label={`${title} 추가`}
-          onClick={() => {
-            if (!canAddItem) return;
-            onChange([...displayValues, ""]);
-          }}
-          disabled={!canAddItem}
-          className="mx-auto mt-3 disabled:cursor-not-allowed disabled:opacity-40"
-        />
-        {!canAddItem ? (
-          <p className="mt-2 text-center text-xs text-gray-500">최대 {MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.</p>
-        ) : null}
-        {error ? <p className="mt-2 text-xs text-error-500">{error}</p> : null}
+        <div className="mt-auto flex flex-col items-center pt-3">
+          <AddCircleButton
+            label={`${title} 추가`}
+            onClick={() => {
+              if (!canAddItem) return;
+              onChange([...displayValues, ""]);
+            }}
+            disabled={!canAddItem}
+            className="disabled:cursor-not-allowed disabled:opacity-40"
+          />
+          {!canAddItem ? (
+            <p className="mt-2 text-center text-xs text-gray-500">최대 {MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.</p>
+          ) : null}
+          {error ? <p className="mt-2 text-xs text-error-500">{error}</p> : null}
+        </div>
       </div>
     </Card>
   );

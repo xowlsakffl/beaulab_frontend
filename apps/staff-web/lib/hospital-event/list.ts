@@ -118,8 +118,8 @@ export type HospitalEventSummary = {
   recent_stopped_events?: number | null;
   pending_events?: number | null;
   reviewing_events?: number | null;
+  approved_events?: number | null;
   rejected_events?: number | null;
-  partner_canceled_events?: number | null;
 };
 
 export type HospitalEventDateType = "event_start_at" | "event_end_at";
@@ -218,11 +218,10 @@ export const HOSPITAL_EVENT_VISIBILITY_OPTIONS = [
 ];
 
 export const HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "검수신청중" },
-  { value: "REVIEWING", label: "검토중" },
-  { value: "REJECTED", label: "검수반려" },
-  { value: "PARTNER_CANCELED", label: "파트너취소" },
-  { value: "APPROVED", label: "검수완료" },
+  { value: "PENDING", label: "신청" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ];
 
 export const HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS: { value: HospitalEventQuantityMetric; label: string }[] = [
@@ -287,15 +286,13 @@ export function hospitalEventVisibilityStatusColor(status?: string | null): Badg
 export function labelHospitalEventAllowStatus(status?: string | null) {
   switch (status) {
     case "PENDING":
-      return "검수신청중";
+      return "신청";
     case "REVIEWING":
-      return "검토중";
+      return "검수";
     case "REJECTED":
-      return "검수반려";
-    case "PARTNER_CANCELED":
-      return "파트너취소";
+      return "반려";
     case "APPROVED":
-      return "검수완료";
+      return "승인";
     default:
       return "-";
   }
@@ -304,7 +301,7 @@ export function labelHospitalEventAllowStatus(status?: string | null) {
 export function hospitalEventAllowStatusColor(status?: string | null): BadgeColor {
   if (status === "APPROVED") return "success";
   if (status === "PENDING" || status === "REVIEWING") return "warning";
-  if (status === "REJECTED" || status === "PARTNER_CANCELED") return "error";
+  if (status === "REJECTED") return "error";
 
   return "light";
 }

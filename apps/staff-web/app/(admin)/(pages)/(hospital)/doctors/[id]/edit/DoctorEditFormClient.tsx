@@ -428,6 +428,7 @@ export default function DoctorEditFormClient() {
             setExistingSpecialistCertificateImage(file);
             clearError("specialist_certificate_image");
           }}
+          showCurrentAllowStatus
         />
 
         <CategorySelectPanel

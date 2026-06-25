@@ -17,7 +17,6 @@ import {
   ModalTitle,
   Pagination,
   SpinnerBlock,
-  StatusBadge,
   useGlobalAlert,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -343,7 +342,7 @@ export default function HospitalEventDetailPageClient() {
 
     const reason = pendingAllowStatusChange.reason.trim();
     if (pendingAllowStatusChange.allowStatus === "REJECTED" && !reason) {
-      setPendingAllowStatusError("검수반려 사유를 입력해주세요.");
+      setPendingAllowStatusError("반려 사유를 입력해주세요.");
       return;
     }
 
@@ -505,7 +504,7 @@ export default function HospitalEventDetailPageClient() {
             {pendingAllowStatusChange?.allowStatus === "REJECTED" ? (
               <div className="mt-4">
                 <label htmlFor="hospital-event-rejected-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                  검수반려 사유
+                  반려 사유
                 </label>
                 <InputField
                   id="hospital-event-rejected-reason"
@@ -513,7 +512,7 @@ export default function HospitalEventDetailPageClient() {
                   value={pendingAllowStatusChange.reason}
                   onChange={(event) => updatePendingAllowStatusReason(event.target.value)}
                   disabled={updatingStatus}
-                  placeholder="검수반려 사유를 입력해주세요."
+                  placeholder="반려 사유를 입력해주세요."
                   error={Boolean(pendingAllowStatusError)}
                   hint={pendingAllowStatusError ?? undefined}
                 />
@@ -563,11 +562,6 @@ function EventMainCard({
       <div className="mb-5 flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-sm font-bold text-gray-900">{eventTypeLabel} 이벤트</h2>
-          {detail.allow_status === "PARTNER_CANCELED" ? (
-            <StatusBadge size="sm" color="error">
-              {labelHospitalEventAllowStatus(detail.allow_status)}
-            </StatusBadge>
-          ) : null}
         </div>
         <VisibilityActionButtons
           status={detail.status}
@@ -649,10 +643,10 @@ function AllowStatusButtons({
   compact?: boolean;
 }) {
   const statuses = [
-    ["PENDING", "검수신청중"],
-    ["REVIEWING", "검토중"],
-    ["REJECTED", "검수반려"],
-    ["APPROVED", "검수완료"],
+    ["PENDING", "신청"],
+    ["REVIEWING", "검수"],
+    ["APPROVED", "승인"],
+    ["REJECTED", "반려"],
   ] as const;
 
   return (

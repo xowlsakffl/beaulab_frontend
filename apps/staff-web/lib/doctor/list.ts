@@ -127,9 +127,10 @@ export const DEFAULT_FILTERS: Filters = {
 export const DOCTORS_PER_PAGE = 10;
 
 export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "PENDING", label: "검수 대기" },
-  { value: "APPROVED", label: "검수 완료" },
-  { value: "REJECTED", label: "검수 반려" },
+  { value: "PENDING", label: "신청" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ];
 
 export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
@@ -357,10 +358,17 @@ export function labelDoctorGender(gender?: string | null) {
 }
 
 export function labelDoctorApprovalStatus(status?: string | null) {
-  if (status === "PENDING") return "검수 대기";
-  if (status === "APPROVED") return "검수 완료";
-  if (status === "REJECTED") return "검수 반려";
+  if (status === "PENDING") return "신청";
+  if (status === "REVIEWING") return "검수";
+  if (status === "APPROVED") return "승인";
+  if (status === "REJECTED") return "반려";
   return status || "-";
+}
+
+export function doctorApprovalStatusBadgeColor(status?: string | null) {
+  if (status === "APPROVED") return "success" as const;
+  if (status === "PENDING" || status === "REVIEWING") return "warning" as const;
+  return "error" as const;
 }
 
 export function labelDoctorOperatingStatus(status?: string | null) {

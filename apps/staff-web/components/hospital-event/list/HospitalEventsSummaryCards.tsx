@@ -14,10 +14,10 @@ export function HospitalEventsSummaryCards({ summary }: HospitalEventsSummaryCar
     { label: "최근 생성(30일)", value: summary?.recent_created_events ?? 0 },
     { label: "종료(30일)전 이벤트", value: summary?.ending_soon_events ?? 0 },
     { label: "최근 중지(30일)", value: summary?.recent_stopped_events ?? 0 },
-    { label: "검수신청중", value: summary?.pending_events ?? 0 },
-    { label: "검토중", value: summary?.reviewing_events ?? 0 },
-    { label: "검수반려", value: summary?.rejected_events ?? 0 },
-    { label: "파트너취소", value: summary?.partner_canceled_events ?? 0 },
+    { label: "신청", value: summary?.pending_events ?? 0 },
+    { label: "검수", value: summary?.reviewing_events ?? 0 },
+    { label: "승인", value: summary?.approved_events ?? 0 },
+    { label: "반려", value: summary?.rejected_events ?? 0 },
   ];
 
   return (

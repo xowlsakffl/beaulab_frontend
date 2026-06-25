@@ -88,9 +88,10 @@ export const DOCTOR_STATUS_OPTIONS = [
 ] as const;
 
 export const DOCTOR_ALLOW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "검수신청" },
-  { value: "APPROVED", label: "검수완료" },
-  { value: "REJECTED", label: "검수반려" },
+  { value: "PENDING", label: "신청" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ] as const;
 
 export const DOCTOR_PROFILE_COLLECTIONS: readonly MediaCollectionConfig<"profile_image">[] = [

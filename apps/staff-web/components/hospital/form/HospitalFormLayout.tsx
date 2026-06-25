@@ -662,7 +662,7 @@ function HospitalAllowStatusReadOnlyCard({ allowStatus, className }: { allowStat
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
-        <StatusBadge size="md" color={hospitalStatusBadgeColor(allowStatus)}>
+        <StatusBadge size="sm" color={hospitalStatusBadgeColor(allowStatus)}>
           {labelReviewStatus(allowStatus)}
         </StatusBadge>
       </div>

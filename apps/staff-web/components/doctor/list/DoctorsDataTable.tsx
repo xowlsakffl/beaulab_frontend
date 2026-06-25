@@ -14,6 +14,7 @@ import {
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
+  doctorApprovalStatusBadgeColor,
   labelDoctorApprovalStatus,
   type DoctorRow,
   type SortField,
@@ -164,13 +165,7 @@ function buildDoctorColumns({
       render: (row) => (
         <StatusBadge
           size="sm"
-          color={
-            row.approvalStatus === "APPROVED"
-              ? "success"
-              : row.approvalStatus === "PENDING"
-                ? "warning"
-                : "error"
-          }
+          color={doctorApprovalStatusBadgeColor(row.approvalStatus)}
         >
           {labelDoctorApprovalStatus(row.approvalStatus)}
         </StatusBadge>
