@@ -14,7 +14,6 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
-  StatusBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -29,7 +28,6 @@ import {
   type HospitalEventRealModelDBDetail,
 } from "@/lib/hospital-event-real-model-db/detail";
 import {
-  hospitalEventRealModelDBStatusColor,
   labelHospitalEventRealModelDBStatus,
   resolveHospitalEventRealModelDBMediaUrl,
   type HospitalEventRealModelDBApiItem,
@@ -240,12 +238,7 @@ function MemberInfoCard({
   return (
     <Card className={`${infoCardClassName} min-h-[18rem]`}>
       <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <h2 className={cardTitleClassName}>회원정보</h2>
-          <StatusBadge size="sm" color={hospitalEventRealModelDBStatusColor(detail.status)}>
-            {detail.statusLabel}
-          </StatusBadge>
-        </div>
+        <h2 className={cardTitleClassName}>회원정보</h2>
 
         <div className="flex shrink-0 items-center gap-2">
           <StatusButton

@@ -9,7 +9,6 @@ export type AccountUserNotificationSettings = {
 
 export type AccountUserConsultationInfo = {
   event_dbs?: number | null;
-  remote_consultations?: number | null;
   real_model_dbs?: number | null;
 };
 

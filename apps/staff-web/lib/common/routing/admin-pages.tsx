@@ -33,11 +33,6 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
         group: "충전금",
     },
     {
-        slug: ["beauty-customer-db", "remote-consultations"],
-        title: "비대면상담 DB",
-        group: "고객 DB 관리",
-    },
-    {
         slug: ["beauty-customer-db", "real-models"],
         title: "리얼모델 DB",
         group: "고객 DB 관리",
@@ -105,11 +100,6 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     {
         slug: ["customer-db", "events"],
         title: "이벤트 DB",
-        group: "고객 DB 관리",
-    },
-    {
-        slug: ["customer-db", "remote-consultations"],
-        title: "비대면상담 DB",
         group: "고객 DB 관리",
     },
     {

@@ -380,13 +380,12 @@ function ConsultationInfoCard({ user }: { user: AccountUserDetail }) {
         <CardTitle>상담신청정보</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <ClickableCountBox
             label="이벤트 DB"
             value={Number(consultation?.event_dbs ?? 0).toLocaleString()}
             onClick={() => router.push(`/customer-db/events${accountUserQuery}`)}
           />
-          <CountBox label="비대면 상담신청" value={Number(consultation?.remote_consultations ?? 0)} />
           <ClickableCountBox
             label="리얼모델 DB"
             value={Number(consultation?.real_model_dbs ?? 0).toLocaleString()}
