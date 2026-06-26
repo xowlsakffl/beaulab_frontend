@@ -19,7 +19,8 @@ import {
 
 import { HospitalEvaluationsDataTable } from "@/components/hospital-evaluation/list/HospitalEvaluationsDataTable";
 import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation/list/HospitalEvaluationsFilterPanel";
-import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { useListData } from "@/hooks/common/useListData";
+import { api } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
@@ -64,15 +65,10 @@ export function HospitalEvaluationsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalEvaluationsTableState> | null>(null);
-  const hasFetchedRef = React.useRef(false);
-  const requestKeyRef = React.useRef("");
+  const [initialTableState] = React.useState(() =>
+    parseHospitalEvaluationsTableState(new URLSearchParams(searchParams.toString())),
+  );
 
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHospitalEvaluationsTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isReviewTypeDropdownOpen, setIsReviewTypeDropdownOpen] = React.useState(false);
@@ -82,12 +78,7 @@ export function HospitalEvaluationsTableClient() {
   const [appliedFilters, setAppliedFilters] = React.useState<HospitalEvaluationFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<HospitalEvaluationSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<HospitalEvaluationRow[]>([]);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
   const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
@@ -108,6 +99,35 @@ export function HospitalEvaluationsTableClient() {
   );
 
   const queryString = React.useMemo(() => buildHospitalEvaluationsQueryString(query), [query]);
+
+  const fetchEvaluationRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HospitalEvaluationApiItem[]>("/hospital-evaluations", nextQuery, {
+      latestKey: "hospital-evaluations:list",
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "평가 목록 조회에 실패했습니다.");
+    }
+
+    return {
+      rows: response.data.map(normalizeHospitalEvaluation),
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const {
+    rows,
+    setRows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchEvaluations,
+  } = useListData({
+    query,
+    fetchRows: fetchEvaluationRows,
+    errorMessage: "평가 목록 조회 중 오류가 발생했습니다.",
+  });
 
   React.useEffect(() => {
     let cancelled = false;
@@ -150,53 +170,6 @@ export function HospitalEvaluationsTableClient() {
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchEvaluations = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalEvaluationApiItem[]>("/hospital-evaluations", query, {
-          latestKey: "hospital-evaluations:list",
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "평가 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        setRows(response.data.map(normalizeHospitalEvaluation));
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("평가 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
-  React.useEffect(() => {
-    void fetchEvaluations();
-  }, [fetchEvaluations]);
 
   React.useEffect(() => {
     setSelectedIds((prev) => {
@@ -403,7 +376,7 @@ export function HospitalEvaluationsTableClient() {
         });
       }
     }
-  }, [appliedFilters.visibilityStatus, pendingVisibilityChange]);
+  }, [appliedFilters.visibilityStatus, pendingVisibilityChange, setRows]);
 
   const openEvaluationDetail = React.useCallback((row: HospitalEvaluationRow) => {
     const returnTo = queryString ? `${pathname}?${queryString}` : pathname;

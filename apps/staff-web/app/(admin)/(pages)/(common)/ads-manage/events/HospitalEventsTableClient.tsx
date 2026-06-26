@@ -20,6 +20,7 @@ import {
 import { HospitalEventsDataTable } from "@/components/hospital-event/list/HospitalEventsDataTable";
 import { HospitalEventsFilterPanel } from "@/components/hospital-event/list/HospitalEventsFilterPanel";
 import { HospitalEventsSummaryCards } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
+import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import { preloadImageUrls } from "@/lib/common/media";
@@ -73,16 +74,11 @@ export default function HospitalEventsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalEventsTableState> | null>(null);
-  const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
   const middleCategoryParentRef = React.useRef("");
+  const [initialTableState] = React.useState(() =>
+    parseHospitalEventsTableState(new URLSearchParams(searchParams.toString())),
+  );
 
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHospitalEventsTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
@@ -92,15 +88,10 @@ export default function HospitalEventsTableClient() {
   const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<HospitalEventSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<HospitalEventRow[]>([]);
   const [summary, setSummary] = React.useState<HospitalEventSummary | null>(null);
   const [majorCategoryItems, setMajorCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [middleCategoryItems, setMiddleCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const [periodEdit, setPeriodEdit] = React.useState<PeriodEditState | null>(null);
   const [periodUpdating, setPeriodUpdating] = React.useState(false);
   const [isPeriodDatePickerOpen, setIsPeriodDatePickerOpen] = React.useState(false);
@@ -138,6 +129,36 @@ export default function HospitalEventsTableClient() {
         : "",
     [periodEdit],
   );
+
+  const fetchEventRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HospitalEventApiItem[]>("/hospital-events", nextQuery, {
+      latestKey: "hospital-events:list",
+    });
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "이벤트 목록 조회에 실패했습니다.");
+    }
+
+    const normalizedRows = response.data.map(normalizeHospitalEvent);
+    void preloadImageUrls(normalizedRows.map((row) => row.thumbnailUrl));
+
+    return {
+      rows: normalizedRows,
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchEvents,
+  } = useListData({
+    query,
+    fetchRows: fetchEventRows,
+    errorMessage: "이벤트 목록 조회 중 오류가 발생했습니다.",
+  });
 
   const fetchSummary = React.useCallback(async () => {
     try {
@@ -183,50 +204,6 @@ export default function HospitalEventsTableClient() {
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchEvents = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalEventApiItem[]>("/hospital-events", query, {
-          latestKey: "hospital-events:list",
-        });
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "이벤트 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const normalizedRows = response.data.map(normalizeHospitalEvent);
-        await preloadImageUrls(normalizedRows.map((row) => row.thumbnailUrl));
-        setRows(normalizedRows);
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("이벤트 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
 
   const fetchCategoryItems = React.useCallback(
     async (params: Record<string, string | number>): Promise<CategoryApiItem[]> => {
@@ -283,10 +260,6 @@ export default function HospitalEventsTableClient() {
     },
     [fetchCategoryItems],
   );
-
-  React.useEffect(() => {
-    fetchEvents(false);
-  }, [fetchEvents]);
 
   React.useEffect(() => {
     void fetchSummary();

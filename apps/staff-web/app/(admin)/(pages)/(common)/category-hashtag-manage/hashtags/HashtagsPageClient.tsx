@@ -11,7 +11,8 @@ import {
 import { HashtagUpsertModal } from "@/components/hashtag/list/HashtagUpsertModal";
 import { HashtagsDataTable } from "@/components/hashtag/list/HashtagsDataTable";
 import { HashtagsFilterPanel } from "@/components/hashtag/list/HashtagsFilterPanel";
-import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { useListData } from "@/hooks/common/useListData";
+import { api } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
   HASHTAG_STATUS_OPTIONS,
@@ -39,13 +40,9 @@ export default function HashtagsPageClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHashtagsTableState> | null>(null);
-
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHashtagsTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
+  const [initialTableState] = React.useState(() =>
+    parseHashtagsTableState(new URLSearchParams(searchParams.toString())),
+  );
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
@@ -63,20 +60,12 @@ export default function HashtagsPageClient() {
   const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [page, setPage] = React.useState(initialTableState.page);
 
-  const [rows, setRows] = React.useState<HashtagRow[]>([]);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
 
   const [upsertMode, setUpsertMode] = React.useState<"create" | "edit" | null>(null);
   const [selectedRow, setSelectedRow] = React.useState<HashtagRow | null>(null);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
 
   const query = React.useMemo(
     () =>
@@ -92,69 +81,48 @@ export default function HashtagsPageClient() {
 
   const queryString = React.useMemo(() => buildHashtagsQueryString(query), [query]);
 
+  const fetchHashtagRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HashtagApiItem[]>("/hashtags", nextQuery, {
+      latestKey: "hashtags:list",
+    });
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "해시태그 목록 조회에 실패했습니다.");
+    }
+
+    const responseMeta = (response.meta as DataTableMeta | null) ?? null;
+
+    return {
+      rows: response.data.map(normalizeHashtag),
+      meta: responseMeta
+        ? {
+            current_page: responseMeta.current_page,
+            per_page: responseMeta.per_page,
+            total: responseMeta.total,
+            last_page: responseMeta.last_page,
+          }
+        : null,
+    };
+  }, []);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchHashtags,
+  } = useListData({
+    query,
+    fetchRows: fetchHashtagRows,
+    errorMessage: "해시태그 목록 조회 중 오류가 발생했습니다.",
+  });
+
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchHashtags = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HashtagApiItem[]>("/hashtags", query, {
-          latestKey: "hashtags:list",
-        });
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "해시태그 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-
-        setRows(response.data.map(normalizeHashtag));
-        setMeta(
-          responseMeta
-            ? {
-                current_page: responseMeta.current_page,
-                per_page: responseMeta.per_page,
-                total: responseMeta.total,
-                last_page: responseMeta.last_page,
-              }
-            : null,
-        );
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("해시태그 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
-  React.useEffect(() => {
-    void fetchHashtags(false);
-  }, [fetchHashtags]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

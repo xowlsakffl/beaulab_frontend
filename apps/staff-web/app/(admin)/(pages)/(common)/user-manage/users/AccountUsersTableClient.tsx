@@ -12,6 +12,7 @@ import {
   AccountUsersSignupChannelCard,
   AccountUsersSummaryCards,
 } from "@/components/account-user/list/AccountUsersSummaryCards";
+import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DEFAULT_ACCOUNT_USER_FILTERS,
@@ -36,16 +37,11 @@ export default function AccountUsersTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseAccountUsersTableState> | null>(null);
-  const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
+  const [initialTableState] = React.useState(() =>
+    parseAccountUsersTableState(new URLSearchParams(searchParams.toString())),
+  );
 
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseAccountUsersTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
@@ -54,12 +50,7 @@ export default function AccountUsersTableClient() {
   const [appliedFilters, setAppliedFilters] = React.useState<AccountUserFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<AccountUserSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<AccountUserRow[]>([]);
   const [summary, setSummary] = React.useState<AccountUserSummary | null>(null);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
 
   const query = React.useMemo(
     () =>
@@ -73,6 +64,34 @@ export default function AccountUsersTableClient() {
   );
 
   const queryString = React.useMemo(() => buildAccountUsersQueryString(query), [query]);
+
+  const fetchAccountUserRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<AccountUserApiItem[]>("/users", nextQuery, {
+      latestKey: "account-users:list",
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "일반회원 목록 조회에 실패했습니다.");
+    }
+
+    return {
+      rows: response.data.map(normalizeAccountUser),
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchUsers,
+  } = useListData({
+    query,
+    fetchRows: fetchAccountUserRows,
+    errorMessage: "일반회원 목록 조회 중 오류가 발생했습니다.",
+  });
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -99,56 +118,9 @@ export default function AccountUsersTableClient() {
     }
   }, []);
 
-  const fetchUsers = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<AccountUserApiItem[]>("/users", query, {
-          latestKey: "account-users:list",
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "일반회원 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        setRows(response.data.map(normalizeAccountUser));
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("일반회원 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
   React.useEffect(() => {
     void fetchSummary();
   }, [fetchSummary]);
-
-  React.useEffect(() => {
-    void fetchUsers(false);
-  }, [fetchUsers]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

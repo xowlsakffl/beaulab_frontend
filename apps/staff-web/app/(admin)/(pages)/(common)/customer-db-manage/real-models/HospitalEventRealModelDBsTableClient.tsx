@@ -8,7 +8,8 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import { HospitalEventRealModelDBsDataTable } from "@/components/hospital-event-real-model-db/list/HospitalEventRealModelDBsDataTable";
 import { HospitalEventRealModelDBsFilterPanel } from "@/components/hospital-event-real-model-db/list/HospitalEventRealModelDBsFilterPanel";
-import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { useListData } from "@/hooks/common/useListData";
+import { api } from "@/lib/common/api";
 import {
   DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_FILTERS,
   buildHospitalEventRealModelDBPresetDateRange,
@@ -22,7 +23,6 @@ import {
   type HospitalEventRealModelDBApiItem,
   type HospitalEventRealModelDBDatePresetKey,
   type HospitalEventRealModelDBFilters,
-  type HospitalEventRealModelDBRow,
   type HospitalEventRealModelDBSortField,
   type HospitalEventRealModelDBSortState,
 } from "@/lib/hospital-event-real-model-db/list";
@@ -31,16 +31,11 @@ export default function HospitalEventRealModelDBsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalEventRealModelDBsTableState> | null>(null);
-  const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
+  const [initialTableState] = React.useState(() =>
+    parseHospitalEventRealModelDBsTableState(new URLSearchParams(searchParams.toString())),
+  );
 
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHospitalEventRealModelDBsTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
@@ -48,11 +43,6 @@ export default function HospitalEventRealModelDBsTableClient() {
   const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<HospitalEventRealModelDBSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<HospitalEventRealModelDBRow[]>([]);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
 
   const query = React.useMemo(
@@ -68,59 +58,40 @@ export default function HospitalEventRealModelDBsTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEventRealModelDBsQueryString(query), [query]);
 
+  const fetchRealModelDBRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HospitalEventRealModelDBApiItem[]>("/hospital-event-real-model-dbs", nextQuery, {
+      latestKey: "hospital-event-real-model-dbs:list",
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "리얼모델 신청 목록 조회에 실패했습니다.");
+    }
+
+    return {
+      rows: response.data.map(normalizeHospitalEventRealModelDB),
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchRealModelDBs,
+  } = useListData({
+    query,
+    fetchRows: fetchRealModelDBRows,
+    errorMessage: "리얼모델 신청 목록 조회 중 오류가 발생했습니다.",
+  });
+
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchRealModelDBs = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalEventRealModelDBApiItem[]>("/hospital-event-real-model-dbs", query, {
-          latestKey: "hospital-event-real-model-dbs:list",
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "리얼모델 신청 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        setRows(response.data.map(normalizeHospitalEventRealModelDB));
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("리얼모델 신청 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
-  React.useEffect(() => {
-    void fetchRealModelDBs(false);
-  }, [fetchRealModelDBs]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

@@ -21,7 +21,8 @@ import type { DateRange } from "react-day-picker";
 import { TalkCommentsDataTable } from "@/components/talk/list/TalkCommentsDataTable";
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
-import { api, downloadFile, isApiRequestCanceledError } from "@/lib/common/api";
+import { useListData } from "@/hooks/common/useListData";
+import { api, downloadFile } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
@@ -32,7 +33,6 @@ import {
   normalizeTalkComment,
   parseTalkCommentSortState,
   type TalkCommentApiItem,
-  type TalkCommentRow,
   type TalkCommentSortField,
   type TalkCommentSortState,
 } from "@/lib/talk/comment-list";
@@ -85,23 +85,18 @@ export default function TalksTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseTalksTableState> | null>(null);
-  const initialCommentSortStateRef = React.useRef<TalkCommentSortState | null>(null);
-  const initialBoardRef = React.useRef<TalkBoard | null>(null);
-  const hasFetchedRef = React.useRef(false);
-  const requestKeyRef = React.useRef("");
-
-  if (!initialTableStateRef.current) {
+  const [initialState] = React.useState(() => {
     const initialSearchParams = new URLSearchParams(searchParams.toString());
 
-    initialTableStateRef.current = parseTalksTableState(initialSearchParams);
-    initialCommentSortStateRef.current = parseTalkCommentSortState(initialSearchParams);
-    initialBoardRef.current = initialSearchParams.get("board") === "comments" ? "comments" : "talks";
-  }
+    return {
+      tableState: parseTalksTableState(initialSearchParams),
+      commentSortState: parseTalkCommentSortState(initialSearchParams),
+      board: initialSearchParams.get("board") === "comments" ? "comments" : "talks" as TalkBoard,
+    };
+  });
+  const initialTableState = initialState.tableState;
 
-  const initialTableState = initialTableStateRef.current;
-
-  const [activeBoard, setActiveBoard] = React.useState<TalkBoard>(initialBoardRef.current ?? "talks");
+  const [activeBoard, setActiveBoard] = React.useState<TalkBoard>(initialState.board);
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = React.useState(false);
@@ -111,15 +106,9 @@ export default function TalksTableClient() {
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [commentSortState, setCommentSortState] = React.useState<TalkCommentSortState>(
-    initialCommentSortStateRef.current ?? DEFAULT_TALK_COMMENT_SORT,
+    initialState.commentSortState,
   );
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<TalkRow[]>([]);
-  const [commentRows, setCommentRows] = React.useState<TalkCommentRow[]>([]);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
   const [excelDownloading, setExcelDownloading] = React.useState(false);
   const [excelValidationMessage, setExcelValidationMessage] = React.useState<string | null>(null);
@@ -164,6 +153,84 @@ export default function TalksTableClient() {
     return buildTalksQueryString(query);
   }, [activeBoard, commentQuery, query]);
 
+  const fetchTalkRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<TalkApiItem[]>("/talks", nextQuery, {
+      latestKey: "talks:posts",
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "토크 목록 조회에 실패했습니다.");
+    }
+
+    return {
+      rows: response.data.map(normalizeTalk),
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const fetchTalkCommentRows = React.useCallback(async (nextQuery: typeof commentQuery) => {
+    const response = await api.get<TalkCommentApiItem[]>("/talk-comments", nextQuery, {
+      latestKey: "talks:comments",
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "토크 댓글 목록 조회에 실패했습니다.");
+    }
+
+    return {
+      rows: response.data.map(normalizeTalkComment),
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const {
+    rows,
+    setRows,
+    meta: talkMeta,
+    error: talkError,
+    setError: setTalkError,
+    loading: talkLoading,
+    refreshing: talkRefreshing,
+    fetchList: fetchTalks,
+    resetList: resetTalkList,
+  } = useListData({
+    query,
+    fetchRows: fetchTalkRows,
+    errorMessage: "토크 목록 조회 중 오류가 발생했습니다.",
+    enabled: activeBoard === "talks",
+  });
+
+  const {
+    rows: commentRows,
+    setRows: setCommentRows,
+    meta: commentMeta,
+    error: commentError,
+    setError: setCommentError,
+    loading: commentLoading,
+    refreshing: commentRefreshing,
+    fetchList: fetchTalkComments,
+    resetList: resetCommentList,
+  } = useListData({
+    query: commentQuery,
+    fetchRows: fetchTalkCommentRows,
+    errorMessage: "토크 댓글 목록 조회 중 오류가 발생했습니다.",
+    enabled: activeBoard === "comments",
+  });
+
+  const meta = activeBoard === "comments" ? commentMeta : talkMeta;
+  const error = activeBoard === "comments" ? commentError : talkError;
+  const loading = activeBoard === "comments" ? commentLoading : talkLoading;
+  const refreshing = activeBoard === "comments" ? commentRefreshing : talkRefreshing;
+
+  const setBoardError = React.useCallback((board: TalkBoard, message: string | null) => {
+    if (board === "comments") {
+      setCommentError(message);
+      return;
+    }
+
+    setTalkError(message);
+  }, [setCommentError, setTalkError]);
+
   React.useEffect(() => {
     let cancelled = false;
 
@@ -205,104 +272,6 @@ export default function TalksTableClient() {
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchTalks = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = `talks:${JSON.stringify(query)}`;
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<TalkApiItem[]>("/talks", query, {
-          latestKey: "talks:posts",
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "토크 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        setRows(response.data.map(normalizeTalk));
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("토크 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
-  const fetchTalkComments = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = `comments:${JSON.stringify(commentQuery)}`;
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<TalkCommentApiItem[]>("/talk-comments", commentQuery, {
-          latestKey: "talks:comments",
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "토크 댓글 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        setCommentRows(response.data.map(normalizeTalkComment));
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("토크 댓글 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [commentQuery],
-  );
-
-  React.useEffect(() => {
-    if (activeBoard === "talks") {
-      void fetchTalks(false);
-    }
-  }, [activeBoard, fetchTalks]);
-
-  React.useEffect(() => {
-    if (activeBoard === "comments") {
-      void fetchTalkComments(false);
-    }
-  }, [activeBoard, fetchTalkComments]);
 
   React.useEffect(() => {
     setSelectedIds((prev) => {
@@ -460,7 +429,6 @@ export default function TalksTableClient() {
   const changeBoard = React.useCallback((board: TalkBoard) => {
     if (board === activeBoard) return;
 
-    requestKeyRef.current = "";
     const nextFilters = {
       ...DEFAULT_FILTERS,
       authorId: appliedFilters.authorId,
@@ -481,8 +449,9 @@ export default function TalksTableClient() {
     setRowVisibilityUpdatingIds(new Set());
     setPendingVisibilityChange(null);
     setExcelValidationMessage(null);
-    setError(null);
-  }, [activeBoard, appliedFilters.authorId]);
+    if (board === "comments") resetCommentList();
+    else resetTalkList();
+  }, [activeBoard, appliedFilters.authorId, resetCommentList, resetTalkList]);
 
   const handleToggleSort = React.useCallback((field: SortField) => {
     setPage(1);
@@ -611,7 +580,7 @@ export default function TalksTableClient() {
       });
     }
 
-    setError(null);
+    setBoardError(board, null);
 
     try {
       const response = await api.patch<TalkVisibilityUpdateResponse>(
@@ -620,7 +589,7 @@ export default function TalksTableClient() {
       );
 
       if (!isApiSuccess(response)) {
-        setError(response.error.message || `${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경에 실패했습니다.`);
+        setBoardError(board, response.error.message || `${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경에 실패했습니다.`);
         return;
       }
 
@@ -637,7 +606,7 @@ export default function TalksTableClient() {
         setRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
       }
     } catch {
-      setError(`${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경 중 오류가 발생했습니다.`);
+      setBoardError(board, `${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경 중 오류가 발생했습니다.`);
     } finally {
       if (isBulkChange) {
         setBulkUpdating(false);
@@ -650,7 +619,7 @@ export default function TalksTableClient() {
         });
       }
     }
-  }, [appliedFilters.visibilityStatus, pendingVisibilityChange]);
+  }, [appliedFilters.visibilityStatus, pendingVisibilityChange, setBoardError, setCommentRows, setRows]);
 
   const handleDownloadExcel = React.useCallback(async () => {
     const excelFilters: Filters = {
@@ -669,20 +638,20 @@ export default function TalksTableClient() {
     const endDate = excelFilters.endDate;
 
     if (!startDate || !endDate) {
-      setError(null);
+      setTalkError(null);
       setExcelValidationMessage("작성일을 선택해주세요.");
       return;
     }
 
     if (!isTalkExcelDateRangeAllowed(startDate, endDate)) {
-      setError(null);
+      setTalkError(null);
       setExcelValidationMessage("엑셀 다운로드 작성일 기간은 시작일 이후 종료일이어야 하며, 최대 1개월까지만 가능합니다.");
       return;
     }
 
     setExcelDownloading(true);
     setExcelValidationMessage(null);
-    setError(null);
+    setTalkError(null);
 
     try {
       const excelQuery = buildTalksQuery({
@@ -697,11 +666,11 @@ export default function TalksTableClient() {
         `talks_${startDate}_${endDate}.xls`,
       );
     } catch {
-      setError("토크 엑셀 다운로드 중 오류가 발생했습니다.");
+      setTalkError("토크 엑셀 다운로드 중 오류가 발생했습니다.");
     } finally {
       setExcelDownloading(false);
     }
-  }, [draftFilters, searchInput, sortState]);
+  }, [draftFilters, searchInput, setTalkError, sortState]);
 
   const openTalkDetail = React.useCallback((row: TalkRow) => {
     const returnTo = queryString ? `${pathname}?${queryString}` : pathname;

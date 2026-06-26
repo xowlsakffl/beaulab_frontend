@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { HospitalEntriesDataTable } from "@/components/hospital-entry/list/HospitalEntriesDataTable";
 import { HospitalEntriesFilterPanel } from "@/components/hospital-entry/list/HospitalEntriesFilterPanel";
 import { HospitalEntriesSummaryCards } from "@/components/hospital-entry/list/HospitalEntriesSummaryCards";
+import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
@@ -23,7 +24,6 @@ import {
   type DatePresetKey,
   type Filters,
   type HospitalEntryApiItem,
-  type HospitalEntryRow,
   type HospitalEntrySummary,
   type HospitalEntrySummaryApiResponse,
   type SortField,
@@ -36,13 +36,9 @@ export default function HospitalEntriesTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalEntriesTableState> | null>(null);
-
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHospitalEntriesTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
+  const [initialTableState] = React.useState(() =>
+    parseHospitalEntriesTableState(new URLSearchParams(searchParams.toString())),
+  );
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
@@ -57,15 +53,7 @@ export default function HospitalEntriesTableClient() {
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
 
-  const [rows, setRows] = React.useState<HospitalEntryRow[]>([]);
   const [summary, setSummary] = React.useState<HospitalEntrySummary | null>(null);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
-
-  const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
 
   const query = React.useMemo(
     () =>
@@ -85,6 +73,42 @@ export default function HospitalEntriesTableClient() {
     const rawQueryString = searchParams.toString();
     return rawQueryString ? `${pathname}?${rawQueryString}` : pathname;
   }, [pathname, searchParams]);
+
+  const fetchHospitalEntryRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HospitalEntryApiItem[]>("/hospital-entries", nextQuery, {
+      latestKey: "hospital-entries:list",
+    });
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "입점신청 목록 조회에 실패했습니다.");
+    }
+
+    const responseMeta = (response.meta as DataTableMeta | null) ?? null;
+
+    return {
+      rows: response.data.map(normalizeHospitalEntry),
+      meta: responseMeta
+        ? {
+            current_page: responseMeta.current_page,
+            per_page: responseMeta.per_page,
+            total: responseMeta.total,
+            last_page: responseMeta.last_page,
+          }
+        : null,
+    };
+  }, []);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchHospitalEntries,
+  } = useListData({
+    query,
+    fetchRows: fetchHospitalEntryRows,
+    errorMessage: "입점신청 목록 조회 중 오류가 발생했습니다.",
+  });
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -110,62 +134,6 @@ export default function HospitalEntriesTableClient() {
       setSummary(null);
     }
   }, []);
-
-  const fetchHospitalEntries = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalEntryApiItem[]>("/hospital-entries", query, {
-          latestKey: "hospital-entries:list",
-        });
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "입점신청 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-        setRows(response.data.map(normalizeHospitalEntry));
-        setMeta(
-          responseMeta
-            ? {
-                current_page: responseMeta.current_page,
-                per_page: responseMeta.per_page,
-                total: responseMeta.total,
-                last_page: responseMeta.last_page,
-              }
-            : null,
-        );
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("입점신청 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
-  React.useEffect(() => {
-    fetchHospitalEntries(false);
-  }, [fetchHospitalEntries]);
 
   React.useEffect(() => {
     void fetchSummary();

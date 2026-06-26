@@ -21,7 +21,8 @@ import { HospitalReviewCommentsDataTable } from "@/components/hospital-review/li
 import { HospitalReviewCommentsFilterPanel } from "@/components/hospital-review/list/HospitalReviewCommentsFilterPanel";
 import { HospitalReviewsDataTable } from "@/components/hospital-review/list/HospitalReviewsDataTable";
 import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/HospitalReviewsFilterPanel";
-import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { useListData } from "@/hooks/common/useListData";
+import { api } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import { preloadImageUrls } from "@/lib/common/media";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
@@ -98,22 +99,18 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalReviewsTableState> | null>(null);
-  const initialCommentSortStateRef = React.useRef<HospitalReviewCommentSortState | null>(null);
-  const initialBoardRef = React.useRef<HospitalReviewBoard | null>(null);
-  const hasFetchedRef = React.useRef(false);
-  const requestKeyRef = React.useRef("");
-
-  if (!initialTableStateRef.current) {
+  const [initialState] = React.useState(() => {
     const initialSearchParams = new URLSearchParams(searchParams.toString());
 
-    initialTableStateRef.current = parseHospitalReviewsTableState(initialSearchParams);
-    initialCommentSortStateRef.current = parseHospitalReviewCommentSortState(initialSearchParams);
-    initialBoardRef.current = initialSearchParams.get("board") === "comments" ? "comments" : "posts";
-  }
+    return {
+      tableState: parseHospitalReviewsTableState(initialSearchParams),
+      commentSortState: parseHospitalReviewCommentSortState(initialSearchParams),
+      board: (initialSearchParams.get("board") === "comments" ? "comments" : "posts") as HospitalReviewBoard,
+    };
+  });
 
-  const initialTableState = initialTableStateRef.current;
-  const [activeBoard, setActiveBoard] = React.useState<HospitalReviewBoard>(initialBoardRef.current ?? "posts");
+  const initialTableState = initialState.tableState;
+  const [activeBoard, setActiveBoard] = React.useState<HospitalReviewBoard>(initialState.board);
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isRatingDropdownOpen, setIsRatingDropdownOpen] = React.useState(false);
@@ -123,17 +120,11 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const [appliedFilters, setAppliedFilters] = React.useState<HospitalReviewFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<HospitalReviewSortState>(initialTableState.sortState);
   const [commentSortState, setCommentSortState] = React.useState<HospitalReviewCommentSortState>(
-    initialCommentSortStateRef.current ?? DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
+    initialState.commentSortState,
   );
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<HospitalReviewRow[]>([]);
-  const [commentRows, setCommentRows] = React.useState<HospitalReviewCommentRow[]>([]);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [isMetricRequiredModalOpen, setIsMetricRequiredModalOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const [bulkUpdating, setBulkUpdating] = React.useState(false);
   const [majorCategoryItems, setMajorCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [middleCategoryItems, setMiddleCategoryItems] = React.useState<CategoryApiItem[]>([]);
@@ -177,6 +168,80 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
 
     return buildHospitalReviewsQueryString(query);
   }, [activeBoard, commentQuery, query]);
+
+  const fetchReviewRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", nextQuery, {
+      latestKey: `hospital-reviews:${type}:posts`,
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "후기 목록 조회에 실패했습니다.");
+    }
+
+    const normalizedRows = response.data.map(normalizeHospitalReview);
+    void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
+
+    return {
+      rows: normalizedRows,
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, [type]);
+
+  const fetchReviewCommentRows = React.useCallback(async (nextQuery: typeof commentQuery) => {
+    const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", nextQuery, {
+      latestKey: `hospital-reviews:${type}:comments`,
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "후기 댓글 목록 조회에 실패했습니다.");
+    }
+
+    const normalizedRows = response.data.map(normalizeHospitalReviewComment);
+    void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
+
+    return {
+      rows: normalizedRows,
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, [type]);
+
+  const {
+    rows,
+    setRows,
+    meta: reviewMeta,
+    error: reviewError,
+    loading: reviewLoading,
+    refreshing: reviewRefreshing,
+    fetchList: fetchReviews,
+    resetList: resetReviewList,
+  } = useListData({
+    query,
+    fetchRows: fetchReviewRows,
+    errorMessage: "후기 목록 조회 중 오류가 발생했습니다.",
+    enabled: activeBoard === "posts",
+  });
+
+  const {
+    rows: commentRows,
+    setRows: setCommentRows,
+    meta: commentMeta,
+    error: commentError,
+    loading: commentLoading,
+    refreshing: commentRefreshing,
+    fetchList: fetchComments,
+    resetList: resetCommentList,
+  } = useListData({
+    query: commentQuery,
+    fetchRows: fetchReviewCommentRows,
+    errorMessage: "후기 댓글 목록 조회 중 오류가 발생했습니다.",
+    enabled: activeBoard === "comments",
+  });
+
+  const meta = activeBoard === "comments" ? commentMeta : reviewMeta;
+  const error = activeBoard === "comments" ? commentError : reviewError;
+  const loading = activeBoard === "comments" ? commentLoading : reviewLoading;
+  const refreshing = activeBoard === "comments" ? commentRefreshing : reviewRefreshing;
+
   const majorCategoryOptions = React.useMemo<SelectOption[]>(() => [
     { value: "", label: "전체" },
     ...majorCategoryItems.map((item) => ({
@@ -354,108 +419,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchReviews = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = `${type}:${JSON.stringify(query)}`;
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", query, {
-          latestKey: `hospital-reviews:${type}:posts`,
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "후기 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const normalizedRows = response.data.map(normalizeHospitalReview);
-        await preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
-        setRows(normalizedRows);
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("후기 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query, type],
-  );
-
-  const fetchComments = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = `${type}:comments:${JSON.stringify(commentQuery)}`;
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", commentQuery, {
-          latestKey: `hospital-reviews:${type}:comments`,
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "후기 댓글 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const normalizedRows = response.data.map(normalizeHospitalReviewComment);
-        await preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
-        setCommentRows(normalizedRows);
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("후기 댓글 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [commentQuery, type],
-  );
-
-  React.useEffect(() => {
-    if (activeBoard === "posts") {
-      void fetchReviews();
-    }
-  }, [activeBoard, fetchReviews]);
-
-  React.useEffect(() => {
-    if (activeBoard === "comments") {
-      void fetchComments();
-    }
-  }, [activeBoard, fetchComments]);
 
   React.useEffect(() => {
     setSelectedIds((prev) => {
@@ -661,8 +624,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       authorId: appliedFilters.authorId,
     };
 
-    requestKeyRef.current = "";
-    hasFetchedRef.current = false;
     setActiveBoard(board);
     setSearchInput("");
     setSearchKeyword("");
@@ -675,10 +636,10 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     setSelectedIds(new Set());
     setRowVisibilityUpdatingIds(new Set());
     setPendingVisibilityChange(null);
-    setError(null);
     setActionError(null);
-    setMeta(null);
-  }, [activeBoard, appliedFilters.authorId]);
+    if (board === "comments") resetCommentList();
+    else resetReviewList();
+  }, [activeBoard, appliedFilters.authorId, resetCommentList, resetReviewList]);
 
   const toggleRow = React.useCallback((row: HospitalReviewRow, checked: boolean) => {
     if (row.visibilityChangeLocked) return;
@@ -832,7 +793,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         });
       }
     }
-  }, [appliedFilters.visibilityStatus, pendingVisibilityChange]);
+  }, [appliedFilters.visibilityStatus, pendingVisibilityChange, setCommentRows, setRows]);
 
   const openReviewDetail = React.useCallback((row: HospitalReviewRow) => {
     const returnTo = queryString ? `${pathname}?${queryString}` : pathname;

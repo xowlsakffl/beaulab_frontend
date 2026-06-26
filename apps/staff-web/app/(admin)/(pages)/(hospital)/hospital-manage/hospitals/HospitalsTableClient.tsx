@@ -3,6 +3,7 @@
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
 import { HospitalsSummaryCards } from "@/components/hospital/list/HospitalsSummaryCards";
+import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { preloadImageUrls } from "@/lib/common/media";
 import {
@@ -24,7 +25,6 @@ import {
   type DatePresetKey,
   type Filters,
   type HospitalApiItem,
-  type HospitalRow,
   type HospitalSummary,
   type SortField,
   type SortState,
@@ -39,13 +39,9 @@ export default function HospitalsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseHospitalsTableState> | null>(null);
-
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseHospitalsTableState(new URLSearchParams(searchParams.toString()));
-  }
-
-  const initialTableState = initialTableStateRef.current;
+  const [initialTableState] = React.useState(() =>
+    parseHospitalsTableState(new URLSearchParams(searchParams.toString())),
+  );
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
@@ -65,16 +61,8 @@ export default function HospitalsTableClient() {
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
 
-  const [rows, setRows] = React.useState<HospitalRow[]>([]);
   const [summary, setSummary] = React.useState<HospitalSummary | null>(null);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
-
-  const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
 
   const query = React.useMemo(
     () =>
@@ -93,6 +81,36 @@ export default function HospitalsTableClient() {
   const buildReturnToPath = React.useCallback(() => {
     return buildHospitalsReturnToPath(pathname, query);
   }, [pathname, query]);
+
+  const fetchHospitalRows = React.useCallback(async (nextQuery: typeof query) => {
+    const response = await api.get<HospitalApiItem[]>("/hospitals", nextQuery, {
+      latestKey: "hospitals:list",
+    });
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "병의원 목록 조회에 실패했습니다.");
+    }
+
+    const normalizedRows = response.data.map(normalizeHospital);
+    void preloadImageUrls(normalizedRows.map((row) => row.logoUrl));
+
+    return {
+      rows: normalizedRows,
+      meta: (response.meta as DataTableMeta | null) ?? null,
+    };
+  }, []);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchHospitals,
+  } = useListData({
+    query,
+    fetchRows: fetchHospitalRows,
+    errorMessage: "병의원 목록 조회 중 오류가 발생했습니다.",
+  });
 
   const fetchHospitalSummary = React.useCallback(async () => {
     try {
@@ -115,54 +133,6 @@ export default function HospitalsTableClient() {
 
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
-
-  const fetchHospitals = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify(query);
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<HospitalApiItem[]>("/hospitals", query, {
-          latestKey: "hospitals:list",
-        });
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "병의원 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const normalizedRows = response.data.map(normalizeHospital);
-        await preloadImageUrls(normalizedRows.map((row) => row.logoUrl));
-        setRows(normalizedRows);
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("병의원 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [query],
-  );
-
-  React.useEffect(() => {
-    fetchHospitals(false);
-  }, [fetchHospitals]);
 
   React.useEffect(() => {
     void fetchHospitalSummary();
