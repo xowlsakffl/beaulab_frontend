@@ -68,6 +68,7 @@ type HierarchicalCategorySelectorProps = {
   onToggleCategory: (categoryId: number, checked: boolean) => void;
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
   error?: string;
+  primaryError?: string;
   initialSectionKey?: string;
   maxSearchResults?: number;
   visibleLevels?: 1 | 2 | 3;
@@ -279,6 +280,7 @@ export function HierarchicalCategorySelector({
   onToggleCategory,
   loadCategories,
   error,
+  primaryError,
   initialSectionKey,
   maxSearchResults = 12,
   visibleLevels = 3,
@@ -976,7 +978,10 @@ export function HierarchicalCategorySelector({
                     setIsPrimaryOpen((prev) => !prev);
                   }
                 }}
-                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left"
+                className={[
+                  "flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-left",
+                  primaryError ? "border-error-500" : "border-gray-200",
+                ].join(" ")}
               >
                 {primaryNode ? (
                   <span className="inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600">
@@ -1016,6 +1021,7 @@ export function HierarchicalCategorySelector({
                 </Card>
               ) : null}
             </div>
+            {primaryError ? <p className="text-xs text-error-500">{primaryError}</p> : null}
           </div>
         </div>
       ) : selectedNodes.length > 0 ? (

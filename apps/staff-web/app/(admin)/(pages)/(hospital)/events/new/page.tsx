@@ -1,13 +1,0 @@
-import type { Metadata } from "next";
-import HospitalEventsCreateFormClient from "./HospitalEventsCreateFormClient";
-
-export const metadata: Metadata = {
-  title: "이벤트 등록 | 뷰랩 관리자",};
-
-export default function HospitalEventsCreatePage() {
-  return (
-    <div className="space-y-6">
-      <HospitalEventsCreateFormClient />
-    </div>
-  );
-}

@@ -183,14 +183,14 @@ export const HOSPITAL_REVIEW_BOARD_CONFIGS: Record<HospitalReviewBoardType, Hosp
   surgery: {
     type: "surgery",
     title: "성형후기",
-    listPath: "/reviews/surgery-reviews",
+    listPath: "/post-manage/surgery-reviews",
     categoryDomain: HOSPITAL_REVIEW_CATEGORY_DOMAINS.SURGERY,
     categoryUsage: CATEGORY_USAGES.HOSPITAL_REVIEW_SURGERY,
   },
   treatment: {
     type: "treatment",
     title: "시술후기",
-    listPath: "/reviews/treatment-reviews",
+    listPath: "/post-manage/treatment-reviews",
     categoryDomain: HOSPITAL_REVIEW_CATEGORY_DOMAINS.TREATMENT,
     categoryUsage: CATEGORY_USAGES.HOSPITAL_REVIEW_TREATMENT,
   },

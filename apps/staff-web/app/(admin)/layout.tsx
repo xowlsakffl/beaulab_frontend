@@ -134,7 +134,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                         others: "공통메뉴",
                     }}
                     brand={{
-                        href: "/",
+                        href: activeDomain === "beauty" ? "/beauty-dashboard/dashboard" : "/hospital-dashboard/dashboard",
                         expandedLogo: (
                             <div className="flex items-center">
                                 <Image
@@ -162,7 +162,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
                                     subtitle,
                                     description,
                                     avatarSrc: "/images/user/owner.png",
-                                    actionItems: [{ label: "내 프로필", href: "/profile" }],
+                                    actionItems: [{ label: "내 프로필", href: "/admin-settings/profile" }],
                                     signOutItem: { label: "로그아웃", onClick: handleSignOut },
                                 }}
                             />

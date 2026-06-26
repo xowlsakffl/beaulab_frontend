@@ -191,7 +191,7 @@ export function NoticesFilterPanel({
               필터 초기화
             </Button>
             <Can permission="beaulab.notice.create">
-              <Link href="/notices/new">
+              <Link href="/notice-manage/notices/new">
                 <Button type="button" variant="brand" size="filter">
                   <SquarePlus className="size-5" />
                   <span>공지사항 등록</span>

@@ -164,7 +164,7 @@ function buildColumns({
       header: "병의원",
       render: (row) => (
         <DetailLink
-          href={row.hospitalId ? `/hospitals/${row.hospitalId}` : null}
+          href={row.hospitalId ? `/hospital-manage/hospitals/${row.hospitalId}` : null}
           title={row.hospitalName}
           className="break-words font-medium"
         >
@@ -178,7 +178,7 @@ function buildColumns({
       cellClassName: `${cellBaseClass} w-[200px]`,
       header: "이벤트",
       render: (row) => (
-        <DetailLink href={row.eventId ? `/events/${row.eventId}` : null} title={row.eventName} className="break-words">
+        <DetailLink href={row.eventId ? `/ads-manage/events/${row.eventId}` : null} title={row.eventName} className="break-words">
           {row.eventName}
         </DetailLink>
       ),
@@ -190,7 +190,7 @@ function buildColumns({
       header: "이름",
       render: (row) => (
         <DetailLink
-          href={row.accountUserId ? `/users/${row.accountUserId}` : null}
+          href={row.accountUserId ? `/user-manage/users/${row.accountUserId}` : null}
           title={row.applicantName}
           className="block break-words font-medium"
         >

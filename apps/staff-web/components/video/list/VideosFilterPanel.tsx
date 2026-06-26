@@ -210,7 +210,7 @@ export function VideosFilterPanel({
               필터 초기화
             </Button>
             <Can permission="beaulab.video.create">
-              <Link href="/videos/new">
+              <Link href="/video-manage/videos/new">
                 <Button type="button" variant="brand" size="filter">
                   <SquarePlus className="size-5" />
                   <span>동영상 등록</span>

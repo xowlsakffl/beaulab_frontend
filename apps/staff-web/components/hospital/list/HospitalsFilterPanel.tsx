@@ -180,7 +180,7 @@ export function HospitalsFilterPanel({
               검색 초기화
             </Button>
             <Can permission="beaulab.hospital.create">
-              <Link href="/hospitals/new">
+              <Link href="/hospital-manage/hospitals/new">
                 <Button type="button" variant="brand" size="filter">
                   <SquarePlus className="size-5" />
                   <span>병의원 등록</span>

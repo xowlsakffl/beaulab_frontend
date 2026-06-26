@@ -248,7 +248,7 @@ export function HospitalEventsFilterPanel({
                 검색 초기화
               </Button>
               <Can permission="beaulab.hospital_event.create">
-                <Link href="/events/new">
+                <Link href="/ads-manage/events/new">
                   <Button type="button" variant="brand" size="filter">
                     <SquarePlus className="size-5" />
                     <span>이벤트 등록</span>

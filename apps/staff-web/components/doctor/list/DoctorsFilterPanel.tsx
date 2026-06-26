@@ -256,7 +256,7 @@ export function DoctorsFilterPanel({
               검색 초기화
             </Button>
             <Can permission="beaulab.doctor.create">
-              <Link href="/doctors/new">
+              <Link href="/hospital-manage/doctors/new">
                 <Button type="button" variant="brand" size="filter">
                   <SquarePlus className="size-5" />
                   <span>의료진 등록</span>
