@@ -388,6 +388,178 @@ export function buildHospitalExistingMediaItems(existingLogo: MediaAsset | null,
   };
 }
 
+export type BuildCreateHospitalFormDataParams = {
+  form: HospitalFormValues;
+  logo: File | null;
+  gallery: File[];
+  businessRegistrationFile: File | null;
+};
+
+export function buildCreateHospitalFormData({
+  form,
+  logo,
+  gallery,
+  businessRegistrationFile,
+}: BuildCreateHospitalFormDataParams): FormData {
+  const formData = new FormData();
+
+  formData.append("name", form.name.trim());
+  formData.append("department", form.department);
+  formData.append("company_name", form.company_name.trim() || form.name.trim());
+  formData.append("description", form.description.trim());
+  formData.append("youtube_link", form.youtube_link.trim());
+  formData.append("consulting_hours", form.consulting_hours.trim());
+  formData.append("direction", form.direction.trim());
+  formData.append("address", form.address.trim());
+  formData.append("address_detail", form.address_detail.trim());
+  formData.append("latitude", form.latitude.trim());
+  formData.append("longitude", form.longitude.trim());
+  formData.append("tel", form.tel.trim());
+  formData.append("ad_reception_phone_1", form.ad_reception_phone_1.trim());
+  formData.append("ad_reception_phone_2", form.ad_reception_phone_2.trim());
+  formData.append("ad_reception_phone_3", form.ad_reception_phone_3.trim());
+  formData.append("email", form.email.trim());
+  formData.append("allow_status", form.allow_status);
+  formData.append("status", form.status);
+  formData.append("business_number", form.business_number.trim());
+  formData.append("ceo_name", form.ceo_name.trim());
+  formData.append("business_type", form.business_type.trim());
+  formData.append("business_item", form.business_item.trim());
+  formData.append("business_address", form.business_address.trim());
+  formData.append("business_address_detail", form.business_address_detail.trim());
+  formData.append("settlement_bank_name", form.settlement_bank_name.trim());
+  formData.append("settlement_account_number", form.settlement_account_number.trim());
+  formData.append("settlement_account_holder", form.settlement_account_holder.trim());
+  formData.append("tax_invoice_email", form.tax_invoice_email.trim());
+  appendOperationHours(formData, form.operation_hours);
+
+  if (form.issued_at) {
+    formData.append("issued_at", form.issued_at);
+  }
+
+  form.category_ids.forEach((categoryId) => {
+    formData.append("category_ids[]", String(categoryId));
+  });
+  form.feature_ids.forEach((featureId) => {
+    formData.append("feature_ids[]", String(featureId));
+  });
+
+  if (logo) {
+    formData.append("logo", logo);
+  }
+
+  if (businessRegistrationFile) {
+    formData.append("business_registration_file", businessRegistrationFile);
+  }
+
+  gallery.forEach((file) => formData.append("gallery[]", file));
+
+  return formData;
+}
+
+export type BuildUpdateHospitalFormDataParams = {
+  form: HospitalFormValues;
+  baseline: HospitalFormValues | null;
+  logo: File | null;
+  existingLogo: MediaAsset | null;
+  initialLogoId: string | null;
+  gallery: File[];
+  galleryOrder: string[];
+  initialGalleryOrder: string[];
+  businessRegistrationFile: File | null;
+  existingCertificate: MediaAsset | null;
+  initialCertificateId: string | null;
+};
+
+export function buildUpdateHospitalFormData({
+  form,
+  baseline,
+  logo,
+  existingLogo,
+  initialLogoId,
+  gallery,
+  galleryOrder,
+  initialGalleryOrder,
+  businessRegistrationFile,
+  existingCertificate,
+  initialCertificateId,
+}: BuildUpdateHospitalFormDataParams): FormData {
+  const formData = new FormData();
+  const baseForm = baseline ?? INITIAL_HOSPITAL_FORM;
+
+  formData.append("_method", "PATCH");
+  appendChangedField(formData, "department", form.department, baseForm.department);
+  appendChangedField(formData, "description", form.description.trim(), baseForm.description.trim());
+  appendChangedField(formData, "youtube_link", form.youtube_link.trim(), baseForm.youtube_link.trim());
+  appendChangedField(formData, "consulting_hours", form.consulting_hours.trim(), baseForm.consulting_hours.trim());
+  appendChangedField(formData, "direction", form.direction.trim(), baseForm.direction.trim());
+  appendChangedField(formData, "address", form.address.trim(), baseForm.address.trim());
+  appendChangedField(formData, "address_detail", form.address_detail.trim(), baseForm.address_detail.trim());
+  appendChangedField(formData, "latitude", form.latitude.trim(), baseForm.latitude.trim());
+  appendChangedField(formData, "longitude", form.longitude.trim(), baseForm.longitude.trim());
+  appendChangedField(formData, "tel", form.tel.trim(), baseForm.tel.trim());
+  appendChangedField(formData, "ad_reception_phone_1", form.ad_reception_phone_1.trim(), baseForm.ad_reception_phone_1.trim());
+  appendChangedField(formData, "ad_reception_phone_2", form.ad_reception_phone_2.trim(), baseForm.ad_reception_phone_2.trim());
+  appendChangedField(formData, "ad_reception_phone_3", form.ad_reception_phone_3.trim(), baseForm.ad_reception_phone_3.trim());
+  appendChangedField(formData, "email", form.email.trim(), baseForm.email.trim());
+  appendChangedField(formData, "allow_status", form.allow_status, baseForm.allow_status);
+  appendChangedField(formData, "status", form.status, baseForm.status);
+  appendChangedField(
+    formData,
+    "business_number",
+    normalizeBusinessNumber(form.business_number),
+    normalizeBusinessNumber(baseForm.business_number),
+  );
+  appendChangedField(
+    formData,
+    "company_name",
+    form.company_name.trim() || form.name.trim(),
+    baseForm.company_name.trim() || baseForm.name.trim(),
+  );
+  appendChangedField(formData, "ceo_name", form.ceo_name.trim(), baseForm.ceo_name.trim());
+  appendChangedField(formData, "business_type", form.business_type.trim(), baseForm.business_type.trim());
+  appendChangedField(formData, "business_item", form.business_item.trim(), baseForm.business_item.trim());
+  appendChangedField(formData, "business_address", form.business_address.trim(), baseForm.business_address.trim());
+  appendChangedField(formData, "business_address_detail", form.business_address_detail.trim(), baseForm.business_address_detail.trim());
+  appendChangedField(formData, "settlement_bank_name", form.settlement_bank_name.trim(), baseForm.settlement_bank_name.trim());
+  appendChangedField(formData, "settlement_account_number", form.settlement_account_number.trim(), baseForm.settlement_account_number.trim());
+  appendChangedField(formData, "settlement_account_holder", form.settlement_account_holder.trim(), baseForm.settlement_account_holder.trim());
+  appendChangedField(formData, "tax_invoice_email", form.tax_invoice_email.trim(), baseForm.tax_invoice_email.trim());
+  appendChangedField(formData, "issued_at", form.issued_at, baseForm.issued_at);
+
+  if (operationHoursChanged(form.operation_hours, baseForm.operation_hours)) {
+    appendOperationHours(formData, form.operation_hours);
+  }
+
+  if (!sameNumberSet(form.category_ids, baseForm.category_ids)) {
+    appendIdList(formData, "category_ids", form.category_ids);
+  }
+
+  if (!sameNumberSet(form.feature_ids, baseForm.feature_ids)) {
+    appendIdList(formData, "feature_ids", form.feature_ids);
+  }
+
+  if (logo) {
+    formData.append("logo", logo);
+  } else if (hospitalMediaId(existingLogo) !== initialLogoId) {
+    formData.append("existing_logo_id", hospitalMediaId(existingLogo) ?? "");
+  }
+
+  appendChangedGallery(formData, gallery, galleryOrder, initialGalleryOrder);
+
+  if (businessRegistrationFile) {
+    formData.append("business_registration_file", businessRegistrationFile);
+  } else if (hospitalMediaId(existingCertificate) !== initialCertificateId) {
+    formData.append("existing_business_registration_file_id", hospitalMediaId(existingCertificate) ?? "");
+  }
+
+  return formData;
+}
+
+export function hospitalMediaId(media?: MediaAsset | null) {
+  return media?.id !== null && media?.id !== undefined ? String(media.id) : null;
+}
+
 function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormErrors {
   const nextErrors: HospitalFormErrors = {};
 
@@ -570,4 +742,79 @@ export function validateUpdateHospitalForm({
   }
 
   return nextErrors;
+}
+
+function appendChangedField(formData: FormData, key: string, value: string, baseline: string) {
+  if (value !== baseline) {
+    formData.append(key, value);
+  }
+}
+
+function appendIdList(formData: FormData, key: string, ids: number[]) {
+  if (ids.length === 0) {
+    formData.append(`${key}[]`, "");
+    return;
+  }
+
+  ids.forEach((id) => formData.append(`${key}[]`, String(id)));
+}
+
+function appendOperationHours(formData: FormData, operationHours: HospitalFormValues["operation_hours"]) {
+  Object.entries(operationHours).forEach(([dayKey, item]) => {
+    formData.append(`operation_hours[${dayKey}][is_closed]`, item.is_closed ? "1" : "0");
+    formData.append(`operation_hours[${dayKey}][start]`, item.start);
+    formData.append(`operation_hours[${dayKey}][end]`, item.end);
+  });
+}
+
+function appendChangedGallery(
+  formData: FormData,
+  gallery: File[],
+  galleryOrder: string[],
+  initialGalleryOrder: string[],
+) {
+  const galleryChanged = gallery.length > 0 || !sameStringList(galleryOrder, initialGalleryOrder);
+
+  if (galleryChanged && galleryOrder.length > 0) {
+    let nextGalleryFileIndex = 0;
+
+    galleryOrder.forEach((token) => {
+      if (token.startsWith("existing:")) {
+        formData.append("gallery_order[]", token);
+        return;
+      }
+
+      if (token.startsWith("new:")) {
+        formData.append("gallery_order[]", `new:${nextGalleryFileIndex}`);
+        nextGalleryFileIndex += 1;
+      }
+    });
+  } else if (galleryChanged) {
+    formData.append("gallery_order[]", "");
+  }
+
+  if (galleryChanged && gallery.length > 0) {
+    gallery.forEach((file) => formData.append("gallery[]", file));
+  }
+}
+
+function sameNumberSet(left: number[], right: number[]) {
+  const normalize = (items: number[]) => [...new Set(items.map(Number).filter((item) => Number.isFinite(item)))]
+    .sort((a, b) => a - b)
+    .join(",");
+
+  return normalize(left) === normalize(right);
+}
+
+function sameStringList(left: string[], right: string[]) {
+  if (left.length !== right.length) return false;
+
+  return left.every((item, index) => item === right[index]);
+}
+
+function operationHoursChanged(
+  current: HospitalFormValues["operation_hours"],
+  baseline: HospitalFormValues["operation_hours"],
+) {
+  return JSON.stringify(current) !== JSON.stringify(baseline);
 }

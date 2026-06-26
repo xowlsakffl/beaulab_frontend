@@ -306,6 +306,7 @@
 
 - submit 함수는 `validate -> payload build -> api call -> result handling` 순서를 지킵니다.
 - payload/FormData 생성은 가능한 한 `lib/{domain}/form.ts` pure helper에 둡니다.
+- `*FormClient.tsx`에서는 `new FormData()`를 직접 만들지 않고 `buildCreate*FormData`, `buildUpdate*FormData` 같은 도메인 빌더를 호출합니다.
 - API 함수가 2군데 이상에서 쓰이면 `lib/{domain}/api.ts`로 분리합니다.
 - section component에서는 API를 직접 호출하지 않습니다.
 - submit hook을 만들더라도 성공 후 `router.push/replace`는 Client가 결정합니다.
@@ -326,6 +327,8 @@
 
 ### 7.5 Media 규칙
 
+- 파일 검증 규칙과 검증 메시지는 UI 컴포넌트가 아니라 `lib/{domain}/form.ts` 또는 domain media helper에 둡니다.
+- `profileImage`, `existingMedia`, preview modal, upload modal처럼 form field가 아닌 미디어 UI 상태는 create/edit에 반복되면 `hooks/{domain}/use*MediaState.ts`로 묶습니다.
 - `useObjectUrl`, 이미지 타입 판별, 파일 용량/확장자 검증은 공통화합니다.
 - 각 폼 파일에 `URL.createObjectURL` helper를 반복해서 만들지 않습니다.
 - 도메인별 차이는 rule object로 표현합니다.
@@ -358,6 +361,7 @@
 
 ### 8.0 관리자 shell / 사이드바
 
+- `profileImage`, `existingMedia`, preview modal, upload modal?? form field? ?? ??? UI ??? create/edit? ???? `hooks/{domain}/use*MediaState.ts`? ????.
 - 사이드바의 병의원/뷰티 토글 상태와 메뉴 조합은 `apps/staff-web`가 소유합니다.
 - `packages/ui-admin` 사이드바에는 app 전용 도메인 개념을 넣지 않습니다.
 - 사이드바 메뉴는 `도메인 전용 영역`과 `공통 영역`을 분리합니다.

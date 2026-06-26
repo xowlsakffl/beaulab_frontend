@@ -1,6 +1,7 @@
 import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
+import { validateImageFileRule } from "@/lib/common/media-validation";
 import {
   getDoctorMediaFilename,
   resolveDoctorMediaUrl,
@@ -42,6 +43,18 @@ export type DoctorFieldName = keyof DoctorFormValues | DoctorMediaField;
 export type DoctorFormErrors = Partial<Record<DoctorFieldName, string>>;
 
 export const MAX_DOCTOR_TEXT_ITEM_COUNT = 20;
+export const MAX_DOCTOR_CATEGORY_SELECTION = 5;
+const DOCTOR_PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const DOCTOR_PROFILE_IMAGE_VALIDATION_MESSAGE =
+  "프로필 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하\n- 이미지 비율: 1:1";
+const DOCTOR_PROFILE_IMAGE_RULE = {
+  allowedExtensions: DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_EXTENSIONS,
+  allowedMimeTypes: DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_TYPES,
+  maxBytes: DOCTOR_PROFILE_IMAGE_MAX_BYTES,
+  square: true,
+};
 
 export const INITIAL_DOCTOR_FORM: DoctorFormValues = {
   hospital_id: null,
@@ -218,6 +231,87 @@ export function buildDoctorExistingFileItems(mediaList?: DoctorMediaAsset[] | nu
     .filter((item): item is ExistingMediaItem => Boolean(item));
 }
 
+export async function validateDoctorProfileImageFile(file: File) {
+  return (await validateImageFileRule(file, DOCTOR_PROFILE_IMAGE_RULE)) ? null : DOCTOR_PROFILE_IMAGE_VALIDATION_MESSAGE;
+}
+
+export type BuildCreateDoctorFormDataParams = {
+  form: DoctorFormValues;
+  profileImage: File | null;
+  licenseImage: File | null;
+  specialistCertificateImage: File | null;
+};
+
+export function buildCreateDoctorFormData({
+  form,
+  profileImage,
+  licenseImage,
+  specialistCertificateImage,
+}: BuildCreateDoctorFormDataParams): FormData {
+  const formData = new FormData();
+
+  appendDoctorFormFields(formData, form);
+
+  if (profileImage) {
+    formData.append("profile_image", profileImage);
+  }
+
+  if (licenseImage) {
+    formData.append("license_image", licenseImage);
+  }
+
+  if (specialistCertificateImage) {
+    formData.append("specialist_certificate_image", specialistCertificateImage);
+  }
+
+  return formData;
+}
+
+export type BuildUpdateDoctorFormDataParams = {
+  form: DoctorFormValues;
+  profileImage: File | null;
+  existingProfileImage: ExistingMediaItem | null;
+  licenseImage: File | null;
+  existingLicenseImage: ExistingMediaItem | null;
+  specialistCertificateImage: File | null;
+  existingSpecialistCertificateImage: ExistingMediaItem | null;
+};
+
+export function buildUpdateDoctorFormData({
+  form,
+  profileImage,
+  existingProfileImage,
+  licenseImage,
+  existingLicenseImage,
+  specialistCertificateImage,
+  existingSpecialistCertificateImage,
+}: BuildUpdateDoctorFormDataParams): FormData {
+  const formData = new FormData();
+
+  formData.append("_method", "PATCH");
+  appendDoctorFormFields(formData, form, { appendEmptyCategoryList: true });
+
+  if (profileImage) {
+    formData.append("profile_image", profileImage);
+  } else {
+    formData.append("existing_profile_image_id", existingMediaId(existingProfileImage));
+  }
+
+  if (licenseImage) {
+    formData.append("license_image", licenseImage);
+  } else {
+    formData.append("existing_license_image_id", existingMediaId(existingLicenseImage));
+  }
+
+  if (specialistCertificateImage) {
+    formData.append("specialist_certificate_image", specialistCertificateImage);
+  } else {
+    formData.append("existing_specialist_certificate_image_id", existingMediaId(existingSpecialistCertificateImage));
+  }
+
+  return formData;
+}
+
 export function mapDoctorDetailToForm(detail: DoctorDetailResponse): DoctorFormValues {
   return {
     ...INITIAL_DOCTOR_FORM,
@@ -279,6 +373,40 @@ function validateDoctorBaseForm(form: DoctorFormValues): DoctorFormErrors {
   }
 
   return nextErrors;
+}
+
+function appendDoctorFormFields(
+  formData: FormData,
+  form: DoctorFormValues,
+  options: { appendEmptyCategoryList?: boolean } = {},
+) {
+  formData.append("hospital_id", form.hospital_id ? String(form.hospital_id) : "");
+  formData.append("name", form.name.trim());
+  formData.append("gender", form.gender);
+  formData.append("position", form.position);
+  formData.append("status", form.status);
+  formData.append("allow_status", form.allow_status);
+  formData.append("career_started_at", form.career_started_at);
+  formData.append("license_number", form.license_number.replace(/\D/g, ""));
+  formData.append("specialist_field", form.specialist_field);
+  formData.append("educations", JSON.stringify(sanitizeDoctorList(form.educations)));
+  formData.append("careers", JSON.stringify(sanitizeDoctorList(form.careers)));
+  formData.append("etc_contents", JSON.stringify(sanitizeDoctorList(form.etc_contents)));
+
+  if (form.category_ids.length > 0) {
+    form.category_ids.forEach((categoryId) => {
+      formData.append("category_ids[]", String(categoryId));
+    });
+    return;
+  }
+
+  if (options.appendEmptyCategoryList) {
+    formData.append("category_ids[]", "");
+  }
+}
+
+function existingMediaId(media?: ExistingMediaItem | null) {
+  return media?.id ? String(media.id) : "";
 }
 
 export function validateCreateDoctorForm({

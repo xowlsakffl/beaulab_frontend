@@ -203,6 +203,117 @@ export function buildVideoExistingFileItem(media?: VideoMediaAsset | null): Exis
   };
 }
 
+export type BuildCreateVideoFormDataParams = {
+  form: VideoFormValues;
+  thumbnailFile: File | null;
+};
+
+export function buildCreateVideoFormData({
+  form,
+  thumbnailFile,
+}: BuildCreateVideoFormDataParams): FormData {
+  const formData = new FormData();
+
+  formData.append("hospital_id", String(form.hospital_id));
+  formData.append("title", form.title.trim());
+  formData.append("description", form.description.trim());
+  formData.append("distribution_channel", form.distribution_channel);
+  formData.append("status", form.status);
+  formData.append("allow_status", form.allow_status);
+  formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
+
+  if (form.doctor_id) {
+    formData.append("doctor_id", String(form.doctor_id));
+  }
+
+  if (form.external_video_url.trim()) {
+    formData.append("external_video_url", form.external_video_url.trim());
+  }
+
+  if (form.external_video_id.trim()) {
+    formData.append("external_video_id", form.external_video_id.trim());
+  }
+
+  const durationSeconds = parseVideoDurationInput(form.duration_seconds);
+  if (durationSeconds !== null) {
+    formData.append("duration_seconds", String(durationSeconds));
+  }
+
+  if (!form.is_publish_period_unlimited) {
+    if (form.publish_start_at) {
+      formData.append("publish_start_at", form.publish_start_at);
+    }
+
+    if (form.publish_end_at) {
+      formData.append("publish_end_at", form.publish_end_at);
+    }
+  }
+
+  form.category_ids.forEach((categoryId) => {
+    formData.append("category_ids[]", String(categoryId));
+  });
+
+  if (thumbnailFile) {
+    formData.append("thumbnail_file", thumbnailFile);
+  }
+
+  return formData;
+}
+
+export type BuildUpdateVideoFormDataParams = {
+  form: VideoFormValues;
+  thumbnailFile: File | null;
+  existingThumbnail: ExistingMediaItem | null;
+  currentVideoFile: VideoMediaAsset | null;
+  initialVideoFileId: string | number | null;
+};
+
+export function buildUpdateVideoFormData({
+  form,
+  thumbnailFile,
+  existingThumbnail,
+  currentVideoFile,
+  initialVideoFileId,
+}: BuildUpdateVideoFormDataParams): FormData {
+  const formData = new FormData();
+  const durationSeconds = parseVideoDurationInput(form.duration_seconds);
+
+  formData.append("_method", "PATCH");
+  formData.append("hospital_id", form.hospital_id ? String(form.hospital_id) : "");
+  formData.append("doctor_id", form.doctor_id ? String(form.doctor_id) : "");
+  formData.append("title", form.title.trim());
+  formData.append("description", form.description.trim());
+  formData.append("distribution_channel", form.distribution_channel);
+  formData.append("external_video_url", form.external_video_url.trim());
+  formData.append("external_video_id", form.external_video_id.trim());
+  formData.append("duration_seconds", durationSeconds === null ? "" : String(durationSeconds));
+  formData.append("status", form.status);
+  formData.append("allow_status", form.allow_status);
+  formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
+  formData.append("publish_start_at", form.is_publish_period_unlimited ? "" : form.publish_start_at);
+  formData.append("publish_end_at", form.is_publish_period_unlimited ? "" : form.publish_end_at);
+
+  if (form.category_ids.length > 0) {
+    form.category_ids.forEach((categoryId) => {
+      formData.append("category_ids[]", String(categoryId));
+    });
+  } else {
+    formData.append("category_ids[]", "");
+  }
+
+  if (thumbnailFile) {
+    formData.append("thumbnail_file", thumbnailFile);
+  } else {
+    formData.append("existing_thumbnail_file_id", existingMediaId(existingThumbnail));
+  }
+
+  if (initialVideoFileId && !currentVideoFile) {
+    formData.append("remove_video_file", "1");
+  }
+
+  return formData;
+}
+
 export function mapVideoDetailToForm(detail: VideoDetailResponse): VideoFormValues {
   const hospitalName = detail.hospital_name ?? detail.hospital?.name ?? "";
   const hospitalBusinessNumber = detail.hospital_business_number ?? detail.hospital?.business_number ?? "";
@@ -422,4 +533,8 @@ export function validateCreateVideoForm(form: VideoFormValues): VideoFormErrors 
 
 export function validateUpdateVideoForm(form: VideoFormValues): VideoFormErrors {
   return validateVideoBaseForm(form, false);
+}
+
+function existingMediaId(media?: ExistingMediaItem | null) {
+  return media?.id ? String(media.id) : "";
 }

@@ -183,7 +183,47 @@ export function validateNoticeForm(form: NoticeFormValues): NoticeFormErrors {
   return nextErrors;
 }
 
-export function appendNoticeFormData(
+export type BuildCreateNoticeFormDataParams = {
+  form: NoticeFormValues;
+  attachments: File[];
+};
+
+export function buildCreateNoticeFormData({
+  form,
+  attachments,
+}: BuildCreateNoticeFormDataParams): FormData {
+  const formData = new FormData();
+
+  appendNoticeFormData(formData, form, attachments);
+
+  return formData;
+}
+
+export type BuildUpdateNoticeFormDataParams = {
+  form: NoticeFormValues;
+  attachments: File[];
+  existingAttachmentIds: Array<number | string>;
+};
+
+export function buildUpdateNoticeFormData({
+  form,
+  attachments,
+  existingAttachmentIds,
+}: BuildUpdateNoticeFormDataParams): FormData {
+  const formData = new FormData();
+
+  formData.append("_method", "PATCH");
+  appendNoticeFormData(
+    formData,
+    form,
+    attachments.length > 0 ? attachments : null,
+    existingAttachmentIds,
+  );
+
+  return formData;
+}
+
+function appendNoticeFormData(
   formData: FormData,
   form: NoticeFormValues,
   attachments: File[] | null,

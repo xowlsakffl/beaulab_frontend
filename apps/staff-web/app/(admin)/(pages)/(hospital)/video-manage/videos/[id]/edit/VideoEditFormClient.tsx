@@ -15,11 +15,11 @@ import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
 import { api } from "@/lib/common/api";
 import type { VideoCategoryItem, VideoDetailResponse, VideoMediaAsset } from "@/lib/video/detail";
 import {
+  buildUpdateVideoFormData,
   buildVideoExistingFileItem,
   extractVideoFieldErrors,
   INITIAL_VIDEO_FORM,
   mapVideoDetailToForm,
-  parseVideoDurationInput,
   validateUpdateVideoForm,
   type VideoDoctorOption,
   type VideoFieldName,
@@ -173,40 +173,13 @@ export default function VideoEditFormClient() {
     if (!validate()) return;
     if (!Number.isFinite(videoId) || videoId <= 0) return;
 
-    const formData = new FormData();
-    formData.append("_method", "PATCH");
-    formData.append("hospital_id", form.hospital_id ? String(form.hospital_id) : "");
-    formData.append("doctor_id", form.doctor_id ? String(form.doctor_id) : "");
-    formData.append("title", form.title.trim());
-    formData.append("description", form.description.trim());
-    formData.append("distribution_channel", form.distribution_channel);
-    formData.append("external_video_url", form.external_video_url.trim());
-    formData.append("external_video_id", form.external_video_id.trim());
-    const durationSeconds = parseVideoDurationInput(form.duration_seconds);
-    formData.append("duration_seconds", durationSeconds === null ? "" : String(durationSeconds));
-    formData.append("status", form.status);
-    formData.append("allow_status", form.allow_status);
-    formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
-    formData.append("publish_start_at", form.is_publish_period_unlimited ? "" : form.publish_start_at);
-    formData.append("publish_end_at", form.is_publish_period_unlimited ? "" : form.publish_end_at);
-
-    if (form.category_ids.length > 0) {
-      form.category_ids.forEach((categoryId) => {
-        formData.append("category_ids[]", String(categoryId));
-      });
-    } else {
-      formData.append("category_ids[]", "");
-    }
-
-    if (thumbnailFile) {
-      formData.append("thumbnail_file", thumbnailFile);
-    } else {
-      formData.append("existing_thumbnail_file_id", existingThumbnail?.id ? String(existingThumbnail.id) : "");
-    }
-
-    if (initialVideoFileIdRef.current && !currentVideoFile) {
-      formData.append("remove_video_file", "1");
-    }
+    const formData = buildUpdateVideoFormData({
+      form,
+      thumbnailFile,
+      existingThumbnail,
+      currentVideoFile,
+      initialVideoFileId: initialVideoFileIdRef.current,
+    });
 
     setIsSubmitting(true);
 

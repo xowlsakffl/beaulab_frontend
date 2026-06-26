@@ -1,6 +1,7 @@
 import type { CategorySelectorSection } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
+import type { HospitalEventApiItem } from "./list";
 
 export type HospitalEventType = "IMAGE" | "TEXT";
 export type HospitalEventCategoryUsage = "HOSPITAL_EVENT_SURGERY" | "HOSPITAL_EVENT_TREATMENT";
@@ -58,6 +59,7 @@ export type HospitalEventFormValidationOptions = {
 
 export const HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT = 5;
 export const HOSPITAL_EVENT_PROCEDURE_BENEFIT_MAX_COUNT = 6;
+export const INITIAL_HOSPITAL_EVENT_CATEGORY_SECTION_KEY = "surgery";
 
 export const HOSPITAL_EVENT_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
@@ -216,6 +218,46 @@ export function calculateHospitalEventDBBasePrice(eventPrice: number): number {
   return 40000;
 }
 
+export function mapHospitalEventDetailToForm(item: HospitalEventApiItem): HospitalEventFormValues {
+  const categories = (item.categories ?? []).filter((category) => Number(category.id ?? 0) > 0);
+  const primaryCategoryId = Number(categories.find((category) => category.is_primary)?.id ?? categories[0]?.id ?? 0) || null;
+  const isUnlimited = item.is_event_period_unlimited ?? true;
+
+  return {
+    ...INITIAL_HOSPITAL_EVENT_FORM,
+    hospital_id: Number(item.hospital?.id ?? 0) || null,
+    hospital_name: item.hospital?.name?.trim() ?? "",
+    hospital_business_number: item.hospital?.business_number?.trim() ?? "",
+    category_ids: categories.map((category) => Number(category.id)),
+    primary_category_id: primaryCategoryId,
+    is_male_targeted: Boolean(item.is_male_targeted),
+    doctor_assignments: mapHospitalEventDoctorAssignments(item.doctors),
+    event_type: item.event_type === "TEXT" ? "TEXT" : "IMAGE",
+    name: item.name?.trim() ?? "",
+    description: item.description?.trim() ?? "",
+    event_start_at: item.event_start_at?.slice(0, 10) || INITIAL_HOSPITAL_EVENT_FORM.event_start_at,
+    event_end_at: item.event_end_at?.slice(0, 10) ?? "",
+    is_event_period_unlimited: Boolean(isUnlimited),
+    is_vat_included: item.is_vat_included ?? true,
+    normal_price: formatPersistedNumber(item.normal_price),
+    event_price: formatPersistedNumber(item.event_price),
+    consultation_price: formatPersistedNumber(item.consultation_price),
+    has_options: Boolean(item.has_options),
+    options: mapHospitalEventOptions(item.options),
+    procedure_targets: normalizeTextItemList(item.procedure_targets),
+    procedure_benefits: normalizeTextItemList(item.procedure_benefits),
+    side_effect_notice: item.side_effect_notice?.trim() ?? "",
+  };
+}
+
+export function normalizeHospitalEventCategoryUsage(value?: string | null): HospitalEventCategoryUsage | undefined {
+  if (value === "HOSPITAL_EVENT_SURGERY" || value === "HOSPITAL_EVENT_TREATMENT") {
+    return value;
+  }
+
+  return undefined;
+}
+
 export function normalizeHospitalEventErrorField(key: string): HospitalEventFieldName | null {
   if (key.startsWith("category_ids")) return "category_ids";
   if (key.startsWith("doctor_assignments")) return "doctor_assignments";
@@ -317,7 +359,31 @@ export function validateCreateHospitalEventForm(
   return errors;
 }
 
-export function appendHospitalEventFormData(
+export type BuildHospitalEventFormDataParams = {
+  form: HospitalEventFormValues;
+  thumbnailImage: File | null;
+  eventPageImage: File | null;
+  selectedCategoryUsage: HospitalEventCategoryUsage | null;
+  includeDefaultStatuses?: boolean;
+};
+
+export function buildHospitalEventFormData({
+  form,
+  thumbnailImage,
+  eventPageImage,
+  selectedCategoryUsage,
+  includeDefaultStatuses,
+}: BuildHospitalEventFormDataParams): FormData {
+  const formData = new FormData();
+
+  appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
+    includeDefaultStatuses,
+  });
+
+  return formData;
+}
+
+function appendHospitalEventFormData(
   formData: FormData,
   form: HospitalEventFormValues,
   thumbnailImage: File | null,
@@ -397,4 +463,49 @@ export function appendHospitalEventFormData(
   if (form.event_type === "IMAGE" && eventPageImage) {
     formData.append("event_page_image", eventPageImage);
   }
+}
+
+function mapHospitalEventDoctorAssignments(doctors: HospitalEventApiItem["doctors"]): HospitalEventFormValues["doctor_assignments"] {
+  const assignments = (doctors ?? [])
+    .slice(0, 3)
+    .map((doctor) => ({
+      hospital_doctor_id: Number(doctor.id ?? 0) || null,
+      name: doctor.name?.trim() ?? "",
+      is_career_visible: doctor.is_career_visible ?? true,
+      is_activity_visible: doctor.is_activity_visible ?? false,
+    }));
+
+  while (assignments.length < 3) {
+    assignments.push(emptyDoctorAssignment());
+  }
+
+  return assignments;
+}
+
+function mapHospitalEventOptions(options: HospitalEventApiItem["options"]): HospitalEventOptionForm[] {
+  const mapped = (options ?? [])
+    .slice()
+    .sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0))
+    .map((option) => ({
+      name: option.name?.trim() ?? "",
+      session_count: String(Math.max(1, Number(option.session_count ?? 1))),
+      normal_price: formatPersistedNumber(option.normal_price),
+      event_price: formatPersistedNumber(option.event_price),
+    }))
+    .filter((option) => option.name || option.normal_price || option.event_price);
+
+  return mapped.length > 0 ? mapped : [emptyEventOption()];
+}
+
+function normalizeTextItemList(items?: string[] | null): string[] {
+  const normalized = (items ?? [])
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return normalized.length > 0 ? normalized : [""];
+}
+
+function formatPersistedNumber(value?: number | null) {
+  const numberValue = Number(value ?? 0);
+  return numberValue > 0 ? formatNumberInput(String(numberValue)) : "";
 }

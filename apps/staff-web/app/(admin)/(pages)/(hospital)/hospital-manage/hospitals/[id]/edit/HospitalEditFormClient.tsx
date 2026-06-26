@@ -7,16 +7,17 @@ import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSea
 import { useHospitalCategorySelectorLoader } from "@/hooks/hospital/useHospitalCategorySelectorLoader";
 import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
 import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
+import { useHospitalFormSelections } from "@/hooks/hospital/useHospitalFormSelections";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import type { HospitalCategoryItem, HospitalDetailResponse, MediaAsset } from "@/lib/hospital/detail";
 import {
   buildHospitalExistingMediaItems,
+  buildUpdateHospitalFormData,
   extractFieldErrors,
-  HOSPITAL_CATEGORY_MAX_SELECTION,
+  hospitalMediaId,
   INITIAL_HOSPITAL_FORM,
   mapHospitalDetailToForm,
-  normalizeBusinessNumber,
   validateUpdateHospitalForm,
   type HospitalFieldName,
   type HospitalFormErrors,
@@ -112,37 +113,12 @@ export default function HospitalEditFormClient() {
     showAlert,
   });
 
-  const toggleCategory = (categoryId: number, checked: boolean) => {
-    if (checked && !form.category_ids.includes(categoryId) && form.category_ids.length >= HOSPITAL_CATEGORY_MAX_SELECTION) {
-      setErrors((prev) => ({
-        ...prev,
-        category_ids: `진료과목은 최대 ${HOSPITAL_CATEGORY_MAX_SELECTION}개까지 선택할 수 있습니다.`,
-      }));
-      return;
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      category_ids: checked
-        ? prev.category_ids.includes(categoryId)
-          ? prev.category_ids
-          : [...prev.category_ids, categoryId]
-        : prev.category_ids.filter((item) => item !== categoryId),
-    }));
-    clearError("category_ids");
-  };
-
-  const toggleFeature = (featureId: number, checked: boolean) => {
-    setForm((prev) => ({
-      ...prev,
-      feature_ids: checked
-        ? prev.feature_ids.includes(featureId)
-          ? prev.feature_ids
-          : [...prev.feature_ids, featureId]
-        : prev.feature_ids.filter((item) => item !== featureId),
-    }));
-    clearError("feature_ids");
-  };
+  const { toggleCategory, toggleFeature } = useHospitalFormSelections({
+    categoryIds: form.category_ids,
+    setForm,
+    setErrors,
+    clearError,
+  });
 
   const fetchHospital = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) {
@@ -182,8 +158,8 @@ export default function HospitalEditFormClient() {
       setInitialGalleryOrder(nextGalleryOrder);
       setExistingCertificate(data.business_registration?.certificate_media ?? null);
       setAccountHospital(data.account_hospital ?? null);
-      setInitialLogoId(mediaId(data.logo));
-      setInitialCertificateId(mediaId(data.business_registration?.certificate_media ?? null));
+      setInitialLogoId(hospitalMediaId(data.logo));
+      setInitialCertificateId(hospitalMediaId(data.business_registration?.certificate_media ?? null));
     } catch {
       setLoadError("병의원 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -222,101 +198,19 @@ export default function HospitalEditFormClient() {
     if (!validate()) return;
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
 
-    const formData = new FormData();
-    formData.append("_method", "PATCH");
-    const baseline = initialForm ?? INITIAL_HOSPITAL_FORM;
-
-    appendChangedField(formData, "department", form.department, baseline.department);
-    appendChangedField(formData, "description", form.description.trim(), baseline.description.trim());
-    appendChangedField(formData, "youtube_link", form.youtube_link.trim(), baseline.youtube_link.trim());
-    appendChangedField(formData, "consulting_hours", form.consulting_hours.trim(), baseline.consulting_hours.trim());
-    appendChangedField(formData, "direction", form.direction.trim(), baseline.direction.trim());
-    appendChangedField(formData, "address", form.address.trim(), baseline.address.trim());
-    appendChangedField(formData, "address_detail", form.address_detail.trim(), baseline.address_detail.trim());
-    appendChangedField(formData, "latitude", form.latitude.trim(), baseline.latitude.trim());
-    appendChangedField(formData, "longitude", form.longitude.trim(), baseline.longitude.trim());
-    appendChangedField(formData, "tel", form.tel.trim(), baseline.tel.trim());
-    appendChangedField(formData, "ad_reception_phone_1", form.ad_reception_phone_1.trim(), baseline.ad_reception_phone_1.trim());
-    appendChangedField(formData, "ad_reception_phone_2", form.ad_reception_phone_2.trim(), baseline.ad_reception_phone_2.trim());
-    appendChangedField(formData, "ad_reception_phone_3", form.ad_reception_phone_3.trim(), baseline.ad_reception_phone_3.trim());
-    appendChangedField(formData, "email", form.email.trim(), baseline.email.trim());
-    appendChangedField(formData, "allow_status", form.allow_status, baseline.allow_status);
-    appendChangedField(formData, "status", form.status, baseline.status);
-    appendChangedField(
-      formData,
-      "business_number",
-      normalizeBusinessNumber(form.business_number),
-      normalizeBusinessNumber(baseline.business_number),
-    );
-    appendChangedField(
-      formData,
-      "company_name",
-      form.company_name.trim() || form.name.trim(),
-      baseline.company_name.trim() || baseline.name.trim(),
-    );
-    appendChangedField(formData, "ceo_name", form.ceo_name.trim(), baseline.ceo_name.trim());
-    appendChangedField(formData, "business_type", form.business_type.trim(), baseline.business_type.trim());
-    appendChangedField(formData, "business_item", form.business_item.trim(), baseline.business_item.trim());
-    appendChangedField(formData, "business_address", form.business_address.trim(), baseline.business_address.trim());
-    appendChangedField(formData, "business_address_detail", form.business_address_detail.trim(), baseline.business_address_detail.trim());
-    appendChangedField(formData, "settlement_bank_name", form.settlement_bank_name.trim(), baseline.settlement_bank_name.trim());
-    appendChangedField(formData, "settlement_account_number", form.settlement_account_number.trim(), baseline.settlement_account_number.trim());
-    appendChangedField(formData, "settlement_account_holder", form.settlement_account_holder.trim(), baseline.settlement_account_holder.trim());
-    appendChangedField(formData, "tax_invoice_email", form.tax_invoice_email.trim(), baseline.tax_invoice_email.trim());
-    appendChangedField(formData, "issued_at", form.issued_at, baseline.issued_at);
-
-    if (operationHoursChanged(form.operation_hours, baseline.operation_hours)) {
-      Object.entries(form.operation_hours).forEach(([dayKey, item]) => {
-        formData.append(`operation_hours[${dayKey}][is_closed]`, item.is_closed ? "1" : "0");
-        formData.append(`operation_hours[${dayKey}][start]`, item.start);
-        formData.append(`operation_hours[${dayKey}][end]`, item.end);
-      });
-    }
-
-    if (!sameNumberSet(form.category_ids, baseline.category_ids)) {
-      appendIdList(formData, "category_ids", form.category_ids);
-    }
-
-    if (!sameNumberSet(form.feature_ids, baseline.feature_ids)) {
-      appendIdList(formData, "feature_ids", form.feature_ids);
-    }
-
-    if (logo) {
-      formData.append("logo", logo);
-    } else if (mediaId(existingLogo) !== initialLogoId) {
-      formData.append("existing_logo_id", existingLogo?.id ? String(existingLogo.id) : "");
-    }
-
-    let nextGalleryFileIndex = 0;
-    const galleryChanged = gallery.length > 0 || !sameStringList(galleryOrder, initialGalleryOrder);
-    if (galleryChanged && galleryOrder.length > 0) {
-      galleryOrder.forEach((token) => {
-        if (token.startsWith("existing:")) {
-          formData.append("gallery_order[]", token);
-          return;
-        }
-
-        if (token.startsWith("new:")) {
-          formData.append("gallery_order[]", `new:${nextGalleryFileIndex}`);
-          nextGalleryFileIndex += 1;
-        }
-      });
-    } else if (galleryChanged) {
-      formData.append("gallery_order[]", "");
-    }
-
-    if (galleryChanged && gallery.length > 0) {
-      gallery.forEach((file) => formData.append("gallery[]", file));
-    }
-
-    if (businessRegistrationFile) {
-      formData.append("business_registration_file", businessRegistrationFile);
-    } else if (mediaId(existingCertificate) !== initialCertificateId) {
-      formData.append(
-        "existing_business_registration_file_id",
-        existingCertificate?.id ? String(existingCertificate.id) : "",
-      );
-    }
+    const formData = buildUpdateHospitalFormData({
+      form,
+      baseline: initialForm,
+      logo,
+      existingLogo,
+      initialLogoId,
+      gallery,
+      galleryOrder,
+      initialGalleryOrder,
+      businessRegistrationFile,
+      existingCertificate,
+      initialCertificateId,
+    });
 
     setIsSubmitting(true);
 
@@ -449,44 +343,4 @@ export default function HospitalEditFormClient() {
       onToggleFeature={toggleFeature}
     />
   );
-}
-
-function appendChangedField(formData: FormData, key: string, value: string, baseline: string) {
-  if (value !== baseline) {
-    formData.append(key, value);
-  }
-}
-
-function appendIdList(formData: FormData, key: string, ids: number[]) {
-  if (ids.length === 0) {
-    formData.append(`${key}[]`, "");
-    return;
-  }
-
-  ids.forEach((id) => formData.append(`${key}[]`, String(id)));
-}
-
-function sameNumberSet(left: number[], right: number[]) {
-  const normalize = (items: number[]) => [...new Set(items.map(Number).filter((item) => Number.isFinite(item)))]
-    .sort((a, b) => a - b)
-    .join(",");
-
-  return normalize(left) === normalize(right);
-}
-
-function sameStringList(left: string[], right: string[]) {
-  if (left.length !== right.length) return false;
-
-  return left.every((item, index) => item === right[index]);
-}
-
-function operationHoursChanged(
-  current: HospitalFormValues["operation_hours"],
-  baseline: HospitalFormValues["operation_hours"],
-) {
-  return JSON.stringify(current) !== JSON.stringify(baseline);
-}
-
-function mediaId(media?: MediaAsset | null) {
-  return media?.id !== null && media?.id !== undefined ? String(media.id) : null;
 }

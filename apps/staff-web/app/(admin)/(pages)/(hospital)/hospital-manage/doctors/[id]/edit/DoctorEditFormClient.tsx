@@ -5,30 +5,24 @@ import React from "react";
 import {
   CategorySelectPanel,
   DoctorInfoEditorCard,
-  MAX_DOCTOR_CATEGORY_SELECTION,
   ProfileImageEditor,
   RepeaterPanel,
-  validateProfileImageFile,
-  type DoctorCategoryOption,
 } from "@/components/doctor/form/DoctorFormEditorPanels";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { HospitalMediaPreviewModal } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
+import { useDoctorCategorySelection } from "@/hooks/doctor/useDoctorCategorySelection";
 import { useDoctorFieldFocus } from "@/hooks/doctor/useDoctorFieldFocus";
+import { useDoctorMediaState } from "@/hooks/doctor/useDoctorMediaState";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import type { DoctorCategoryItem, DoctorDetailResponse } from "@/lib/doctor/detail";
 import {
   buildDoctorExistingFileItem,
+  buildUpdateDoctorFormData,
   extractDoctorFieldErrors,
-  DOCTOR_CATEGORY_SECTIONS,
   INITIAL_DOCTOR_FORM,
   mapDoctorDetailToForm,
-  sanitizeDoctorList,
   validateUpdateDoctorForm,
   type DoctorFieldName,
   type DoctorFormErrors,
@@ -45,7 +39,6 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
-  type ExistingMediaItem,
   useGlobalAlert,
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -56,30 +49,17 @@ export default function DoctorEditFormClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
-  const loadCategories = useCategorySelectorLoader();
   const { focusFirstErrorField } = useDoctorFieldFocus();
 
   const rawDoctorId = Array.isArray(params.id) ? params.id[0] : params.id;
   const doctorId = Number(rawDoctorId);
 
   const [form, setForm] = React.useState<DoctorFormValues>(INITIAL_DOCTOR_FORM);
-  const [profileImage, setProfileImage] = React.useState<File | null>(null);
-  const [licenseImage, setLicenseImage] = React.useState<File | null>(null);
-  const [specialistCertificateImage, setSpecialistCertificateImage] = React.useState<File | null>(null);
-  const [existingProfileImage, setExistingProfileImage] = React.useState<ExistingMediaItem | null>(null);
   const [selectedCategoryItems, setSelectedCategoryItems] = React.useState<DoctorCategoryItem[]>([]);
-  const [existingLicenseImage, setExistingLicenseImage] = React.useState<ReturnType<typeof buildDoctorExistingFileItem>>(null);
-  const [existingSpecialistCertificateImage, setExistingSpecialistCertificateImage] =
-    React.useState<ReturnType<typeof buildDoctorExistingFileItem>>(null);
-  const [categoryOptions, setCategoryOptions] = React.useState<DoctorCategoryOption[]>([]);
-  const [isCategoryLoading, setIsCategoryLoading] = React.useState(false);
-  const [categoryLoadError, setCategoryLoadError] = React.useState<string | null>(null);
   const [errors, setErrors] = React.useState<DoctorFormErrors>({});
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
-  const [uploadModalMessage, setUploadModalMessage] = React.useState<string | null>(null);
 
   const getReturnToPath = React.useCallback(
     (highlightId?: number) => {
@@ -120,6 +100,27 @@ export default function DoctorEditFormClient() {
     [clearError],
   );
 
+  const {
+    profileImage,
+    licenseImage,
+    specialistCertificateImage,
+    existingProfileImage,
+    setExistingProfileImage,
+    existingLicenseImage,
+    setExistingLicenseImage,
+    existingSpecialistCertificateImage,
+    setExistingSpecialistCertificateImage,
+    previewMedia,
+    setPreviewMedia,
+    uploadModalMessage,
+    closeUploadModal,
+    handleProfileImageChange,
+    handleLicenseImageChange,
+    handleExistingLicenseImageChange,
+    handleSpecialistCertificateImageChange,
+    handleExistingSpecialistCertificateImageChange,
+  } = useDoctorMediaState({ clearError });
+
   const handleSelectHospital = React.useCallback(
     (hospital: DoctorHospitalOption) => {
       setForm((prev) => ({
@@ -131,36 +132,6 @@ export default function DoctorEditFormClient() {
       clearError("hospital_id");
     },
     [clearError],
-  );
-
-  const toggleCategory = React.useCallback(
-    (categoryId: number, checked: boolean) => {
-      if (checked && !form.category_ids.includes(categoryId) && form.category_ids.length >= MAX_DOCTOR_CATEGORY_SELECTION) {
-        setErrors((current) => ({
-          ...current,
-          category_ids: `진료분야는 최대 ${MAX_DOCTOR_CATEGORY_SELECTION}개까지 선택할 수 있습니다.`,
-        }));
-        return;
-      }
-
-      setForm((prev) => {
-        if (checked) {
-          if (prev.category_ids.includes(categoryId)) return prev;
-
-          return {
-            ...prev,
-            category_ids: [...prev.category_ids, categoryId],
-          };
-        }
-
-        return {
-          ...prev,
-          category_ids: prev.category_ids.filter((item) => item !== categoryId),
-        };
-      });
-      clearError("category_ids");
-    },
-    [clearError, form.category_ids],
   );
 
   const fetchDoctor = React.useCallback(async () => {
@@ -192,51 +163,18 @@ export default function DoctorEditFormClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [doctorId]);
+  }, [doctorId, setExistingLicenseImage, setExistingProfileImage, setExistingSpecialistCertificateImage]);
 
   React.useEffect(() => {
     void fetchDoctor();
   }, [fetchDoctor]);
 
-  React.useEffect(() => {
-    let isMounted = true;
-
-    const loadRootCategories = async () => {
-      setIsCategoryLoading(true);
-      setCategoryLoadError(null);
-
-      try {
-        const results = await Promise.all(
-          DOCTOR_CATEGORY_SECTIONS.map(async (section) => {
-            const items = await loadCategories({ section });
-            return items.map((item) => ({
-              ...item,
-              domain: section.domain,
-              full_path: item.name,
-              has_children: false,
-            }));
-          }),
-        );
-
-        if (!isMounted) return;
-
-        setCategoryOptions(results.flat());
-      } catch {
-        if (!isMounted) return;
-        setCategoryLoadError("진료분야를 불러오지 못했습니다.");
-      } finally {
-        if (isMounted) {
-          setIsCategoryLoading(false);
-        }
-      }
-    };
-
-    void loadRootCategories();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [loadCategories]);
+  const { categoryOptions, isCategoryLoading, categoryLoadError, toggleCategory } = useDoctorCategorySelection({
+    categoryIds: form.category_ids,
+    setForm,
+    setErrors,
+    clearError,
+  });
 
   const validate = React.useCallback(() => {
     const nextErrors = validateUpdateDoctorForm({
@@ -261,49 +199,15 @@ export default function DoctorEditFormClient() {
     if (!validate()) return;
     if (!Number.isFinite(doctorId) || doctorId <= 0) return;
 
-    const formData = new FormData();
-    formData.append("_method", "PATCH");
-    formData.append("hospital_id", form.hospital_id ? String(form.hospital_id) : "");
-    formData.append("name", form.name.trim());
-    formData.append("gender", form.gender);
-    formData.append("position", form.position);
-    formData.append("status", form.status);
-    formData.append("allow_status", form.allow_status);
-    formData.append("career_started_at", form.career_started_at);
-    formData.append("license_number", form.license_number.replace(/\D/g, ""));
-    formData.append("specialist_field", form.specialist_field);
-    formData.append("educations", JSON.stringify(sanitizeDoctorList(form.educations)));
-    formData.append("careers", JSON.stringify(sanitizeDoctorList(form.careers)));
-    formData.append("etc_contents", JSON.stringify(sanitizeDoctorList(form.etc_contents)));
-
-    if (form.category_ids.length > 0) {
-      form.category_ids.forEach((categoryId) => {
-        formData.append("category_ids[]", String(categoryId));
-      });
-    } else {
-      formData.append("category_ids[]", "");
-    }
-
-    if (profileImage) {
-      formData.append("profile_image", profileImage);
-    } else {
-      formData.append("existing_profile_image_id", existingProfileImage?.id ? String(existingProfileImage.id) : "");
-    }
-
-    if (licenseImage) {
-      formData.append("license_image", licenseImage);
-    } else {
-      formData.append("existing_license_image_id", existingLicenseImage?.id ? String(existingLicenseImage.id) : "");
-    }
-
-    if (specialistCertificateImage) {
-      formData.append("specialist_certificate_image", specialistCertificateImage);
-    } else {
-      formData.append(
-        "existing_specialist_certificate_image_id",
-        existingSpecialistCertificateImage?.id ? String(existingSpecialistCertificateImage.id) : "",
-      );
-    }
+    const formData = buildUpdateDoctorFormData({
+      form,
+      profileImage,
+      existingProfileImage,
+      licenseImage,
+      existingLicenseImage,
+      specialistCertificateImage,
+      existingSpecialistCertificateImage,
+    });
 
     setIsSubmitting(true);
 
@@ -381,18 +285,7 @@ export default function DoctorEditFormClient() {
           existingImage={profileImage ? null : existingProfileImage}
           error={errors.profile_image}
           onPreview={setPreviewMedia}
-          onChange={async (file) => {
-            if (!file) return;
-
-            const validationMessage = await validateProfileImageFile(file);
-            if (validationMessage) {
-              setUploadModalMessage(validationMessage);
-              return;
-            }
-
-            setProfileImage(file);
-            clearError("profile_image");
-          }}
+          onChange={handleProfileImageChange}
         />
 
         <DoctorInfoEditorCard
@@ -412,22 +305,10 @@ export default function DoctorEditFormClient() {
               hospital_business_number: "",
             }));
           }}
-          onLicenseImageChange={(file) => {
-            setLicenseImage(file);
-            clearError("license_image");
-          }}
-          onExistingLicenseImageChange={(file) => {
-            setExistingLicenseImage(file);
-            clearError("license_image");
-          }}
-          onSpecialistCertificateImageChange={(file) => {
-            setSpecialistCertificateImage(file);
-            clearError("specialist_certificate_image");
-          }}
-          onExistingSpecialistCertificateImageChange={(file) => {
-            setExistingSpecialistCertificateImage(file);
-            clearError("specialist_certificate_image");
-          }}
+          onLicenseImageChange={handleLicenseImageChange}
+          onExistingLicenseImageChange={handleExistingLicenseImageChange}
+          onSpecialistCertificateImageChange={handleSpecialistCertificateImageChange}
+          onExistingSpecialistCertificateImageChange={handleExistingSpecialistCertificateImageChange}
           showCurrentAllowStatus
         />
 
@@ -469,7 +350,7 @@ export default function DoctorEditFormClient() {
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <Modal
         isOpen={Boolean(uploadModalMessage)}
-        onClose={() => setUploadModalMessage(null)}
+        onClose={closeUploadModal}
         className="mx-4 w-[calc(100%-2rem)] max-w-sm"
       >
         <ModalPanel>
@@ -480,7 +361,7 @@ export default function DoctorEditFormClient() {
             <p className="whitespace-pre-line text-sm font-medium leading-6 text-gray-800">{uploadModalMessage}</p>
           </ModalBody>
           <ModalFooter>
-            <Button type="button" variant="brand" onClick={() => setUploadModalMessage(null)}>
+            <Button type="button" variant="brand" onClick={closeUploadModal}>
               확인
             </Button>
           </ModalFooter>

@@ -4,6 +4,7 @@ import React from "react";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { useDoctorHospitalOptions } from "@/hooks/doctor/useDoctorHospitalOptions";
 import type { DoctorCategoryItem } from "@/lib/doctor/detail";
 import { doctorApprovalStatusBadgeColor, formatCareerPeriod, labelDoctorApprovalStatus } from "@/lib/doctor/list";
@@ -11,6 +12,7 @@ import {
   DOCTOR_GENDER_OPTIONS,
   DOCTOR_POSITION_OPTIONS,
   DOCTOR_SPECIALIST_FIELD_OPTIONS,
+  MAX_DOCTOR_CATEGORY_SELECTION,
   MAX_DOCTOR_TEXT_ITEM_COUNT,
   type DoctorFieldName,
   type DoctorFormErrors,
@@ -33,13 +35,6 @@ import {
   type CategorySelectorItem,
   type ExistingMediaItem,
 } from "@beaulab/ui-admin";
-
-const PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-const PROFILE_IMAGE_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const PROFILE_IMAGE_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
-const PROFILE_IMAGE_VALIDATION_MESSAGE =
-  "프로필 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하\n- 이미지 비율: 1:1";
-export const MAX_DOCTOR_CATEGORY_SELECTION = 5;
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
@@ -723,66 +718,4 @@ function SelectedFileRow({
       </button>
     </div>
   );
-}
-
-function useObjectUrl(file: File | null) {
-  const [url, setUrl] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-
-  return url;
-}
-
-export async function validateProfileImageFile(file: File) {
-  if (!isValidProfileImageType(file)) {
-    return PROFILE_IMAGE_VALIDATION_MESSAGE;
-  }
-
-  if (file.size > PROFILE_IMAGE_MAX_BYTES) {
-    return PROFILE_IMAGE_VALIDATION_MESSAGE;
-  }
-
-  const isSquare = await isSquareImage(file);
-  if (!isSquare) {
-    return PROFILE_IMAGE_VALIDATION_MESSAGE;
-  }
-
-  return null;
-}
-
-function isValidProfileImageType(file: File) {
-  const lowerName = file.name.toLowerCase();
-  const hasAllowedExtension = PROFILE_IMAGE_ALLOWED_IMAGE_EXTENSIONS.some((extension) => lowerName.endsWith(extension));
-  const hasAllowedMimeType = !file.type || PROFILE_IMAGE_ALLOWED_IMAGE_TYPES.has(file.type);
-
-  return hasAllowedExtension && hasAllowedMimeType;
-}
-
-function isSquareImage(file: File) {
-  return new Promise<boolean>((resolve) => {
-    const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
-
-    image.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(image.naturalWidth === image.naturalHeight);
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(false);
-    };
-
-    image.src = objectUrl;
-  });
 }

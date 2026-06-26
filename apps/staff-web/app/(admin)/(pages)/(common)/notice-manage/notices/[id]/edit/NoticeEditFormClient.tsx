@@ -13,7 +13,7 @@ import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
 import type { NoticeAttachment, NoticeDetailResponse } from "@/lib/notice/detail";
 import {
-  appendNoticeFormData,
+  buildUpdateNoticeFormData,
   extractNoticeFieldErrors,
   INITIAL_NOTICE_FORM,
   mapNoticeDetailToForm,
@@ -143,14 +143,11 @@ export default function NoticeEditFormClient() {
     if (!validate()) return;
     if (!Number.isFinite(noticeId) || noticeId <= 0) return;
 
-    const formData = new FormData();
-    formData.append("_method", "PATCH");
-    appendNoticeFormData(
-      formData,
+    const formData = buildUpdateNoticeFormData({
       form,
-      attachments.length > 0 ? attachments : null,
-      existingAttachments.map((attachment) => attachment.id),
-    );
+      attachments,
+      existingAttachmentIds: existingAttachments.map((attachment) => attachment.id),
+    });
 
     setIsSubmitting(true);
 

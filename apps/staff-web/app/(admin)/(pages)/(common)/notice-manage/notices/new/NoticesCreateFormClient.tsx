@@ -12,7 +12,7 @@ import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
 import type { NoticeDetailResponse } from "@/lib/notice/detail";
 import {
-  appendNoticeFormData,
+  buildCreateNoticeFormData,
   extractNoticeFieldErrors,
   INITIAL_NOTICE_FORM,
   validateNoticeForm,
@@ -94,8 +94,7 @@ export default function NoticesCreateFormClient() {
     event.preventDefault();
     if (!validate()) return;
 
-    const formData = new FormData();
-    appendNoticeFormData(formData, form, attachments);
+    const formData = buildCreateNoticeFormData({ form, attachments });
 
     setIsSubmitting(true);
 

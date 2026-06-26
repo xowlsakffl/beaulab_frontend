@@ -6,11 +6,12 @@ import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSea
 import { useHospitalCategorySelectorLoader } from "@/hooks/hospital/useHospitalCategorySelectorLoader";
 import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
 import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
+import { useHospitalFormSelections } from "@/hooks/hospital/useHospitalFormSelections";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
+  buildCreateHospitalFormData,
   DUPLICATE_ERROR_MESSAGES,
-  HOSPITAL_CATEGORY_MAX_SELECTION,
   extractFieldErrors,
   INITIAL_HOSPITAL_FORM,
   normalizeBusinessNumber,
@@ -212,37 +213,12 @@ export default function HospitalsCreateFormClient() {
     [applyDuplicateCheckResult, uniqueChecks.business_number],
   );
 
-  const toggleCategory = (categoryId: number, checked: boolean) => {
-    if (checked && !form.category_ids.includes(categoryId) && form.category_ids.length >= HOSPITAL_CATEGORY_MAX_SELECTION) {
-      setErrors((prev) => ({
-        ...prev,
-        category_ids: `진료과목은 최대 ${HOSPITAL_CATEGORY_MAX_SELECTION}개까지 선택할 수 있습니다.`,
-      }));
-      return;
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      category_ids: checked
-        ? prev.category_ids.includes(categoryId)
-          ? prev.category_ids
-          : [...prev.category_ids, categoryId]
-        : prev.category_ids.filter((item) => item !== categoryId),
-    }));
-    clearError("category_ids");
-  };
-
-  const toggleFeature = (featureId: number, checked: boolean) => {
-    setForm((prev) => ({
-      ...prev,
-      feature_ids: checked
-        ? prev.feature_ids.includes(featureId)
-          ? prev.feature_ids
-          : [...prev.feature_ids, featureId]
-        : prev.feature_ids.filter((item) => item !== featureId),
-    }));
-    clearError("feature_ids");
-  };
+  const { toggleCategory, toggleFeature } = useHospitalFormSelections({
+    categoryIds: form.category_ids,
+    setForm,
+    setErrors,
+    clearError,
+  });
 
   const validate = () => {
     const nextErrors = validateCreateHospitalForm({
@@ -267,62 +243,12 @@ export default function HospitalsCreateFormClient() {
 
     if (!validate()) return;
 
-    const formData = new FormData();
-    formData.append("name", form.name.trim());
-    formData.append("department", form.department);
-    formData.append("company_name", form.company_name.trim() || form.name.trim());
-    formData.append("description", form.description.trim());
-    formData.append("youtube_link", form.youtube_link.trim());
-    formData.append("consulting_hours", form.consulting_hours.trim());
-    formData.append("direction", form.direction.trim());
-    formData.append("address", form.address.trim());
-    formData.append("address_detail", form.address_detail.trim());
-    formData.append("latitude", form.latitude.trim());
-    formData.append("longitude", form.longitude.trim());
-    formData.append("tel", form.tel.trim());
-    formData.append("ad_reception_phone_1", form.ad_reception_phone_1.trim());
-    formData.append("ad_reception_phone_2", form.ad_reception_phone_2.trim());
-    formData.append("ad_reception_phone_3", form.ad_reception_phone_3.trim());
-    formData.append("email", form.email.trim());
-    formData.append("allow_status", form.allow_status);
-    formData.append("status", form.status);
-    formData.append("business_number", form.business_number.trim());
-    formData.append("ceo_name", form.ceo_name.trim());
-    formData.append("business_type", form.business_type.trim());
-    formData.append("business_item", form.business_item.trim());
-    formData.append("business_address", form.business_address.trim());
-    formData.append("business_address_detail", form.business_address_detail.trim());
-    formData.append("settlement_bank_name", form.settlement_bank_name.trim());
-    formData.append("settlement_account_number", form.settlement_account_number.trim());
-    formData.append("settlement_account_holder", form.settlement_account_holder.trim());
-    formData.append("tax_invoice_email", form.tax_invoice_email.trim());
-
-    Object.entries(form.operation_hours).forEach(([dayKey, item]) => {
-      formData.append(`operation_hours[${dayKey}][is_closed]`, item.is_closed ? "1" : "0");
-      formData.append(`operation_hours[${dayKey}][start]`, item.start);
-      formData.append(`operation_hours[${dayKey}][end]`, item.end);
+    const formData = buildCreateHospitalFormData({
+      form,
+      logo,
+      gallery,
+      businessRegistrationFile,
     });
-
-    if (form.issued_at) {
-      formData.append("issued_at", form.issued_at);
-    }
-
-    form.category_ids.forEach((categoryId) => {
-      formData.append("category_ids[]", String(categoryId));
-    });
-    form.feature_ids.forEach((featureId) => {
-      formData.append("feature_ids[]", String(featureId));
-    });
-
-    if (logo) {
-      formData.append("logo", logo);
-    }
-
-    if (businessRegistrationFile) {
-      formData.append("business_registration_file", businessRegistrationFile);
-    }
-
-    gallery.forEach((file) => formData.append("gallery[]", file));
 
     setIsSubmitting(true);
 

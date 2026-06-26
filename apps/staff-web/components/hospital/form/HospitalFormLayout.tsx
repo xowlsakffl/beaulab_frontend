@@ -42,6 +42,8 @@ import {
   type HospitalOperationDayKey,
   type HospitalOperationHoursFormValues,
 } from "@/lib/hospital/form";
+import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { validateImageFileRule } from "@/lib/common/media-validation";
 import { HOSPITAL_DEPARTMENT_OPTIONS, hospitalStatusBadgeColor, labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
 import {
   getMediaFilename,
@@ -69,6 +71,19 @@ const HOSPITAL_GALLERY_REQUIRED_WIDTH = 760;
 const HOSPITAL_GALLERY_REQUIRED_HEIGHT = 490;
 const HOSPITAL_GALLERY_VALIDATION_MESSAGE =
   "병의원이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 10MB 이하\n- 이미지 크기: 760 x 490px";
+const HOSPITAL_LOGO_IMAGE_RULE = {
+  allowedExtensions: HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS,
+  allowedMimeTypes: HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES,
+  maxBytes: HOSPITAL_LOGO_MAX_BYTES,
+  square: true,
+};
+const HOSPITAL_GALLERY_IMAGE_RULE = {
+  allowedExtensions: HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS,
+  allowedMimeTypes: HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES,
+  maxBytes: HOSPITAL_GALLERY_MAX_BYTES,
+  exactWidth: HOSPITAL_GALLERY_REQUIRED_WIDTH,
+  exactHeight: HOSPITAL_GALLERY_REQUIRED_HEIGHT,
+};
 const operationDayLabels: Array<[HospitalOperationDayKey, string]> = [
   ["mon", "월"],
   ["tue", "화"],
@@ -1444,40 +1459,10 @@ function RequiredMark() {
   return <span className="text-error-500">*</span>;
 }
 
-function useObjectUrl(file: File | null) {
-  const [url, setUrl] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
-
-    const nextUrl = URL.createObjectURL(file);
-    setUrl(nextUrl);
-
-    return () => URL.revokeObjectURL(nextUrl);
-  }, [file]);
-
-  return url;
-}
-
 async function validateHospitalGalleryUploadFiles(files: File[]) {
   for (const file of files) {
-    if (!isValidHospitalGalleryImageType(file)) {
-      return HOSPITAL_GALLERY_VALIDATION_MESSAGE;
-    }
-
-    if (file.size > HOSPITAL_GALLERY_MAX_BYTES) {
-      return HOSPITAL_GALLERY_VALIDATION_MESSAGE;
-    }
-
-    const dimensions = await readImageDimensions(file).catch(() => null);
-    if (
-      !dimensions ||
-      dimensions.width !== HOSPITAL_GALLERY_REQUIRED_WIDTH ||
-      dimensions.height !== HOSPITAL_GALLERY_REQUIRED_HEIGHT
-    ) {
+    const isValid = await validateImageFileRule(file, HOSPITAL_GALLERY_IMAGE_RULE);
+    if (!isValid) {
       return HOSPITAL_GALLERY_VALIDATION_MESSAGE;
     }
   }
@@ -1486,52 +1471,5 @@ async function validateHospitalGalleryUploadFiles(files: File[]) {
 }
 
 async function validateLogoImageFile(file: File) {
-  if (!isValidImageFileType(file, HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS, HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES)) {
-    return HOSPITAL_LOGO_VALIDATION_MESSAGE;
-  }
-
-  if (file.size > HOSPITAL_LOGO_MAX_BYTES) {
-    return HOSPITAL_LOGO_VALIDATION_MESSAGE;
-  }
-
-  const dimensions = await readImageDimensions(file).catch(() => null);
-  if (!dimensions || dimensions.width !== dimensions.height) {
-    return HOSPITAL_LOGO_VALIDATION_MESSAGE;
-  }
-
-  return null;
-}
-
-function isValidHospitalGalleryImageType(file: File) {
-  return isValidImageFileType(file, HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS, HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES);
-}
-
-function isValidImageFileType(file: File, allowedExtensions: string[], allowedMimeTypes: Set<string>) {
-  const lowerName = file.name.toLowerCase();
-  const hasAllowedExtension = allowedExtensions.some((extension) => lowerName.endsWith(extension));
-  const hasAllowedMimeType = !file.type || allowedMimeTypes.has(file.type);
-
-  return hasAllowedExtension && hasAllowedMimeType;
-}
-
-function readImageDimensions(file: File) {
-  return new Promise<{ width: number; height: number }>((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        width: image.naturalWidth,
-        height: image.naturalHeight,
-      });
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("이미지 크기를 확인하지 못했습니다."));
-    };
-
-    image.src = url;
-  });
+  return (await validateImageFileRule(file, HOSPITAL_LOGO_IMAGE_RULE)) ? null : HOSPITAL_LOGO_VALIDATION_MESSAGE;
 }

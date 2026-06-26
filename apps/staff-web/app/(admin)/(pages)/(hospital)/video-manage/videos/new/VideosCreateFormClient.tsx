@@ -10,9 +10,9 @@ import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoa
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
 import { api } from "@/lib/common/api";
 import {
+  buildCreateVideoFormData,
   extractVideoFieldErrors,
   INITIAL_VIDEO_FORM,
-  parseVideoDurationInput,
   validateCreateVideoForm,
   type VideoDoctorOption,
   type VideoFieldName,
@@ -114,49 +114,7 @@ export default function VideosCreateFormClient() {
     if (!validate()) return;
     if (!form.hospital_id) return;
 
-    const formData = new FormData();
-    formData.append("hospital_id", String(form.hospital_id));
-    formData.append("title", form.title.trim());
-    formData.append("description", form.description.trim());
-    formData.append("distribution_channel", form.distribution_channel);
-    formData.append("status", form.status);
-    formData.append("allow_status", form.allow_status);
-    formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
-
-    if (form.doctor_id) {
-      formData.append("doctor_id", String(form.doctor_id));
-    }
-
-    if (form.external_video_url.trim()) {
-      formData.append("external_video_url", form.external_video_url.trim());
-    }
-
-    if (form.external_video_id.trim()) {
-      formData.append("external_video_id", form.external_video_id.trim());
-    }
-
-    const durationSeconds = parseVideoDurationInput(form.duration_seconds);
-    if (durationSeconds !== null) {
-      formData.append("duration_seconds", String(durationSeconds));
-    }
-
-    if (!form.is_publish_period_unlimited) {
-      if (form.publish_start_at) {
-        formData.append("publish_start_at", form.publish_start_at);
-      }
-
-      if (form.publish_end_at) {
-        formData.append("publish_end_at", form.publish_end_at);
-      }
-    }
-
-    form.category_ids.forEach((categoryId) => {
-      formData.append("category_ids[]", String(categoryId));
-    });
-
-    if (thumbnailFile) {
-      formData.append("thumbnail_file", thumbnailFile);
-    }
+    const formData = buildCreateVideoFormData({ form, thumbnailFile });
 
     setIsSubmitting(true);
 
