@@ -437,6 +437,10 @@ export default function HospitalEventsTableClient() {
     router.push(`/events/new?copyFrom=${row.id}&returnTo=${encodeURIComponent(returnTo)}`);
   }, [pathname, queryString, router]);
 
+  const openEventDBPage = React.useCallback((row: HospitalEventRow) => {
+    router.push(`/customer-db/events?hospital_event_id=${row.id}`);
+  }, [router]);
+
   const closePeriodEditModal = React.useCallback(() => {
     if (periodUpdating) return;
     setPeriodEdit(null);
@@ -582,6 +586,7 @@ export default function HospitalEventsTableClient() {
         onToggleSort={toggleSort}
         onEditPeriod={openPeriodEditModal}
         onDuplicate={duplicateEvent}
+        onOpenConsultations={openEventDBPage}
         onOpenDetail={openEventDetailPage}
         onRefresh={() => {
           void Promise.all([fetchEvents(true), fetchSummary()]);

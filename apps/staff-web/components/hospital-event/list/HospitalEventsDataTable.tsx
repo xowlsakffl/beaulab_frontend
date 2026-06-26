@@ -71,11 +71,13 @@ function buildHospitalEventColumns({
   onToggleSort,
   onEditPeriod,
   onDuplicate,
+  onOpenConsultations,
 }: {
   sortState: HospitalEventSortState;
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
   onDuplicate: (row: HospitalEventRow) => void;
+  onOpenConsultations: (row: HospitalEventRow) => void;
 }): DataTableColumn<HospitalEventRow>[] {
   const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
   const cellBaseClass = "px-2 py-4 text-start align-top ";
@@ -176,7 +178,16 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[92px]`,
       cellClassName: `${nowrapCellClass} lg:w-[92px]`,
       header: "상담신청수",
-      render: (row) => `${row.confirmedConsultationCount.toLocaleString()}/${row.consultationCount.toLocaleString()}건`,
+      render: (row) => (
+        <div className="relative min-h-20 pb-9">
+          <span>{row.confirmedConsultationCount.toLocaleString()}/{row.consultationCount.toLocaleString()}건</span>
+          <div className="absolute bottom-0 right-0">
+            <EventInlineActionButton disabled={false} onClick={() => onOpenConsultations(row)}>
+              현황
+            </EventInlineActionButton>
+          </div>
+        </div>
+      ),
     },
     {
       key: "totalSpentPoint",
@@ -251,6 +262,7 @@ type HospitalEventsDataTableProps = {
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
   onDuplicate: (row: HospitalEventRow) => void;
+  onOpenConsultations: (row: HospitalEventRow) => void;
   onOpenDetail: (row: HospitalEventRow) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
@@ -267,13 +279,14 @@ export function HospitalEventsDataTable({
   onToggleSort,
   onEditPeriod,
   onDuplicate,
+  onOpenConsultations,
   onOpenDetail,
   onRefresh,
   onGoPage,
 }: HospitalEventsDataTableProps) {
   const columns = React.useMemo(
-    () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod, onDuplicate }),
-    [sortState, onToggleSort, onEditPeriod, onDuplicate],
+    () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations }),
+    [sortState, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations],
   );
 
   return (

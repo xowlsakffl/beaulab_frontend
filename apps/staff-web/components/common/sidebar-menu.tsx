@@ -89,7 +89,6 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             name: "고객 DB 관리",
             subItems: [
                 routeSubItem({name: "이벤트 DB", path: "/customer-db/events"}),
-                routeSubItem({name: "비대면상담 DB", path: "/customer-db/remote-consultations"}),
                 routeSubItem({name: "리얼모델 DB", path: "/customer-db/real-models"}),
             ],
         },
@@ -161,7 +160,6 @@ const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
             icon: <Database className={iconClass} />,
             name: "고객 DB 관리",
             subItems: [
-                routeSubItem({name: "비대면상담 DB", path: "/beauty-customer-db/remote-consultations"}),
                 routeSubItem({name: "리얼모델 DB", path: "/beauty-customer-db/real-models"}),
             ],
         },
