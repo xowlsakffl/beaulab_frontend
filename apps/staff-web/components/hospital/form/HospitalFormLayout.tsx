@@ -380,7 +380,7 @@ function HospitalLogoEditCard({
           이미지 등록하기
         </Button>
       )}
-      {error ? <p className="text-xs text-error-500">{error}</p> : null}
+      {error ? <p className="w-full text-left text-xs text-error-500">{error}</p> : null}
     </Card>
   );
 }
