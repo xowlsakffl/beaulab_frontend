@@ -9,6 +9,7 @@ import { Button, type DataTableMeta } from "@beaulab/ui-admin";
 import { ReportedContentDataTable } from "@/components/reported-content/list/ReportedContentDataTable";
 import { ReportedContentFilterPanel } from "@/components/reported-content/list/ReportedContentFilterPanel";
 import { ReportedContentStatsCards } from "@/components/reported-content/list/ReportedContentStatsCards";
+import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { preloadImageUrls } from "@/lib/common/media";
 import {
@@ -45,22 +46,15 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const initialTableStateRef = React.useRef<ReturnType<typeof parseReportedContentTableState> | null>(null);
-  const initialBoardRef = React.useRef<ReportedContentBoardMode | null>(null);
-  const hasFetchedRef = React.useRef(false);
-  const requestKeyRef = React.useRef("");
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
+  const [initialTableState] = React.useState(() =>
+    parseReportedContentTableState(new URLSearchParams(searchParams.toString()), config),
+  );
+  const [initialBoard] = React.useState<ReportedContentBoardMode>(() =>
+    supportsComments && searchParams.get("board") === "comments" ? "comments" : "posts",
+  );
 
-  if (!initialTableStateRef.current) {
-    initialTableStateRef.current = parseReportedContentTableState(new URLSearchParams(searchParams.toString()), config);
-  }
-
-  if (!initialBoardRef.current) {
-    initialBoardRef.current = supportsComments && searchParams.get("board") === "comments" ? "comments" : "posts";
-  }
-
-  const initialTableState = initialTableStateRef.current;
-  const [activeBoard, setActiveBoard] = React.useState<ReportedContentBoardMode>(initialBoardRef.current ?? "posts");
+  const [activeBoard, setActiveBoard] = React.useState<ReportedContentBoardMode>(initialBoard);
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
@@ -69,12 +63,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const [appliedFilters, setAppliedFilters] = React.useState<ReportedContentFilters>(initialTableState.filters);
   const [sortState, setSortState] = React.useState<ReportedContentSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const [rows, setRows] = React.useState<ReportedContentRow[]>([]);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
   const [summary, setSummary] = React.useState<ReportedContentSummary | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [refreshing, setRefreshing] = React.useState(false);
   const activeKind = activeBoard === "comments" ? config.commentKind ?? config.kind : config.kind;
   const activeApiPath = activeBoard === "comments" ? config.commentApiPath ?? config.apiPath : config.apiPath;
   const showSummaryCards = config.showSummaryCards !== false;
@@ -97,6 +86,53 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
 
     return params.toString();
   }, [activeBoard, query]);
+  const listRequest = React.useMemo(
+    () => ({
+      apiPath: activeApiPath,
+      kind: activeKind,
+      query,
+    }),
+    [activeApiPath, activeKind, query],
+  );
+
+  const fetchReportedContentRows = React.useCallback(async (request: typeof listRequest) => {
+    const response = await api.get<ReportedContentApiItem[]>(request.apiPath, request.query, {
+      latestKey: "reported-content:list",
+    });
+
+    if (!isApiSuccess(response)) {
+      throw new Error(response.error.message || "신고게시물 목록 조회에 실패했습니다.");
+    }
+
+    const normalizedRows = response.data
+      .map((item) => normalizeReportedContent(item, config, request.kind));
+    const responseMeta = (response.meta as DataTableMeta | null) ?? null;
+    void preloadImageUrls(normalizedRows.map((row) => resolveReportedReviewImageUrl(row.image)));
+
+    return {
+      rows: normalizedRows,
+      meta: responseMeta ? {
+        current_page: responseMeta.current_page,
+        per_page: responseMeta.per_page,
+        total: responseMeta.total,
+        last_page: responseMeta.last_page,
+      } : null,
+    };
+  }, [config]);
+
+  const {
+    rows,
+    meta,
+    error,
+    loading,
+    refreshing,
+    fetchList: fetchRows,
+    resetList,
+  } = useListData({
+    query: listRequest,
+    fetchRows: fetchReportedContentRows,
+    errorMessage: "신고게시물 목록 조회 중 오류가 발생했습니다.",
+  });
 
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
@@ -128,63 +164,6 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
       setSummary(null);
     }
   }, [activeApiPath, query.target_author_id, showSummaryCards]);
-
-  const fetchRows = React.useCallback(
-    async (manualRefresh = false) => {
-      const requestKey = JSON.stringify({ apiPath: activeApiPath, query });
-      if (!manualRefresh && requestKeyRef.current === requestKey) return;
-      requestKeyRef.current = requestKey;
-
-      if (!hasFetchedRef.current) setLoading(true);
-      else setRefreshing(true);
-      if (manualRefresh) setRefreshing(true);
-
-      setError(null);
-      let shouldFinalize = true;
-
-      try {
-        const response = await api.get<ReportedContentApiItem[]>(activeApiPath, query, {
-          latestKey: "reported-content:list",
-        });
-
-        if (!isApiSuccess(response)) {
-          setError(response.error.message || "신고게시물 목록 조회에 실패했습니다.");
-          return;
-        }
-
-        const normalizedRows = response.data
-          .map((item) => normalizeReportedContent(item, config, activeKind));
-        const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-
-        await preloadImageUrls(normalizedRows.map((row) => resolveReportedReviewImageUrl(row.image)));
-        setRows(normalizedRows);
-        setMeta(responseMeta ? {
-          current_page: responseMeta.current_page,
-          per_page: responseMeta.per_page,
-          total: responseMeta.total,
-          last_page: responseMeta.last_page,
-        } : null);
-        hasFetchedRef.current = true;
-      } catch (error) {
-        if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
-          return;
-        }
-
-        setError("신고게시물 목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (shouldFinalize) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    },
-    [activeApiPath, activeKind, config, query],
-  );
-
-  React.useEffect(() => {
-    void fetchRows();
-  }, [fetchRows]);
 
   React.useEffect(() => {
     void fetchSummary();
@@ -239,13 +218,9 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     setSortState(DEFAULT_REPORTED_CONTENT_SORT);
     setIsDatePickerOpen(false);
     setPage(1);
-    setRows([]);
-    setMeta(null);
     setSummary(null);
-    setError(null);
-    hasFetchedRef.current = false;
-    requestKeyRef.current = "";
-  }, [activeBoard, appliedFilters.targetAuthorId, config, supportsComments]);
+    resetList();
+  }, [activeBoard, appliedFilters.targetAuthorId, config, resetList, supportsComments]);
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToReportedContentFilter(nextRange);
