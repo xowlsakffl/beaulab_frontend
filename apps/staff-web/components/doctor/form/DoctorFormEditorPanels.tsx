@@ -75,10 +75,7 @@ export function ProfileImageEditor({
 
   return (
     <Card
-      className={cx(
-        "flex w-full flex-col self-start rounded-xl border bg-white p-4",
-        error ? "border-error-500" : "border-gray-200",
-      )}
+      className="flex w-full flex-col self-start rounded-xl border border-gray-200 bg-white p-4"
       data-media-collection="profile_image"
       tabIndex={-1}
     >
@@ -490,7 +487,7 @@ export function CategorySelectPanel({
   }, [isOpen]);
 
   return (
-    <Card className={cx(cardClassName, error ? "border-error-500" : "")} data-field-target="category_ids" tabIndex={-1}>
+    <Card className={cardClassName} data-field-target="category_ids" tabIndex={-1}>
       <div ref={containerRef} className="space-y-2">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold text-gray-900">진료분야</h3>
@@ -499,7 +496,7 @@ export function CategorySelectPanel({
           </span>
         </div>
 
-        <div className={cx("min-h-20 rounded-xl border bg-white p-2", error ? "border-error-500" : "border-gray-200")}>
+        <div className="min-h-20 rounded-xl border border-gray-200 bg-white p-2">
           {selectedDisplayItems.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {selectedDisplayItems.map((item) => (
