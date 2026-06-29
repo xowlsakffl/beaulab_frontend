@@ -46,6 +46,16 @@ type SelectOption = {
   label: string;
 };
 
+const CATEGORY_ITEMS_CACHE_TTL_MS = 5 * 60 * 1000;
+const categoryItemsCache = new Map<string, { expiresAt: number; items: CategoryApiItem[] }>();
+
+function buildCategoryItemsCacheKey(params: Record<string, string | number>) {
+  return Object.entries(params)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}:${value}`)
+    .join("|");
+}
+
 export default function HospitalEventsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -162,16 +172,29 @@ export default function HospitalEventsTableClient() {
 
   const fetchCategoryItems = React.useCallback(
     async (params: Record<string, string | number>): Promise<CategoryApiItem[]> => {
-      const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+      const queryParams = {
         domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
         status: "ACTIVE",
         per_page: 100,
         ...params,
-      });
+      };
+      const cacheKey = buildCategoryItemsCacheKey(queryParams);
+      const cachedItems = categoryItemsCache.get(cacheKey);
+
+      if (cachedItems && cachedItems.expiresAt > Date.now()) {
+        return cachedItems.items;
+      }
+
+      const response = await api.get<CategoryApiItem[]>("/categories/selector", queryParams);
 
       if (!isApiSuccess(response)) {
         throw new Error(response.error.message || "카테고리 필터를 불러오지 못했습니다.");
       }
+
+      categoryItemsCache.set(cacheKey, {
+        expiresAt: Date.now() + CATEGORY_ITEMS_CACHE_TTL_MS,
+        items: response.data,
+      });
 
       return response.data;
     },
