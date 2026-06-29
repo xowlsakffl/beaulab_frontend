@@ -49,7 +49,7 @@ function NotificationAvatar({ item }: { item: NotificationItem }) {
   const initial = item.title.charAt(0).toUpperCase();
 
   return (
-    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700  ">
+    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
       {initial}
     </span>
   );
@@ -86,11 +86,13 @@ export function NotificationDropdown({
   return (
     <div className="relative">
       <button
-        className="relative dropdown-toggle flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700     "
+        className="dropdown-toggle relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
         onClick={handleClick}
         aria-label={title}
       >
-        <span className={`absolute right-0 top-0.5 z-10 h-2 w-2 rounded-full bg-orange-400 ${!hasUnread ? "hidden" : "flex"}`}>
+        <span
+          className={`absolute top-0.5 right-0 z-10 h-2 w-2 rounded-full bg-orange-400 ${!hasUnread ? "hidden" : "flex"}`}
+        >
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
         </span>
         <Bell className="h-5 w-5" />
@@ -98,13 +100,13 @@ export function NotificationDropdown({
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg   sm:w-[361px] lg:right-0"
+        className="absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg lg:right-0 sm:w-[361px]"
       >
-        <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-3 ">
-          <h5 className="text-lg font-semibold text-gray-800 ">{title}</h5>
+        <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-3">
+          <h5 className="text-lg font-semibold text-gray-800">{title}</h5>
           <button
             onClick={toggleDropdown}
-            className="dropdown-toggle text-gray-500 transition hover:text-gray-700  "
+            className="dropdown-toggle text-gray-500 transition hover:text-gray-700"
             aria-label={`${title} 닫기`}
           >
             <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -117,9 +119,9 @@ export function NotificationDropdown({
             </svg>
           </button>
         </div>
-        <ul className="custom-scrollbar flex h-auto flex-col overflow-y-auto">
+        <ul className="flex custom-scrollbar h-auto flex-col overflow-y-auto">
           {items.length === 0 ? (
-            <li className="px-4 py-10 text-center text-sm text-gray-500 ">{emptyText}</li>
+            <li className="px-4 py-10 text-center text-sm text-gray-500">{emptyText}</li>
           ) : (
             items.map((item) => {
               const tone = toneClassNames[item.tone ?? "neutral"];
@@ -130,21 +132,25 @@ export function NotificationDropdown({
                     tag={item.href ? "a" : "button"}
                     href={item.href}
                     onItemClick={closeDropdown}
-                    className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100  "
+                    className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100"
                   >
                     <span className="relative block h-10 w-10 flex-none rounded-full">
                       <NotificationAvatar item={item} />
-                      <span className={`absolute bottom-0 right-0 z-10 h-2.5 w-2.5 rounded-full border-[1.5px] border-white  ${tone}`}></span>
+                      <span
+                        className={`absolute right-0 bottom-0 z-10 h-2.5 w-2.5 rounded-full border-[1.5px] border-white ${tone}`}
+                      ></span>
                     </span>
                     <span className="block">
-                      <span className="mb-1.5 block text-theme-sm text-gray-500 ">
-                        <span className="font-medium text-gray-800 ">{item.title}</span>
+                      <span className="mb-1.5 block text-theme-sm text-gray-500">
+                        <span className="font-medium text-gray-800">{item.title}</span>
                         {item.description ? <span className="ml-1">{item.description}</span> : null}
                       </span>
                       {item.meta || item.timeLabel ? (
-                        <span className="flex items-center gap-2 text-theme-xs text-gray-500 ">
+                        <span className="flex items-center gap-2 text-theme-xs text-gray-500">
                           {item.meta ? <span>{item.meta}</span> : null}
-                          {item.meta && item.timeLabel ? <span className="h-1 w-1 rounded-full bg-gray-400"></span> : null}
+                          {item.meta && item.timeLabel ? (
+                            <span className="h-1 w-1 rounded-full bg-gray-400"></span>
+                          ) : null}
                           {item.timeLabel ? <span>{item.timeLabel}</span> : null}
                         </span>
                       ) : null}
@@ -160,7 +166,7 @@ export function NotificationDropdown({
             tag="a"
             href={viewAllHref}
             onItemClick={closeDropdown}
-            className="mt-3 block rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100    "
+            className="mt-3 block rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
             {viewAllLabel}
           </DropdownItem>

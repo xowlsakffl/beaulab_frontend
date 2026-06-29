@@ -2,7 +2,15 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
-import { DayFlag, DayPicker, SelectionState, UI, getDefaultClassNames, type DateRange, type Locale } from "react-day-picker";
+import {
+  DayFlag,
+  DayPicker,
+  SelectionState,
+  UI,
+  getDefaultClassNames,
+  type DateRange,
+  type Locale,
+} from "react-day-picker";
 import { ko } from "react-day-picker/locale";
 import { ChevronDown } from "../../../icons";
 import { cn } from "../../../lib/utils";
@@ -95,10 +103,7 @@ export function DateRangeFilterDropdown({
     () => ({
       ...defaultClassNames,
       [UI.Chevron]: cn(defaultClassNames[UI.Chevron], "fill-brand-500 "),
-      [UI.NextMonthButton]: cn(
-        defaultClassNames[UI.NextMonthButton],
-        "rounded-md text-brand-500 hover:bg-brand-50  ",
-      ),
+      [UI.NextMonthButton]: cn(defaultClassNames[UI.NextMonthButton], "rounded-md text-brand-500 hover:bg-brand-50  "),
       [UI.PreviousMonthButton]: cn(
         defaultClassNames[UI.PreviousMonthButton],
         "rounded-md text-brand-500 hover:bg-brand-50  ",
@@ -173,7 +178,7 @@ export function DateRangeFilterDropdown({
       onMouseDown={(event) => event.stopPropagation()}
     >
       <Card className="rounded-lg p-3 shadow-lg">
-        <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3 ">
+        <div className="mb-3 flex flex-wrap gap-2 border-b border-gray-100 pb-3">
           {presetOptions.map((preset) => (
             <Button
               key={preset.key}
@@ -195,14 +200,14 @@ export function DateRangeFilterDropdown({
           classNames={dayPickerClassNames}
           style={dayPickerStyles}
         />
-        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 ">
+        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={onReset}
             disabled={!selected?.from && !selected?.to}
-            className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 "
+            className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700"
           >
             초기화
           </Button>
@@ -215,7 +220,7 @@ export function DateRangeFilterDropdown({
   ) : null;
 
   return (
-    <div className={cn("min-w-0 w-full", isOpen ? "relative z-[100001]" : undefined)}>
+    <div className={cn("w-full min-w-0", isOpen ? "relative z-[100001]" : undefined)}>
       {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}
       <div ref={setTriggerContainerRef} className="relative">
         <Button

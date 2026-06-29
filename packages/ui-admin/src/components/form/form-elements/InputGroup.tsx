@@ -22,12 +22,8 @@ export default function InputGroup() {
         <div>
           <Label>Email</Label>
           <div className="relative">
-            <Input
-              placeholder="info@gmail.com"
-              type="text"
-              className="pl-[62px]"
-            />
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500  ">
+            <Input placeholder="info@gmail.com" type="text" className="pl-[62px]" />
+            <span className="absolute top-1/2 left-0 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500">
               <EnvelopeIcon />
             </span>
           </div>

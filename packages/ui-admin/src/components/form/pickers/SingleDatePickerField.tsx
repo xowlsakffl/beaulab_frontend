@@ -61,7 +61,10 @@ export function SingleDatePickerField({
       ...defaultClassNames,
       [UI.Chevron]: cn(defaultClassNames[UI.Chevron], "fill-brand-500"),
       [UI.NextMonthButton]: cn(defaultClassNames[UI.NextMonthButton], "rounded-md text-brand-500 hover:bg-brand-50"),
-      [UI.PreviousMonthButton]: cn(defaultClassNames[UI.PreviousMonthButton], "rounded-md text-brand-500 hover:bg-brand-50"),
+      [UI.PreviousMonthButton]: cn(
+        defaultClassNames[UI.PreviousMonthButton],
+        "rounded-md text-brand-500 hover:bg-brand-50",
+      ),
       [UI.DayButton]: cn(
         defaultClassNames[UI.DayButton],
         "transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300",
@@ -111,9 +114,7 @@ export function SingleDatePickerField({
           size="default"
           onClick={() => setIsOpen((prev) => !prev)}
           className={`flex h-11 w-full items-center justify-between rounded-lg border px-3 text-sm shadow-none ${
-            error
-              ? "border-error-500 text-error-800 "
-              : "border-gray-300 text-gray-700  "
+            error ? "border-error-500 text-error-800" : "border-gray-300 text-gray-700"
           } ${buttonClassName}`}
         >
           <span>{value || placeholder}</span>
@@ -121,7 +122,7 @@ export function SingleDatePickerField({
         </Button>
 
         {isOpen ? (
-          <Card className={`absolute left-0 z-[100000] mt-2 rounded-xl p-3 shadow-lg  ${popoverClassName}`}>
+          <Card className={`absolute left-0 z-[100000] mt-2 rounded-xl p-3 shadow-lg ${popoverClassName}`}>
             <DayPicker
               mode="single"
               locale={ko}
@@ -137,14 +138,14 @@ export function SingleDatePickerField({
                 setIsOpen(false);
               }}
             />
-            <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 ">
+            <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => onChange("")}
                 disabled={!value}
-                className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700 "
+                className="h-8 px-3 text-xs text-gray-500 hover:text-gray-700"
               >
                 초기화
               </Button>

@@ -37,20 +37,12 @@ const Switch: React.FC<SwitchProps> = ({
   const switchColors =
     color === "blue"
       ? {
-          background: isChecked
-            ? "bg-brand-500 "
-            : "bg-gray-200 ", // Blue version
-          knob: isChecked
-            ? "translate-x-full bg-white"
-            : "translate-x-0 bg-white",
+          background: isChecked ? "bg-brand-500 " : "bg-gray-200 ", // Blue version
+          knob: isChecked ? "translate-x-full bg-white" : "translate-x-0 bg-white",
         }
       : {
-          background: isChecked
-            ? "bg-gray-800 "
-            : "bg-gray-200 ", // Gray version
-          knob: isChecked
-            ? "translate-x-full bg-white"
-            : "translate-x-0 bg-white",
+          background: isChecked ? "bg-gray-800 " : "bg-gray-200 ", // Gray version
+          knob: isChecked ? "translate-x-full bg-white" : "translate-x-0 bg-white",
         };
 
   return (
@@ -59,22 +51,20 @@ const Switch: React.FC<SwitchProps> = ({
       role="switch"
       aria-checked={isChecked}
       aria-label={ariaLabel || label}
-      className={`flex select-none items-center gap-3 text-sm font-medium ${
-        disabled ? "cursor-not-allowed text-gray-400" : "cursor-pointer text-gray-700 "
+      className={`flex items-center gap-3 text-sm font-medium select-none ${
+        disabled ? "cursor-not-allowed text-gray-400" : "cursor-pointer text-gray-700"
       }`}
       onClick={handleToggle}
       disabled={disabled}
     >
       <div className="relative">
         <div
-          className={`block transition duration-150 ease-linear h-6 w-11 rounded-full ${
-            disabled
-              ? "bg-gray-100 pointer-events-none "
-              : switchColors.background
+          className={`block h-6 w-11 rounded-full transition duration-150 ease-linear ${
+            disabled ? "pointer-events-none bg-gray-100" : switchColors.background
           }`}
         ></div>
         <div
-          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow-theme-sm duration-150 ease-linear transform ${switchColors.knob}`}
+          className={`absolute top-0.5 left-0.5 h-5 w-5 transform rounded-full shadow-theme-sm duration-150 ease-linear ${switchColors.knob}`}
         ></div>
       </div>
       {label}

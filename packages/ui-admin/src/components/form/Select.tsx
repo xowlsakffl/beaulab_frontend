@@ -52,30 +52,26 @@ export const Select: React.FC<SelectProps> = ({
       <select
         id={id}
         name={name}
-        className={`h-9 w-full cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white pr-10 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10      ${
-          hasSelectedOption ? "text-gray-800 " : "text-gray-400 "
+        className={`h-9 w-full cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white pr-10 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden ${
+          hasSelectedOption ? "text-gray-800" : "text-gray-400"
         } ${disabled ? "cursor-not-allowed opacity-60" : ""} ${className}`}
         value={selectedValue}
         onChange={handleChange}
         disabled={disabled}
       >
         {showPlaceholderOption && (
-          <option value="" disabled className="text-gray-700  ">
+          <option value="" disabled className="text-gray-700">
             {placeholder}
           </option>
         )}
         {options.map((option) => (
-          <option
-            key={option.value}
-            value={option.value}
-            className="text-gray-700  "
-          >
+          <option key={option.value} value={option.value} className="text-gray-700">
             {option.label}
           </option>
         ))}
       </select>
 
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 ">
+      <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-500">
         <ChevronDown className="size-4" />
       </span>
     </div>

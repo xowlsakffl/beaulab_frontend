@@ -80,7 +80,7 @@ export function AppSidebar({
                 {nav.subItems ? (
                   <button
                     onClick={() => handleSubmenuToggle(index, menuType)}
-                    className={`menu-item group ${
+                    className={`group menu-item ${
                       isParentActive ? "menu-item-active" : "menu-item-inactive"
                     } cursor-pointer`}
                     aria-label={nav.name}
@@ -100,7 +100,7 @@ export function AppSidebar({
                 ) : nav.path ? (
                   <Link
                     href={nav.path}
-                    className={`menu-item group ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}
+                    className={`group menu-item ${isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"}`}
                   >
                     <span className={isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
                       {nav.icon ?? <span className="h-5 w-5" />}
@@ -121,9 +121,7 @@ export function AppSidebar({
                           <Link
                             href={subItem.path}
                             className={`menu-dropdown-item ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-item-active"
-                                : "menu-dropdown-item-inactive"
+                              isActive(subItem.path) ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive"
                             }`}
                           >
                             {subItem.name}
@@ -160,13 +158,9 @@ export function AppSidebar({
   }, [pathname, isActive, mainItems, otherItems]);
 
   return (
-    <aside
-      className="fixed left-0 top-0 z-50 flex h-screen w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white"
-    >
+    <aside className="fixed top-0 left-0 z-50 flex h-screen w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white">
       <div className="flex justify-start py-8">
-        {brand ? (
-          <Link href={brand.href ?? "/"}>{brand.expandedLogo}</Link>
-        ) : null}
+        {brand ? <Link href={brand.href ?? "/"}>{brand.expandedLogo}</Link> : null}
       </div>
 
       {topContent ? <div className="pb-6">{topContent}</div> : null}
@@ -175,9 +169,7 @@ export function AppSidebar({
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
-              <h2
-                className="mb-4 flex justify-start text-xs uppercase leading-[20px] text-white/55"
-              >
+              <h2 className="mb-4 flex justify-start text-xs leading-[20px] text-white/55 uppercase">
                 {sectionLabels.main}
               </h2>
               {renderMenuItems(mainItems, "main")}
@@ -185,9 +177,7 @@ export function AppSidebar({
 
             {otherItems.length > 0 ? (
               <div>
-                <h2
-                  className="mb-4 flex justify-start text-xs uppercase leading-[20px] text-white/55"
-                >
+                <h2 className="mb-4 flex justify-start text-xs leading-[20px] text-white/55 uppercase">
                   {sectionLabels.others}
                 </h2>
                 {renderMenuItems(otherItems, "others")}

@@ -52,9 +52,7 @@ export function AppHeader({
           <div className="flex min-w-0 items-center gap-4 py-4">
             {pageTitle ? (
               <div className="min-w-0 flex-none">
-                <h1 className="truncate text-xl font-semibold tracking-[-0.02em] text-gray-900">
-                  {pageTitle}
-                </h1>
+                <h1 className="truncate text-xl font-semibold tracking-[-0.02em] text-gray-900">{pageTitle}</h1>
               </div>
             ) : null}
 
@@ -62,8 +60,15 @@ export function AppHeader({
               <div>
                 <form>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
-                      <svg className="fill-gray-500" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
+                      <svg
+                        className="fill-gray-500"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
                         <path
                           fillRule="evenodd"
                           clipRule="evenodd"
@@ -77,10 +82,10 @@ export function AppHeader({
                       ref={inputRef}
                       type="text"
                       placeholder={searchPlaceholder}
-                      className="h-11 w-[430px] rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                      className="h-11 w-[430px] rounded-lg border border-gray-200 bg-transparent py-2.5 pr-14 pl-12 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden"
                     />
 
-                    <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500">
+                    <button className="absolute top-1/2 right-2.5 inline-flex -translate-y-1/2 items-center rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500">
                       <span>{searchShortcutLabel}</span>
                     </button>
                   </div>

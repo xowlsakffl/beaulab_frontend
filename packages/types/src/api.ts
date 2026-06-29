@@ -14,35 +14,35 @@
 
 /** 서버에서 내려주는 에러 구조 */
 export type ApiError = {
-    code: string;
-    message: string;
-    details?: unknown;
+  code: string;
+  message: string;
+  details?: unknown;
 };
 
 /** 프로젝트 공통 응답 규약(ApiResponse) */
 export type ApiResponse<TData = unknown, TMeta = unknown> =
-    | {
-    success: true;
-    data: TData;
-    meta: TMeta | null;
-    traceId: string | null;
-}
-    | {
-    success: false;
-    error: ApiError;
-    traceId: string | null;
-};
+  | {
+      success: true;
+      data: TData;
+      meta: TMeta | null;
+      traceId: string | null;
+    }
+  | {
+      success: false;
+      error: ApiError;
+      traceId: string | null;
+    };
 
 /** 타입 가드: 성공 응답인지 */
 export function isApiSuccess<TData, TMeta>(
-    res: ApiResponse<TData, TMeta>
+  res: ApiResponse<TData, TMeta>,
 ): res is { success: true; data: TData; meta: TMeta | null; traceId: string | null } {
-    return res.success === true;
+  return res.success === true;
 }
 
 /** 타입 가드: 실패 응답인지 */
 export function isApiError<TData, TMeta>(
-    res: ApiResponse<TData, TMeta>
+  res: ApiResponse<TData, TMeta>,
 ): res is { success: false; error: ApiError; traceId: string | null } {
-    return res.success === false;
+  return res.success === false;
 }

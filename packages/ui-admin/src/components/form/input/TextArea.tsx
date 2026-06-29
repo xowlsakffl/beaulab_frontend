@@ -54,15 +54,7 @@ const TextArea: React.FC<TextareaProps> = ({
         disabled={disabled}
         className={textareaClasses}
       />
-      {hint && (
-        <p
-          className={`mt-1.5 text-xs ${
-            error ? "text-error-500" : "text-gray-500 "
-          }`}
-        >
-          {hint}
-        </p>
-      )}
+      {hint && <p className={`mt-1.5 text-xs ${error ? "text-error-500" : "text-gray-500"}`}>{hint}</p>}
     </div>
   );
 };

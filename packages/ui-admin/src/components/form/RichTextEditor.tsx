@@ -148,9 +148,7 @@ export function RichTextEditor({
         }
       } catch (uploadFailure) {
         const message =
-          uploadFailure instanceof Error
-            ? uploadFailure.message
-            : "에디터 이미지 업로드 중 오류가 발생했습니다.";
+          uploadFailure instanceof Error ? uploadFailure.message : "에디터 이미지 업로드 중 오류가 발생했습니다.";
         setUploadError(message);
         onUploadError?.(message);
       } finally {
@@ -167,13 +165,8 @@ export function RichTextEditor({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div
-        className={cn(
-          "overflow-hidden rounded-xl border bg-white ",
-          error ? "border-error-500" : "border-gray-300 ",
-        )}
-      >
-        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2 ">
+      <div className={cn("overflow-hidden rounded-xl border bg-white", error ? "border-error-500" : "border-gray-300")}>
+        <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 px-3 py-2">
           <ToolbarButton
             active={Boolean(editor?.isActive("heading", { level: 2 }))}
             disabled={disabled || !editor}
@@ -241,7 +234,7 @@ export function RichTextEditor({
 
           {onUploadImage ? (
             <>
-              <div className="mx-1 h-5 w-px bg-gray-200 " />
+              <div className="mx-1 h-5 w-px bg-gray-200" />
               <ToolbarButton
                 active={false}
                 disabled={disabled || isUploading}
@@ -253,7 +246,7 @@ export function RichTextEditor({
             </>
           ) : null}
 
-          <div className="mx-1 h-5 w-px bg-gray-200 " />
+          <div className="mx-1 h-5 w-px bg-gray-200" />
 
           <ToolbarButton
             active={false}
@@ -272,9 +265,7 @@ export function RichTextEditor({
             <Redo2 className="size-4" />
           </ToolbarButton>
 
-          {isUploading ? (
-            <span className="ml-auto text-xs text-gray-500 ">이미지 업로드 중...</span>
-          ) : null}
+          {isUploading ? <span className="ml-auto text-xs text-gray-500">이미지 업로드 중...</span> : null}
         </div>
 
         <EditorContent editor={editor} />
@@ -291,7 +282,7 @@ export function RichTextEditor({
       </div>
 
       {uploadError ? <p className="text-xs text-error-500">{uploadError}</p> : null}
-      {hint ? <p className={cn("text-xs", error ? "text-error-500" : "text-gray-500 ")}>{hint}</p> : null}
+      {hint ? <p className={cn("text-xs", error ? "text-error-500" : "text-gray-500")}>{hint}</p> : null}
     </div>
   );
 }
@@ -308,7 +299,7 @@ function ToolbarButton({
       type="button"
       variant={active ? "brand" : "outline"}
       size="sm"
-      className={cn(active ? "border-brand-500" : "border-gray-200 ", className)}
+      className={cn(active ? "border-brand-500" : "border-gray-200", className)}
       {...props}
     />
   );

@@ -21,24 +21,23 @@ const Checkbox: React.FC<CheckboxProps> = ({
 }) => {
   return (
     <label
-      className={`inline-flex items-center space-x-3 group ${
+      className={`group inline-flex items-center space-x-3 ${
         disabled ? "cursor-default opacity-70" : "cursor-pointer"
       }`}
     >
-      <div className="relative w-5 h-5">
+      <div className="relative h-5 w-5">
         <input
           id={id}
           type="checkbox"
           aria-label={ariaLabel}
-          className={`w-5 h-5 appearance-none cursor-pointer  border border-gray-300 checked:border-transparent rounded-md checked:bg-brand-500 disabled:cursor-default disabled:border-gray-300 disabled:bg-gray-200 disabled:checked:bg-gray-300
-          ${className}`}
+          className={`h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 checked:border-transparent checked:bg-brand-500 disabled:cursor-default disabled:border-gray-300 disabled:bg-gray-200 disabled:checked:bg-gray-300 ${className}`}
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           disabled={disabled}
         />
         {checked && (
           <svg
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform"
             xmlns="http://www.w3.org/2000/svg"
             width="14"
             height="14"
@@ -55,11 +54,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
           </svg>
         )}
       </div>
-      {label && (
-        <span className="text-sm font-medium text-gray-800 ">
-          {label}
-        </span>
-      )}
+      {label && <span className="text-sm font-medium text-gray-800">{label}</span>}
     </label>
   );
 };

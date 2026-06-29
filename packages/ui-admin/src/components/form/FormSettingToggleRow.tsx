@@ -24,19 +24,11 @@ export function FormSettingToggleRow({
   disabled = false,
 }: FormSettingToggleRowProps) {
   return (
-    <div
-      className={[
-        "px-4 py-4",
-        !isLast ? "border-b border-gray-200 " : "",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
+    <div className={["px-4 py-4", !isLast ? "border-b border-gray-200" : "", className].filter(Boolean).join(" ")}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
-          <p className="text-sm font-semibold text-gray-800 ">{title}</p>
-          <p className="text-xs leading-5 text-gray-500 ">{description}</p>
+          <p className="text-sm font-semibold text-gray-800">{title}</p>
+          <p className="text-xs leading-5 text-gray-500">{description}</p>
         </div>
 
         <button
@@ -50,11 +42,7 @@ export function FormSettingToggleRow({
           disabled={disabled}
           className={[
             "relative mt-0.5 inline-flex h-7 w-12 shrink-0 rounded-full transition-colors",
-            disabled
-              ? "cursor-not-allowed bg-gray-200 "
-              : checked
-                ? "bg-brand-500"
-                : "bg-gray-200 ",
+            disabled ? "cursor-not-allowed bg-gray-200" : checked ? "bg-brand-500" : "bg-gray-200",
           ].join(" ")}
         >
           <span

@@ -16,35 +16,26 @@ type AuthorizationLike = Partial<ActorAuthorization> | undefined;
 /**
  * 단일 permission 확인
  */
-export function hasPermission(
-    auth: AuthorizationLike,
-    permission: string
-): boolean {
-    const grantedPermissions = auth?.permissions;
-    if (!grantedPermissions) return false;
-    return grantedPermissions.includes(permission);
+export function hasPermission(auth: AuthorizationLike, permission: string): boolean {
+  const grantedPermissions = auth?.permissions;
+  if (!grantedPermissions) return false;
+  return grantedPermissions.includes(permission);
 }
 
 /**
  * 여러 permission 중 하나라도 있으면 true
  */
-export function hasAnyPermission(
-    auth: AuthorizationLike,
-    permissions: string[]
-): boolean {
-    const grantedPermissions = auth?.permissions;
-    if (!grantedPermissions) return false;
-    return permissions.some((permission) => grantedPermissions.includes(permission));
+export function hasAnyPermission(auth: AuthorizationLike, permissions: string[]): boolean {
+  const grantedPermissions = auth?.permissions;
+  if (!grantedPermissions) return false;
+  return permissions.some((permission) => grantedPermissions.includes(permission));
 }
 
 /**
  * 모든 permission을 가지고 있어야 true
  */
-export function hasAllPermissions(
-    auth: AuthorizationLike,
-    permissions: string[]
-): boolean {
-    const grantedPermissions = auth?.permissions;
-    if (!grantedPermissions) return false;
-    return permissions.every((permission) => grantedPermissions.includes(permission));
+export function hasAllPermissions(auth: AuthorizationLike, permissions: string[]): boolean {
+  const grantedPermissions = auth?.permissions;
+  if (!grantedPermissions) return false;
+  return permissions.every((permission) => grantedPermissions.includes(permission));
 }

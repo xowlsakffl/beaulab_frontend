@@ -55,35 +55,20 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  const contentClasses = isFullscreen
-    ? "w-full h-full"
-    : "relative w-full rounded-3xl bg-white  ";
+  const contentClasses = isFullscreen ? "w-full h-full" : "relative w-full rounded-3xl bg-white  ";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
+    <div className="modal fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto">
       {!isFullscreen && (
-        <div
-          className="fixed inset-0 h-full w-full bg-gray-900/20 backdrop-blur-[10px]"
-          onClick={onClose}
-        ></div>
+        <div className="fixed inset-0 h-full w-full bg-gray-900/20 backdrop-blur-[10px]" onClick={onClose}></div>
       )}
-      <div
-        ref={modalRef}
-        className={`${contentClasses}  ${className}`}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div ref={modalRef} className={`${contentClasses} ${className}`} onClick={(e) => e.stopPropagation()}>
         {showCloseButton && (
           <button
             onClick={onClose}
-            className="absolute right-3 top-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700     sm:right-6 sm:top-6 sm:h-11 sm:w-11"
+            className="absolute top-3 right-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 sm:top-6 sm:right-6 sm:h-11 sm:w-11"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -101,9 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
 
 export const ModalPanel: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
   return (
-    <div className={`rounded-3xl bg-white p-5 shadow-2xl shadow-slate-900/10   sm:p-6 ${className}`}>
-      {children}
-    </div>
+    <div className={`rounded-3xl bg-white p-5 shadow-2xl shadow-slate-900/10 sm:p-6 ${className}`}>{children}</div>
   );
 };
 
@@ -112,11 +95,11 @@ export const ModalHeader: React.FC<ModalSectionProps> = ({ children, className =
 };
 
 export const ModalTitle: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
-  return <h3 className={`text-xl font-semibold text-gray-800  ${className}`}>{children}</h3>;
+  return <h3 className={`text-xl font-semibold text-gray-800 ${className}`}>{children}</h3>;
 };
 
 export const ModalDescription: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
-  return <p className={`mt-1 text-sm text-gray-500  ${className}`}>{children}</p>;
+  return <p className={`mt-1 text-sm text-gray-500 ${className}`}>{children}</p>;
 };
 
 export const ModalBody: React.FC<ModalSectionProps> = ({ children, className = "" }) => {

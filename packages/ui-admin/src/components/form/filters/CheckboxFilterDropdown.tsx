@@ -62,16 +62,10 @@ export function CheckboxFilterDropdown({
   }, [allSelectedText, isAllSelected, selectedCount, selectedLabels, selectedText]);
 
   return (
-    <div className="min-w-0 w-full">
+    <div className="w-full min-w-0">
       {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}
       <div ref={containerRef} className="relative">
-        <Button
-          type="button"
-          variant="outline"
-          size="default"
-          onClick={onToggleOpen}
-          className={filterTriggerClass}
-        >
+        <Button type="button" variant="outline" size="default" onClick={onToggleOpen} className={filterTriggerClass}>
           <span className="min-w-0 flex-1 truncate text-left">
             {selectedCount > 0 ? resolvedSelectedText : emptyLabel}
           </span>
@@ -79,7 +73,7 @@ export function CheckboxFilterDropdown({
         </Button>
 
         {isOpen ? (
-          <Card className="absolute z-20 mt-1 w-full rounded-lg p-2 shadow-lg  ">
+          <Card className="absolute z-20 mt-1 w-full rounded-lg p-2 shadow-lg">
             <div className="px-1 py-1 text-sm">
               <Checkbox label={allLabel} checked={isAllSelected} onChange={onToggleAll} />
             </div>

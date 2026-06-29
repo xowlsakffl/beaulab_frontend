@@ -54,10 +54,13 @@ export function GlobalAlertProvider({ children }: { children: ReactNode }) {
     dismissTimerIdsRef.current.delete(id);
   }, []);
 
-  const dismissAlert = React.useCallback((id: string) => {
-    clearDismissTimer(id);
-    setAlerts((prev) => prev.filter((alert) => alert.id !== id));
-  }, [clearDismissTimer]);
+  const dismissAlert = React.useCallback(
+    (id: string) => {
+      clearDismissTimer(id);
+      setAlerts((prev) => prev.filter((alert) => alert.id !== id));
+    },
+    [clearDismissTimer],
+  );
 
   const clearAlerts = React.useCallback(() => {
     dismissTimerIdsRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -65,31 +68,34 @@ export function GlobalAlertProvider({ children }: { children: ReactNode }) {
     setAlerts([]);
   }, []);
 
-  const showAlert = React.useCallback((input: GlobalAlertInput) => {
-    const nextId = input.id ?? createAlertId();
-    const durationMs = input.durationMs ?? DEFAULT_ALERT_DURATION_MS;
+  const showAlert = React.useCallback(
+    (input: GlobalAlertInput) => {
+      const nextId = input.id ?? createAlertId();
+      const durationMs = input.durationMs ?? DEFAULT_ALERT_DURATION_MS;
 
-    setAlerts((prev) => {
-      const nextAlert: GlobalAlertItem = {
-        ...input,
-        id: nextId,
-      };
+      setAlerts((prev) => {
+        const nextAlert: GlobalAlertItem = {
+          ...input,
+          id: nextId,
+        };
 
-      return [...prev.filter((alert) => alert.id !== nextId), nextAlert];
-    });
+        return [...prev.filter((alert) => alert.id !== nextId), nextAlert];
+      });
 
-    clearDismissTimer(nextId);
+      clearDismissTimer(nextId);
 
-    if (durationMs > 0) {
-      const timerId = window.setTimeout(() => {
-        dismissAlert(nextId);
-      }, durationMs);
+      if (durationMs > 0) {
+        const timerId = window.setTimeout(() => {
+          dismissAlert(nextId);
+        }, durationMs);
 
-      dismissTimerIdsRef.current.set(nextId, timerId);
-    }
+        dismissTimerIdsRef.current.set(nextId, timerId);
+      }
 
-    return nextId;
-  }, [clearDismissTimer, dismissAlert]);
+      return nextId;
+    },
+    [clearDismissTimer, dismissAlert],
+  );
 
   React.useEffect(() => {
     return () => {
@@ -123,7 +129,7 @@ export function GlobalAlertProvider({ children }: { children: ReactNode }) {
               title={alert.title}
               message={alert.message}
               onDismiss={() => dismissAlert(alert.id)}
-              className="border shadow-lg shadow-black/10 backdrop-blur-sm "
+              className="border shadow-lg shadow-black/10 backdrop-blur-sm"
             />
           </div>
         ))}

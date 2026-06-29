@@ -208,7 +208,8 @@ function getScrollContainer(node: HTMLElement | null): HTMLElement | Window {
   while (currentNode) {
     const style = window.getComputedStyle(currentNode);
     const overflowY = style.overflowY;
-    const canScroll = (overflowY === "auto" || overflowY === "scroll") && currentNode.scrollHeight > currentNode.clientHeight;
+    const canScroll =
+      (overflowY === "auto" || overflowY === "scroll") && currentNode.scrollHeight > currentNode.clientHeight;
 
     if (canScroll) {
       return currentNode;
@@ -353,9 +354,7 @@ function createDragPreview(sourceNode: HTMLElement, variant: "card" | "compact" 
 
   const rect = sourceNode.getBoundingClientRect();
   const clonedNode =
-    variant === "compact"
-      ? document.createElement("div")
-      : (sourceNode.cloneNode(true) as HTMLDivElement);
+    variant === "compact" ? document.createElement("div") : (sourceNode.cloneNode(true) as HTMLDivElement);
 
   if (variant === "compact") {
     clonedNode.textContent = "이미지 이동";
@@ -465,21 +464,21 @@ function MediaImagePreview({
 
   if (useNaturalSize && dimensions) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 ">
+      <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50">
         <Image
           src={url}
           alt={alt}
           width={dimensions.width}
           height={dimensions.height}
           unoptimized
-          className="h-auto w-auto max-h-full max-w-full object-contain"
+          className="h-auto max-h-full w-auto max-w-full object-contain"
         />
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full rounded-xl bg-gray-50 ">
+    <div className="relative h-full w-full rounded-xl bg-gray-50">
       <Image src={url} alt={alt} fill unoptimized className="object-contain" />
     </div>
   );
@@ -496,15 +495,13 @@ function MediaPreview({
 
   if (!url) {
     return (
-      <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500  ">
+      <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500">
         <ImageIcon className="size-10" />
       </div>
     );
   }
 
-  return (
-    <MediaImagePreview url={url} alt={file.name} previewBehavior={previewBehavior} />
-  );
+  return <MediaImagePreview url={url} alt={file.name} previewBehavior={previewBehavior} />;
 }
 
 function Dropzone({
@@ -568,10 +565,10 @@ function Dropzone({
         "min-h-[240px] p-6",
         disabled ? "pointer-events-none opacity-60" : "cursor-pointer",
         error
-          ? "border-error-500 bg-error-50/40 "
+          ? "border-error-500 bg-error-50/40"
           : isDragOver
-            ? "border-gray-400 bg-gray-100/80  "
-            : "border-gray-300 bg-gray-50  ",
+            ? "border-gray-400 bg-gray-100/80"
+            : "border-gray-300 bg-gray-50",
       ].join(" ")}
       onDragEnter={(event) => {
         event.preventDefault();
@@ -611,19 +608,19 @@ function Dropzone({
 
       {isDragOver ? (
         <div className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-brand-500">
-          <div className="absolute inset-0 rounded-2xl bg-white/30 backdrop-blur-[2px] " />
+          <div className="absolute inset-0 rounded-2xl bg-white/30 backdrop-blur-[2px]" />
         </div>
       ) : null}
 
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
         <div className="flex flex-col items-center justify-center gap-3 text-center">
-          <div className="grid size-12 place-items-center rounded-xl bg-black/5 ">
-            <UploadCloud className="size-5 text-gray-700 " />
+          <div className="grid size-12 place-items-center rounded-xl bg-black/5">
+            <UploadCloud className="size-5 text-gray-700" />
           </div>
 
           <div className="mx-auto w-full max-w-[220px] space-y-1 text-center">
-            <div className="text-sm font-semibold text-gray-900 ">{primaryText}</div>
-            <div className="text-xs text-gray-500 ">
+            <div className="text-sm font-semibold text-gray-900">{primaryText}</div>
+            <div className="text-xs text-gray-500">
               {secondaryText ?? (multiple ? "여러 파일 업로드 가능" : "1개 파일만 업로드 가능")}
             </div>
           </div>
@@ -632,7 +629,7 @@ function Dropzone({
 
       {footerText ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 px-6 pb-5">
-          <p className="text-center text-xs text-gray-500 ">{footerText}</p>
+          <p className="text-center text-xs text-gray-500">{footerText}</p>
         </div>
       ) : null}
     </label>
@@ -727,17 +724,15 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
     return (
       <div
         ref={ref}
-        className={`flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 lg:max-w-none   ${
+        className={`flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 lg:max-w-none ${
           isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""
         }`}
       >
-        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
-          {previewNode}
-        </div>
+        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">{previewNode}</div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 ">{file.name}</p>
-          <p className="mt-1 text-xs text-gray-500 ">{formatBytes(file.size)}</p>
+          <p className="truncate text-sm font-semibold text-gray-900">{file.name}</p>
+          <p className="mt-1 text-xs text-gray-500">{formatBytes(file.size)}</p>
         </div>
 
         <Button
@@ -761,18 +756,20 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
     <div
       ref={ref}
       data-media-card="true"
-      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200   ${
-        ""
-      } w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
+      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 ${""} w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
     >
-      <div className={`relative ${cardVariant === "imageOnly" ? "aspect-[76/49]" : "aspect-[4/3]"} overflow-hidden bg-gray-50 `}>
+      <div
+        className={`relative ${cardVariant === "imageOnly" ? "aspect-[76/49]" : "aspect-[4/3]"} overflow-hidden bg-gray-50`}
+      >
         {multiple ? (
           <div
             draggable
             onDragStart={(event) => {
               event.dataTransfer.effectAllowed = "move";
               const sourceCard = event.currentTarget.closest("[data-media-card]") as HTMLElement | null;
-              const dragPreview = sourceCard ? createDragPreview(sourceCard, cardVariant === "imageOnly" ? "compact" : "card") : null;
+              const dragPreview = sourceCard
+                ? createDragPreview(sourceCard, cardVariant === "imageOnly" ? "compact" : "card")
+                : null;
               if (dragPreview) {
                 event.dataTransfer.setDragImage(
                   dragPreview,
@@ -786,19 +783,19 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
               clearDragPreview();
               onDragEnd?.();
             }}
-            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none  "
+            className="absolute top-3 left-3 z-10 inline-flex cursor-grab items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none active:cursor-grabbing"
           >
             <GripVertical className="size-3.5" />
             순서 이동
           </div>
         ) : null}
         {multiple && isRepresentative && cardVariant !== "imageOnly" ? (
-          <div className="absolute right-3 top-3 z-10 rounded-full bg-brand-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+          <div className="absolute top-3 right-3 z-10 rounded-full bg-brand-500 px-2.5 py-1 text-[11px] font-semibold text-white">
             대표
           </div>
         ) : null}
         {cardVariant === "imageOnly" ? (
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
             {multiple && onMakeRepresentative ? (
               <Button
                 type="button"
@@ -811,7 +808,9 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
                 }}
                 title="대표 이미지로 설정"
               >
-                <Star className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"} />
+                <Star
+                  className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"}
+                />
               </Button>
             ) : null}
 
@@ -834,10 +833,10 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
       </div>
 
       {cardVariant !== "imageOnly" ? (
-        <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 ">
+        <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-gray-900 ">{file.name}</p>
-            <p className="text-xs text-gray-500 ">{formatBytes(file.size)}</p>
+            <p className="truncate text-sm font-semibold text-gray-900">{file.name}</p>
+            <p className="text-xs text-gray-500">{formatBytes(file.size)}</p>
           </div>
 
           <div className="flex items-center gap-1">
@@ -853,7 +852,9 @@ const MediaFileCard = React.forwardRef<HTMLDivElement, MediaFileCardProps>(funct
                 }}
                 title="대표 이미지로 설정"
               >
-                <Star className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"} />
+                <Star
+                  className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"}
+                />
               </Button>
             ) : null}
 
@@ -919,7 +920,7 @@ function ExistingMediaCard({
 
   const previewContent =
     item.isImage === false ? (
-      <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500  ">
+      <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-gray-500">
         <ImageIcon className="size-8" />
       </div>
     ) : (
@@ -935,14 +936,12 @@ function ExistingMediaCard({
 
   if (!multiple && previewBehavior === "natural-center") {
     return (
-      <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none  ">
-        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
-          {previewNode}
-        </div>
+      <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none">
+        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">{previewNode}</div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900 ">{item.name}</p>
-          <p className="mt-1 text-xs text-gray-500 ">
+          <p className="truncate text-sm font-semibold text-gray-900">{item.name}</p>
+          <p className="mt-1 text-xs text-gray-500">
             {[item.size ? formatBytes(item.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
           </p>
         </div>
@@ -969,18 +968,20 @@ function ExistingMediaCard({
   return (
     <div
       data-media-card="true"
-      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200   ${
-        ""
-      } w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
+      className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-[box-shadow,opacity,filter,transform] duration-200 ${""} w-full max-w-[500px] lg:max-w-none ${isDragging ? "scale-[0.985] opacity-45 shadow-lg saturate-75" : ""}`}
     >
-      <div className={`relative ${cardVariant === "imageOnly" ? "aspect-[76/49]" : "aspect-[4/3]"} overflow-hidden bg-gray-50 `}>
+      <div
+        className={`relative ${cardVariant === "imageOnly" ? "aspect-[76/49]" : "aspect-[4/3]"} overflow-hidden bg-gray-50`}
+      >
         {multiple && onDragStart ? (
           <div
             draggable
             onDragStart={(event) => {
               event.dataTransfer.effectAllowed = "move";
               const sourceCard = event.currentTarget.closest("[data-media-card]") as HTMLElement | null;
-              const dragPreview = sourceCard ? createDragPreview(sourceCard, cardVariant === "imageOnly" ? "compact" : "card") : null;
+              const dragPreview = sourceCard
+                ? createDragPreview(sourceCard, cardVariant === "imageOnly" ? "compact" : "card")
+                : null;
               if (dragPreview) {
                 event.dataTransfer.setDragImage(
                   dragPreview,
@@ -994,19 +995,19 @@ function ExistingMediaCard({
               clearDragPreview();
               onDragEnd?.();
             }}
-            className="absolute left-3 top-3 z-10 inline-flex cursor-grab active:cursor-grabbing items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none  "
+            className="absolute top-3 left-3 z-10 inline-flex cursor-grab items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[11px] font-medium text-gray-500 shadow-sm select-none active:cursor-grabbing"
           >
             <GripVertical className="size-3.5" />
             순서 이동
           </div>
         ) : null}
         {multiple && isRepresentative && cardVariant !== "imageOnly" ? (
-          <div className="absolute right-3 top-3 z-10 rounded-full bg-brand-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+          <div className="absolute top-3 right-3 z-10 rounded-full bg-brand-500 px-2.5 py-1 text-[11px] font-semibold text-white">
             대표
           </div>
         ) : null}
         {cardVariant === "imageOnly" ? (
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
             {multiple && onMakeRepresentative ? (
               <Button
                 type="button"
@@ -1019,7 +1020,9 @@ function ExistingMediaCard({
                 }}
                 title="대표 이미지로 설정"
               >
-                <Star className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"} />
+                <Star
+                  className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"}
+                />
               </Button>
             ) : null}
 
@@ -1044,10 +1047,10 @@ function ExistingMediaCard({
       </div>
 
       {cardVariant !== "imageOnly" ? (
-        <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3 ">
+        <div className="flex items-center justify-between gap-3 border-t border-gray-200 p-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-gray-900 ">{item.name}</p>
-            <p className="text-xs text-gray-500 ">
+            <p className="truncate text-sm font-semibold text-gray-900">{item.name}</p>
+            <p className="text-xs text-gray-500">
               {[item.size ? formatBytes(item.size) : null, "현재 파일"].filter(Boolean).join(" · ")}
             </p>
           </div>
@@ -1065,7 +1068,9 @@ function ExistingMediaCard({
                 }}
                 title="대표 이미지로 설정"
               >
-                <Star className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"} />
+                <Star
+                  className={isRepresentative ? "size-4 fill-yellow-400 text-yellow-500" : "size-4 text-gray-400"}
+                />
               </Button>
             ) : null}
 
@@ -1254,14 +1259,13 @@ function SortableExistingMediaList({
               itemIndex,
               resolveDropPositionWithBias(event, itemIndex, items.length, layout),
             );
-            setDropInsertionIndex((current) =>
-              current === insertionIndex ? current : insertionIndex,
-            );
+            setDropInsertionIndex((current) => (current === insertionIndex ? current : insertionIndex));
           }}
           onDrop={(event) => {
             if (draggedIndex === null || draggedIndex === itemIndex) return;
             event.preventDefault();
-            const insertionIndex = dropInsertionIndex ?? resolveInsertionIndex(itemIndex, resolveDropPosition(event, layout));
+            const insertionIndex =
+              dropInsertionIndex ?? resolveInsertionIndex(itemIndex, resolveDropPosition(event, layout));
             onReorder(reorderItemsByInsertionIndex(items, draggedIndex, insertionIndex));
             setDraggedIndex(null);
             setDropInsertionIndex(null);
@@ -1270,7 +1274,8 @@ function SortableExistingMediaList({
           {dropInsertionIndex !== null &&
           draggedIndex !== null &&
           draggedIndex !== itemIndex &&
-          (dropInsertionIndex === itemIndex || (itemIndex === items.length - 1 && dropInsertionIndex === itemIndex + 1)) ? (
+          (dropInsertionIndex === itemIndex ||
+            (itemIndex === items.length - 1 && dropInsertionIndex === itemIndex + 1)) ? (
             <DropIndicator position={dropInsertionIndex === itemIndex ? "before" : "after"} layout={layout} />
           ) : null}
           <ExistingMediaCard
@@ -1363,14 +1368,13 @@ function SortableMediaFileList({
                 fileIndex,
                 resolveDropPositionWithBias(event, fileIndex, files.length, layout),
               );
-              setDropInsertionIndex((current) =>
-                current === insertionIndex ? current : insertionIndex,
-              );
+              setDropInsertionIndex((current) => (current === insertionIndex ? current : insertionIndex));
             }}
             onDrop={(event) => {
               if (draggedIndex === null || draggedIndex === fileIndex) return;
               event.preventDefault();
-              const insertionIndex = dropInsertionIndex ?? resolveInsertionIndex(fileIndex, resolveDropPosition(event, layout));
+              const insertionIndex =
+                dropInsertionIndex ?? resolveInsertionIndex(fileIndex, resolveDropPosition(event, layout));
               onReorder(reorderItemsByInsertionIndex(files, draggedIndex, insertionIndex));
               setDraggedIndex(null);
               setDropInsertionIndex(null);
@@ -1379,7 +1383,8 @@ function SortableMediaFileList({
             {dropInsertionIndex !== null &&
             draggedIndex !== null &&
             draggedIndex !== fileIndex &&
-            (dropInsertionIndex === fileIndex || (fileIndex === files.length - 1 && dropInsertionIndex === fileIndex + 1)) ? (
+            (dropInsertionIndex === fileIndex ||
+              (fileIndex === files.length - 1 && dropInsertionIndex === fileIndex + 1)) ? (
               <DropIndicator position={dropInsertionIndex === fileIndex ? "before" : "after"} layout={layout} />
             ) : null}
             <MediaFileCard
@@ -1487,9 +1492,7 @@ function SortableMergedMediaList({
                 itemIndex,
                 resolveDropPositionWithBias(event, itemIndex, items.length, layout),
               );
-              setDropInsertionIndex((current) =>
-                current === insertionIndex ? current : insertionIndex,
-              );
+              setDropInsertionIndex((current) => (current === insertionIndex ? current : insertionIndex));
             }}
             onDrop={(event) => {
               if (!draggedToken || draggedToken === item.token) return;
@@ -1501,7 +1504,8 @@ function SortableMergedMediaList({
                 return;
               }
 
-              const insertionIndex = dropInsertionIndex ?? resolveInsertionIndex(dropIndex, resolveDropPosition(event, layout));
+              const insertionIndex =
+                dropInsertionIndex ?? resolveInsertionIndex(dropIndex, resolveDropPosition(event, layout));
               onReorder(reorderItemsByInsertionIndex(items, draggedIndex, insertionIndex));
               setDraggedToken(null);
               setDropInsertionIndex(null);
@@ -1510,7 +1514,8 @@ function SortableMergedMediaList({
             {dropInsertionIndex !== null &&
             draggedToken !== null &&
             draggedToken !== item.token &&
-            (dropInsertionIndex === itemIndex || (itemIndex === items.length - 1 && dropInsertionIndex === itemIndex + 1)) ? (
+            (dropInsertionIndex === itemIndex ||
+              (itemIndex === items.length - 1 && dropInsertionIndex === itemIndex + 1)) ? (
               <DropIndicator position={dropInsertionIndex === itemIndex ? "before" : "after"} layout={layout} />
             ) : null}
             {item.kind === "existing" ? (
@@ -1599,9 +1604,7 @@ export function MediaUploader<T extends string = string>({
 
   const addFiles = React.useCallback(
     async (collection: MediaCollectionConfig<T>, incoming: File[]) => {
-      const validatedIncomingFiles = onBeforeAddFiles
-        ? await onBeforeAddFiles(collection.key, incoming)
-        : incoming;
+      const validatedIncomingFiles = onBeforeAddFiles ? await onBeforeAddFiles(collection.key, incoming) : incoming;
 
       if (validatedIncomingFiles.length === 0) {
         return;
@@ -1645,255 +1648,274 @@ export function MediaUploader<T extends string = string>({
         );
       }
     },
-    [existingItemsByCollection, filesByCollection, getFileId, onBeforeAddFiles, onExistingItemsChange, onOrderChange, orderByCollection, setFiles],
+    [
+      existingItemsByCollection,
+      filesByCollection,
+      getFileId,
+      onBeforeAddFiles,
+      onExistingItemsChange,
+      onOrderChange,
+      orderByCollection,
+      setFiles,
+    ],
   );
 
   const content = collections.map((collection, index) => {
-          const files = filesByCollection[collection.key] ?? [];
-          const existingItems = existingItemsByCollection?.[collection.key] ?? [];
-          const error = errors?.[collection.key];
-          const isMultiple = collection.multiple ?? false;
-          const maxFiles = collection.maxFiles ?? (isMultiple ? 12 : 1);
-          const totalItemCount = files.length + existingItems.length;
-          const canAddMore = !isMultiple || totalItemCount < maxFiles;
-          const hasSelectedFiles = files.length > 0;
-          const hasExistingItems = existingItems.length > 0;
-          const canEditExistingItems = Boolean(onExistingItemsChange);
-          const canUseMergedOrdering = isMultiple && canEditExistingItems && Boolean(onOrderChange);
-          const shouldShowLabel = collection.showLabel ?? true;
-          const existingTokenMap = new Map(existingItems.map((item) => [buildExistingMediaToken(item), item]));
-          const newTokenMap = new Map(files.map((file) => [buildNewMediaToken(getFileId(file)), file]));
-          const defaultMergedOrder = [
-            ...existingItems.map((item) => buildExistingMediaToken(item)),
-            ...files.map((file) => buildNewMediaToken(getFileId(file))),
-          ];
-          const mergedOrder = canUseMergedOrdering
-            ? normalizeMediaOrder(orderByCollection?.[collection.key], defaultMergedOrder)
-            : defaultMergedOrder;
-          const mergedItems: MergedMediaEntry[] = canUseMergedOrdering
-            ? mergedOrder.reduce<MergedMediaEntry[]>((accumulator, token) => {
-                const existingItem = existingTokenMap.get(token);
-                if (existingItem) {
-                  accumulator.push({ token, kind: "existing", item: existingItem });
-                  return accumulator;
-                }
+    const files = filesByCollection[collection.key] ?? [];
+    const existingItems = existingItemsByCollection?.[collection.key] ?? [];
+    const error = errors?.[collection.key];
+    const isMultiple = collection.multiple ?? false;
+    const maxFiles = collection.maxFiles ?? (isMultiple ? 12 : 1);
+    const totalItemCount = files.length + existingItems.length;
+    const canAddMore = !isMultiple || totalItemCount < maxFiles;
+    const hasSelectedFiles = files.length > 0;
+    const hasExistingItems = existingItems.length > 0;
+    const canEditExistingItems = Boolean(onExistingItemsChange);
+    const canUseMergedOrdering = isMultiple && canEditExistingItems && Boolean(onOrderChange);
+    const shouldShowLabel = collection.showLabel ?? true;
+    const existingTokenMap = new Map(existingItems.map((item) => [buildExistingMediaToken(item), item]));
+    const newTokenMap = new Map(files.map((file) => [buildNewMediaToken(getFileId(file)), file]));
+    const defaultMergedOrder = [
+      ...existingItems.map((item) => buildExistingMediaToken(item)),
+      ...files.map((file) => buildNewMediaToken(getFileId(file))),
+    ];
+    const mergedOrder = canUseMergedOrdering
+      ? normalizeMediaOrder(orderByCollection?.[collection.key], defaultMergedOrder)
+      : defaultMergedOrder;
+    const mergedItems: MergedMediaEntry[] = canUseMergedOrdering
+      ? mergedOrder.reduce<MergedMediaEntry[]>((accumulator, token) => {
+          const existingItem = existingTokenMap.get(token);
+          if (existingItem) {
+            accumulator.push({ token, kind: "existing", item: existingItem });
+            return accumulator;
+          }
 
-                const newFile = newTokenMap.get(token);
-                if (newFile) {
-                  accumulator.push({ token, kind: "new", file: newFile });
-                }
+          const newFile = newTokenMap.get(token);
+          if (newFile) {
+            accumulator.push({ token, kind: "new", file: newFile });
+          }
 
-                return accumulator;
-              }, [])
-            : [];
-          const handlePreview = onPreview
-            ? (preview: MediaUploaderPreviewPayload) => {
-                onPreview(collection.key, preview);
-              }
-            : undefined;
+          return accumulator;
+        }, [])
+      : [];
+    const handlePreview = onPreview
+      ? (preview: MediaUploaderPreviewPayload) => {
+          onPreview(collection.key, preview);
+        }
+      : undefined;
 
-          const applyMergedOrder = (nextTokens: string[]) => {
-            if (!canUseMergedOrdering || !onOrderChange) {
-              return;
-            }
+    const applyMergedOrder = (nextTokens: string[]) => {
+      if (!canUseMergedOrdering || !onOrderChange) {
+        return;
+      }
 
-            const nextExistingItems = nextTokens
-              .map((token) => existingTokenMap.get(token))
-              .filter((item): item is ExistingMediaItem => Boolean(item));
-            const nextFiles = nextTokens
-              .map((token) => newTokenMap.get(token))
-              .filter((file): file is File => Boolean(file));
+      const nextExistingItems = nextTokens
+        .map((token) => existingTokenMap.get(token))
+        .filter((item): item is ExistingMediaItem => Boolean(item));
+      const nextFiles = nextTokens.map((token) => newTokenMap.get(token)).filter((file): file is File => Boolean(file));
 
-            const nextDefaultOrder = [
-              ...nextExistingItems.map((item) => buildExistingMediaToken(item)),
-              ...nextFiles.map((file) => buildNewMediaToken(getFileId(file))),
-            ];
-            const normalizedNextOrder = normalizeMediaOrder(nextTokens, nextDefaultOrder);
+      const nextDefaultOrder = [
+        ...nextExistingItems.map((item) => buildExistingMediaToken(item)),
+        ...nextFiles.map((file) => buildNewMediaToken(getFileId(file))),
+      ];
+      const normalizedNextOrder = normalizeMediaOrder(nextTokens, nextDefaultOrder);
 
-            setExistingItems(collection.key, nextExistingItems);
-            setFiles(collection.key, nextFiles);
-            onOrderChange(collection.key, normalizedNextOrder);
-          };
+      setExistingItems(collection.key, nextExistingItems);
+      setFiles(collection.key, nextFiles);
+      onOrderChange(collection.key, normalizedNextOrder);
+    };
 
     return (
       <section
         key={String(collection.key)}
         data-media-collection={String(collection.key)}
         tabIndex={-1}
-        className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8 "}`}
+        className={`space-y-4 ${index === 0 ? "" : "mt-8 border-t border-gray-200 pt-8"}`}
       >
         {shouldShowLabel ? (
           <div className="space-y-1.5">
-            <h4 className={`text-sm font-semibold ${error ? "text-error-600 " : "text-gray-800 "}`}>
+            <h4 className={`text-sm font-semibold ${error ? "text-error-600" : "text-gray-800"}`}>
               {collection.label}
             </h4>
           </div>
         ) : null}
 
-              {collection.hideDropzone ? (
-                <HiddenFileInput
-                  accept={collection.accept}
-                  multiple={isMultiple}
-                  disabled={!canAddMore}
-                  onPickFiles={(incoming) => {
-                    void addFiles(collection, incoming);
+        {collection.hideDropzone ? (
+          <HiddenFileInput
+            accept={collection.accept}
+            multiple={isMultiple}
+            disabled={!canAddMore}
+            onPickFiles={(incoming) => {
+              void addFiles(collection, incoming);
+            }}
+          />
+        ) : (
+          <Dropzone
+            accept={collection.accept}
+            multiple={isMultiple}
+            disabled={!canAddMore}
+            error={Boolean(error)}
+            variant={collection.dropzoneVariant}
+            primaryText={
+              collection.dropzoneVariant === "button"
+                ? collection.label
+                : files.length > 0 && !isMultiple
+                  ? "파일 교체"
+                  : undefined
+            }
+            secondaryText={
+              files.length > 0
+                ? isMultiple
+                  ? canAddMore
+                    ? "기존 파일은 유지되고 새 파일이 추가됩니다."
+                    : (collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드했습니다.`)
+                  : "새 파일을 선택하면 기존 파일을 대체합니다."
+                : hasExistingItems
+                  ? isMultiple
+                    ? "기존 파일을 유지하거나 삭제하고 새 파일을 추가할 수 있습니다."
+                    : "새 파일을 선택하면 기존 파일을 대체합니다."
+                  : collection.emptyText
+            }
+            footerText={
+              collection.dropzoneVariant === "button"
+                ? undefined
+                : [
+                    collection.helperText,
+                    isMultiple ? (collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드할 수 있습니다.`) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
+            }
+            onPickFiles={(incoming) => {
+              void addFiles(collection, incoming);
+            }}
+          />
+        )}
+
+        {isMultiple ? (
+          <>
+            {canUseMergedOrdering && totalItemCount > 0 ? (
+              <SortableMergedMediaList
+                items={mergedItems}
+                previewBehavior={collection.previewBehavior}
+                cardVariant={collection.cardVariant}
+                layout={layout}
+                onPreview={handlePreview}
+                onRemove={(token) => {
+                  applyMergedOrder(mergedOrder.filter((currentToken) => currentToken !== token));
+                }}
+                onMakeRepresentative={(token) => {
+                  if (mergedOrder[0] === token) return;
+
+                  applyMergedOrder([token, ...mergedOrder.filter((currentToken) => currentToken !== token)]);
+                }}
+                onReorder={(nextItems) => applyMergedOrder(nextItems.map((item) => item.token))}
+              />
+            ) : hasExistingItems ? (
+              canEditExistingItems ? (
+                <SortableExistingMediaList
+                  items={existingItems}
+                  previewBehavior={collection.previewBehavior}
+                  cardVariant={collection.cardVariant}
+                  layout={layout}
+                  onPreview={handlePreview}
+                  onRemove={(itemIndex) =>
+                    setExistingItems(
+                      collection.key,
+                      existingItems.filter((_, currentIndex) => currentIndex !== itemIndex),
+                    )
+                  }
+                  onMakeRepresentative={(itemIndex) => {
+                    if (itemIndex === 0) return;
+
+                    const nextItems = [
+                      existingItems[itemIndex],
+                      ...existingItems.filter((_, currentIndex) => currentIndex !== itemIndex),
+                    ];
+                    setExistingItems(collection.key, nextItems);
                   }}
+                  onReorder={(nextItems) => setExistingItems(collection.key, nextItems)}
                 />
               ) : (
-                <Dropzone
-                  accept={collection.accept}
-                  multiple={isMultiple}
-                  disabled={!canAddMore}
-                  error={Boolean(error)}
-                  variant={collection.dropzoneVariant}
-                  primaryText={
-                    collection.dropzoneVariant === "button"
-                      ? collection.label
-                      : files.length > 0 && !isMultiple
-                        ? "파일 교체"
-                        : undefined
-                  }
-                  secondaryText={
-                    files.length > 0
-                      ? isMultiple
-                        ? canAddMore
-                          ? "기존 파일은 유지되고 새 파일이 추가됩니다."
-                          : collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드했습니다.`
-                          : "새 파일을 선택하면 기존 파일을 대체합니다."
-                      : hasExistingItems
-                        ? isMultiple
-                          ? "기존 파일을 유지하거나 삭제하고 새 파일을 추가할 수 있습니다."
-                          : "새 파일을 선택하면 기존 파일을 대체합니다."
-                        : collection.emptyText
-                  }
-                  footerText={
-                    collection.dropzoneVariant === "button"
-                      ? undefined
-                      : [collection.helperText, isMultiple ? collection.maxFilesText ?? `최대 ${maxFiles}장까지 업로드할 수 있습니다.` : null]
-                          .filter(Boolean)
-                          .join(" · ")
-                  }
-                  onPickFiles={(incoming) => {
-                    void addFiles(collection, incoming);
-                  }}
+                <ExistingMediaList
+                  items={existingItems}
+                  multiple
+                  previewBehavior={collection.previewBehavior}
+                  cardVariant={collection.cardVariant}
+                  layout={layout}
+                  onPreview={handlePreview}
                 />
-              )}
+              )
+            ) : null}
 
-              {isMultiple ? (
-                <>
-                  {canUseMergedOrdering && totalItemCount > 0 ? (
-                    <SortableMergedMediaList
-                      items={mergedItems}
-                      previewBehavior={collection.previewBehavior}
-                      cardVariant={collection.cardVariant}
-                      layout={layout}
-                      onPreview={handlePreview}
-                      onRemove={(token) => {
-                        applyMergedOrder(mergedOrder.filter((currentToken) => currentToken !== token));
-                      }}
-                      onMakeRepresentative={(token) => {
-                        if (mergedOrder[0] === token) return;
+            {!canUseMergedOrdering && hasSelectedFiles ? (
+              <SortableMediaFileList
+                files={files}
+                getFileId={getFileId}
+                previewBehavior={collection.previewBehavior}
+                cardVariant={collection.cardVariant}
+                layout={layout}
+                representativeOffset={existingItems.length}
+                allowRepresentative={existingItems.length === 0}
+                onPreview={handlePreview}
+                onRemove={(fileIndex) =>
+                  setFiles(
+                    collection.key,
+                    files.filter((_, currentIndex) => currentIndex !== fileIndex),
+                  )
+                }
+                onMakeRepresentative={(fileIndex) => {
+                  if (fileIndex === 0) return;
 
-                        applyMergedOrder([token, ...mergedOrder.filter((currentToken) => currentToken !== token)]);
-                      }}
-                      onReorder={(nextItems) => applyMergedOrder(nextItems.map((item) => item.token))}
-                    />
-                  ) : hasExistingItems ? (
-                    canEditExistingItems ? (
-                      <SortableExistingMediaList
-                        items={existingItems}
-                        previewBehavior={collection.previewBehavior}
-                        cardVariant={collection.cardVariant}
-                        layout={layout}
-                        onPreview={handlePreview}
-                        onRemove={(itemIndex) =>
-                          setExistingItems(
-                            collection.key,
-                            existingItems.filter((_, currentIndex) => currentIndex !== itemIndex),
-                          )
-                        }
-                        onMakeRepresentative={(itemIndex) => {
-                          if (itemIndex === 0) return;
-
-                          const nextItems = [existingItems[itemIndex], ...existingItems.filter((_, currentIndex) => currentIndex !== itemIndex)];
-                          setExistingItems(collection.key, nextItems);
-                        }}
-                        onReorder={(nextItems) => setExistingItems(collection.key, nextItems)}
-                      />
-                    ) : (
-                      <ExistingMediaList
-                        items={existingItems}
-                        multiple
-                        previewBehavior={collection.previewBehavior}
-                        cardVariant={collection.cardVariant}
-                        layout={layout}
-                        onPreview={handlePreview}
-                      />
-                    )
-                  ) : null}
-
-                  {!canUseMergedOrdering && hasSelectedFiles ? (
-                    <SortableMediaFileList
-                      files={files}
-                      getFileId={getFileId}
-                      previewBehavior={collection.previewBehavior}
-                      cardVariant={collection.cardVariant}
-                      layout={layout}
-                      representativeOffset={existingItems.length}
-                      allowRepresentative={existingItems.length === 0}
-                      onPreview={handlePreview}
-                      onRemove={(fileIndex) => setFiles(collection.key, files.filter((_, currentIndex) => currentIndex !== fileIndex))}
-                      onMakeRepresentative={(fileIndex) => {
-                        if (fileIndex === 0) return;
-
-                        const nextFiles = [files[fileIndex], ...files.filter((_, currentIndex) => currentIndex !== fileIndex)];
-                        setFiles(collection.key, nextFiles);
-                      }}
-                      onReorder={(nextFiles) => setFiles(collection.key, nextFiles)}
-                    />
-                  ) : null}
-                </>
-              ) : hasSelectedFiles ? (
-                <div className="pt-2">
-                  <MediaFileCard
-                    file={files[0]}
-                    index={0}
-                    multiple={false}
-                    isRepresentative={false}
-                    previewBehavior={collection.previewBehavior}
-                    cardVariant={collection.cardVariant}
-                    onPreview={handlePreview}
-                    onRemove={() => setFiles(collection.key, [])}
-                  />
-                </div>
-              ) : hasExistingItems ? (
-                canEditExistingItems ? (
-                  <div className="pt-2">
-                    <ExistingMediaCard
-                      item={existingItems[0]}
-                      index={0}
-                      multiple={false}
-                      isRepresentative={false}
-                      previewBehavior={collection.previewBehavior}
-                      cardVariant={collection.cardVariant}
-                      onPreview={handlePreview}
-                      onRemove={() => setExistingItems(collection.key, [])}
-                    />
-                  </div>
-                ) : (
-                  <ExistingMediaList
-                    items={existingItems}
-                    multiple={false}
-                    previewBehavior={collection.previewBehavior}
-                    cardVariant={collection.cardVariant}
-                    onPreview={handlePreview}
-                  />
-                )
-              ) : null}
-
-        {error ? (
-          <p className="text-xs text-error-500">{error}</p>
+                  const nextFiles = [
+                    files[fileIndex],
+                    ...files.filter((_, currentIndex) => currentIndex !== fileIndex),
+                  ];
+                  setFiles(collection.key, nextFiles);
+                }}
+                onReorder={(nextFiles) => setFiles(collection.key, nextFiles)}
+              />
+            ) : null}
+          </>
+        ) : hasSelectedFiles ? (
+          <div className="pt-2">
+            <MediaFileCard
+              file={files[0]}
+              index={0}
+              multiple={false}
+              isRepresentative={false}
+              previewBehavior={collection.previewBehavior}
+              cardVariant={collection.cardVariant}
+              onPreview={handlePreview}
+              onRemove={() => setFiles(collection.key, [])}
+            />
+          </div>
+        ) : hasExistingItems ? (
+          canEditExistingItems ? (
+            <div className="pt-2">
+              <ExistingMediaCard
+                item={existingItems[0]}
+                index={0}
+                multiple={false}
+                isRepresentative={false}
+                previewBehavior={collection.previewBehavior}
+                cardVariant={collection.cardVariant}
+                onPreview={handlePreview}
+                onRemove={() => setExistingItems(collection.key, [])}
+              />
+            </div>
+          ) : (
+            <ExistingMediaList
+              items={existingItems}
+              multiple={false}
+              previewBehavior={collection.previewBehavior}
+              cardVariant={collection.cardVariant}
+              onPreview={handlePreview}
+            />
+          )
         ) : null}
+
+        {error ? <p className="text-xs text-error-500">{error}</p> : null}
       </section>
     );
   });

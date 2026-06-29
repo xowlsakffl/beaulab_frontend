@@ -25,50 +25,47 @@ const SESSION_KEY_PREFIX = "beaulab.session.";
  * 브라우저 환경 체크
  */
 function isBrowser(): boolean {
-    return typeof window !== "undefined";
+  return typeof window !== "undefined";
 }
 
 /**
  * Actor별 token 저장소
  */
 export const tokenStorage = {
-    get(actor: ActorType): string | null {
-        if (!isBrowser()) return null;
-        return window.localStorage.getItem(TOKEN_KEY_PREFIX + actor);
-    },
+  get(actor: ActorType): string | null {
+    if (!isBrowser()) return null;
+    return window.localStorage.getItem(TOKEN_KEY_PREFIX + actor);
+  },
 
-    set(actor: ActorType, token: string): void {
-        if (!isBrowser()) return;
-        window.localStorage.setItem(TOKEN_KEY_PREFIX + actor, token);
-    },
+  set(actor: ActorType, token: string): void {
+    if (!isBrowser()) return;
+    window.localStorage.setItem(TOKEN_KEY_PREFIX + actor, token);
+  },
 
-    clear(actor: ActorType): void {
-        if (!isBrowser()) return;
-        window.localStorage.removeItem(TOKEN_KEY_PREFIX + actor);
-    },
+  clear(actor: ActorType): void {
+    if (!isBrowser()) return;
+    window.localStorage.removeItem(TOKEN_KEY_PREFIX + actor);
+  },
 };
 
 /**
  * Actor별 session 저장소
  */
 export const sessionStorage = {
-    get<TActor extends ActorType>(actor: TActor): ActorSessionMap[TActor] | null {
-        if (!isBrowser()) return null;
+  get<TActor extends ActorType>(actor: TActor): ActorSessionMap[TActor] | null {
+    if (!isBrowser()) return null;
 
-        const raw = window.localStorage.getItem(SESSION_KEY_PREFIX + actor);
-        return raw ? (JSON.parse(raw) as ActorSessionMap[TActor]) : null;
-    },
+    const raw = window.localStorage.getItem(SESSION_KEY_PREFIX + actor);
+    return raw ? (JSON.parse(raw) as ActorSessionMap[TActor]) : null;
+  },
 
-    set<TActor extends ActorType>(actor: TActor, session: ActorSessionMap[TActor]): void {
-        if (!isBrowser()) return;
-        window.localStorage.setItem(
-            SESSION_KEY_PREFIX + actor,
-            JSON.stringify(session)
-        );
-    },
+  set<TActor extends ActorType>(actor: TActor, session: ActorSessionMap[TActor]): void {
+    if (!isBrowser()) return;
+    window.localStorage.setItem(SESSION_KEY_PREFIX + actor, JSON.stringify(session));
+  },
 
-    clear(actor: ActorType): void {
-        if (!isBrowser()) return;
-        window.localStorage.removeItem(SESSION_KEY_PREFIX + actor);
-    },
+  clear(actor: ActorType): void {
+    if (!isBrowser()) return;
+    window.localStorage.removeItem(SESSION_KEY_PREFIX + actor);
+  },
 };

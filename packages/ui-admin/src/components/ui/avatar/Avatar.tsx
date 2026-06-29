@@ -32,28 +32,16 @@ const statusColorClasses = {
   busy: "bg-warning-500",
 };
 
-const Avatar: React.FC<AvatarProps> = ({
-  src,
-  alt = "User Avatar",
-  size = "medium",
-  status = "none",
-}) => {
+const Avatar: React.FC<AvatarProps> = ({ src, alt = "User Avatar", size = "medium", status = "none" }) => {
   return (
-    <div className={`relative  rounded-full ${sizeClasses[size]}`}>
+    <div className={`relative rounded-full ${sizeClasses[size]}`}>
       {/* Avatar Image */}
-      <Image
-        width="0"
-        height="0"
-        sizes="100vw"
-        src={src}
-        alt={alt}
-        className="object-cover w-full rounded-full"
-      />
+      <Image width="0" height="0" sizes="100vw" src={src} alt={alt} className="w-full rounded-full object-cover" />
 
       {/* Status Indicator */}
       {status !== "none" && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full border-[1.5px] border-white  ${
+          className={`absolute right-0 bottom-0 rounded-full border-[1.5px] border-white ${
             statusSizeClasses[size]
           } ${statusColorClasses[status] || ""}`}
         ></span>

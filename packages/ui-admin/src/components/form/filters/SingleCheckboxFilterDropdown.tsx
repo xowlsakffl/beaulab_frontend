@@ -63,7 +63,7 @@ export function SingleCheckboxFilterDropdown({
   };
 
   return (
-    <div className={["min-w-0 w-full", className].filter(Boolean).join(" ")}>
+    <div className={["w-full min-w-0", className].filter(Boolean).join(" ")}>
       {!hideLabel ? <p className={filterFieldLabelClass}>{label}</p> : null}
       <div ref={containerRef} className="relative">
         <Button
@@ -72,11 +72,9 @@ export function SingleCheckboxFilterDropdown({
           size="default"
           disabled={disabled}
           onClick={() => setIsOpen((current) => !current)}
-          className={[
-            filterTriggerClass,
-            disabled ? "cursor-not-allowed opacity-60" : "",
-            triggerClassName,
-          ].filter(Boolean).join(" ")}
+          className={[filterTriggerClass, disabled ? "cursor-not-allowed opacity-60" : "", triggerClassName]
+            .filter(Boolean)
+            .join(" ")}
         >
           <span className="min-w-0 flex-1 truncate text-left">{selectedLabel}</span>
           <ChevronDown className="size-4" />

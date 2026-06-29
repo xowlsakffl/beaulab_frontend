@@ -5,14 +5,7 @@ import * as React from "react";
 import { cn } from "../../../lib/utils";
 
 export type ButtonVariant =
-  | "default"
-  | "destructive"
-  | "outline"
-  | "secondary"
-  | "ghost"
-  | "link"
-  | "brand"
-  | "brandOutline";
+  "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "brand" | "brandOutline";
 export type ButtonSize = "default" | "sm" | "lg" | "icon" | "auth" | "filter";
 
 const baseClassName =
@@ -20,10 +13,8 @@ const baseClassName =
 
 const variantClassNames: Record<ButtonVariant, string> = {
   default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
-  destructive:
-    "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 ",
-  outline:
-    "border border-input bg-background text-gray-700 shadow-xs hover:bg-accent hover:text-accent-foreground  ",
+  destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 ",
+  outline: "border border-input bg-background text-gray-700 shadow-xs hover:bg-accent hover:text-accent-foreground  ",
   secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
   ghost: "hover:bg-accent hover:text-accent-foreground",
   link: "text-primary underline-offset-4 hover:underline",
@@ -47,7 +38,14 @@ export interface ButtonProps extends React.ComponentProps<"button"> {
   asChild?: boolean;
 }
 
-function Button({ className, variant = "default", size = "default", asChild = false, children, ...props }: ButtonProps) {
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  asChild = false,
+  children,
+  ...props
+}: ButtonProps) {
   const mergedClassName = cn(baseClassName, variantClassNames[variant], sizeClassNames[size], className);
 
   if (asChild && React.isValidElement(children)) {

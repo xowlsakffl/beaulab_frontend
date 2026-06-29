@@ -29,23 +29,19 @@ const Alert: React.FC<AlertProps> = ({
   // Tailwind classes for each variant
   const variantClasses = {
     success: {
-      container:
-        "border-success-500 bg-success-50  ",
+      container: "border-success-500 bg-success-50  ",
       icon: "text-success-500",
     },
     error: {
-      container:
-        "border-error-500 bg-error-50  ",
+      container: "border-error-500 bg-error-50  ",
       icon: "text-error-500",
     },
     warning: {
-      container:
-        "border-warning-500 bg-warning-50  ",
+      container: "border-warning-500 bg-warning-50  ",
       icon: "text-warning-500",
     },
     info: {
-      container:
-        "border-blue-light-500 bg-blue-light-50  ",
+      container: "border-blue-light-500 bg-blue-light-50  ",
       icon: "text-blue-light-500",
     },
   };
@@ -53,13 +49,7 @@ const Alert: React.FC<AlertProps> = ({
   // Icon for each variant
   const icons = {
     success: (
-      <svg
-        className="fill-current"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path
           fillRule="evenodd"
           clipRule="evenodd"
@@ -121,26 +111,17 @@ const Alert: React.FC<AlertProps> = ({
   };
 
   return (
-    <div
-      className={twMerge("rounded-xl border p-4", variantClasses[variant].container, className)}
-    >
+    <div className={twMerge("rounded-xl border p-4", variantClasses[variant].container, className)}>
       <div className="flex items-start gap-3">
-        <div className={`-mt-0.5 ${variantClasses[variant].icon}`}>
-          {icons[variant]}
-        </div>
+        <div className={`-mt-0.5 ${variantClasses[variant].icon}`}>{icons[variant]}</div>
 
         <div className="min-w-0 flex-1">
-          <h4 className="mb-1 text-sm font-semibold text-gray-800 ">
-            {title}
-          </h4>
+          <h4 className="mb-1 text-sm font-semibold text-gray-800">{title}</h4>
 
-          <p className="text-sm text-gray-500 ">{message}</p>
+          <p className="text-sm text-gray-500">{message}</p>
 
           {showLink && (
-            <Link
-              href={linkHref}
-              className="inline-block mt-3 text-sm font-medium text-gray-500 underline "
-            >
+            <Link href={linkHref} className="mt-3 inline-block text-sm font-medium text-gray-500 underline">
               {linkText}
             </Link>
           )}
@@ -151,7 +132,7 @@ const Alert: React.FC<AlertProps> = ({
             type="button"
             onClick={onDismiss}
             aria-label={dismissLabel}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white/70 hover:text-gray-600  "
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white/70 hover:text-gray-600"
           >
             <X className="h-4 w-4" />
           </button>

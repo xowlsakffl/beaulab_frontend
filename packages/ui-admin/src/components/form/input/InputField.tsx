@@ -58,7 +58,7 @@ export const InputField: FC<InputProps> = ({
           ? "text-success-500 border-success-400 focus:ring-success-500/10 focus:border-success-300  "
           : "bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10    ",
     readOnly && !disabled ? "cursor-default" : undefined,
-    className
+    className,
   );
 
   const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {

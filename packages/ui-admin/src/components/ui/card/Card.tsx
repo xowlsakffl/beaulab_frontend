@@ -10,11 +10,7 @@ type CardProps = React.HTMLAttributes<HTMLElement> & {
 
 function Card({ as: Component = "div", className, children, ...props }: CardProps) {
   return (
-    <Component
-      data-slot="card"
-      className={cn("rounded-2xl border border-gray-200 bg-white p-5  ", className)}
-      {...props}
-    >
+    <Component data-slot="card" className={cn("rounded-2xl border border-gray-200 bg-white p-5", className)} {...props}>
       {children}
     </Component>
   );
@@ -25,11 +21,11 @@ function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement
 }
 
 function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 data-slot="card-title" className={cn("text-sm font-semibold text-gray-800 ", className)} {...props} />;
+  return <h3 data-slot="card-title" className={cn("text-sm font-semibold text-gray-800", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p data-slot="card-description" className={cn("text-sm text-gray-500 ", className)} {...props} />;
+  return <p data-slot="card-description" className={cn("text-sm text-gray-500", className)} {...props} />;
 }
 
 function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

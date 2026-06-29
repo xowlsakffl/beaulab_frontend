@@ -45,11 +45,11 @@ export function TogglePillGroup({
             aria-pressed={isSelected}
             onClick={() => onToggle(option.value, !isSelected)}
             className={cn(
-              "inline-flex items-center rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+              "inline-flex items-center rounded-full font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
               sizeClassNames[size],
               isSelected
-                ? "bg-brand-50 text-brand-700 hover:bg-brand-100 focus-visible:ring-brand-300   "
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300   ",
+                ? "bg-brand-50 text-brand-700 hover:bg-brand-100 focus-visible:ring-brand-300"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-300",
               optionClassName,
             )}
           >

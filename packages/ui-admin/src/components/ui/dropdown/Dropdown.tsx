@@ -4,38 +4,38 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 
 interface DropdownProps {
-    isOpen: boolean;
-    onClose: () => void;
-    children: ReactNode;
-    className?: string;
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  className?: string;
 }
 
 export function Dropdown({ isOpen, onClose, children, className = "" }: DropdownProps) {
-    const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node) &&
-                !(event.target as HTMLElement).closest(".dropdown-toggle")
-            ) {
-                onClose();
-            }
-        };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !(event.target as HTMLElement).closest(".dropdown-toggle")
+      ) {
+        onClose();
+      }
+    };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [onClose]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
 
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    return (
-        <div
-            ref={dropdownRef}
-            className={`absolute z-40 right-0 mt-2 rounded-xl border border-gray-200 bg-white shadow-theme-lg   ${className}`}
-        >
-            {children}
-        </div>
-    );
+  return (
+    <div
+      ref={dropdownRef}
+      className={`absolute right-0 z-40 mt-2 rounded-xl border border-gray-200 bg-white shadow-theme-lg ${className}`}
+    >
+      {children}
+    </div>
+  );
 }

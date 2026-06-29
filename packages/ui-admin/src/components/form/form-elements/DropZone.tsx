@@ -20,25 +20,21 @@ const DropzoneComponent: React.FC = () => {
   });
   return (
     <ComponentCard title="Dropzone">
-      <div className="transition border border-gray-300 border-dashed cursor-pointer   rounded-xl hover:border-brand-500">
+      <div className="cursor-pointer rounded-xl border border-dashed border-gray-300 transition hover:border-brand-500">
         <form
           {...getRootProps()}
-          className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
-        ${
-          isDragActive
-            ? "border-brand-500 bg-gray-100 "
-            : "border-gray-300 bg-gray-50  "
-        }
-      `}
+          className={`dropzone rounded-xl border-dashed border-gray-300 p-7 lg:p-10 ${
+            isDragActive ? "border-brand-500 bg-gray-100" : "border-gray-300 bg-gray-50"
+          } `}
           id="demo-upload"
         >
           {/* Hidden Input */}
           <input {...getInputProps()} />
 
-          <div className="dz-message flex flex-col items-center m-0!">
+          <div className="dz-message m-0! flex flex-col items-center">
             {/* Icon Container */}
             <div className="mb-[22px] flex justify-center">
-              <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700  ">
+              <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-gray-200 text-gray-700">
                 <svg
                   className="fill-current"
                   width="29"
@@ -56,17 +52,15 @@ const DropzoneComponent: React.FC = () => {
             </div>
 
             {/* Text Content */}
-            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl ">
+            <h4 className="mb-3 text-theme-xl font-semibold text-gray-800">
               {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
             </h4>
 
-            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 ">
+            <span className="mb-5 block w-full max-w-[290px] text-center text-sm text-gray-700">
               Drag and drop your PNG, JPG, WebP, SVG images here or browse
             </span>
 
-            <span className="font-medium underline text-theme-sm text-brand-500">
-              Browse File
-            </span>
+            <span className="text-theme-sm font-medium text-brand-500 underline">Browse File</span>
           </div>
         </form>
       </div>

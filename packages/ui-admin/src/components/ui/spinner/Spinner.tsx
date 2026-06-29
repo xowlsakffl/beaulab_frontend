@@ -17,12 +17,7 @@ type SpinnerBlockProps = {
 export function Spinner({ className, label = "로딩 중" }: SpinnerProps) {
   return (
     <span className="inline-flex items-center justify-center" role="status" aria-live="polite">
-      <svg
-        className={cn("size-4 animate-spin text-gray-400 ", className)}
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden
-      >
+      <svg className={cn("size-4 animate-spin text-gray-400", className)} viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.2" strokeWidth="4" />
         <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" />
       </svg>
@@ -34,7 +29,7 @@ export function Spinner({ className, label = "로딩 중" }: SpinnerProps) {
 export function SpinnerBlock({ className, spinnerClassName, label = "로딩 중" }: SpinnerBlockProps) {
   return (
     <div className={cn("flex items-center justify-center", className)}>
-      <Spinner className={cn("size-6 text-brand-500 ", spinnerClassName)} label={label} />
+      <Spinner className={cn("size-6 text-brand-500", spinnerClassName)} label={label} />
     </div>
   );
 }

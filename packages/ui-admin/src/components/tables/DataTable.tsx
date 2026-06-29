@@ -48,11 +48,10 @@ type DataTableProps<T> = {
   getRowClassName?: (row: T) => string | undefined;
 };
 
-const DEFAULT_HEADER_CELL =
-  "px-5 py-3 font-semibold text-gray-600 text-left text-theme-xs ";
+const DEFAULT_HEADER_CELL = "px-5 py-3 font-semibold text-gray-600 text-left text-theme-xs ";
 
 function Skeleton({ className = "h-4 w-[70%]" }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-gray-200/80  ${className}`} />;
+  return <div className={`animate-pulse rounded bg-gray-200/80 ${className}`} />;
 }
 
 export function DataTable<T>({
@@ -89,7 +88,7 @@ export function DataTable<T>({
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
   const defaultFooterSummary = meta ? (
-    <div className="text-sm text-gray-500 ">
+    <div className="text-sm text-gray-500">
       총 {meta.total.toLocaleString()}개 · {meta.current_page} / {Math.max(1, totalPages)} 페이지
     </div>
   ) : null;
@@ -108,7 +107,7 @@ export function DataTable<T>({
       type="button"
       onClick={onRefresh}
       disabled={refreshing}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60   "
+      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
       title="새로고침"
     >
       {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
@@ -148,15 +147,15 @@ export function DataTable<T>({
   }, [columns.length, error, loading, rows.length]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white  ">
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white">
       {(title || description || rightActions || onRefresh) && (
         <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-4">
           <div className="flex shrink-0 items-center gap-3">
             {refreshPlacement === "left" ? refreshControl : null}
             {title || description ? (
               <div>
-                {title ? <h3 className="text-base font-semibold text-gray-800 ">{title}</h3> : null}
-                {description ? <p className="mt-1 text-theme-xs text-gray-500 ">{description}</p> : null}
+                {title ? <h3 className="text-base font-semibold text-gray-800">{title}</h3> : null}
+                {description ? <p className="mt-1 text-theme-xs text-gray-500">{description}</p> : null}
               </div>
             ) : null}
           </div>
@@ -169,9 +168,13 @@ export function DataTable<T>({
       )}
 
       <div className="relative">
-        <div ref={scrollContainerRef} className="max-w-full overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div
+          ref={scrollContainerRef}
+          className="max-w-full overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <Table className={tableClassName ?? "w-max min-w-full"}>
-            <TableHeader className="border-b border-gray-100 ">
+            <TableHeader className="border-b border-gray-100">
               <TableRow>
                 {columns.map((column) => (
                   <TableCell key={column.key} isHeader className={column.headerClassName ?? DEFAULT_HEADER_CELL}>
@@ -181,7 +184,7 @@ export function DataTable<T>({
               </TableRow>
             </TableHeader>
 
-            <TableBody className="divide-y divide-gray-100 ">
+            <TableBody className="divide-y divide-gray-100">
               {!loading && error ? (
                 <TableRow>
                   <TableCell className="px-5 py-6 text-center text-theme-sm text-rose-600" colSpan={colCount}>
@@ -190,31 +193,34 @@ export function DataTable<T>({
                 </TableRow>
               ) : null}
 
-              {loading
-                ? loadingVariant === "spinner"
-                  ? (
-                    <TableRow>
-                      <TableCell className="px-5 py-16" colSpan={colCount}>
-                        <div className="flex items-center justify-center">
-                          <Spinner className="size-8 text-brand-500 " label={loadingLabel} />
-                        </div>
-                      </TableCell>
+              {loading ? (
+                loadingVariant === "spinner" ? (
+                  <TableRow>
+                    <TableCell className="px-5 py-16" colSpan={colCount}>
+                      <div className="flex items-center justify-center">
+                        <Spinner className="size-8 text-brand-500" label={loadingLabel} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                    <TableRow key={`sk-${rowIndex}`}>
+                      {columns.map((column, cellIndex) => (
+                        <TableCell
+                          key={`${column.key}-${cellIndex}`}
+                          className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}
+                        >
+                          <Skeleton className="h-4 w-[70%]" />
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  )
-                  : Array.from({ length: skeletonRows }).map((_, rowIndex) => (
-                      <TableRow key={`sk-${rowIndex}`}>
-                        {columns.map((column, cellIndex) => (
-                          <TableCell key={`${column.key}-${cellIndex}`} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
-                            <Skeleton className="h-4 w-[70%]" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                : null}
+                  ))
+                )
+              ) : null}
 
               {!loading && !error && rows.length === 0 ? (
                 <TableRow>
-                  <TableCell className="px-5 py-10 text-center text-theme-sm text-gray-500 " colSpan={colCount}>
+                  <TableCell className="px-5 py-10 text-center text-theme-sm text-gray-500" colSpan={colCount}>
                     {emptyText}
                   </TableCell>
                 </TableRow>
@@ -223,32 +229,27 @@ export function DataTable<T>({
               {!loading && !error
                 ? rows.map((row) => {
                     const rowClassName =
-                      [
-                        onRowClick ? "cursor-pointer hover:bg-gray-50 " : "",
-                        getRowClassName?.(row) ?? "",
-                      ]
+                      [onRowClick ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName?.(row) ?? ""]
                         .filter(Boolean)
                         .join(" ") || undefined;
 
                     return (
-                    <TableRow
-                      key={getRowKey(row)}
-                      className={rowClassName}
-                      onClick={() => onRowClick?.(row)}
-                    >
-                      {columns.map((column) => (
-                        <TableCell key={column.key} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6 "}>
-                          {column.render(row)}
-                        </TableCell>
-                      ))}
-                    </TableRow>
+                      <TableRow key={getRowKey(row)} className={rowClassName} onClick={() => onRowClick?.(row)}>
+                        {columns.map((column) => (
+                          <TableCell
+                            key={column.key}
+                            className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}
+                          >
+                            {column.render(row)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     );
                   })
                 : null}
             </TableBody>
           </Table>
         </div>
-
       </div>
 
       {shouldShowFooter ? (
@@ -274,7 +275,7 @@ export function DataTable<T>({
       {showRightScrollHint ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-2 border-r border-slate-900/12 bg-gradient-to-l from-slate-900/14 via-slate-900/6 to-transparent   "
+          className="pointer-events-none absolute inset-y-0 right-0 w-2 border-r border-slate-900/12 bg-gradient-to-l from-slate-900/14 via-slate-900/6 to-transparent"
         />
       ) : null}
     </div>
