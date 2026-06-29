@@ -44,6 +44,13 @@ function renderSortMark(field: ReportedContentSortField, sortState: ReportedCont
   return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
+function loadingLabelForKind(kind: ReportedContentKind) {
+  if (kind === "chat") return "신고 채팅 목록 불러오는 중";
+  if (kind === "review-comment" || kind === "talk-comment") return "신고 댓글 목록 불러오는 중";
+
+  return "신고게시물 목록 불러오는 중";
+}
+
 function SortHeader({
   field,
   label,
@@ -514,6 +521,8 @@ export function ReportedContentDataTable({
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
+      loadingVariant="spinner"
+      loadingLabel={loadingLabelForKind(kind)}
       loading={loading}
       refreshing={refreshing}
       error={error}
