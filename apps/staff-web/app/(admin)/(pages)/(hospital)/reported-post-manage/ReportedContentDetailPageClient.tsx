@@ -17,18 +17,17 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
-  Pagination,
   SpinnerBlock,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
-import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
+import { ReportedOriginalHistoryCard } from "@/components/reported-content/detail/ReportedOriginalHistoryCard";
+import {
+  VisibilityActionButtons,
+  VisibilityConfirmModal,
+} from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
@@ -482,10 +481,10 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
               onChangeVisibility={requestTalkVisibility}
             />
             <ReportedOriginalHistoryCard
-              kind={config.kind}
               histories={histories}
               meta={historiesMeta}
               refreshing={refreshing}
+              formatDate={(history) => formatHistoryDate(config.kind, history)}
               onGoPage={changeHistoriesPage}
             />
           </div>
@@ -499,61 +498,17 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           </div>
         </div>
 
-        <Modal
+        <VisibilityConfirmModal
           isOpen={Boolean(pendingReviewVisibilityChange)}
+          status={pendingReviewVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingReviewVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="reported-talk-detail-hidden-reason"
+          onHiddenReasonChange={updatePendingReviewHiddenReason}
           onClose={closeReviewVisibilityModal}
-          showCloseButton={false}
-          className="mx-4 w-full max-w-md"
-        >
-          <ModalPanel>
-            <ModalHeader className="pr-0">
-              <ModalTitle>노출여부 변경</ModalTitle>
-            </ModalHeader>
-
-            <ModalBody className="mt-5">
-              <p className="text-sm font-medium text-gray-800 ">
-                {pendingVisibilityMessage}
-              </p>
-
-              {pendingReviewVisibilityChange?.status === "INACTIVE" ? (
-                <div className="mt-4">
-                  <label
-                    htmlFor="reported-talk-detail-hidden-reason"
-                    className="mb-1.5 block text-sm font-medium text-gray-700 "
-                  >
-                    미노출 사유
-                  </label>
-                  <InputField
-                    id="reported-talk-detail-hidden-reason"
-                    name="hidden_reason"
-                    value={pendingReviewVisibilityChange.hiddenReason ?? ""}
-                    onChange={(event) => updatePendingReviewHiddenReason(event.target.value)}
-                    disabled={pendingVisibilityUpdating}
-                  />
-                </div>
-              ) : null}
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeReviewVisibilityModal}
-                disabled={pendingVisibilityUpdating}
-              >
-                취소
-              </Button>
-              <Button
-                type="button"
-                variant="brand"
-                onClick={() => void confirmReviewVisibilityChange()}
-                disabled={pendingVisibilityUpdating}
-              >
-                {pendingVisibilityUpdating ? "처리 중..." : "확인"}
-              </Button>
-            </ModalFooter>
-          </ModalPanel>
-        </Modal>
+          onConfirm={() => void confirmReviewVisibilityChange()}
+        />
       </div>
     );
   }
@@ -584,10 +539,10 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
               onChangeVisibility={requestReviewVisibility}
             />
             <ReportedOriginalHistoryCard
-              kind={config.kind}
               histories={histories}
               meta={historiesMeta}
               refreshing={refreshing}
+              formatDate={(history) => formatHistoryDate(config.kind, history)}
               onGoPage={changeHistoriesPage}
             />
           </div>
@@ -602,61 +557,17 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           </div>
         </div>
 
-        <Modal
+        <VisibilityConfirmModal
           isOpen={Boolean(pendingReviewVisibilityChange)}
+          status={pendingReviewVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingReviewVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="reported-hospital-review-detail-hidden-reason"
+          onHiddenReasonChange={updatePendingReviewHiddenReason}
           onClose={closeReviewVisibilityModal}
-          showCloseButton={false}
-          className="mx-4 w-full max-w-md"
-        >
-          <ModalPanel>
-            <ModalHeader className="pr-0">
-              <ModalTitle>노출여부 변경</ModalTitle>
-            </ModalHeader>
-
-            <ModalBody className="mt-5">
-              <p className="text-sm font-medium text-gray-800 ">
-                {pendingVisibilityMessage}
-              </p>
-
-              {pendingReviewVisibilityChange?.status === "INACTIVE" ? (
-                <div className="mt-4">
-                  <label
-                    htmlFor="reported-hospital-review-detail-hidden-reason"
-                    className="mb-1.5 block text-sm font-medium text-gray-700 "
-                  >
-                    미노출 사유
-                  </label>
-                  <InputField
-                    id="reported-hospital-review-detail-hidden-reason"
-                    name="hidden_reason"
-                    value={pendingReviewVisibilityChange.hiddenReason ?? ""}
-                    onChange={(event) => updatePendingReviewHiddenReason(event.target.value)}
-                    disabled={pendingVisibilityUpdating}
-                  />
-                </div>
-              ) : null}
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeReviewVisibilityModal}
-                disabled={pendingVisibilityUpdating}
-              >
-                취소
-              </Button>
-              <Button
-                type="button"
-                variant="brand"
-                onClick={() => void confirmReviewVisibilityChange()}
-                disabled={pendingVisibilityUpdating}
-              >
-                {pendingVisibilityUpdating ? "처리 중..." : "확인"}
-              </Button>
-            </ModalFooter>
-          </ModalPanel>
-        </Modal>
+          onConfirm={() => void confirmReviewVisibilityChange()}
+        />
       </div>
     );
   }
@@ -691,10 +602,10 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
               onOpenReceiptModal={openReceiptModal}
             />
             <ReportedOriginalHistoryCard
-              kind={config.kind}
               histories={histories}
               meta={historiesMeta}
               refreshing={refreshing}
+              formatDate={(history) => formatHistoryDate(config.kind, history)}
               onGoPage={changeHistoriesPage}
             />
           </div>
@@ -740,10 +651,10 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           {renderOriginalSummary(config, detail)}
           {renderOriginalContent(config, detail)}
           <ReportedOriginalHistoryCard
-            kind={config.kind}
             histories={histories}
             meta={historiesMeta}
             refreshing={refreshing}
+            formatDate={(history) => formatHistoryDate(config.kind, history)}
             onGoPage={changeHistoriesPage}
           />
         </div>
@@ -1606,64 +1517,6 @@ function renderOriginalContent(config: ReportedContentDetailConfig, detail: Deta
         <DetailField label="평점" value={formatHospitalReviewDetailRating(review.rating)} />
         <ContentBox content={review.content} />
         <ImageStrip images={imageGroups} resolveUrl={resolveHospitalReviewMediaUrl} />
-      </CardContent>
-    </Card>
-  );
-}
-
-function ReportedOriginalHistoryCard({
-  kind,
-  histories,
-  meta,
-  refreshing,
-  onGoPage,
-}: {
-  kind: ReportedContentDetailKind;
-  histories: DetailHistory[];
-  meta: DataTableMeta | null;
-  refreshing: boolean;
-  onGoPage: (page: number) => void;
-}) {
-  return (
-    <Card as="section">
-      <CardHeader className="pb-4">
-        <CardTitle>히스토리</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 ">
-            {histories.map((history) => (
-              <div
-                key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
-              >
-                <span className="whitespace-nowrap text-xs text-gray-500 ">
-                  {formatHistoryDate(kind, history)}
-                </span>
-                <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span>
-                  <OperationHistoryActionBadge history={history} />
-                </span>
-                <span className="min-w-0 break-words text-sm text-gray-600 ">
-                  <OperationHistoryReason history={history} />
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyDetailState>등록된 히스토리가 없습니다.</EmptyDetailState>
-        )}
-
-        {meta ? (
-          <div className="flex justify-center pt-1">
-            <Pagination
-              currentPage={meta.current_page}
-              totalPages={Math.max(1, meta.last_page)}
-              onPageChange={onGoPage}
-              disabled={refreshing}
-            />
-          </div>
-        ) : null}
       </CardContent>
     </Card>
   );

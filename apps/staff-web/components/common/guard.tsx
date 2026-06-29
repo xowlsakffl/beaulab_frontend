@@ -5,7 +5,7 @@ import { hasPermission, hasAnyPermission } from "@beaulab/auth";
 import { ensureSession, getSession } from "@/lib/common/auth/session";
 import { usePathname, useRouter } from "next/navigation";
 import { StaffSession } from "@beaulab/types";
-import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissions } from "@/lib/common/routing/route-permissions";
+import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissionRule } from "@/lib/common/routing/route-permissions";
 
 type GuardProps = {
   children: ReactNode;
@@ -21,7 +21,7 @@ export function Guard(props: GuardProps) {
   const pathname = usePathname();
 
   const next = useMemo(() => (pathname ? `?next=${encodeURIComponent(pathname)}` : ""), [pathname]);
-  const routePermissions = useMemo(() => resolveRoutePermissions(pathname, ADMIN_ROUTE_PERMISSION_RULES), [pathname]);
+  const routePermissionRule = useMemo(() => resolveRoutePermissionRule(pathname, ADMIN_ROUTE_PERMISSION_RULES), [pathname]);
 
   useEffect(() => {
     let isMounted = true;
@@ -38,16 +38,20 @@ export function Guard(props: GuardProps) {
       const requiredPermissions =
         props.requiredPermissions && props.requiredPermissions.length > 0
           ? props.requiredPermissions
-          : routePermissions;
+          : routePermissionRule?.requiredPermissions;
 
-      if (requiredPermissions.length > 0) {
-        const canAccess = hasAnyPermission(resolvedSession.auth, requiredPermissions);
+      if (!requiredPermissions || requiredPermissions.length === 0) {
+        router.replace(props.unauthorizedRedirectPath ?? "/error-404");
+        setIsChecking(false);
+        return;
+      }
 
-        if (!canAccess) {
-          router.replace(props.unauthorizedRedirectPath ?? "/error-404");
-          setIsChecking(false);
-          return;
-        }
+      const canAccess = hasAnyPermission(resolvedSession.auth, requiredPermissions);
+
+      if (!canAccess) {
+        router.replace(props.unauthorizedRedirectPath ?? "/error-404");
+        setIsChecking(false);
+        return;
       }
 
       setSession(resolvedSession);
@@ -57,7 +61,7 @@ export function Guard(props: GuardProps) {
     return () => {
       isMounted = false;
     };
-  }, [next, props.requiredPermissions, props.unauthorizedRedirectPath, routePermissions, router]);
+  }, [next, props.requiredPermissions, props.unauthorizedRedirectPath, routePermissionRule, router]);
 
   if (isChecking) return null;
   if (!session) return null;

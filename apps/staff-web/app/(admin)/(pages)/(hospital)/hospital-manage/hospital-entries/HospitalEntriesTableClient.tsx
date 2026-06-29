@@ -11,6 +11,7 @@ import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
+  HOSPITAL_ENTRY_ALLOW_STATUS_OPTIONS,
   HOSPITAL_ENTRIES_PER_PAGE,
   buildHospitalEntriesQuery,
   buildHospitalEntriesQueryString,
@@ -192,9 +193,9 @@ export default function HospitalEntriesTableClient() {
     setDraftFilters((prev) => ({
       ...prev,
       allowStatuses:
-        prev.allowStatuses.length === 3
+        prev.allowStatuses.length === HOSPITAL_ENTRY_ALLOW_STATUS_OPTIONS.length
           ? []
-          : ["PENDING", "REJECTED", "APPROVED"],
+          : HOSPITAL_ENTRY_ALLOW_STATUS_OPTIONS.map((option) => option.value),
     }));
   };
 

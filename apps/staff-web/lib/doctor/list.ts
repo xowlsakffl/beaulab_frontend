@@ -2,6 +2,7 @@ import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import { resolveMediaAssetUrl } from "@/lib/common/media";
+import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_OPTIONS, reviewAllowStatusColor } from "@/lib/common/review-status";
 
 type MediaAsset = {
   path?: string | null;
@@ -126,12 +127,7 @@ export const DEFAULT_FILTERS: Filters = {
 
 export const DOCTORS_PER_PAGE = 10;
 
-export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "PENDING", label: "신청" },
-  { value: "REVIEWING", label: "검수" },
-  { value: "APPROVED", label: "승인" },
-  { value: "REJECTED", label: "반려" },
-];
+export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({ ...option }));
 
 export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
   { value: "대표원장", label: "대표원장" },
@@ -358,17 +354,11 @@ export function labelDoctorGender(gender?: string | null) {
 }
 
 export function labelDoctorApprovalStatus(status?: string | null) {
-  if (status === "PENDING") return "신청";
-  if (status === "REVIEWING") return "검수";
-  if (status === "APPROVED") return "승인";
-  if (status === "REJECTED") return "반려";
-  return status || "-";
+  return labelReviewAllowStatus(status, status || "-");
 }
 
 export function doctorApprovalStatusBadgeColor(status?: string | null) {
-  if (status === "APPROVED") return "success" as const;
-  if (status === "PENDING" || status === "REVIEWING") return "warning" as const;
-  return "error" as const;
+  return reviewAllowStatusColor(status);
 }
 
 export function labelDoctorOperatingStatus(status?: string | null) {

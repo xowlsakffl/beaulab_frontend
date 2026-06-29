@@ -34,6 +34,19 @@ export async function validateImageFileRule(file: File, rule: ImageFileValidatio
   return true;
 }
 
+export async function validateImageFileRuleMessage(file: File, rule: ImageFileValidationRule, message: string) {
+  return (await validateImageFileRule(file, rule)) ? null : message;
+}
+
+export async function validateImageFilesRuleMessage(files: readonly File[], rule: ImageFileValidationRule, message: string) {
+  for (const file of files) {
+    const validationMessage = await validateImageFileRuleMessage(file, rule, message);
+    if (validationMessage) return validationMessage;
+  }
+
+  return null;
+}
+
 export function isAllowedImageFileType(file: File, rule: ImageFileValidationRule) {
   const lowerName = file.name.toLowerCase();
   const hasAllowedExtension = rule.allowedExtensions.some((extension) => lowerName.endsWith(extension));

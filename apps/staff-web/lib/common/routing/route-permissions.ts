@@ -11,8 +11,8 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/hospital-manage/hospital-entries": ["beaulab.hospital_entry.show"],
   "/wallet-manage/deposits": ["common.access"],
   "/wallet-manage/history": ["common.access"],
-  "/customer-db-manage/events": ["common.access"],
-  "/customer-db-manage/real-models": ["common.access"],
+  "/customer-db-manage/events": ["beaulab.hospital_event_db.show"],
+  "/customer-db-manage/real-models": ["beaulab.hospital_event_real_model_db.show"],
   "/ads-manage/events": ["beaulab.hospital_event.show"],
   "/ads-manage/products": ["common.access"],
   "/ads-manage/calendar": ["common.access"],
@@ -21,11 +21,11 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/post-manage/treatment-reviews": ["beaulab.hospital_review.show"],
   "/post-manage/hospital-evaluations": ["beaulab.hospital_evaluation.show"],
   "/post-manage/talks": ["beaulab.talk.show"],
-  "/reported-post-manage/surgery-reviews": ["common.access"],
-  "/reported-post-manage/treatment-reviews": ["common.access"],
-  "/reported-post-manage/hospital-evaluations": ["common.access"],
-  "/reported-post-manage/talks": ["common.access"],
-  "/reported-post-manage/chats": ["common.access"],
+  "/reported-post-manage/surgery-reviews": ["beaulab.reported_hospital_review.show"],
+  "/reported-post-manage/treatment-reviews": ["beaulab.reported_hospital_review.show"],
+  "/reported-post-manage/hospital-evaluations": ["beaulab.reported_hospital_evaluation.show"],
+  "/reported-post-manage/talks": ["beaulab.reported_talk.show"],
+  "/reported-post-manage/chats": ["beaulab.reported_chat_message.show"],
   "/beauty-dashboard/dashboard": ["common.dashboard.show"],
   "/beauty-shop-manage/beauties": ["beaulab.beauty.show"],
   "/beauty-shop-manage/experts": ["beaulab.expert.show"],
@@ -41,10 +41,10 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/beauty-reported-content-manage/posts": ["common.access"],
   "/beauty-reported-content-manage/comments": ["common.access"],
   "/notice-manage/notices": ["beaulab.notice.show"],
-  "/notice-manage/faqs": ["common.access"],
+  "/notice-manage/faqs": ["beaulab.faq.show"],
   "/notice-manage/inquiries": ["common.access"],
-  "/user-manage/users": ["common.access"],
-  "/category-hashtag-manage/categories": ["common.access"],
+  "/user-manage/users": ["beaulab.user.show"],
+  "/category-hashtag-manage/categories": ["beaulab.category.manage"],
   "/category-hashtag-manage/hashtags": ["beaulab.hashtag.manage"],
   "/content-manage/banners": ["common.access"],
   "/content-manage/popups": ["common.access"],
@@ -53,7 +53,7 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/admin-settings/harmful-words": ["common.access"],
   "/admin-settings/nicknames": ["common.access"],
   "/admin-settings/staff": ["common.access"],
-  "/admin-settings/agencies": ["common.access"],
+  "/admin-settings/agencies": ["beaulab.agency.show"],
 } as const;
 
 export type StaticAdminRoutePath = keyof typeof STATIC_ADMIN_ROUTE_PERMISSIONS;
@@ -122,10 +122,10 @@ function getRuleScore(rulePath: string) {
   };
 }
 
-export function resolveRoutePermissions(pathname: string | null, rules: RoutePermissionRule[]): string[] {
-  if (!pathname) return [];
+export function resolveRoutePermissionRule(pathname: string | null, rules: RoutePermissionRule[]): RoutePermissionRule | null {
+  if (!pathname) return null;
 
-  const matchedRule = rules
+  return rules
     .filter((rule) => matchRouteRule(pathname, rule.path))
     .sort((a, b) => {
       const aScore = getRuleScore(a.path);
@@ -140,7 +140,9 @@ export function resolveRoutePermissions(pathname: string | null, rules: RoutePer
       }
 
       return bScore.pathLength - aScore.pathLength;
-    })[0];
+    })[0] ?? null;
+}
 
-  return matchedRule?.requiredPermissions ?? [];
+export function resolveRoutePermissions(pathname: string | null, rules: RoutePermissionRule[]): string[] {
+  return resolveRoutePermissionRule(pathname, rules)?.requiredPermissions ?? [];
 }

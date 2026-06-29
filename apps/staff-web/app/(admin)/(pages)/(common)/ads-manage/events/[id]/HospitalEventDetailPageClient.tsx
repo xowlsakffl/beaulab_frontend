@@ -5,77 +5,34 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
-  Card,
-  CategoryBadgeList,
-  FormTextArea,
-  InputField,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
-  Pagination,
   SpinnerBlock,
   useGlobalAlert,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
-import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
+import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import {
+  AdminNotesCard,
+  AllowStatusCard,
+  EventInfoSummaryCard,
+  EventMainCard,
+  EventMediaColumn,
+  NoteCreateModal,
+  OperationHistoryCard,
+  type AdminNoteItem,
+  type OperationHistoryItem,
+} from "@/components/hospital-event/detail/HospitalEventDetailSections";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
-import {
-  formatHospitalEventPoint,
-  formatHospitalEventPrice,
-  labelHospitalEventAllowStatus,
-  resolveHospitalEventMediaUrl,
-  type HospitalEventApiItem,
-  type HospitalEventCategory,
-  type HospitalEventMedia,
-} from "@/lib/hospital-event/list";
-
-type AdminNoteItem = {
-  id: number;
-  note?: string | null;
-  creator_name?: string | null;
-  created_at?: string | null;
-};
-
-type OperationHistoryChangeItem = {
-  id?: number;
-  field_key?: string | null;
-  field_label?: string | null;
-  before_value?: unknown;
-  after_value?: unknown;
-  before_display?: string | null;
-  after_display?: string | null;
-  sort_order?: number | null;
-};
-
-type OperationHistoryItem = {
-  id: number;
-  actor_label?: string | null;
-  field?: string | null;
-  action?: string | null;
-  action_label?: string | null;
-  changes?: OperationHistoryChangeItem[] | null;
-  before_value?: unknown;
-  after_value?: unknown;
-  reason?: string | null;
-  created_at?: string | null;
-};
+import { labelHospitalEventAllowStatus, type HospitalEventApiItem } from "@/lib/hospital-event/list";
 
 type PendingVisibilityChange = {
   status: "ACTIVE" | "INACTIVE";
@@ -87,9 +44,6 @@ type PendingAllowStatusChange = {
   reason: string;
 };
 
-const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
-const labelClassName = "text-xs font-semibold text-gray-500";
-const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 const EVENT_ADMIN_NOTE_TARGET = "hospital_event";
 const HISTORY_PER_PAGE = 10;
 
@@ -414,10 +368,6 @@ export default function HospitalEventDetailPageClient() {
   }
 
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
-  const pendingAllowStatusLabel = pendingAllowStatusChange
-    ? labelHospitalEventAllowStatus(pendingAllowStatusChange.allowStatus)
-    : "";
-
   return (
     <div className="min-w-0 space-y-4">
       <section className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(420px,1fr)_minmax(360px,0.85fr)_minmax(280px,0.55fr)]">
@@ -447,88 +397,29 @@ export default function HospitalEventDetailPageClient() {
       </section>
 
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <Modal
+      <VisibilityConfirmModal
         isOpen={Boolean(pendingVisibilityChange)}
+        status={pendingVisibilityChange?.status}
+        message={<>해당 이벤트를 {pendingVisibilityLabel} 하시겠습니까?</>}
+        hiddenReasonValue={pendingVisibilityChange?.reason ?? ""}
+        updating={updatingStatus}
+        reasonInputId="hospital-event-hidden-reason"
+        reasonPlaceholder="미노출 사유를 입력해주세요."
+        onHiddenReasonChange={updatePendingVisibilityReason}
         onClose={closeVisibilityConfirmModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>노출여부 변경</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800">
-              해당 이벤트를 {pendingVisibilityLabel} 하시겠습니까?
-            </p>
-            {pendingVisibilityChange?.status === "INACTIVE" ? (
-              <div className="mt-4">
-                <label htmlFor="hospital-event-hidden-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                  미노출 사유
-                </label>
-                <InputField
-                  id="hospital-event-hidden-reason"
-                  name="hidden_reason"
-                  value={pendingVisibilityChange.reason}
-                  onChange={(event) => updatePendingVisibilityReason(event.target.value)}
-                  disabled={updatingStatus}
-                  placeholder="미노출 사유를 입력해주세요."
-                />
-              </div>
-            ) : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeVisibilityConfirmModal} disabled={updatingStatus}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" onClick={() => void confirmVisibilityChange()} disabled={updatingStatus}>
-              {updatingStatus ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
-      <Modal
-        isOpen={Boolean(pendingAllowStatusChange)}
+        onConfirm={() => void confirmVisibilityChange()}
+      />
+      <AllowStatusConfirmModal
+        pending={pendingAllowStatusChange}
+        subjectLabel="해당 이벤트를"
+        labelStatus={labelHospitalEventAllowStatus}
+        updating={updatingStatus}
+        error={pendingAllowStatusError}
+        reasonInputId="hospital-event-rejected-reason"
+        onReasonChange={updatePendingAllowStatusReason}
         onClose={closeAllowStatusConfirmModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>검수상태 변경</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800">
-              해당 이벤트를 {pendingAllowStatusLabel} 처리하시겠습니까?
-            </p>
-            {pendingAllowStatusChange?.allowStatus === "REJECTED" ? (
-              <div className="mt-4">
-                <label htmlFor="hospital-event-rejected-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                  반려 사유
-                </label>
-                <InputField
-                  id="hospital-event-rejected-reason"
-                  name="rejected_reason"
-                  value={pendingAllowStatusChange.reason}
-                  onChange={(event) => updatePendingAllowStatusReason(event.target.value)}
-                  disabled={updatingStatus}
-                  placeholder="반려 사유를 입력해주세요."
-                  error={Boolean(pendingAllowStatusError)}
-                  hint={pendingAllowStatusError ?? undefined}
-                />
-              </div>
-            ) : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeAllowStatusConfirmModal} disabled={updatingStatus}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" onClick={() => void confirmAllowStatusChange()} disabled={updatingStatus}>
-              {updatingStatus ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+        onConfirm={() => void confirmAllowStatusChange()}
+      />
       <NoteCreateModal
         isOpen={isNoteModalOpen}
         value={noteInput}
@@ -542,561 +433,4 @@ export default function HospitalEventDetailPageClient() {
       />
     </div>
   );
-}
-
-function EventMainCard({
-  detail,
-  updating,
-  onVisibilityChange,
-}: {
-  detail: HospitalEventApiItem;
-  updating: boolean;
-  onVisibilityChange: (status: "ACTIVE" | "INACTIVE") => void;
-}) {
-  const categoryBadges = eventCategoryBadges(detail.categories);
-  const primaryCategory = detail.categories?.find((category) => category.is_primary) ?? detail.categories?.[0] ?? null;
-  const eventTypeLabel = inferEventSectionLabel(detail.categories);
-
-  return (
-    <Card className={cardClassName}>
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <h2 className="truncate text-sm font-bold text-gray-900">{eventTypeLabel} 이벤트</h2>
-        </div>
-        <VisibilityActionButtons
-          status={detail.status}
-          disabled={updating}
-          mode="action"
-          className="shrink-0"
-          onChange={onVisibilityChange}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <ReadonlyField label="병의원" value={detail.hospital?.name} />
-        <ReadonlyField
-          label="대표 카테고리"
-          value={primaryCategory ? categoryFullPath(primaryCategory) : "-"}
-          customValue={<CategoryBadgeList values={primaryCategory ? [categoryFullPath(primaryCategory)] : ["-"]} />}
-        />
-        <ReadonlyField
-          label="선택한 소카테고리"
-          value="-"
-          customValue={<CategoryBadgeList values={categoryBadges.map((category) => category.label)} />}
-        />
-        <ReadonlyField
-          label="의료진 선택"
-          value="-"
-          customValue={<DoctorBadgeList detail={detail} />}
-        />
-        <ReadonlyField label="이벤트명" value={detail.name} />
-        <ReadonlyField label="이벤트설명" value={detail.description} />
-        <ReadonlyField label="이벤트기간" value={eventPeriodLabel(detail)} />
-        <PriceSummaryCard detail={detail} />
-      </div>
-    </Card>
-  );
-}
-
-function EventInfoSummaryCard({ detail }: { detail: HospitalEventApiItem }) {
-  return (
-    <Card className={cardClassName}>
-      <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">이벤트 정보</h3>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <ReadonlyMini label="등록일자" value={formatDate(detail.created_at)} />
-        <ReadonlyMini label="최근수정일" value={formatDate(detail.updated_at)} />
-      </div>
-    </Card>
-  );
-}
-
-function AllowStatusCard({
-  detail,
-  updating,
-  onChange,
-}: {
-  detail: HospitalEventApiItem;
-  updating: boolean;
-  onChange: (status: string) => void;
-}) {
-  return (
-    <Card className={cardClassName}>
-      <div className="border-b border-gray-200 pb-3">
-        <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
-      </div>
-      <div className="mt-4">
-        <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
-      </div>
-    </Card>
-  );
-}
-
-function AllowStatusButtons({
-  detail,
-  updating,
-  onChange,
-  compact = false,
-}: {
-  detail: HospitalEventApiItem;
-  updating: boolean;
-  onChange: (status: string) => void;
-  compact?: boolean;
-}) {
-  const statuses = [
-    ["REVIEWING", "검수"],
-    ["APPROVED", "승인"],
-    ["REJECTED", "반려"],
-  ] as const;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {statuses.map(([value, label]) => {
-        const active = detail.allow_status === value;
-        const approved = value === "APPROVED";
-
-        return (
-          <Button
-            key={value}
-            type="button"
-            variant={active ? "brand" : "outline"}
-            disabled={updating}
-            onClick={() => onChange(value)}
-            className={[
-              "text-sm font-semibold",
-              compact
-                ? approved ? "h-10 min-w-24 px-4" : "h-9 min-w-20 px-3"
-                : approved ? "h-11 min-w-28 px-6" : "h-9 min-w-20 px-4",
-            ].join(" ")}
-          >
-            {label}
-          </Button>
-        );
-      })}
-    </div>
-  );
-}
-
-function AdminNotesCard({
-  notes,
-  loading,
-  onAdd,
-}: {
-  notes: AdminNoteItem[];
-  loading: boolean;
-  onAdd: () => void;
-}) {
-  return (
-    <Card className={cardClassName}>
-      <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
-        <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
-        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} />
-      </div>
-      {loading ? (
-        <p className="text-sm text-gray-500">메모를 불러오는 중입니다.</p>
-      ) : notes.length > 0 ? (
-        <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
-          {notes.map((note) => (
-            <div key={note.id} className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600">
-              <span>{formatDateTime(note.created_at)}</span>
-              <span>{note.creator_name || "-"}</span>
-              <span className="break-words">{note.note || "-"}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          등록된 관리자 메모가 없습니다.
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function OperationHistoryCard({
-  histories,
-  meta,
-  loading,
-  onPageChange,
-}: {
-  histories: OperationHistoryItem[];
-  meta: DataTableMeta | null;
-  loading: boolean;
-  onPageChange: (page: number) => void;
-}) {
-  const [expandedHistoryIds, setExpandedHistoryIds] = React.useState<Set<number>>(() => new Set());
-
-  const toggleExpandedHistory = React.useCallback((historyId: number) => {
-    setExpandedHistoryIds((current) => {
-      const next = new Set(current);
-      if (next.has(historyId)) {
-        next.delete(historyId);
-      } else {
-        next.add(historyId);
-      }
-
-      return next;
-    });
-  }, []);
-
-  return (
-    <Card className={cardClassName}>
-      <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">히스토리</h3>
-      {loading ? (
-        <p className="text-sm text-gray-500">히스토리를 불러오는 중입니다.</p>
-      ) : histories.length > 0 ? (
-        <div className="space-y-3">
-          <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
-            {histories.map((history) => {
-              const changes = history.changes ?? [];
-              const canExpand = history.action === "UPDATED" && changes.length > 0;
-              const isExpanded = expandedHistoryIds.has(history.id);
-
-              return (
-                <div key={history.id} className="space-y-2 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-                  <div className="grid grid-cols-[6.5rem_5rem_5rem_minmax(0,1fr)_2rem] items-start gap-3 text-xs text-gray-600">
-                    <span>{formatDateTime(history.created_at)}</span>
-                    <span>{history.actor_label || "-"}</span>
-                    <span>
-                      <OperationHistoryActionBadge history={history} actionLabelOverride={eventHistoryActionLabel} />
-                    </span>
-                    <span className="break-words">
-                      <OperationHistoryReason history={history} />
-                    </span>
-                    {canExpand ? (
-                      isExpanded ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label="변경 상세 닫기"
-                          className="ml-auto size-7 rounded-full border border-gray-300 bg-white p-0 text-brand-600 shadow-none hover:border-gray-300 hover:bg-white hover:text-brand-600"
-                          onClick={() => toggleExpandedHistory(history.id)}
-                        >
-                          <span className="text-sm leading-none">−</span>
-                        </Button>
-                      ) : (
-                        <AddCircleButton label="변경 상세 열기" className="ml-auto" onClick={() => toggleExpandedHistory(history.id)} />
-                      )
-                    ) : (
-                      <span aria-hidden="true" />
-                    )}
-                  </div>
-                  {canExpand && isExpanded ? (
-                    <div className="space-y-2 rounded-lg bg-gray-50 p-3">
-                      {changes.map((change, index) => (
-                        <div key={`${history.id}-${change.field_key ?? index}`} className="space-y-1 text-xs text-gray-600">
-                          <p className="font-semibold text-gray-900">{change.field_label || change.field_key || "변경 항목"}</p>
-                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
-                            <span className="font-semibold text-gray-500">변경 전</span>
-                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "before")}</span>
-                          </div>
-                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
-                            <span className="font-semibold text-brand-600">변경 후</span>
-                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "after")}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-              </div>
-          {meta ? (
-            <div className="flex justify-center pt-2">
-              <Pagination currentPage={meta.current_page} totalPages={Math.max(1, meta.last_page)} onPageChange={onPageChange} />
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          등록된 히스토리가 없습니다.
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function EventMediaColumn({
-  detail,
-  onPreview,
-}: {
-  detail: HospitalEventApiItem;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
-}) {
-  return (
-    <div className="min-w-0 space-y-4">
-      <MediaPreviewCard title="썸네일" helper="800px x 800px 이상, 1:1비율, 2MB 이하" media={detail.thumbnail_image ?? null} onPreview={onPreview} />
-      {detail.event_type === "IMAGE" ? (
-        <MediaPreviewCard title="이벤트 페이지" helper="가로 800px 이상, 5MB 이하" media={detail.event_page_image ?? null} onPreview={onPreview} tall />
-      ) : null}
-    </div>
-  );
-}
-
-function MediaPreviewCard({
-  title,
-  helper,
-  media,
-  onPreview,
-  tall = false,
-}: {
-  title: string;
-  helper: string;
-  media: HospitalEventMedia | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
-  tall?: boolean;
-}) {
-  const mediaUrl = resolveHospitalEventMediaUrl(media, "original");
-
-  return (
-    <Card className={cardClassName}>
-      <h3 className="text-sm font-bold text-gray-900">{title}</h3>
-      <p className="mt-1 text-xs text-gray-500">{helper}</p>
-      <button
-        type="button"
-        disabled={!mediaUrl}
-        onClick={() => mediaUrl && onPreview({ url: mediaUrl, title, isImage: true })}
-        className={[
-          "mt-3 flex w-full items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50",
-          tall ? "min-h-[20rem]" : "aspect-square",
-          mediaUrl ? "cursor-pointer" : "cursor-default",
-        ].join(" ")}
-      >
-        {mediaUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-          <img src={mediaUrl} alt={title} className={tall ? "h-auto max-h-[32rem] w-full object-contain" : "h-full w-full object-cover"} />
-        ) : (
-          <span className="p-6 text-center text-sm text-gray-400">등록된 이미지가 없습니다.</span>
-        )}
-      </button>
-    </Card>
-  );
-}
-
-function PriceSummaryCard({ detail }: { detail: HospitalEventApiItem }) {
-  const discountRate = Number(detail.discount_rate ?? 0);
-
-  return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
-      <div className="space-y-3">
-        <ReadonlyField label="VAT" value={detail.is_vat_included ? "VAT 포함" : "VAT 비대상"} compact />
-        <ReadonlyField label="정상 가격" value={formatHospitalEventPrice(Number(detail.normal_price ?? 0))} compact />
-        <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3">
-          <p className={labelClassName}>이벤트 가격</p>
-          <div className="min-w-0 text-sm leading-6 text-gray-800">
-            <span className="font-semibold">{formatHospitalEventPrice(Number(detail.event_price ?? 0))}</span>
-            <span className="ml-2 font-bold text-brand-500">할인율 {discountRate}%</span>
-          </div>
-        </div>
-        <ReadonlyField label="상담신청단가" value={formatHospitalEventPoint(Number(detail.consultation_price ?? 0))} compact />
-      </div>
-    </div>
-  );
-}
-
-function NoteCreateModal({
-  isOpen,
-  value,
-  saving,
-  onChange,
-  onClose,
-  onSave,
-}: {
-  isOpen: boolean;
-  value: string;
-  saving: boolean;
-  onChange: (value: string) => void;
-  onClose: () => void;
-  onSave: () => void;
-}) {
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-lg">
-      <ModalPanel>
-        <ModalHeader className="pr-0">
-          <ModalTitle>관리자 메모 등록</ModalTitle>
-        </ModalHeader>
-        <ModalBody className="mt-5">
-          <FormTextArea value={value} onChange={(next) => onChange(next.slice(0, 1000))} rows={5} placeholder="관리자 메모를 입력해 주세요." />
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            취소
-          </Button>
-          <Button type="button" variant="brand" onClick={onSave} disabled={saving || !value.trim()}>
-            등록
-          </Button>
-        </ModalFooter>
-      </ModalPanel>
-    </Modal>
-  );
-}
-
-function ReadonlyField({
-  label,
-  value,
-  customValue,
-  compact = false,
-}: {
-  label: string;
-  value?: string | number | null;
-  customValue?: React.ReactNode;
-  compact?: boolean;
-}) {
-  return (
-    <div className={compact ? "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3" : "grid grid-cols-[8rem_minmax(0,1fr)] items-start gap-4"}>
-      <p className={labelClassName}>{label}</p>
-      <div className={valueClassName}>{customValue ?? displayValue(value)}</div>
-    </div>
-  );
-}
-
-function ReadonlyMini({ label, value }: { label: string; value?: string | number | null }) {
-  return (
-    <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3">
-      <p className={labelClassName}>{label}</p>
-      <p className={valueClassName}>{displayValue(value)}</p>
-    </div>
-  );
-}
-
-function displayValue(value?: string | number | null) {
-  if (typeof value === "number") return value.toLocaleString();
-  return value?.trim() || "-";
-}
-
-function eventCategoryBadges(categories?: HospitalEventCategory[] | null) {
-  return (categories ?? []).map((category) => ({
-    label: category.name?.trim() || categoryFullPath(category),
-    isPrimary: Boolean(category.is_primary),
-  }));
-}
-
-function categoryFullPath(category: HospitalEventCategory) {
-  return category.full_path?.trim() || category.name?.trim() || "-";
-}
-
-function inferEventSectionLabel(categories?: HospitalEventCategory[] | null) {
-  const usage = categories?.find((category) => category.usage)?.usage;
-  return usage === "HOSPITAL_EVENT_TREATMENT" ? "쁘띠/시술" : "성형";
-}
-
-function DoctorBadgeList({ detail }: { detail: HospitalEventApiItem }) {
-  const doctors = detail.doctors ?? [];
-  if (doctors.length === 0) {
-    return <span>-</span>;
-  }
-
-  return (
-    <div className="space-y-2">
-      {doctors.map((doctor, index) => {
-        const name = doctor.name?.trim() || `의료진 ${index + 1}`;
-
-        return (
-          <div key={`${doctor.id ?? name}-${index}`} className="flex w-full min-w-0">
-            <div className="inline-flex w-fit max-w-full min-w-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-700">
-              <span className="min-w-0 truncate font-semibold text-gray-800">{name}</span>
-              <div className="flex shrink-0 items-center gap-1.5">
-                {doctor.is_career_visible ? (
-                  <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-600">경력사항</span>
-                ) : null}
-                {doctor.is_activity_visible ? (
-                  <span className="rounded-full bg-brand-50 px-1.5 py-0.5 font-semibold text-brand-600">활동사항</span>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function eventPeriodLabel(detail: HospitalEventApiItem) {
-  const start = formatDate(detail.event_start_at);
-  if (detail.is_event_period_unlimited) return `${start} ~ 무기한`;
-
-  return `${start} ~ ${formatDate(detail.event_end_at)}`;
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value.slice(0, 10);
-
-  const year = String(date.getFullYear()).slice(2);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}.${month}.${day}`;
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  const year = String(date.getFullYear()).slice(2);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(2, "0");
-  return `${year}.${month}.${day} ${hour}:${minute}`;
-}
-
-function historyChangeDisplay(change: OperationHistoryChangeItem, side: "before" | "after") {
-  const display = side === "after" ? change.after_display : change.before_display;
-  const value = side === "after" ? change.after_value : change.before_value;
-  const field = change.field_key ?? null;
-
-  if (typeof display === "string" && display.trim() !== "") {
-    return historyRawValueLabel(field, display);
-  }
-
-  return historyRawValueLabel(field, value);
-}
-
-function historyRawValueLabel(field: string | null, value: unknown) {
-  if (field === "status") {
-    return value === "ACTIVE" ? "노출" : value === "INACTIVE" ? "미노출" : stringifyHistoryValue(value);
-  }
-
-  if (field === "allow_status") {
-    const label = labelHospitalEventAllowStatus(String(value ?? ""));
-    return label === "-" ? stringifyHistoryValue(value) : label;
-  }
-
-  return stringifyHistoryValue(value);
-}
-
-function eventHistoryActionLabel(
-  history: {
-    action?: string | null;
-    field?: string | null;
-    changes?: Array<{ field_key?: string | null }> | null;
-  },
-  defaultLabel: string,
-) {
-  const field = history.changes?.[0]?.field_key ?? history.field ?? null;
-
-  if (history.action === "STATUS_UPDATED" && field === "allow_status") {
-    return "검수 상태 변경";
-  }
-
-  if (history.action === "STATUS_UPDATED" && field === "status") {
-    return "상태 변경";
-  }
-
-  return defaultLabel;
-}
-
-function stringifyHistoryValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "예" : "아니오";
-  if (typeof value === "string" || typeof value === "number") return String(value);
-
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
 }

@@ -5,7 +5,6 @@ import React from "react";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
-  InputField,
   Modal,
   ModalBody,
   ModalFooter,
@@ -21,6 +20,7 @@ import type { DateRange } from "react-day-picker";
 import { TalkCommentsDataTable } from "@/components/talk/list/TalkCommentsDataTable";
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
+import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api, downloadFile } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
@@ -844,61 +844,18 @@ export default function TalksTableClient() {
         </ModalPanel>
       </Modal>
 
-      <Modal
+      <VisibilityConfirmModal
         isOpen={Boolean(pendingVisibilityChange)}
+        status={pendingVisibilityChange?.status}
+        message={pendingVisibilityMessage}
+        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+        updating={pendingVisibilityUpdating}
+        reasonInputId="visibility-hidden-reason"
+        showReasonInput={pendingVisibilityChange?.source === "row" && pendingVisibilityChange.status === "INACTIVE"}
+        onHiddenReasonChange={updatePendingHiddenReason}
         onClose={closeVisibilityConfirmModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>노출여부 변경</ModalTitle>
-          </ModalHeader>
-
-          <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 ">
-              {pendingVisibilityMessage}
-            </p>
-
-            {pendingVisibilityChange?.source === "row" && pendingVisibilityChange.status === "INACTIVE" && (
-              <div className="mt-4">
-                <label
-                  htmlFor="visibility-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 "
-                >
-                  미노출 사유
-                </label>
-                <InputField
-                  id="visibility-hidden-reason"
-                  name="hidden_reason"
-                  value={pendingVisibilityChange.hiddenReason ?? ""}
-                  onChange={(event) => updatePendingHiddenReason(event.target.value)}
-                  disabled={pendingVisibilityUpdating}
-                />
-              </div>
-            )}
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeVisibilityConfirmModal}
-              disabled={pendingVisibilityUpdating}
-            >
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => void confirmVisibilityChange()}
-              disabled={pendingVisibilityUpdating}
-            >
-              {pendingVisibilityUpdating ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+        onConfirm={() => void confirmVisibilityChange()}
+      />
     </div>
   );
 }

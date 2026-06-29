@@ -5,12 +5,13 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
+import {
+  AllowStatusActionButtons,
+  AllowStatusConfirmModal,
+} from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
+import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewItem,
@@ -20,6 +21,7 @@ import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   getMediaFilename,
+  formatHospitalPointBalance,
   isImageMedia,
   resolveMediaUrl,
   type HospitalDetailResponse,
@@ -33,7 +35,6 @@ import {
   Dropdown,
   DropdownItem,
   FormTextArea,
-  InputField,
   Modal,
   ModalBody,
   ModalFooter,
@@ -41,7 +42,6 @@ import {
   ModalPanel,
   ModalTitle,
   MoreVertical,
-  Pagination,
   SpinnerBlock,
   Star,
   StatusBadge,
@@ -452,8 +452,13 @@ export default function HospitalDetailPageClient() {
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
+        subjectLabel="해당 병의원을"
+        messageAction="상태로 변경"
+        labelStatus={labelReviewStatus}
         updating={updatingAllowStatus}
         error={allowStatusError}
+        reasonInputId="hospital-rejected-reason"
+        processingText="변경 중"
         onReasonChange={updateAllowStatusReason}
         onClose={closeAllowStatusModal}
         onConfirm={() => void confirmAllowStatusChange()}
@@ -643,7 +648,7 @@ function VerifiedAccountContactCard({ detail, className }: { detail: HospitalDet
       <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
       <div className="space-y-3">
         <InfoField label="전화번호" value={detail.account_hospital?.phone} compact />
-        <InfoField label="이메일" value={detail.account_hospital?.email ?? detail.email} compact />
+        <InfoField label="이메일" value={detail.account_hospital?.email} compact />
       </div>
     </Card>
   );
@@ -666,107 +671,10 @@ function AllowStatusCard({
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
-        <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
+        <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
       </div>
       {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
     </Card>
-  );
-}
-
-function AllowStatusButtons({
-  detail,
-  updating,
-  onChange,
-}: {
-  detail: HospitalDetailResponse;
-  updating: boolean;
-  onChange: (status: string) => void;
-}) {
-  const statuses = [
-    ["REVIEWING", "검수"],
-    ["APPROVED", "승인"],
-    ["REJECTED", "반려"],
-  ] as const;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {statuses.map(([value, label]) => {
-        const active = detail.allow_status === value;
-
-        return (
-          <Button
-            key={value}
-            type="button"
-            variant={active ? "brand" : "outline"}
-            disabled={updating || active}
-            onClick={() => onChange(value)}
-            className="h-10 min-w-16 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {label}
-          </Button>
-        );
-      })}
-    </div>
-  );
-}
-
-function AllowStatusConfirmModal({
-  pending,
-  updating,
-  error,
-  onReasonChange,
-  onClose,
-  onConfirm,
-}: {
-  pending: { allowStatus: string; reason: string } | null;
-  updating: boolean;
-  error: string | null;
-  onReasonChange: (reason: string) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  const statusLabel = pending ? labelReviewStatus(pending.allowStatus) : "";
-  const requiresReason = pending?.allowStatus === "REJECTED";
-
-  return (
-    <Modal isOpen={pending !== null} onClose={onClose} className="mx-4 max-w-md" showCloseButton={false}>
-      <ModalPanel>
-        <ModalHeader className="pr-0">
-          <ModalTitle>검수상태 변경</ModalTitle>
-        </ModalHeader>
-        <ModalBody className="mt-5 space-y-4">
-          <p className="text-sm font-medium text-gray-800">
-            해당 병의원을 {statusLabel} 상태로 변경하시겠습니까?
-          </p>
-          {requiresReason ? (
-            <div className="mt-4">
-              <label htmlFor="hospital-rejected-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                반려 사유
-              </label>
-              <InputField
-                id="hospital-rejected-reason"
-                name="rejected_reason"
-                value={pending?.reason ?? ""}
-                onChange={(event) => onReasonChange(event.target.value)}
-                disabled={updating}
-                placeholder="반려 사유를 입력해주세요."
-                error={Boolean(error)}
-                hint={error ?? undefined}
-              />
-            </div>
-          ) : null}
-          {error && !requiresReason ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
-            취소
-          </Button>
-          <Button type="button" variant="brand" onClick={onConfirm} disabled={updating}>
-            {updating ? "변경 중" : "확인"}
-          </Button>
-        </ModalFooter>
-      </ModalPanel>
-    </Modal>
   );
 }
 
@@ -790,7 +698,7 @@ function PointCard({
             미확인 DB {newEventDBCount.toLocaleString()}건
           </Button>
         </div>
-        <p className="text-right text-sm font-bold text-gray-900">0 P</p>
+        <p className="text-right text-sm font-bold text-gray-900">{formatHospitalPointBalance(detail.point_balance)}</p>
       </div>
     </Card>
   );
@@ -912,7 +820,7 @@ function HospitalImageTile({
         <img src={mediaUrl} alt={getMediaFilename(media)} className="h-full w-full object-cover" />
       ) : (
         <div className="flex h-full items-center justify-center px-4 text-center text-sm text-gray-500">
-          미리보기를 지원하지 않는 파일입니다.
+          원본보기를 지원하지 않는 파일입니다.
         </div>
       )}
     </button>
@@ -954,105 +862,20 @@ function OperationHistoryCard({
   loading: boolean;
   onPageChange: (page: number) => void;
 }) {
-  const [expandedHistoryIds, setExpandedHistoryIds] = React.useState<Set<number>>(() => new Set());
-  const hasHistories = histories.length > 0;
-
-  const toggleExpandedHistory = React.useCallback((historyId: number) => {
-    setExpandedHistoryIds((current) => {
-      const next = new Set(current);
-      if (next.has(historyId)) {
-        next.delete(historyId);
-      } else {
-        next.add(historyId);
-      }
-
-      return next;
-    });
-  }, []);
-
   return (
-    <Card className={cardClassName}>
-      <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">히스토리</h3>
-      {hasHistories ? (
-        <div className={["space-y-3", loading ? "pointer-events-none opacity-60" : ""].filter(Boolean).join(" ")} aria-busy={loading}>
-          <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
-            {histories.map((history) => {
-              const changes = history.changes ?? [];
-              const canExpand = history.action === "UPDATED" && changes.length > 0;
-              const isExpanded = expandedHistoryIds.has(history.id);
-
-              return (
-                <div key={history.id} className="space-y-2 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-                  <div className="grid grid-cols-[6.5rem_5rem_5rem_minmax(0,1fr)_2rem] items-start gap-3 text-xs text-gray-600">
-                    <span>{formatDateTime(history.created_at)}</span>
-                    <span>{history.actor_label || "-"}</span>
-                    <span>
-                      <OperationHistoryActionBadge history={history} actionLabelOverride={hospitalHistoryActionLabel} />
-                    </span>
-                    <span className="break-words">
-                      <OperationHistoryReason
-                        history={history}
-                        statusLabel={labelApprovalStatus}
-                        statusBadgeColor={hospitalStatusBadgeColor}
-                        allowStatusLabel={labelReviewStatus}
-                      />
-                    </span>
-                    {canExpand ? (
-                      isExpanded ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label="변경 상세 닫기"
-                          className="ml-auto size-7 rounded-full border border-gray-300 bg-white p-0 text-brand-600 shadow-none hover:border-gray-300 hover:bg-white hover:text-brand-600"
-                          onClick={() => toggleExpandedHistory(history.id)}
-                        >
-                          <span className="text-sm leading-none">-</span>
-                        </Button>
-                      ) : (
-                        <AddCircleButton label="변경 상세 열기" className="ml-auto" onClick={() => toggleExpandedHistory(history.id)} />
-                      )
-                    ) : (
-                      <span aria-hidden="true" />
-                    )}
-                  </div>
-                  {canExpand && isExpanded ? (
-                    <div className="space-y-2 rounded-lg bg-gray-50 p-3">
-                      {changes.map((change, index) => (
-                        <div key={`${history.id}-${change.field_key ?? index}`} className="space-y-1 text-xs text-gray-600">
-                          <p className="font-semibold text-gray-900">{change.field_label || change.field_key || "변경 항목"}</p>
-                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
-                            <span className="font-semibold text-gray-500">변경 전</span>
-                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "before")}</span>
-                          </div>
-                          <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
-                            <span className="font-semibold text-brand-600">변경 후</span>
-                            <span className="whitespace-pre-line break-words">{historyChangeDisplay(change, "after")}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-          {meta ? (
-            <div className="flex justify-center pt-2">
-              <Pagination currentPage={meta.current_page} totalPages={Math.max(1, meta.last_page)} onPageChange={onPageChange} />
-            </div>
-          ) : null}
-        </div>
-      ) : loading ? (
-        <div className="flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          히스토리를 불러오는 중입니다.
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          등록된 히스토리가 없습니다.
-        </div>
-      )}
-    </Card>
+    <CommonOperationHistoryCard
+      histories={histories}
+      meta={meta}
+      loading={loading}
+      onPageChange={onPageChange}
+      cardClassName={cardClassName}
+      formatDateTime={formatDateTime}
+      actionLabelOverride={hospitalHistoryActionLabel}
+      statusLabel={labelApprovalStatus}
+      statusBadgeColor={hospitalStatusBadgeColor}
+      allowStatusLabel={labelReviewStatus}
+      changeValueDisplay={historyChangeDisplay}
+    />
   );
 }
 

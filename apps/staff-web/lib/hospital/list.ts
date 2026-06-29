@@ -1,6 +1,7 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
 import { resolveMediaUrl, type MediaAsset } from "./detail";
 
 export type HospitalApiItem = {
@@ -140,12 +141,7 @@ export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "WITHDRAWN", label: "탈퇴" },
 ];
 
-export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "PENDING", label: "신청" },
-  { value: "REVIEWING", label: "검수" },
-  { value: "APPROVED", label: "승인" },
-  { value: "REJECTED", label: "반려" },
-];
+export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({ ...option }));
 
 export const HOSPITAL_DEPARTMENT_OPTIONS: CheckboxFilterOption[] = [
   { value: "PLASTIC_SURGERY", label: "성형외과" },
@@ -429,11 +425,7 @@ export function hospitalStatusBadgeColor(status: string) {
 }
 
 export function labelReviewStatus(status: string) {
-  if (status === "PENDING") return "신청";
-  if (status === "REVIEWING") return "검수";
-  if (status === "APPROVED") return "승인";
-  if (status === "REJECTED") return "반려";
-  return status;
+  return labelReviewAllowStatus(status, status);
 }
 
 export function buildHospitalsReturnToPath(pathname: string, query: HospitalsQuery) {

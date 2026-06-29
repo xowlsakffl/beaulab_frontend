@@ -39,12 +39,14 @@ export function useListData<Query, Row, Meta = unknown>({
 
   const requestKeyRef = React.useRef("");
   const hasFetchedRef = React.useRef(false);
+  const requestSeqRef = React.useRef(0);
 
   const fetchList = React.useCallback(
     async (manualRefresh = false) => {
       const requestKey = getRequestKey(query);
       if (!manualRefresh && requestKeyRef.current === requestKey) return;
       requestKeyRef.current = requestKey;
+      const requestSeq = ++requestSeqRef.current;
 
       if (!hasFetchedRef.current) setLoading(true);
       else setRefreshing(true);
@@ -55,10 +57,20 @@ export function useListData<Query, Row, Meta = unknown>({
 
       try {
         const result = await fetchRows(query);
+        if (requestSeq !== requestSeqRef.current) {
+          shouldFinalize = false;
+          return;
+        }
+
         setRows(result.rows);
         setMeta(result.meta);
         hasFetchedRef.current = true;
       } catch (error) {
+        if (requestSeq !== requestSeqRef.current) {
+          shouldFinalize = false;
+          return;
+        }
+
         if (isApiRequestCanceledError(error)) {
           shouldFinalize = false;
           return;
@@ -76,12 +88,17 @@ export function useListData<Query, Row, Meta = unknown>({
   );
 
   React.useEffect(() => {
+    requestKeyRef.current = "";
+  }, [fetchRows, getRequestKey]);
+
+  React.useEffect(() => {
     if (!enabled) return;
 
     void fetchList(false);
   }, [enabled, fetchList]);
 
   const resetList = React.useCallback(() => {
+    requestSeqRef.current += 1;
     requestKeyRef.current = "";
     hasFetchedRef.current = false;
     setRows([]);

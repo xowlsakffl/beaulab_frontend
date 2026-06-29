@@ -561,7 +561,7 @@ function RealModelImageTile({
         </div>
       ) : (
         <div className="flex h-full items-center justify-center px-4 text-center text-sm text-gray-500">
-          미리보기를 지원하지 않는 파일입니다.
+          원본보기를 지원하지 않는 파일입니다.
         </div>
       )}
     </button>

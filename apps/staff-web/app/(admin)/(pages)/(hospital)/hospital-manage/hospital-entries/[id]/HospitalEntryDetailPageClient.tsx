@@ -6,17 +6,16 @@ import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
-  InputField,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
   SpinnerBlock,
   useGlobalAlert,
 } from "@beaulab/ui-admin";
 
+import {
+  AllowStatusActionButtons,
+  AllowStatusConfirmModal,
+  resolveAllowStatusValue,
+  type AllowStatusActionOption,
+} from "@/components/common/AllowStatusControls";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
   HospitalMediaPreviewModal,
@@ -40,6 +39,10 @@ const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const cardTitleClassName = "text-sm font-semibold text-gray-800";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
+const hospitalEntryAllowStatusActions = [
+  { value: "REJECTED", label: "입점반려" },
+  { value: "APPROVED", label: "입점승인" },
+] as const satisfies readonly AllowStatusActionOption[];
 
 type PendingAllowStatusChange = {
   allowStatus: string;
@@ -97,7 +100,7 @@ export default function HospitalEntryDetailPageClient() {
 
   const requestAllowStatus = React.useCallback(
     (allowStatus: string) => {
-      if (!detail || updatingStatus || resolveAllowStatusCode(detail.allow_status) === allowStatus) return;
+      if (!detail || updatingStatus || resolveAllowStatusValue(detail.allow_status) === allowStatus) return;
 
       setPendingAllowStatusChange({ allowStatus, reason: "" });
       setPendingAllowStatusError(null);
@@ -179,10 +182,6 @@ export default function HospitalEntryDetailPageClient() {
     );
   }
 
-  const pendingAllowStatusLabel = pendingAllowStatusChange
-    ? labelHospitalEntryAllowStatus(pendingAllowStatusChange.allowStatus)
-    : "";
-
   return (
     <div className="min-w-0 space-y-4">
       <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
@@ -201,48 +200,20 @@ export default function HospitalEntryDetailPageClient() {
         onChange={setPreviewMedia}
         onClose={() => setPreviewMedia(null)}
       />
-      <Modal
-        isOpen={Boolean(pendingAllowStatusChange)}
+      <AllowStatusConfirmModal
+        pending={pendingAllowStatusChange}
+        title="승인상태 변경"
+        subjectLabel="해당 입점신청을"
+        labelStatus={labelHospitalEntryAllowStatus}
+        updating={updatingStatus}
+        error={pendingAllowStatusError}
+        reasonInputId="hospital-entry-rejected-reason"
+        reasonLabel="입점반려 사유"
+        reasonPlaceholder="입점반려 사유를 입력해주세요."
+        onReasonChange={updatePendingAllowStatusReason}
         onClose={closeAllowStatusConfirmModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>승인상태 변경</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800">
-              해당 입점신청을 {pendingAllowStatusLabel} 처리하시겠습니까?
-            </p>
-            {pendingAllowStatusChange?.allowStatus === "REJECTED" ? (
-              <div className="mt-4">
-                <label htmlFor="hospital-entry-rejected-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                  입점반려 사유
-                </label>
-                <InputField
-                  id="hospital-entry-rejected-reason"
-                  name="rejected_reason"
-                  value={pendingAllowStatusChange.reason}
-                  onChange={(event) => updatePendingAllowStatusReason(event.target.value)}
-                  disabled={updatingStatus}
-                  placeholder="입점반려 사유를 입력해주세요."
-                  error={Boolean(pendingAllowStatusError)}
-                  hint={pendingAllowStatusError ?? undefined}
-                />
-              </div>
-            ) : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeAllowStatusConfirmModal} disabled={updatingStatus}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" onClick={() => void confirmAllowStatusChange()} disabled={updatingStatus}>
-              {updatingStatus ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+        onConfirm={() => void confirmAllowStatusChange()}
+      />
     </div>
   );
 }
@@ -323,31 +294,14 @@ function AllowStatusButtons({
   updating: boolean;
   onChange: (status: string) => void;
 }) {
-  const currentStatus = resolveAllowStatusCode(detail.allow_status);
-  const statuses = [
-    ["REJECTED", "입점반려"],
-    ["APPROVED", "입점승인"],
-  ] as const;
-
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {statuses.map(([value, label]) => {
-        const active = currentStatus === value;
-
-        return (
-          <Button
-            key={value}
-            type="button"
-            variant={active ? "brand" : "outline"}
-            disabled={updating || active}
-            onClick={() => onChange(value)}
-            className="h-9 min-w-24 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {label}
-          </Button>
-        );
-      })}
-    </div>
+    <AllowStatusActionButtons
+      currentStatus={detail.allow_status}
+      options={hospitalEntryAllowStatusActions}
+      disabled={updating}
+      buttonClassName="h-9 min-w-24 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+      onChange={onChange}
+    />
   );
 }
 
@@ -422,11 +376,4 @@ function FileInfoRow({
 
 function joinAddress(address?: string | null, addressDetail?: string | null) {
   return [address?.trim(), addressDetail?.trim()].filter(Boolean).join("\n");
-}
-
-function resolveAllowStatusCode(status?: HospitalEntryDetailResponse["allow_status"]) {
-  if (!status) return "";
-  if (typeof status === "string") return status;
-
-  return status.code?.trim() || "";
 }

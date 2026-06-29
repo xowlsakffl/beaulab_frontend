@@ -1,6 +1,16 @@
 "use client";
 
-import { Button } from "@beaulab/ui-admin";
+import type { ReactNode } from "react";
+import {
+  Button,
+  InputField,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalPanel,
+  ModalTitle,
+} from "@beaulab/ui-admin";
 
 type VisibilityStatus = "ACTIVE" | "INACTIVE" | string | null | undefined;
 
@@ -52,5 +62,72 @@ export function VisibilityActionButtons({
         미노출
       </Button>
     </div>
+  );
+}
+
+export function VisibilityConfirmModal({
+  isOpen,
+  status,
+  message,
+  hiddenReasonValue = "",
+  updating,
+  reasonInputId,
+  reasonPlaceholder,
+  showReasonInput,
+  onHiddenReasonChange,
+  onClose,
+  onConfirm,
+}: {
+  isOpen: boolean;
+  status?: VisibilityStatus;
+  message: ReactNode;
+  hiddenReasonValue?: string;
+  updating: boolean;
+  reasonInputId: string;
+  reasonPlaceholder?: string;
+  showReasonInput?: boolean;
+  onHiddenReasonChange: (reason: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const requiresReason = showReasonInput ?? (status === "INACTIVE");
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">
+      <ModalPanel>
+        <ModalHeader className="pr-0">
+          <ModalTitle>노출여부 변경</ModalTitle>
+        </ModalHeader>
+
+        <ModalBody className="mt-5">
+          <p className="text-sm font-medium text-gray-800">{message}</p>
+
+          {requiresReason ? (
+            <div className="mt-4">
+              <label htmlFor={reasonInputId} className="mb-1.5 block text-sm font-medium text-gray-700">
+                미노출 사유
+              </label>
+              <InputField
+                id={reasonInputId}
+                name="hidden_reason"
+                value={hiddenReasonValue}
+                onChange={(event) => onHiddenReasonChange(event.target.value)}
+                disabled={updating}
+                placeholder={reasonPlaceholder}
+              />
+            </div>
+          ) : null}
+        </ModalBody>
+
+        <ModalFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
+            취소
+          </Button>
+          <Button type="button" variant="brand" onClick={onConfirm} disabled={updating}>
+            {updating ? "처리 중..." : "확인"}
+          </Button>
+        </ModalFooter>
+      </ModalPanel>
+    </Modal>
   );
 }

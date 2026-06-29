@@ -5,20 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
 import {
-  Button,
-  InputField,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
   type CheckboxFilterOption,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { HospitalEvaluationsDataTable } from "@/components/hospital-evaluation/list/HospitalEvaluationsDataTable";
 import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation/list/HospitalEvaluationsFilterPanel";
+import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
@@ -452,61 +445,17 @@ export function HospitalEvaluationsTableClient() {
         onOpenDetail={openEvaluationDetail}
       />
 
-      <Modal
+      <VisibilityConfirmModal
         isOpen={Boolean(pendingVisibilityChange)}
+        status={pendingVisibilityChange?.status}
+        message={pendingVisibilityMessage}
+        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+        updating={pendingVisibilityUpdating}
+        reasonInputId="hospital-evaluation-hidden-reason"
+        onHiddenReasonChange={updatePendingHiddenReason}
         onClose={closeVisibilityConfirmModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>노출여부 변경</ModalTitle>
-          </ModalHeader>
-
-          <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 ">
-              {pendingVisibilityMessage}
-            </p>
-
-            {pendingVisibilityChange?.status === "INACTIVE" ? (
-              <div className="mt-4">
-                <label
-                  htmlFor="hospital-evaluation-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 "
-                >
-                  미노출 사유
-                </label>
-                <InputField
-                  id="hospital-evaluation-hidden-reason"
-                  name="hidden_reason"
-                  value={pendingVisibilityChange.hiddenReason ?? ""}
-                  onChange={(event) => updatePendingHiddenReason(event.target.value)}
-                  disabled={pendingVisibilityUpdating}
-                />
-              </div>
-            ) : null}
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeVisibilityConfirmModal}
-              disabled={pendingVisibilityUpdating}
-            >
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => void confirmVisibilityChange()}
-              disabled={pendingVisibilityUpdating}
-            >
-              {pendingVisibilityUpdating ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+        onConfirm={() => void confirmVisibilityChange()}
+      />
     </div>
   );
 }

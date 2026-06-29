@@ -124,7 +124,7 @@ function DetailImageGalleryButton({
         // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
         <img src={item.url} alt="" className="h-full w-full object-cover" />
       ) : (
-        <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
+        <span className="px-3 text-center text-xs text-gray-500 ">이미지 없음</span>
       )}
     </button>
   );

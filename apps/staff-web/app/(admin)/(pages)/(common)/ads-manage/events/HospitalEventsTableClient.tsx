@@ -4,21 +4,14 @@ import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  DateRangeFilterDropdown,
-  FormCheckbox,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { type DataTableMeta } from "@beaulab/ui-admin";
 
 import { HospitalEventsDataTable } from "@/components/hospital-event/list/HospitalEventsDataTable";
 import { HospitalEventsFilterPanel } from "@/components/hospital-event/list/HospitalEventsFilterPanel";
+import {
+  HospitalEventPeriodEditModal,
+  type HospitalEventPeriodEditState,
+} from "@/components/hospital-event/list/HospitalEventPeriodEditModal";
 import { HospitalEventsSummaryCards } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
@@ -31,13 +24,11 @@ import {
   buildHospitalEventPresetDateRange,
   buildHospitalEventsQuery,
   buildHospitalEventsQueryString,
-  formatLocalDate,
   mapDateRangeToHospitalEventFilter,
   nextHospitalEventSortState,
   normalizeHospitalEvent,
   normalizeNumberBound,
   normalizeRangeDate,
-  parseDateParam,
   parseHospitalEventsTableState,
   type HospitalEventAmountMetric,
   type HospitalEventApiItem,
@@ -55,20 +46,6 @@ type SelectOption = {
   value: string;
   label: string;
 };
-
-type PeriodEditState = {
-  row: HospitalEventRow;
-  eventStartAt: string;
-  eventEndAt: string;
-  isEventPeriodUnlimited: boolean;
-  error: string | null;
-};
-
-const PERIOD_DATE_PRESET_OPTIONS = [
-  { key: "oneMonth", label: "1개월" },
-  { key: "twoMonths", label: "2개월" },
-  { key: "threeMonths", label: "3개월" },
-] as const;
 
 export default function HospitalEventsTableClient() {
   const router = useRouter();
@@ -92,12 +69,10 @@ export default function HospitalEventsTableClient() {
   const [majorCategoryItems, setMajorCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [middleCategoryItems, setMiddleCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
-  const [periodEdit, setPeriodEdit] = React.useState<PeriodEditState | null>(null);
+  const [periodEdit, setPeriodEdit] = React.useState<HospitalEventPeriodEditState | null>(null);
   const [periodUpdating, setPeriodUpdating] = React.useState(false);
-  const [isPeriodDatePickerOpen, setIsPeriodDatePickerOpen] = React.useState(false);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
   const allowStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
-  const periodDatePickerRef = React.useRef<HTMLDivElement | null>(null);
 
   const query = React.useMemo(
     () =>
@@ -111,25 +86,6 @@ export default function HospitalEventsTableClient() {
   );
 
   const queryString = React.useMemo(() => buildHospitalEventsQueryString(query), [query]);
-  const periodDateRange = React.useMemo<DateRange | undefined>(() => {
-    if (!periodEdit?.eventStartAt) return undefined;
-    const startDate = parseDateParam(periodEdit.eventStartAt);
-    if (!startDate) return undefined;
-
-    return {
-      from: startDate,
-      to: periodEdit.isEventPeriodUnlimited ? startDate : parseDateParam(periodEdit.eventEndAt),
-    };
-  }, [periodEdit?.eventEndAt, periodEdit?.eventStartAt, periodEdit?.isEventPeriodUnlimited]);
-
-  const periodInputValue = React.useMemo(
-    () =>
-      periodEdit
-        ? formatPeriodInputValue(periodEdit.eventStartAt, periodEdit.eventEndAt, periodEdit.isEventPeriodUnlimited)
-        : "",
-    [periodEdit],
-  );
-
   const fetchEventRows = React.useCallback(async (nextQuery: typeof query) => {
     const response = await api.get<HospitalEventApiItem[]>("/hospital-events", nextQuery, {
       latestKey: "hospital-events:list",
@@ -299,9 +255,6 @@ export default function HospitalEventsTableClient() {
       if (!allowStatusDropdownRef.current?.contains(event.target as Node)) {
         setIsAllowStatusDropdownOpen(false);
       }
-      if (!periodDatePickerRef.current?.contains(event.target as Node)) {
-        setIsPeriodDatePickerOpen(false);
-      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -397,7 +350,6 @@ export default function HospitalEventsTableClient() {
       isEventPeriodUnlimited: row.isEventPeriodUnlimited,
       error: null,
     });
-    setIsPeriodDatePickerOpen(false);
   }, []);
 
   const openEventDetailPage = React.useCallback((row: HospitalEventRow) => {
@@ -417,51 +369,11 @@ export default function HospitalEventsTableClient() {
   const closePeriodEditModal = React.useCallback(() => {
     if (periodUpdating) return;
     setPeriodEdit(null);
-    setIsPeriodDatePickerOpen(false);
   }, [periodUpdating]);
 
-  const updatePeriodEdit = React.useCallback((patch: Partial<Omit<PeriodEditState, "row">>) => {
+  const updatePeriodEdit = React.useCallback((patch: Partial<Omit<HospitalEventPeriodEditState, "row">>) => {
     setPeriodEdit((prev) => (prev ? { ...prev, error: null, ...patch } : prev));
   }, []);
-
-  const applyPeriodDateRange = React.useCallback(
-    (nextRange?: DateRange, selectedDay?: Date) => {
-      if (!nextRange?.from) {
-        updatePeriodEdit({ eventStartAt: "", eventEndAt: "" });
-        return;
-      }
-
-      const eventStartAt = formatLocalDate(normalizeRangeDate(periodEdit?.isEventPeriodUnlimited && selectedDay ? selectedDay : nextRange.from));
-      const eventEndAt = nextRange.to ? formatLocalDate(normalizeRangeDate(nextRange.to)) : "";
-
-      setPeriodEdit((prev) => {
-        if (!prev) return prev;
-
-        return {
-          ...prev,
-          eventStartAt,
-          eventEndAt: prev.isEventPeriodUnlimited ? "" : eventEndAt,
-          error: null,
-        };
-      });
-    },
-    [periodEdit?.isEventPeriodUnlimited, updatePeriodEdit],
-  );
-
-  const applyPeriodPreset = React.useCallback(
-    (presetKey: string) => {
-      const baseDate = parseDateParam(periodEdit?.eventStartAt ?? "") ?? normalizeRangeDate(new Date());
-      const presetMonths = presetKey === "threeMonths" ? 3 : presetKey === "twoMonths" ? 2 : 1;
-      const endDate = addMonthsClamped(baseDate, presetMonths);
-
-      updatePeriodEdit({
-        eventStartAt: formatLocalDate(baseDate),
-        eventEndAt: formatLocalDate(endDate),
-        isEventPeriodUnlimited: false,
-      });
-    },
-    [periodEdit?.eventStartAt, updatePeriodEdit],
-  );
 
   const submitPeriodEdit = React.useCallback(async () => {
     if (!periodEdit || periodUpdating) return;
@@ -567,87 +479,13 @@ export default function HospitalEventsTableClient() {
         onGoPage={setPage}
       />
 
-      <Modal isOpen={Boolean(periodEdit)} onClose={closePeriodEditModal} className="mx-4 w-full max-w-xl" showCloseButton={false}>
-        <ModalPanel className="rounded-2xl p-6 shadow-none">
-          <ModalHeader className="pr-0">
-            <ModalTitle className="text-xl font-bold">이벤트 기간 수정</ModalTitle>
-          </ModalHeader>
-
-          <ModalBody className="mt-5 space-y-6">
-            <div>
-              <p className="mb-2 text-sm font-semibold text-gray-700">
-                이벤트 기간 <span className="text-error-500">*</span>
-              </p>
-              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                <DateRangeFilterDropdown
-                  label="이벤트 기간"
-                  hideLabel
-                  containerRef={periodDatePickerRef}
-                  value={periodInputValue}
-                  placeholder="이벤트 기간을 선택해주세요"
-                  selected={periodDateRange}
-                  isOpen={isPeriodDatePickerOpen}
-                  presetOptions={PERIOD_DATE_PRESET_OPTIONS}
-                  onToggleOpen={() => setIsPeriodDatePickerOpen((prev) => !prev)}
-                  onSelect={applyPeriodDateRange}
-                  onPresetSelect={applyPeriodPreset}
-                  onReset={() => {
-                    updatePeriodEdit({ eventStartAt: "", eventEndAt: "" });
-                    setIsPeriodDatePickerOpen(false);
-                  }}
-                  onConfirm={() => setIsPeriodDatePickerOpen(false)}
-                  error={Boolean(periodEdit?.error)}
-                />
-                <div className="whitespace-nowrap">
-                  <FormCheckbox
-                    checked={Boolean(periodEdit?.isEventPeriodUnlimited)}
-                    onChange={(checked) =>
-                      updatePeriodEdit({
-                        isEventPeriodUnlimited: checked,
-                        eventEndAt: checked ? "" : (periodEdit?.eventEndAt ?? ""),
-                      })
-                    }
-                    label="종료일 없음"
-                  />
-                </div>
-              </div>
-              {periodEdit?.error ? <p className="mt-2 text-sm font-medium text-error-500">{periodEdit.error}</p> : null}
-            </div>
-          </ModalBody>
-
-          <ModalFooter className="mt-10 grid grid-cols-2 gap-2">
-            <Button type="button" variant="outline" className="h-12 w-full justify-center" disabled={periodUpdating} onClick={closePeriodEditModal}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" className="h-12 w-full justify-center" disabled={periodUpdating} onClick={() => void submitPeriodEdit()}>
-              {periodUpdating ? "수정 중" : "수정하기"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+      <HospitalEventPeriodEditModal
+        periodEdit={periodEdit}
+        updating={periodUpdating}
+        onClose={closePeriodEditModal}
+        onChange={updatePeriodEdit}
+        onSubmit={submitPeriodEdit}
+      />
     </div>
   );
-}
-
-function formatPeriodInputValue(startAt: string, endAt: string, isUnlimited: boolean) {
-  if (!startAt) return "";
-
-  if (isUnlimited) {
-    return `${formatShortHyphenDate(startAt)} ~ 무기한`;
-  }
-
-  return endAt ? `${formatShortHyphenDate(startAt)} ~ ${formatShortHyphenDate(endAt)}` : formatShortHyphenDate(startAt);
-}
-
-function formatShortHyphenDate(value: string) {
-  return value.length === 10 ? value.slice(2) : value;
-}
-
-function addMonthsClamped(date: Date, months: number) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + months;
-  const day = date.getDate();
-  const lastDayOfTargetMonth = new Date(year, month + 1, 0).getDate();
-
-  return normalizeRangeDate(new Date(year, month, Math.min(day, lastDayOfTargetMonth)));
 }

@@ -32,7 +32,10 @@ import {
   OperationHistoryActionBadge,
   OperationHistoryReason,
 } from "@/components/common/OperationHistoryDisplay";
-import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
+import {
+  VisibilityActionButtons as VisibilityButtons,
+  VisibilityConfirmModal,
+} from "@/components/common/VisibilityActionButtons";
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
@@ -437,61 +440,17 @@ export default function HospitalEvaluationDetailPageClient() {
         onPreviewMedia={setPreviewMedia}
       />
 
-      <Modal
+      <VisibilityConfirmModal
         isOpen={Boolean(pendingVisibilityChange)}
+        status={pendingVisibilityChange?.status}
+        message={pendingVisibilityMessage}
+        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+        updating={visibilityUpdating}
+        reasonInputId="hospital-evaluation-detail-hidden-reason"
+        onHiddenReasonChange={updatePendingHiddenReason}
         onClose={closeVisibilityConfirmModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>노출여부 변경</ModalTitle>
-          </ModalHeader>
-
-          <ModalBody className="mt-5">
-            <p className="text-sm font-medium text-gray-800 ">
-              {pendingVisibilityMessage}
-            </p>
-
-            {pendingVisibilityChange?.status === "INACTIVE" ? (
-              <div className="mt-4">
-                <label
-                  htmlFor="hospital-evaluation-detail-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 "
-                >
-                  미노출 사유
-                </label>
-                <InputField
-                  id="hospital-evaluation-detail-hidden-reason"
-                  name="hidden_reason"
-                  value={pendingVisibilityChange.hiddenReason ?? ""}
-                  onChange={(event) => updatePendingHiddenReason(event.target.value)}
-                  disabled={visibilityUpdating}
-                />
-              </div>
-            ) : null}
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeVisibilityConfirmModal}
-              disabled={visibilityUpdating}
-            >
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => void confirmVisibilityChange()}
-              disabled={visibilityUpdating}
-            >
-              {visibilityUpdating ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+        onConfirm={() => void confirmVisibilityChange()}
+      />
 
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>

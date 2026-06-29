@@ -43,7 +43,7 @@ export function DetailImageMediaCard({
   aspectClassName = "aspect-[4/3]",
   className = "",
   previewAlt = "",
-  unsupportedText = "미리보기를 지원하지 않는 파일입니다.",
+  unsupportedText = "원본보기를 지원하지 않는 파일입니다.",
 }: DetailImageMediaCardProps) {
   return (
     <div
@@ -87,7 +87,7 @@ export function DetailImageMediaCard({
                 rel="noreferrer"
                 className="text-xs font-medium text-brand-600 underline underline-offset-2 "
               >
-                파일 보기
+                원본보기
               </a>
             ) : null}
           </div>
@@ -150,7 +150,7 @@ export function DetailCompactMediaCard({
                 rel="noreferrer"
                 className="text-xs font-medium text-brand-600 underline underline-offset-2 "
               >
-                파일 보기
+                원본보기
               </a>
               {showDownload ? (
                 <button

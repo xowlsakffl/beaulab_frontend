@@ -104,6 +104,7 @@ export type HospitalDetailResponse = {
   status?: string | null;
   latest_status_history?: HospitalStatusHistory | null;
   new_event_db_count?: number | null;
+  point_balance?: number | string | null;
   logo?: MediaAsset | null;
   gallery?: MediaAsset[] | null;
   categories?: HospitalCategoryItem[] | null;
@@ -154,6 +155,15 @@ export function getMediaFilename(media?: MediaAsset | null) {
   }
 
   return `media-${media.id ?? "file"}`;
+}
+
+export function formatHospitalPointBalance(value?: number | string | null) {
+  if (value === null || value === undefined || value === "") return "-";
+
+  const numericValue = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
+  if (!Number.isFinite(numericValue)) return "-";
+
+  return `${numericValue.toLocaleString()} P`;
 }
 
 export function isImageMedia(media?: MediaAsset | null) {

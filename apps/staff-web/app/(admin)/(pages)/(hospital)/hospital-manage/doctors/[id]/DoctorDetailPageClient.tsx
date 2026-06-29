@@ -3,6 +3,10 @@
 import React from "react";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
+import {
+  AllowStatusActionButtons,
+  AllowStatusConfirmModal,
+} from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
@@ -26,13 +30,6 @@ import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
-  InputField,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -216,75 +213,20 @@ export default function DoctorDetailPageClient() {
       </section>
 
       <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <DoctorAllowStatusConfirmModal
-        pendingAllowStatus={pendingAllowStatusChange}
+      <AllowStatusConfirmModal
+        pending={pendingAllowStatusChange}
+        subjectLabel="해당 의료진을"
+        messageAction="상태로 변경"
+        labelStatus={labelDoctorApprovalStatus}
         updating={updatingAllowStatus}
         error={allowStatusError}
+        reasonInputId="doctor-rejected-reason"
+        processingText="변경 중"
         onReasonChange={updateAllowStatusReason}
         onClose={closeAllowStatusModal}
         onConfirm={() => void confirmAllowStatusChange()}
       />
     </div>
-  );
-}
-
-function DoctorAllowStatusConfirmModal({
-  pendingAllowStatus,
-  updating,
-  error,
-  onReasonChange,
-  onClose,
-  onConfirm,
-}: {
-  pendingAllowStatus: PendingAllowStatusChange | null;
-  updating: boolean;
-  error: string | null;
-  onReasonChange: (reason: string) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-}) {
-  const statusLabel = pendingAllowStatus ? labelDoctorApprovalStatus(pendingAllowStatus.allowStatus) : "";
-  const requiresReason = pendingAllowStatus?.allowStatus === "REJECTED";
-
-  return (
-    <Modal isOpen={pendingAllowStatus !== null} onClose={onClose} className="mx-4 max-w-md" showCloseButton={false}>
-      <ModalPanel>
-        <ModalHeader className="pr-0">
-          <ModalTitle>검수상태 변경</ModalTitle>
-        </ModalHeader>
-        <ModalBody className="mt-5 space-y-4">
-          <p className="text-sm font-medium text-gray-800">
-            해당 의료진을 {statusLabel} 상태로 변경하시겠습니까?
-          </p>
-          {requiresReason ? (
-            <div className="mt-4">
-              <label htmlFor="doctor-rejected-reason" className="mb-1.5 block text-sm font-medium text-gray-700">
-                반려 사유
-              </label>
-              <InputField
-                id="doctor-rejected-reason"
-                name="rejected_reason"
-                value={pendingAllowStatus?.reason ?? ""}
-                onChange={(event) => onReasonChange(event.target.value)}
-                disabled={updating}
-                placeholder="반려 사유를 입력해주세요."
-                error={Boolean(error)}
-                hint={error ?? undefined}
-              />
-            </div>
-          ) : null}
-          {error && !requiresReason ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
-            취소
-          </Button>
-          <Button type="button" variant="brand" onClick={onConfirm} disabled={updating}>
-            {updating ? "변경 중" : "확인"}
-          </Button>
-        </ModalFooter>
-      </ModalPanel>
-    </Modal>
   );
 }
 
@@ -299,35 +241,12 @@ function DoctorAllowStatusCard({
   error: string | null;
   onChange: (status: string) => void;
 }) {
-  const statuses = [
-    ["REVIEWING", "검수"],
-    ["APPROVED", "승인"],
-    ["REJECTED", "반려"],
-  ] as const;
-
   return (
     <Card className={`${infoCardClassName} xl:col-start-2`}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className={cardTitleClassName}>검수상태</h3>
         <Can permission="beaulab.doctor.update">
-          <div className="flex flex-wrap items-center gap-2">
-            {statuses.map(([value, label]) => {
-              const active = detail.allow_status === value;
-
-              return (
-                <Button
-                  key={value}
-                  type="button"
-                  variant={active ? "brand" : "outline"}
-                  disabled={updating || active}
-                  onClick={() => onChange(value)}
-                  className="h-9 min-w-[4.25rem] px-4 text-sm"
-                >
-                  {label}
-                </Button>
-              );
-            })}
-          </div>
+          <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
         </Can>
       </div>
       {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}

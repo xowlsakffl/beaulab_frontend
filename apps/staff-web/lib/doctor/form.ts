@@ -1,7 +1,8 @@
 import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
-import { validateImageFileRule } from "@/lib/common/media-validation";
+import { validateImageFileRuleMessage } from "@/lib/common/media-validation";
+import { REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
 import {
   getDoctorMediaFilename,
   resolveDoctorMediaUrl,
@@ -100,12 +101,7 @@ export const DOCTOR_STATUS_OPTIONS = [
   { value: "INACTIVE", label: "비활성" },
 ] as const;
 
-export const DOCTOR_ALLOW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "신청" },
-  { value: "REVIEWING", label: "검수" },
-  { value: "APPROVED", label: "승인" },
-  { value: "REJECTED", label: "반려" },
-] as const;
+export const DOCTOR_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_OPTIONS;
 
 export const DOCTOR_PROFILE_COLLECTIONS: readonly MediaCollectionConfig<"profile_image">[] = [
   {
@@ -232,7 +228,7 @@ export function buildDoctorExistingFileItems(mediaList?: DoctorMediaAsset[] | nu
 }
 
 export async function validateDoctorProfileImageFile(file: File) {
-  return (await validateImageFileRule(file, DOCTOR_PROFILE_IMAGE_RULE)) ? null : DOCTOR_PROFILE_IMAGE_VALIDATION_MESSAGE;
+  return validateImageFileRuleMessage(file, DOCTOR_PROFILE_IMAGE_RULE, DOCTOR_PROFILE_IMAGE_VALIDATION_MESSAGE);
 }
 
 export type BuildCreateDoctorFormDataParams = {

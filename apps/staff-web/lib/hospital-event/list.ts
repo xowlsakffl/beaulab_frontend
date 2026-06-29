@@ -3,6 +3,7 @@ import type { DateRange } from "react-day-picker";
 
 import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
+import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_OPTIONS, reviewAllowStatusColor } from "@/lib/common/review-status";
 
 export type HospitalEventCategory = {
   id?: number | null;
@@ -217,12 +218,7 @@ export const HOSPITAL_EVENT_VISIBILITY_OPTIONS = [
   { value: "INACTIVE", label: "미노출" },
 ];
 
-export const HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "신청" },
-  { value: "REVIEWING", label: "검수" },
-  { value: "APPROVED", label: "승인" },
-  { value: "REJECTED", label: "반려" },
-];
+export const HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({ ...option }));
 
 export const HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS: { value: HospitalEventQuantityMetric; label: string }[] = [
   { value: "all", label: "전체" },
@@ -264,7 +260,7 @@ const HOSPITAL_EVENT_SORT_FIELDS = new Set<HospitalEventSortField>([
   "event_end_at",
 ]);
 const HOSPITAL_EVENT_VISIBILITY_VALUE_SET = new Set(HOSPITAL_EVENT_VISIBILITY_OPTIONS.map((option) => option.value));
-const HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET = new Set(HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value));
+const HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET = new Set<string>(HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVENT_QUANTITY_METRIC_VALUE_SET = new Set(HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET = new Set(HOSPITAL_EVENT_AMOUNT_METRIC_OPTIONS.map((option) => option.value));
 const HOSPITAL_EVENT_DATE_TYPE_VALUE_SET = new Set(HOSPITAL_EVENT_DATE_TYPE_OPTIONS.map((option) => option.value));
@@ -284,26 +280,11 @@ export function hospitalEventVisibilityStatusColor(status?: string | null): Badg
 }
 
 export function labelHospitalEventAllowStatus(status?: string | null) {
-  switch (status) {
-    case "PENDING":
-      return "신청";
-    case "REVIEWING":
-      return "검수";
-    case "REJECTED":
-      return "반려";
-    case "APPROVED":
-      return "승인";
-    default:
-      return "-";
-  }
+  return labelReviewAllowStatus(status);
 }
 
 export function hospitalEventAllowStatusColor(status?: string | null): BadgeColor {
-  if (status === "APPROVED") return "success";
-  if (status === "PENDING" || status === "REVIEWING") return "warning";
-  if (status === "REJECTED") return "error";
-
-  return "light";
+  return reviewAllowStatusColor(status);
 }
 
 export function formatHospitalEventDate(value?: string | null) {

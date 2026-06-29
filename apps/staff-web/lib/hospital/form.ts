@@ -1,6 +1,8 @@
 import type { CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
+import { validateImageFileRuleMessage, validateImageFilesRuleMessage } from "@/lib/common/media-validation";
+import { REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
 import {
   getMediaFilename,
   isImageMedia,
@@ -157,6 +159,31 @@ export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
 };
 
 export const HOSPITAL_CATEGORY_MAX_SELECTION = 5;
+const HOSPITAL_LOGO_MAX_BYTES = 5 * 1024 * 1024;
+const HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const HOSPITAL_LOGO_VALIDATION_MESSAGE =
+  "로고 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하\n- 이미지 비율: 1:1";
+const HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
+const HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+const HOSPITAL_GALLERY_MAX_BYTES = 10 * 1024 * 1024;
+const HOSPITAL_GALLERY_REQUIRED_WIDTH = 760;
+const HOSPITAL_GALLERY_REQUIRED_HEIGHT = 490;
+const HOSPITAL_GALLERY_VALIDATION_MESSAGE =
+  "병의원 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 10MB 이하\n- 이미지 크기: 760 x 490px";
+const HOSPITAL_LOGO_IMAGE_RULE = {
+  allowedExtensions: HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS,
+  allowedMimeTypes: HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES,
+  maxBytes: HOSPITAL_LOGO_MAX_BYTES,
+  square: true,
+};
+const HOSPITAL_GALLERY_IMAGE_RULE = {
+  allowedExtensions: HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS,
+  allowedMimeTypes: HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES,
+  maxBytes: HOSPITAL_GALLERY_MAX_BYTES,
+  exactWidth: HOSPITAL_GALLERY_REQUIRED_WIDTH,
+  exactHeight: HOSPITAL_GALLERY_REQUIRED_HEIGHT,
+};
 
 export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
@@ -197,12 +224,7 @@ export const HOSPITAL_STATUS_OPTIONS = [
   { value: "WITHDRAWN", label: "탈퇴" },
 ] as const;
 
-export const HOSPITAL_ALLOW_STATUS_OPTIONS = [
-  { value: "PENDING", label: "신청" },
-  { value: "REVIEWING", label: "검수" },
-  { value: "APPROVED", label: "승인" },
-  { value: "REJECTED", label: "반려" },
-] as const;
+export const HOSPITAL_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_OPTIONS;
 
 export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "name",
@@ -386,6 +408,14 @@ export function buildHospitalExistingMediaItems(existingLogo: MediaAsset | null,
       }))
       .filter((item) => Boolean(item.url)),
   };
+}
+
+export async function validateHospitalLogoImageFile(file: File) {
+  return validateImageFileRuleMessage(file, HOSPITAL_LOGO_IMAGE_RULE, HOSPITAL_LOGO_VALIDATION_MESSAGE);
+}
+
+export async function validateHospitalGalleryUploadFiles(files: File[]) {
+  return validateImageFilesRuleMessage(files, HOSPITAL_GALLERY_IMAGE_RULE, HOSPITAL_GALLERY_VALIDATION_MESSAGE);
 }
 
 export type BuildCreateHospitalFormDataParams = {

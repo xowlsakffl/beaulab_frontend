@@ -1,6 +1,7 @@
 import type { CategorySelectorSection } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
+import { validateImageFileRuleMessage, type ImageFileValidationRule } from "@/lib/common/media-validation";
 import type { HospitalEventApiItem } from "./list";
 
 export type HospitalEventType = "IMAGE" | "TEXT";
@@ -50,6 +51,8 @@ export type HospitalEventFieldName =
   | "thumbnail_image"
   | "event_page_image";
 
+export type HospitalEventImageFieldName = Extract<HospitalEventFieldName, "thumbnail_image" | "event_page_image">;
+
 export type HospitalEventFormErrors = Partial<Record<HospitalEventFieldName, string>>;
 
 export type HospitalEventFormValidationOptions = {
@@ -60,6 +63,30 @@ export type HospitalEventFormValidationOptions = {
 export const HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT = 5;
 export const HOSPITAL_EVENT_PROCEDURE_BENEFIT_MAX_COUNT = 6;
 export const INITIAL_HOSPITAL_EVENT_CATEGORY_SECTION_KEY = "surgery";
+export const HOSPITAL_EVENT_IMAGE_ACCEPT = ".jpg,.jpeg,.png,image/jpeg,image/png";
+
+const HOSPITAL_EVENT_IMAGE_ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
+const HOSPITAL_EVENT_IMAGE_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+const HOSPITAL_EVENT_THUMBNAIL_VALIDATION_MESSAGE =
+  "썸네일은 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 2MB 이하\n- 이미지 크기: 800 x 800px 이상\n- 이미지 비율: 1:1";
+const HOSPITAL_EVENT_PAGE_VALIDATION_MESSAGE =
+  "이벤트 페이지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 5MB 이하\n- 이미지 가로: 800px 이상";
+const HOSPITAL_EVENT_THUMBNAIL_IMAGE_RULE = {
+  allowedExtensions: HOSPITAL_EVENT_IMAGE_ALLOWED_EXTENSIONS,
+  allowedMimeTypes: HOSPITAL_EVENT_IMAGE_ALLOWED_MIME_TYPES,
+  typeValidationMode: "extension-or-mime",
+  maxBytes: 2 * 1024 * 1024,
+  minWidth: 800,
+  minHeight: 800,
+  square: true,
+} satisfies ImageFileValidationRule;
+const HOSPITAL_EVENT_PAGE_IMAGE_RULE = {
+  allowedExtensions: HOSPITAL_EVENT_IMAGE_ALLOWED_EXTENSIONS,
+  allowedMimeTypes: HOSPITAL_EVENT_IMAGE_ALLOWED_MIME_TYPES,
+  typeValidationMode: "extension-or-mime",
+  maxBytes: 5 * 1024 * 1024,
+  minWidth: 800,
+} satisfies ImageFileValidationRule;
 
 export const HOSPITAL_EVENT_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
@@ -357,6 +384,14 @@ export function validateCreateHospitalEventForm(
   }
 
   return errors;
+}
+
+export async function validateHospitalEventImageFile(field: HospitalEventImageFieldName, file: File) {
+  if (field === "event_page_image") {
+    return validateImageFileRuleMessage(file, HOSPITAL_EVENT_PAGE_IMAGE_RULE, HOSPITAL_EVENT_PAGE_VALIDATION_MESSAGE);
+  }
+
+  return validateImageFileRuleMessage(file, HOSPITAL_EVENT_THUMBNAIL_IMAGE_RULE, HOSPITAL_EVENT_THUMBNAIL_VALIDATION_MESSAGE);
 }
 
 export type BuildHospitalEventFormDataParams = {
