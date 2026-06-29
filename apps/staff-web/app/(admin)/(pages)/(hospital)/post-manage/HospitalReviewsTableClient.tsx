@@ -24,7 +24,6 @@ import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButt
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
-import { preloadImageUrls } from "@/lib/common/media";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
@@ -52,7 +51,6 @@ import {
   normalizeHospitalReview,
   normalizeMetricBound,
   parseHospitalReviewsTableState,
-  resolveHospitalReviewMediaUrl,
   type HospitalReviewApiItem,
   type HospitalReviewBoardType,
   type HospitalReviewFilters,
@@ -179,11 +177,8 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         throw new Error(response.error.message || "후기 목록 조회에 실패했습니다.");
       }
 
-      const normalizedRows = response.data.map(normalizeHospitalReview);
-      void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
-
       return {
-        rows: normalizedRows,
+        rows: response.data.map(normalizeHospitalReview),
         meta: (response.meta as DataTableMeta | null) ?? null,
       };
     },
@@ -200,11 +195,8 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         throw new Error(response.error.message || "후기 댓글 목록 조회에 실패했습니다.");
       }
 
-      const normalizedRows = response.data.map(normalizeHospitalReviewComment);
-      void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
-
       return {
-        rows: normalizedRows,
+        rows: response.data.map(normalizeHospitalReviewComment),
         meta: (response.meta as DataTableMeta | null) ?? null,
       };
     },

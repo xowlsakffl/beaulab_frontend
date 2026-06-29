@@ -11,7 +11,6 @@ import { ReportedContentFilterPanel } from "@/components/reported-content/list/R
 import { ReportedContentStatsCards } from "@/components/reported-content/list/ReportedContentStatsCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
-import { preloadImageUrls } from "@/lib/common/media";
 import {
   DEFAULT_REPORTED_CONTENT_SORT,
   REPORTED_CONTENT_BOARD_CONFIGS,
@@ -23,7 +22,6 @@ import {
   nextReportedContentSortState,
   normalizeReportedContent,
   parseReportedContentTableState,
-  resolveReportedReviewImageUrl,
   type ReportedContentApiItem,
   type ReportedContentBoardMode,
   type ReportedContentBoardType,
@@ -107,7 +105,6 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
 
       const normalizedRows = response.data.map((item) => normalizeReportedContent(item, config, request.kind));
       const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-      void preloadImageUrls(normalizedRows.map((row) => resolveReportedReviewImageUrl(row.image)));
 
       return {
         rows: normalizedRows,

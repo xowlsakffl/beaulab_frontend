@@ -5,7 +5,6 @@ import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel"
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, CATEGORY_USAGES, type CategoryApiItem } from "@/lib/common/category";
-import { preloadImageUrls } from "@/lib/common/media";
 import {
   DEFAULT_FILTERS,
   DOCTORS_PER_PAGE,
@@ -127,11 +126,9 @@ export default function DoctorsTableClient() {
     }
 
     const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-    const normalizedRows = response.data.map(normalizeDoctor);
-    void preloadImageUrls(normalizedRows.map((row) => row.profileImageUrl));
 
     return {
-      rows: normalizedRows,
+      rows: response.data.map(normalizeDoctor),
       meta: responseMeta
         ? {
             current_page: responseMeta.current_page,

@@ -122,7 +122,13 @@ function renderImagePreview(row: HospitalReviewRow) {
   return (
     <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
-      <img src={imageUrl} alt={`후기 ${row.id} 이미지`} className="h-full w-full object-cover" />
+      <img
+        src={imageUrl}
+        alt={`후기 ${row.id} 이미지`}
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover"
+      />
       {imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
           {imageCount}+

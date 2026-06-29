@@ -33,30 +33,6 @@ export function resolveMediaAssetUrl(
   return resolveStoragePath(media?.path);
 }
 
-export async function preloadImageUrls(urls: Array<string | null | undefined>, timeoutMs = 250): Promise<void> {
-  if (typeof window === "undefined") return;
-
-  const uniqueUrls = Array.from(new Set(urls.filter((url): url is string => Boolean(url))));
-  if (uniqueUrls.length === 0) return;
-
-  await Promise.race([
-    Promise.allSettled(uniqueUrls.map(preloadImageUrl)),
-    new Promise<void>((resolve) => {
-      window.setTimeout(resolve, timeoutMs);
-    }),
-  ]);
-}
-
-function preloadImageUrl(url: string): Promise<void> {
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.decoding = "async";
-    image.onload = () => resolve();
-    image.onerror = () => resolve();
-    image.src = url;
-  });
-}
-
 function resolveVariantUrl(media?: MediaLike | null, variantName?: "thumb" | "medium"): string | null {
   if (!media || !variantName) return null;
 

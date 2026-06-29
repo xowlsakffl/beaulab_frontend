@@ -118,18 +118,27 @@ export function DataTable<T>({
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    let frameId: number | null = null;
+
     const updateScrollHint = () => {
+      frameId = null;
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
-      setShowRightScrollHint(maxScrollLeft > 8 && container.scrollLeft < maxScrollLeft - 8);
+      const nextShowRightScrollHint = maxScrollLeft > 8 && container.scrollLeft < maxScrollLeft - 8;
+      setShowRightScrollHint((prev) => (prev === nextShowRightScrollHint ? prev : nextShowRightScrollHint));
     };
 
-    const frameId = window.requestAnimationFrame(updateScrollHint);
-    container.addEventListener("scroll", updateScrollHint, { passive: true });
-    window.addEventListener("resize", updateScrollHint);
+    const scheduleScrollHintUpdate = () => {
+      if (frameId !== null) return;
+      frameId = window.requestAnimationFrame(updateScrollHint);
+    };
+
+    scheduleScrollHintUpdate();
+    container.addEventListener("scroll", scheduleScrollHintUpdate, { passive: true });
+    window.addEventListener("resize", scheduleScrollHintUpdate);
 
     let resizeObserver: ResizeObserver | null = null;
     if (typeof ResizeObserver !== "undefined") {
-      resizeObserver = new ResizeObserver(updateScrollHint);
+      resizeObserver = new ResizeObserver(scheduleScrollHintUpdate);
       resizeObserver.observe(container);
 
       const tableElement = container.querySelector("table");
@@ -139,9 +148,11 @@ export function DataTable<T>({
     }
 
     return () => {
-      window.cancelAnimationFrame(frameId);
-      container.removeEventListener("scroll", updateScrollHint);
-      window.removeEventListener("resize", updateScrollHint);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      container.removeEventListener("scroll", scheduleScrollHintUpdate);
+      window.removeEventListener("resize", scheduleScrollHintUpdate);
       resizeObserver?.disconnect();
     };
   }, [columns.length, error, loading, rows.length]);

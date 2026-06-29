@@ -10,7 +10,6 @@ import { VideosDataTable } from "@/components/video/list/VideosDataTable";
 import { VideosFilterPanel } from "@/components/video/list/VideosFilterPanel";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
-import { preloadImageUrls } from "@/lib/common/media";
 import {
   DATE_PRESET_OPTIONS,
   DEFAULT_FILTERS,
@@ -89,11 +88,9 @@ export default function VideosTableClient() {
     }
 
     const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-    const normalizedRows = response.data.map(normalizeVideo);
-    void preloadImageUrls(normalizedRows.map((row) => row.thumbnailUrl));
 
     return {
-      rows: normalizedRows,
+      rows: response.data.map(normalizeVideo),
       meta: responseMeta
         ? {
             current_page: responseMeta.current_page,

@@ -16,7 +16,6 @@ import { HospitalEventsSummaryCards } from "@/components/hospital-event/list/Hos
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
-import { preloadImageUrls } from "@/lib/common/media";
 import {
   DEFAULT_HOSPITAL_EVENT_FILTERS,
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS,
@@ -94,11 +93,8 @@ export default function HospitalEventsTableClient() {
       throw new Error(response.error.message || "이벤트 목록 조회에 실패했습니다.");
     }
 
-    const normalizedRows = response.data.map(normalizeHospitalEvent);
-    void preloadImageUrls(normalizedRows.map((row) => row.thumbnailUrl));
-
     return {
-      rows: normalizedRows,
+      rows: response.data.map(normalizeHospitalEvent),
       meta: (response.meta as DataTableMeta | null) ?? null,
     };
   }, []);

@@ -5,7 +5,6 @@ import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilter
 import { HospitalsSummaryCards } from "@/components/hospital/list/HospitalsSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
-import { preloadImageUrls } from "@/lib/common/media";
 import {
   ALLOW_STATUS_OPTIONS,
   DEFAULT_FILTERS,
@@ -90,11 +89,8 @@ export default function HospitalsTableClient() {
       throw new Error(response.error.message || "병의원 목록 조회에 실패했습니다.");
     }
 
-    const normalizedRows = response.data.map(normalizeHospital);
-    void preloadImageUrls(normalizedRows.map((row) => row.logoUrl));
-
     return {
-      rows: normalizedRows,
+      rows: response.data.map(normalizeHospital),
       meta: (response.meta as DataTableMeta | null) ?? null,
     };
   }, []);

@@ -84,7 +84,13 @@ function buildHospitalColumns({
           <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-400">
             {row.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-              <img src={row.logoUrl} alt={`${row.name} 로고`} className="h-full w-full object-cover" />
+              <img
+                src={row.logoUrl}
+                alt={`${row.name} 로고`}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
             ) : (
               "로고"
             )}

@@ -102,6 +102,8 @@ function buildVideoColumns({
             <img
               src={row.thumbnailUrl}
               alt={row.title}
+              loading="lazy"
+              decoding="async"
               className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover"
             />
           ) : (
