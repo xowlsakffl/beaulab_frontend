@@ -85,7 +85,7 @@ export function HospitalEvaluationsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)] gap-x-2 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,0.95fr)]">
           <div className={`${filterRowClass} order-1`}>
@@ -146,7 +146,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onCostMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -156,7 +156,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onCostMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="500"
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
             </div>
           </div>
@@ -171,7 +171,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onViewCountMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -181,7 +181,7 @@ export function HospitalEvaluationsFilterPanel({
                 onChange={(event) => onViewCountMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="1000"
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
             </div>
           </div>
@@ -226,7 +226,7 @@ export function HospitalEvaluationsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="평가ID, 병의원명, 전화번호 등을 입력해주세요"
-                  className="bg-white "
+                  className="bg-white"
                 />
               </div>
             </div>
@@ -235,13 +235,7 @@ export function HospitalEvaluationsFilterPanel({
               <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
                 검색
               </Button>
-              <Button
-                type="button"
-                variant="brandOutline"
-                size="filter"
-                onClick={onResetFilters}
-                className="shrink-0"
-              >
+              <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
                 검색 초기화
               </Button>
             </div>

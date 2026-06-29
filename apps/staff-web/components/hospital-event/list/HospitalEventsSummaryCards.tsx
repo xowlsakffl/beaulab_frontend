@@ -26,9 +26,7 @@ export function HospitalEventsSummaryCards({ summary }: HospitalEventsSummaryCar
         <Card key={card.label} className="rounded-xl bg-white px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-medium text-gray-700">{card.label}</span>
-            <span className="text-base font-semibold text-gray-900">
-              {Number(card.value).toLocaleString()}개
-            </span>
+            <span className="text-base font-semibold text-gray-900">{Number(card.value).toLocaleString()}개</span>
           </div>
         </Card>
       ))}

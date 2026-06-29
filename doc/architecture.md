@@ -335,48 +335,48 @@ apps/staff-web/
 현재 관련 파일:
 
 - 병의원 목록
-  - [HospitalsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/HospitalsTableClient.tsx)
+  - [HospitalsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/HospitalsTableClient.tsx>)
   - [HospitalsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital/list/HospitalsDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/list.ts)
 - 공지사항 목록
-  - [NoticesTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/NoticesTableClient.tsx)
+  - [NoticesTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/NoticesTableClient.tsx>)
   - [NoticesDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/notice/list/NoticesDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/notice/list.ts)
 - 의료진 목록
-  - [DoctorsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/DoctorsTableClient.tsx)
+  - [DoctorsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/DoctorsTableClient.tsx>)
   - [DoctorsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/doctor/list/DoctorsDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/list.ts)
 - 동영상 목록
-  - [VideosTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/VideosTableClient.tsx)
+  - [VideosTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/VideosTableClient.tsx>)
   - [VideosDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/video/list/VideosDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/video/list.ts)
 - 토크 목록
-  - [TalksTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/talks/TalksTableClient.tsx)
+  - [TalksTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/talks/TalksTableClient.tsx>)
   - [TalksDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/talk/list/TalksDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/talk/list.ts)
 - 병의원 후기 목록
-  - [HospitalReviewsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/HospitalReviewsTableClient.tsx)
+  - [HospitalReviewsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/HospitalReviewsTableClient.tsx>)
   - [HospitalReviewsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital-review/list/HospitalReviewsDataTable.tsx)
   - [HospitalReviewCommentsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital-review/list/HospitalReviewCommentsDataTable.tsx)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-review/list.ts)
   - [comment-list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-review/comment-list.ts)
 - 병의원 평가 목록
-  - [HospitalEvaluationsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/hospital-evaluations/HospitalEvaluationsTableClient.tsx)
+  - [HospitalEvaluationsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/hospital-evaluations/HospitalEvaluationsTableClient.tsx>)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-evaluation/list.ts)
 - 병원 이벤트 목록
-  - [HospitalEventsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/HospitalEventsTableClient.tsx)
+  - [HospitalEventsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/HospitalEventsTableClient.tsx>)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event/list.ts)
 - 이벤트 DB 목록
-  - [HospitalEventDBsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/customer-db/events/HospitalEventDBsTableClient.tsx)
+  - [HospitalEventDBsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/customer-db/events/HospitalEventDBsTableClient.tsx>)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event-db/list.ts)
 - 리얼모델 DB 목록
-  - [HospitalEventRealModelDBsTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/customer-db/real-models/HospitalEventRealModelDBsTableClient.tsx)
+  - [HospitalEventRealModelDBsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/customer-db/real-models/HospitalEventRealModelDBsTableClient.tsx>)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event-real-model-db/list.ts)
 - 신고 콘텐츠 목록
-  - [ReportedContentTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reported-content/ReportedContentTableClient.tsx)
+  - [ReportedContentTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reported-content/ReportedContentTableClient.tsx>)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/reported-content/list.ts)
 - 일반 회원 목록
-  - [AccountUsersTableClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/users/AccountUsersTableClient.tsx)
+  - [AccountUsersTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/users/AccountUsersTableClient.tsx>)
   - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/account-user/list.ts)
 
 ### 5.2 등록/수정 폼
@@ -402,30 +402,30 @@ apps/staff-web/
 현재 관련 파일:
 
 - 병의원 생성/수정
-  - [HospitalsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx)
-  - [HospitalDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailPageClient.tsx)
-  - [HospitalEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/edit/HospitalEditFormClient.tsx)
+  - [HospitalsCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx>)
+  - [HospitalDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailPageClient.tsx>)
+  - [HospitalEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/edit/HospitalEditFormClient.tsx>)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/form.ts)
 - 공지사항 생성/수정
-  - [NoticesCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/new/NoticesCreateFormClient.tsx)
-  - [NoticeDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/NoticeDetailPageClient.tsx)
-  - [NoticeEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/edit/NoticeEditFormClient.tsx)
+  - [NoticesCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/new/NoticesCreateFormClient.tsx>)
+  - [NoticeDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/NoticeDetailPageClient.tsx>)
+  - [NoticeEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/edit/NoticeEditFormClient.tsx>)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/notice/form.ts)
 - 의료진 생성/수정
-  - [DoctorsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/new/DoctorsCreateFormClient.tsx)
-  - [DoctorDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailPageClient.tsx)
-  - [DoctorEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/edit/DoctorEditFormClient.tsx)
+  - [DoctorsCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/new/DoctorsCreateFormClient.tsx>)
+  - [DoctorDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailPageClient.tsx>)
+  - [DoctorEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/edit/DoctorEditFormClient.tsx>)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/form.ts)
 - 동영상 생성/수정
-  - [VideosCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/new/VideosCreateFormClient.tsx)
-  - [VideoDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/VideoDetailPageClient.tsx)
-  - [VideoEditFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/edit/VideoEditFormClient.tsx)
+  - [VideosCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/new/VideosCreateFormClient.tsx>)
+  - [VideoDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/VideoDetailPageClient.tsx>)
+  - [VideoEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/edit/VideoEditFormClient.tsx>)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/video/form.ts)
   - 무기한 게시가 아니면 `publish_start_at`, `publish_end_at`를 둘 다 필수로 검증합니다.
   - 공지사항 본문 편집은 [RichTextEditor.tsx](/root/beaulab_frontend/packages/ui-admin/src/components/form/RichTextEditor.tsx) 공용 컴포넌트를 사용하고, notice editor image API에 업로드를 연결합니다.
 - 병원 이벤트 생성/수정
-  - [HospitalEventsCreateFormClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/new/HospitalEventsCreateFormClient.tsx)
-  - [HospitalEventDetailPageClient.tsx](/root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/[id]/HospitalEventDetailPageClient.tsx)
+  - [HospitalEventsCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/new/HospitalEventsCreateFormClient.tsx>)
+  - [HospitalEventDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/[id]/HospitalEventDetailPageClient.tsx>)
   - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event/form.ts)
 
 ## 6. 권한/메뉴/세션

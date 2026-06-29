@@ -80,14 +80,7 @@ export type HospitalEvaluationRow = {
 };
 
 export type HospitalEvaluationSortField =
-  | "id"
-  | "cost"
-  | "average_rating"
-  | "status"
-  | "view_count"
-  | "receipt_status"
-  | "created_at"
-  | "updated_at";
+  "id" | "cost" | "average_rating" | "status" | "view_count" | "receipt_status" | "created_at" | "updated_at";
 
 export type HospitalEvaluationSortDirection = "asc" | "desc";
 
@@ -190,7 +183,9 @@ const HOSPITAL_EVALUATION_SORT_FIELDS = new Set<HospitalEvaluationSortField>([
   "created_at",
   "updated_at",
 ]);
-const HOSPITAL_EVALUATION_VISIBILITY_VALUE_SET = new Set(HOSPITAL_EVALUATION_VISIBILITY_OPTIONS.map((option) => option.value));
+const HOSPITAL_EVALUATION_VISIBILITY_VALUE_SET = new Set(
+  HOSPITAL_EVALUATION_VISIBILITY_OPTIONS.map((option) => option.value),
+);
 const HOSPITAL_EVALUATION_RATING_VALUE_SET = new Set(HOSPITAL_EVALUATION_RATING_OPTIONS.map((option) => option.value));
 
 export function labelHospitalEvaluationVisibilityStatus(status?: string | null) {
@@ -389,9 +384,10 @@ export function parseHospitalEvaluationsTableState(searchParams: URLSearchParams
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && HOSPITAL_EVALUATION_SORT_FIELDS.has(sortFieldParam as HospitalEvaluationSortField)
-    ? (sortFieldParam as HospitalEvaluationSortField)
-    : DEFAULT_HOSPITAL_EVALUATION_SORT.field;
+  const sortField =
+    sortFieldParam && HOSPITAL_EVALUATION_SORT_FIELDS.has(sortFieldParam as HospitalEvaluationSortField)
+      ? (sortFieldParam as HospitalEvaluationSortField)
+      : DEFAULT_HOSPITAL_EVALUATION_SORT.field;
   const sortDirection: HospitalEvaluationSortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {

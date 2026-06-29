@@ -28,10 +28,7 @@ import {
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
+import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import {
   VisibilityActionButtons as VisibilityButtons,
   VisibilityConfirmModal,
@@ -213,10 +210,7 @@ export default function HospitalEvaluationDetailPageClient() {
 
   const refreshEvaluationPage = React.useCallback(
     async (manualRefresh = false) => {
-      await Promise.all([
-        fetchEvaluationDetail(manualRefresh),
-        fetchEvaluationOperationHistories(manualRefresh),
-      ]);
+      await Promise.all([fetchEvaluationDetail(manualRefresh), fetchEvaluationOperationHistories(manualRefresh)]);
     },
     [fetchEvaluationDetail, fetchEvaluationOperationHistories],
   );
@@ -244,7 +238,7 @@ export default function HospitalEvaluationDetailPageClient() {
   }, [visibilityUpdating]);
 
   const updatePendingHiddenReason = React.useCallback((value: string) => {
-    setPendingVisibilityChange((prev) => prev ? { ...prev, hiddenReason: value } : prev);
+    setPendingVisibilityChange((prev) => (prev ? { ...prev, hiddenReason: value } : prev));
   }, []);
 
   const confirmVisibilityChange = React.useCallback(async () => {
@@ -262,20 +256,20 @@ export default function HospitalEvaluationDetailPageClient() {
     setVisibilityUpdating(true);
     setActionError(null);
     setPendingVisibilityChange(null);
-    setDetail((prev) => prev ? { ...prev, status } : prev);
+    setDetail((prev) => (prev ? { ...prev, status } : prev));
 
     try {
       const response = await api.patch<VisibilityUpdateResponse>("/hospital-evaluations/status", payload);
 
       if (!isApiSuccess(response)) {
-        setDetail((prev) => prev ? { ...prev, status: previousStatus } : prev);
+        setDetail((prev) => (prev ? { ...prev, status: previousStatus } : prev));
         setActionError(response.error.message || "평가 노출 상태 변경에 실패했습니다.");
         return;
       }
 
       void refreshEvaluationPage(true);
     } catch {
-      setDetail((prev) => prev ? { ...prev, status: previousStatus } : prev);
+      setDetail((prev) => (prev ? { ...prev, status: previousStatus } : prev));
       setActionError("평가 노출 상태 변경 중 오류가 발생했습니다.");
     } finally {
       setVisibilityUpdating(false);
@@ -328,12 +322,13 @@ export default function HospitalEvaluationDetailPageClient() {
     setActionError(null);
 
     try {
-      const response = receiptDecision === "verify"
-        ? await api.patch<ReceiptUpdateResponse>(`/hospital-evaluations/${detail.id}/receipt/verify`, {})
-        : await api.patch<ReceiptUpdateResponse>(
-          `/hospital-evaluations/${detail.id}/receipt/reject`,
-          buildReceiptRejectPayload(receiptRejectReason, receiptRejectReasonText),
-        );
+      const response =
+        receiptDecision === "verify"
+          ? await api.patch<ReceiptUpdateResponse>(`/hospital-evaluations/${detail.id}/receipt/verify`, {})
+          : await api.patch<ReceiptUpdateResponse>(
+              `/hospital-evaluations/${detail.id}/receipt/reject`,
+              buildReceiptRejectPayload(receiptRejectReason, receiptRejectReasonText),
+            );
 
       if (!isApiSuccess(response)) {
         setReceiptModalError(response.error.message || "영수증 인증 상태 저장에 실패했습니다.");
@@ -378,14 +373,12 @@ export default function HospitalEvaluationDetailPageClient() {
   const receiptStatus = detail.receipt?.status?.trim() || "NONE";
   const receiptButtonLabel = receiptStatus === "VERIFIED" ? "영수증 인증" : "영수증 등록";
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
-  const pendingVisibilityMessage = pendingVisibilityChange
-    ? `해당 평가를 ${pendingVisibilityLabel} 하시겠습니까?`
-    : "";
+  const pendingVisibilityMessage = pendingVisibilityChange ? `해당 평가를 ${pendingVisibilityLabel} 하시겠습니까?` : "";
 
   return (
     <div className="space-y-6">
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {actionError}
         </div>
       ) : null}
@@ -452,16 +445,16 @@ export default function HospitalEvaluationDetailPageClient() {
         onConfirm={() => void confirmVisibilityChange()}
       />
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
     </div>
   );
 }
 
-function MemberSummaryCard({
-  detail,
-}: {
-  detail: HospitalEvaluationDetailResponse;
-}) {
+function MemberSummaryCard({ detail }: { detail: HospitalEvaluationDetailResponse }) {
   return (
     <Card as="section">
       <CardHeader className="pb-4">
@@ -534,8 +527,8 @@ function HospitalEvaluationContentCard({
 
       <CardContent className="space-y-6">
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 ">내용</p>
-          <div className="min-h-48 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
+          <p className="text-xs font-semibold text-gray-500">내용</p>
+          <div className="min-h-48 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 break-words whitespace-pre-wrap text-gray-800">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -561,7 +554,7 @@ function RatingScoreCard({ detail }: { detail: HospitalEvaluationDetailResponse 
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between gap-3">
           <CardTitle>평가점수</CardTitle>
-          <span className="text-sm font-semibold text-gray-900 ">
+          <span className="text-sm font-semibold text-gray-900">
             {formatHospitalEvaluationAverageRating(ratings.average)}점
           </span>
         </div>
@@ -569,9 +562,9 @@ function RatingScoreCard({ detail }: { detail: HospitalEvaluationDetailResponse 
       <CardContent className="space-y-4">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-[5.5rem_minmax(0,1fr)_2.5rem] items-center gap-3 text-sm">
-            <span className="font-medium text-gray-700 ">{row.label}</span>
+            <span className="font-medium text-gray-700">{row.label}</span>
             <StarRating value={Number(row.value ?? 0)} />
-            <span className="text-right font-semibold text-gray-700 ">
+            <span className="text-right font-semibold text-gray-700">
               {formatHospitalEvaluationDetailRating(row.value)}점
             </span>
           </div>
@@ -625,7 +618,7 @@ function AssessmentCard({ assessment }: { assessment?: HospitalEvaluationAssessm
       <CardContent className="space-y-3">
         {rows.map((row) => (
           <div key={row.label} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-2 text-sm">
-            <span className="font-semibold text-gray-700 ">{row.label}</span>
+            <span className="font-semibold text-gray-700">{row.label}</span>
             <div className="grid grid-cols-2 gap-2">
               {row.options.map((option) => (
                 <span
@@ -634,7 +627,7 @@ function AssessmentCard({ assessment }: { assessment?: HospitalEvaluationAssessm
                     "inline-flex h-10 w-full items-center justify-center rounded-lg px-3 text-sm font-semibold ring-1",
                     option.value === row.value
                       ? "bg-brand-500 text-white ring-brand-500"
-                      : "bg-white text-gray-600 ring-gray-200   ",
+                      : "bg-white text-gray-600 ring-gray-200",
                   ].join(" ")}
                 >
                   {option.label}
@@ -666,20 +659,20 @@ function HospitalEvaluationHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 ">
+          <div className="divide-y divide-gray-200">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 ">
+                <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatHospitalEvaluationDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 break-words text-sm text-gray-600 ">
+                <span className="min-w-0 text-sm break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -743,7 +736,7 @@ function ReceiptVerificationModal({
         </ModalHeader>
 
         <ModalBody className="mt-6 space-y-6">
-          <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500  ">
+          <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500">
             {imageUrl ? (
               <button
                 type="button"
@@ -785,7 +778,7 @@ function ReceiptVerificationModal({
             <div className="space-y-3">
               <label
                 htmlFor="hospital-evaluation-receipt-reject-reason"
-                className="block text-sm font-semibold text-gray-800 "
+                className="block text-sm font-semibold text-gray-800"
               >
                 인증 부적합 사유
               </label>
@@ -794,7 +787,7 @@ function ReceiptVerificationModal({
                 value={rejectReason}
                 onChange={(event) => onRejectReasonChange(event.target.value)}
                 disabled={updating}
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 outline-none transition focus:border-brand-400   "
+                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 transition outline-none focus:border-brand-400"
               >
                 <option value="">없음</option>
                 {HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS.map((option) => (
@@ -818,9 +811,7 @@ function ReceiptVerificationModal({
           ) : null}
 
           {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700   ">
-              {error}
-            </div>
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
           ) : null}
         </ModalBody>
 
@@ -848,14 +839,7 @@ function ReceiptDecisionOption({
   disabled: boolean;
   onClick: () => void;
 }) {
-  return (
-    <FormCheckbox
-      disabled={disabled}
-      checked={checked}
-      label={label}
-      onChange={onClick}
-    />
-  );
+  return <FormCheckbox disabled={disabled} checked={checked} label={label} onChange={onClick} />;
 }
 
 function ImageGallery({
@@ -889,10 +873,7 @@ function StarRating({ value }: { value: number }) {
   return (
     <span className="inline-flex items-center gap-1 text-2xl leading-none" aria-label={`${normalizedValue}점`}>
       {Array.from({ length: 5 }).map((_, index) => (
-        <span
-          key={index}
-          className={index < normalizedValue ? "text-brand-500" : "text-gray-300 "}
-        >
+        <span key={index} className={index < normalizedValue ? "text-brand-500" : "text-gray-300"}>
           ★
         </span>
       ))}
@@ -907,15 +888,7 @@ function normalizeAssessmentBoolean(value: unknown) {
   return false;
 }
 
-function DetailField({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}) {
+function DetailField({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
     <div className={[detailGridClass, className].filter(Boolean).join(" ")}>
       <p className={detailLabelClass}>{label}</p>
@@ -926,7 +899,7 @@ function DetailField({
 
 function EmptyDetailState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
+    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
       {children}
     </div>
   );

@@ -41,11 +41,7 @@ type ReportedContentDetailPanelProps = {
 type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
 type WarningActionStatus = "WARNED" | "IGNORED";
 
-export function ReportedContentDetailPanel({
-  targetType,
-  targetId,
-  onStatusUpdated,
-}: ReportedContentDetailPanelProps) {
+export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdated }: ReportedContentDetailPanelProps) {
   const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [updatingStatus, setUpdatingStatus] = React.useState<ReportActionStatus | null>(null);
@@ -220,15 +216,18 @@ export function ReportedContentDetailPanel({
     setModalError(null);
   }, [updatingStatus]);
 
-  const openWarningModal = React.useCallback((warningStatus: WarningActionStatus) => {
-    if (reportState?.status?.trim() !== "ADMIN_HIDDEN") {
-      setIsWarningUnavailableModalOpen(true);
-      return;
-    }
+  const openWarningModal = React.useCallback(
+    (warningStatus: WarningActionStatus) => {
+      if (reportState?.status?.trim() !== "ADMIN_HIDDEN") {
+        setIsWarningUnavailableModalOpen(true);
+        return;
+      }
 
-    setPendingWarningStatus(warningStatus);
-    setWarningModalError(null);
-  }, [reportState?.status]);
+      setPendingWarningStatus(warningStatus);
+      setWarningModalError(null);
+    },
+    [reportState?.status],
+  );
 
   const closeWarningModal = React.useCallback(() => {
     if (updatingWarningStatus !== null) return;
@@ -251,22 +250,17 @@ export function ReportedContentDetailPanel({
 
   const pendingStatusLabel = pendingStatus === "ADMIN_HIDDEN" ? "노출중지" : "정상노출";
   const targetNoun = targetType.includes("comment") ? "댓글" : "게시물";
-  const statusModalMessage = pendingStatus
-    ? `해당 ${targetNoun}을 ${pendingStatusLabel} 하시겠습니까?`
-    : "";
-  const warningModalMessage = pendingWarningStatus === "WARNED"
-    ? warningStatus === "IGNORED"
-      ? "무시를 경고로 변경하시겠습니까?"
-      : "해당 유저에게 경고하시겠습니까?"
-    : warningStatus === "WARNED"
-      ? "해당 경고를 무시로 변경하시겠습니까?"
-      : `해당 ${targetNoun}의 경고 처리를 무시하시겠습니까?`;
-  const warningDisabledTitle = warningStatus === "WARNED"
-    ? "이미 경고 처리된 신고입니다."
-    : undefined;
-  const ignoreDisabledTitle = warningStatus === "IGNORED"
-    ? "이미 무시 처리된 신고입니다."
-    : undefined;
+  const statusModalMessage = pendingStatus ? `해당 ${targetNoun}을 ${pendingStatusLabel} 하시겠습니까?` : "";
+  const warningModalMessage =
+    pendingWarningStatus === "WARNED"
+      ? warningStatus === "IGNORED"
+        ? "무시를 경고로 변경하시겠습니까?"
+        : "해당 유저에게 경고하시겠습니까?"
+      : warningStatus === "WARNED"
+        ? "해당 경고를 무시로 변경하시겠습니까?"
+        : `해당 ${targetNoun}의 경고 처리를 무시하시겠습니까?`;
+  const warningDisabledTitle = warningStatus === "WARNED" ? "이미 경고 처리된 신고입니다." : undefined;
+  const ignoreDisabledTitle = warningStatus === "IGNORED" ? "이미 무시 처리된 신고입니다." : undefined;
 
   return (
     <>
@@ -275,9 +269,7 @@ export function ReportedContentDetailPanel({
           <div className="flex items-center justify-between gap-3">
             <CardTitle>신고 내용 상세</CardTitle>
             {!loading && !error ? (
-              <span className="text-sm font-semibold text-gray-800 ">
-                {reportsTotal.toLocaleString()}회
-              </span>
+              <span className="text-sm font-semibold text-gray-800">{reportsTotal.toLocaleString()}회</span>
             ) : null}
           </div>
         </CardHeader>
@@ -286,120 +278,118 @@ export function ReportedContentDetailPanel({
           {loading ? (
             <SpinnerBlock label="신고 상세 불러오는 중" />
           ) : error ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
-              {error}
-            </div>
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
           ) : (
             <>
-            <section className="space-y-4">
-              <div className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-xs font-semibold text-gray-500 ">
-                <span>신고자목록</span>
-                <span>신고 사유</span>
-                <span>신고일</span>
-              </div>
-
-              {reportsLoading ? (
-                <SpinnerBlock label="신고 내역 불러오는 중" />
-              ) : reportsError ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
-                  {reportsError}
+              <section className="space-y-4">
+                <div className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-xs font-semibold text-gray-500">
+                  <span>신고자목록</span>
+                  <span>신고 사유</span>
+                  <span>신고일</span>
                 </div>
-              ) : reports.length > 0 ? (
-                <div className="space-y-2">
-                  {reports.map((report) => (
-                    <div
-                      key={report.id ?? `${report.created_at}-${report.reason}`}
-                      className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-sm text-gray-800 "
+
+                {reportsLoading ? (
+                  <SpinnerBlock label="신고 내역 불러오는 중" />
+                ) : reportsError ? (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {reportsError}
+                  </div>
+                ) : reports.length > 0 ? (
+                  <div className="space-y-2">
+                    {reports.map((report) => (
+                      <div
+                        key={report.id ?? `${report.created_at}-${report.reason}`}
+                        className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-sm text-gray-800"
+                      >
+                        <span className="min-w-0 truncate">{formatReportedContentReporterName(report)}</span>
+                        <span className="min-w-0 break-words">{formatReportedContentReason(report)}</span>
+                        <span className="text-xs whitespace-nowrap text-gray-600">
+                          {formatReportedContentDetailDateTime(report.created_at)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+                    신고 내역이 없습니다.
+                  </div>
+                )}
+
+                {reportsLastPage > 1 ? (
+                  <div className="flex justify-center pt-2">
+                    <Pagination
+                      currentPage={reportsCurrentPage}
+                      totalPages={reportsLastPage}
+                      onPageChange={setReportsPage}
+                      disabled={reportsLoading || updatingStatus !== null}
+                    />
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-900">조치유형</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant={reportStatus === "ADMIN_HIDDEN" ? "brand" : "outline"}
+                      disabled={updatingStatus !== null}
+                      onClick={() => openStatusModal("ADMIN_HIDDEN")}
+                      className={[
+                        "h-12 px-5 text-base font-semibold",
+                        reportStatus === "ADMIN_HIDDEN" ? "" : "text-gray-500",
+                      ].join(" ")}
                     >
-                      <span className="min-w-0 truncate">{formatReportedContentReporterName(report)}</span>
-                      <span className="min-w-0 break-words">{formatReportedContentReason(report)}</span>
-                      <span className="whitespace-nowrap text-xs text-gray-600 ">
-                        {formatReportedContentDetailDateTime(report.created_at)}
-                      </span>
-                    </div>
-                  ))}
+                      {updatingStatus === "ADMIN_HIDDEN" ? "처리 중" : "노출중지"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={reportStatus === "NORMAL_VISIBLE" ? "brand" : "outline"}
+                      disabled={updatingStatus !== null}
+                      onClick={() => openStatusModal("NORMAL_VISIBLE")}
+                      className={[
+                        "h-12 px-5 text-base font-semibold",
+                        reportStatus === "NORMAL_VISIBLE" ? "" : "text-gray-500",
+                      ].join(" ")}
+                    >
+                      {updatingStatus === "NORMAL_VISIBLE" ? "처리 중" : "정상노출"}
+                    </Button>
+                  </div>
                 </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
-                  신고 내역이 없습니다.
-                </div>
-              )}
 
-              {reportsLastPage > 1 ? (
-                <div className="flex justify-center pt-2">
-                  <Pagination
-                    currentPage={reportsCurrentPage}
-                    totalPages={reportsLastPage}
-                    onPageChange={setReportsPage}
-                    disabled={reportsLoading || updatingStatus !== null}
-                  />
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-900">경고여부</h3>
+                  <div className="flex flex-row flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant={warningStatus === "WARNED" ? "brand" : "outline"}
+                      disabled={isWarningButtonDisabled}
+                      title={warningDisabledTitle}
+                      onClick={() => openWarningModal("WARNED")}
+                      className={[
+                        "h-12 px-6 text-base font-semibold",
+                        warningStatus === "WARNED" ? "" : "text-gray-500",
+                      ].join(" ")}
+                    >
+                      {updatingWarningStatus === "WARNED" ? "처리 중" : "경고"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={warningStatus === "IGNORED" ? "brand" : "outline"}
+                      disabled={isIgnoreButtonDisabled}
+                      title={ignoreDisabledTitle}
+                      onClick={() => openWarningModal("IGNORED")}
+                      className={[
+                        "h-12 px-6 text-base font-semibold",
+                        warningStatus === "IGNORED" ? "" : "text-gray-500",
+                      ].join(" ")}
+                    >
+                      {updatingWarningStatus === "IGNORED" ? "처리 중" : "무시"}
+                    </Button>
+                  </div>
                 </div>
-              ) : null}
-            </section>
-
-            <section className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 ">조치유형</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant={reportStatus === "ADMIN_HIDDEN" ? "brand" : "outline"}
-                    disabled={updatingStatus !== null}
-                    onClick={() => openStatusModal("ADMIN_HIDDEN")}
-                    className={[
-                      "h-12 px-5 text-base font-semibold",
-                      reportStatus === "ADMIN_HIDDEN" ? "" : "text-gray-500",
-                    ].join(" ")}
-                  >
-                    {updatingStatus === "ADMIN_HIDDEN" ? "처리 중" : "노출중지"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={reportStatus === "NORMAL_VISIBLE" ? "brand" : "outline"}
-                    disabled={updatingStatus !== null}
-                    onClick={() => openStatusModal("NORMAL_VISIBLE")}
-                    className={[
-                      "h-12 px-5 text-base font-semibold",
-                      reportStatus === "NORMAL_VISIBLE" ? "" : "text-gray-500",
-                    ].join(" ")}
-                  >
-                    {updatingStatus === "NORMAL_VISIBLE" ? "처리 중" : "정상노출"}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 ">경고여부</h3>
-                <div className="flex flex-row flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant={warningStatus === "WARNED" ? "brand" : "outline"}
-                    disabled={isWarningButtonDisabled}
-                    title={warningDisabledTitle}
-                    onClick={() => openWarningModal("WARNED")}
-                    className={[
-                      "h-12 px-6 text-base font-semibold",
-                      warningStatus === "WARNED" ? "" : "text-gray-500",
-                    ].join(" ")}
-                  >
-                    {updatingWarningStatus === "WARNED" ? "처리 중" : "경고"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={warningStatus === "IGNORED" ? "brand" : "outline"}
-                    disabled={isIgnoreButtonDisabled}
-                    title={ignoreDisabledTitle}
-                    onClick={() => openWarningModal("IGNORED")}
-                    className={[
-                      "h-12 px-6 text-base font-semibold",
-                      warningStatus === "IGNORED" ? "" : "text-gray-500",
-                    ].join(" ")}
-                  >
-                    {updatingWarningStatus === "IGNORED" ? "처리 중" : "무시"}
-                  </Button>
-                </div>
-              </div>
-            </section>
+              </section>
             </>
           )}
         </CardContent>
@@ -417,15 +407,13 @@ export function ReportedContentDetailPanel({
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-gray-800 ">
-              {statusModalMessage}
-            </p>
+            <p className="text-sm font-medium text-gray-800">{statusModalMessage}</p>
 
             {pendingStatus === "ADMIN_HIDDEN" ? (
               <div>
                 <label
                   htmlFor="reported-content-admin-hidden-reason"
-                  className="mb-1.5 block text-sm font-medium text-gray-700 "
+                  className="mb-1.5 block text-sm font-medium text-gray-700"
                 >
                   노출중지 사유
                 </label>
@@ -442,11 +430,7 @@ export function ReportedContentDetailPanel({
               </div>
             ) : null}
 
-            {modalError ? (
-              <p className="text-sm font-medium text-rose-600 ">
-                {modalError}
-              </p>
-            ) : null}
+            {modalError ? <p className="text-sm font-medium text-rose-600">{modalError}</p> : null}
           </ModalBody>
 
           <ModalFooter>
@@ -468,9 +452,7 @@ export function ReportedContentDetailPanel({
       >
         <ModalPanel>
           <ModalBody className="mt-2">
-            <p className="text-sm font-medium text-gray-800 ">
-              해당 상태에서는 경고여부를 선택할 수 없습니다.
-            </p>
+            <p className="text-sm font-medium text-gray-800">해당 상태에서는 경고여부를 선택할 수 없습니다.</p>
           </ModalBody>
 
           <ModalFooter>
@@ -493,11 +475,9 @@ export function ReportedContentDetailPanel({
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-3">
-            <p className="text-sm font-medium text-gray-800 ">
-              {warningModalMessage}
-            </p>
+            <p className="text-sm font-medium text-gray-800">{warningModalMessage}</p>
             {pendingWarningStatus === "WARNED" ? (
-              <div className="space-y-1 text-sm text-gray-500 ">
+              <div className="space-y-1 text-sm text-gray-500">
                 <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
                 <p>
                   현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
@@ -505,18 +485,24 @@ export function ReportedContentDetailPanel({
               </div>
             ) : null}
 
-            {warningModalError ? (
-              <p className="text-sm font-medium text-rose-600 ">
-                {warningModalError}
-              </p>
-            ) : null}
+            {warningModalError ? <p className="text-sm font-medium text-rose-600">{warningModalError}</p> : null}
           </ModalBody>
 
           <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeWarningModal} disabled={updatingWarningStatus !== null}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeWarningModal}
+              disabled={updatingWarningStatus !== null}
+            >
               취소
             </Button>
-            <Button type="button" variant="brand" onClick={submitWarningStatusChange} disabled={updatingWarningStatus !== null}>
+            <Button
+              type="button"
+              variant="brand"
+              onClick={submitWarningStatusChange}
+              disabled={updatingWarningStatus !== null}
+            >
               {updatingWarningStatus !== null ? "처리 중..." : "확인"}
             </Button>
           </ModalFooter>

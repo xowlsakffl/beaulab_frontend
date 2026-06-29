@@ -3,7 +3,11 @@ import type { DateRange } from "react-day-picker";
 
 import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
-import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_OPTIONS, reviewAllowStatusColor } from "@/lib/common/review-status";
+import {
+  labelReviewAllowStatus,
+  REVIEW_ALLOW_STATUS_OPTIONS,
+  reviewAllowStatusColor,
+} from "@/lib/common/review-status";
 
 export type HospitalEventCategory = {
   id?: number | null;
@@ -260,9 +264,15 @@ const HOSPITAL_EVENT_SORT_FIELDS = new Set<HospitalEventSortField>([
   "event_end_at",
 ]);
 const HOSPITAL_EVENT_VISIBILITY_VALUE_SET = new Set(HOSPITAL_EVENT_VISIBILITY_OPTIONS.map((option) => option.value));
-const HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET = new Set<string>(HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value));
-const HOSPITAL_EVENT_QUANTITY_METRIC_VALUE_SET = new Set(HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS.map((option) => option.value));
-const HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET = new Set(HOSPITAL_EVENT_AMOUNT_METRIC_OPTIONS.map((option) => option.value));
+const HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET = new Set<string>(
+  HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value),
+);
+const HOSPITAL_EVENT_QUANTITY_METRIC_VALUE_SET = new Set(
+  HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS.map((option) => option.value),
+);
+const HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET = new Set(
+  HOSPITAL_EVENT_AMOUNT_METRIC_OPTIONS.map((option) => option.value),
+);
 const HOSPITAL_EVENT_DATE_TYPE_VALUE_SET = new Set(HOSPITAL_EVENT_DATE_TYPE_OPTIONS.map((option) => option.value));
 export function resolveHospitalEventMediaUrl(
   media?: HospitalEventMedia | null,
@@ -329,11 +339,9 @@ export function formatHospitalEventCategory(category?: HospitalEventCategory | n
 }
 
 export function formatHospitalEventCategories(categories?: HospitalEventCategory[] | null) {
-  const values = Array.from(new Set(
-    (categories ?? [])
-      .map((category) => formatHospitalEventCategory(category, 2))
-      .filter(Boolean),
-  ));
+  const values = Array.from(
+    new Set((categories ?? []).map((category) => formatHospitalEventCategory(category, 2)).filter(Boolean)),
+  );
 
   return values.length > 0 ? values.join("\n") : "-";
 }
@@ -350,11 +358,13 @@ export function formatHospitalEventCategoryBadges(categories?: HospitalEventCate
 
       seenLabels.add(label);
 
-      return [{
-        label,
-        isPrimary: Boolean(category.is_primary),
-      }];
-    })
+      return [
+        {
+          label,
+          isPrimary: Boolean(category.is_primary),
+        },
+      ];
+    });
 }
 
 export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEventRow {
@@ -365,9 +375,10 @@ export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEven
   return {
     id: item.id,
     hospitalName: item.hospital?.name?.trim() || "-",
-    categoryLabel: categoryBadges.length > 0
-      ? categoryBadges.map((category) => category.label).join("\n")
-      : formatHospitalEventCategories(item.categories),
+    categoryLabel:
+      categoryBadges.length > 0
+        ? categoryBadges.map((category) => category.label).join("\n")
+        : formatHospitalEventCategories(item.categories),
     categoryBadges,
     name: item.name?.trim() || "-",
     thumbnailUrl: resolveHospitalEventMediaUrl(item.thumbnail_image, "thumb"),
@@ -516,20 +527,23 @@ export function parseHospitalEventsTableState(searchParams: URLSearchParams) {
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
   const dateState = buildHospitalEventDateState(startDate, endDate);
-  const dateTypes = normalizeListParam(searchParams.get("date_types"))
-    .filter((value): value is HospitalEventDateType => HOSPITAL_EVENT_DATE_TYPE_VALUE_SET.has(value as HospitalEventDateType));
+  const dateTypes = normalizeListParam(searchParams.get("date_types")).filter((value): value is HospitalEventDateType =>
+    HOSPITAL_EVENT_DATE_TYPE_VALUE_SET.has(value as HospitalEventDateType),
+  );
   const visibilityStatus = searchParams.get("status") ?? "";
-  const allowStatuses = normalizeListParam(searchParams.get("allow_status"))
-    .filter((value) => HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET.has(value));
+  const allowStatuses = normalizeListParam(searchParams.get("allow_status")).filter((value) =>
+    HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET.has(value),
+  );
   const quantityMetricParam = searchParams.get("quantity_metric");
   const amountMetricParam = searchParams.get("amount_metric");
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && HOSPITAL_EVENT_SORT_FIELDS.has(sortFieldParam as HospitalEventSortField)
-    ? (sortFieldParam as HospitalEventSortField)
-    : DEFAULT_HOSPITAL_EVENT_SORT.field;
+  const sortField =
+    sortFieldParam && HOSPITAL_EVENT_SORT_FIELDS.has(sortFieldParam as HospitalEventSortField)
+      ? (sortFieldParam as HospitalEventSortField)
+      : DEFAULT_HOSPITAL_EVENT_SORT.field;
   const sortDirection: HospitalEventSortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {
@@ -543,15 +557,18 @@ export function parseHospitalEventsTableState(searchParams: URLSearchParams) {
       visibilityStatus: HOSPITAL_EVENT_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
       majorCategoryId: normalizePositiveId(searchParams.get("major_category_id")),
       middleCategoryId: normalizePositiveId(searchParams.get("middle_category_id") ?? searchParams.get("category_ids")),
-      quantityMetric: quantityMetricParam && HOSPITAL_EVENT_QUANTITY_METRIC_VALUE_SET.has(quantityMetricParam as HospitalEventQuantityMetric)
-        ? (quantityMetricParam as HospitalEventQuantityMetric)
-        : "all",
+      quantityMetric:
+        quantityMetricParam &&
+        HOSPITAL_EVENT_QUANTITY_METRIC_VALUE_SET.has(quantityMetricParam as HospitalEventQuantityMetric)
+          ? (quantityMetricParam as HospitalEventQuantityMetric)
+          : "all",
       quantityMin: normalizeNumberBound(searchParams.get("quantity_min")),
       quantityMax: normalizeNumberBound(searchParams.get("quantity_max")),
       allowStatuses,
-      amountMetric: amountMetricParam && HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET.has(amountMetricParam as HospitalEventAmountMetric)
-        ? (amountMetricParam as HospitalEventAmountMetric)
-        : "all",
+      amountMetric:
+        amountMetricParam && HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET.has(amountMetricParam as HospitalEventAmountMetric)
+          ? (amountMetricParam as HospitalEventAmountMetric)
+          : "all",
       amountMin: normalizeNumberBound(searchParams.get("amount_min")),
       amountMax: normalizeNumberBound(searchParams.get("amount_max")),
     },
@@ -630,7 +647,8 @@ export function buildHospitalEventsQueryString(query: HospitalEventsQuery) {
   if (query.amount_metric) params.set("amount_metric", query.amount_metric);
   if (query.amount_min) params.set("amount_min", query.amount_min);
   if (query.amount_max) params.set("amount_max", query.amount_max);
-  if (query.sort !== DEFAULT_HOSPITAL_EVENT_SORT.field || !DEFAULT_HOSPITAL_EVENT_SORT.enabled) params.set("sort", query.sort);
+  if (query.sort !== DEFAULT_HOSPITAL_EVENT_SORT.field || !DEFAULT_HOSPITAL_EVENT_SORT.enabled)
+    params.set("sort", query.sort);
   if (query.direction !== DEFAULT_HOSPITAL_EVENT_SORT.direction) params.set("direction", query.direction);
   if (query.page > 1) params.set("page", String(query.page));
 

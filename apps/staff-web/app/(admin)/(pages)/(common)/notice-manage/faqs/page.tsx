@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/notice-manage/faqs");
 
 export default function FaqsPage() {
-    return renderAdminPage("/notice-manage/faqs");
+  return renderAdminPage("/notice-manage/faqs");
 }

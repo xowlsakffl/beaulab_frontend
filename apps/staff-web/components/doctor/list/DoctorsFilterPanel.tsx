@@ -103,7 +103,7 @@ export function DoctorsFilterPanel({
   const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
 
   return (
-    <Card className="rounded-xl p-3 ">
+    <Card className="rounded-xl p-3">
       <div className="grid grid-cols-[minmax(13rem,1.4fr)_minmax(13rem,1.1fr)_minmax(13.5rem,1.15fr)_minmax(5rem,1fr)_minmax(9.5rem,1fr)_minmax(10rem,1.8fr)] gap-x-3 gap-y-4 max-[1800px]:grid-cols-[minmax(14rem,1.1fr)_minmax(13.5rem,1fr)_minmax(15rem,1.05fr)]">
         <div className={filterRowClass}>
           <span className={inlineLabelClass}>기간</span>
@@ -237,7 +237,7 @@ export function DoctorsFilterPanel({
                   }
                 }}
                 placeholder="DID, 병의원, 의료진, 면허번호 검색"
-                className="bg-white "
+                className="bg-white"
               />
             </div>
           </div>
@@ -246,13 +246,7 @@ export function DoctorsFilterPanel({
             <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
               검색
             </Button>
-            <Button
-              type="button"
-              variant="brandOutline"
-              size="filter"
-              onClick={onResetFilters}
-              className="shrink-0"
-            >
+            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
               검색 초기화
             </Button>
             <Can permission="beaulab.doctor.create">

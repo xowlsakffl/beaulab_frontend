@@ -85,7 +85,7 @@ export function NoticesFilterPanel({
   const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   return (
-    <Card className="rounded-xl p-3 ">
+    <Card className="rounded-xl p-3">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)] gap-x-4 gap-y-4">
         <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>운영 상태</span>
@@ -172,7 +172,7 @@ export function NoticesFilterPanel({
                   }
                 }}
                 placeholder="제목, 내용 검색"
-                className="bg-white "
+                className="bg-white"
               />
             </div>
           </div>
@@ -181,13 +181,7 @@ export function NoticesFilterPanel({
             <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
               검색
             </Button>
-            <Button
-              type="button"
-              variant="brandOutline"
-              size="filter"
-              onClick={onResetFilters}
-              className="shrink-0"
-            >
+            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
               필터 초기화
             </Button>
             <Can permission="beaulab.notice.create">

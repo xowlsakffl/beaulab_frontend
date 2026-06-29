@@ -35,10 +35,7 @@ type HospitalEventRealModelDBsDataTableProps = {
   onOpenDetail: (row: HospitalEventRealModelDBRow) => void;
 };
 
-function renderSortMark(
-  field: HospitalEventRealModelDBSortField,
-  sortState: HospitalEventRealModelDBSortState,
-) {
+function renderSortMark(field: HospitalEventRealModelDBSortField, sortState: HospitalEventRealModelDBSortState) {
   if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
 
   return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
@@ -82,7 +79,9 @@ function DetailLink({
   const composedClassName = [
     "inline text-gray-800 underline decoration-gray-300 underline-offset-4 transition hover:text-brand-500 hover:decoration-brand-500",
     className,
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   if (!href) {
     return (
@@ -105,7 +104,9 @@ function renderImagePreview(row: HospitalEventRealModelDBRow) {
 
   if (!imageUrl) {
     return (
-      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}>
+      <div
+        className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}
+      >
         {row.imageCount > 0 ? `${row.imageCount}+` : "-"}
       </div>
     );
@@ -166,7 +167,7 @@ function buildColumns({
         <DetailLink
           href={row.hospitalId ? `/hospital-manage/hospitals/${row.hospitalId}` : null}
           title={row.hospitalName}
-          className="break-words font-medium"
+          className="font-medium break-words"
         >
           {row.hospitalName}
         </DetailLink>
@@ -178,7 +179,11 @@ function buildColumns({
       cellClassName: `${cellBaseClass} w-[200px]`,
       header: "이벤트",
       render: (row) => (
-        <DetailLink href={row.eventId ? `/ads-manage/events/${row.eventId}` : null} title={row.eventName} className="break-words">
+        <DetailLink
+          href={row.eventId ? `/ads-manage/events/${row.eventId}` : null}
+          title={row.eventName}
+          className="break-words"
+        >
           {row.eventName}
         </DetailLink>
       ),
@@ -192,7 +197,7 @@ function buildColumns({
         <DetailLink
           href={row.accountUserId ? `/user-manage/users/${row.accountUserId}` : null}
           title={row.applicantName}
-          className="block break-words font-medium"
+          className="block font-medium break-words"
         >
           {row.applicantName}
         </DetailLink>
@@ -245,10 +250,7 @@ export function HospitalEventRealModelDBsDataTable({
   onGoPage,
   onOpenDetail,
 }: HospitalEventRealModelDBsDataTableProps) {
-  const columns = React.useMemo(
-    () => buildColumns({ sortState, onToggleSort }),
-    [sortState, onToggleSort],
-  );
+  const columns = React.useMemo(() => buildColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable

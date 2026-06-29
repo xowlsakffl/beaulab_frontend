@@ -25,9 +25,7 @@ function renderSortMark(field: SortField, sortState: SortState) {
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function buildHashtagColumns({
@@ -47,7 +45,13 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[72px]`,
       cellClassName: `${nowrapCellClass} lg:w-[72px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("id")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("id")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
         </Button>
       ),
@@ -58,25 +62,35 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[180px]`,
       cellClassName: `${cellBaseClass} lg:w-[180px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("name")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("name")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           해시태그명 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
         </Button>
       ),
-      render: (row) => <span className="font-medium text-gray-800 ">#{row.name}</span>,
+      render: (row) => <span className="font-medium text-gray-800">#{row.name}</span>,
     },
     {
       key: "normalizedName",
       headerClassName: `${headerBaseClass} lg:w-[180px]`,
       cellClassName: `${cellBaseClass} lg:w-[180px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("normalized_name")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("normalized_name")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           고유 검색 키 <span className="text-xs text-gray-400">{renderSortMark("normalized_name", sortState)}</span>
         </Button>
       ),
       render: (row) => (
-        <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700  ">
-          {row.normalizedName}
-        </code>
+        <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">{row.normalizedName}</code>
       ),
     },
     {
@@ -91,7 +105,13 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[110px]`,
       cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
@@ -106,7 +126,13 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("updated_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("updated_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           수정일 <span className="text-xs text-gray-400">{renderSortMark("updated_at", sortState)}</span>
         </Button>
       ),
@@ -117,7 +143,13 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("created_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("created_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           등록일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
         </Button>
       ),
@@ -157,10 +189,7 @@ export function HashtagsDataTable({
   onPerPageChange,
   onRowClick,
 }: HashtagsDataTableProps) {
-  const columns = React.useMemo(
-    () => buildHashtagColumns({ sortState, onToggleSort }),
-    [onToggleSort, sortState],
-  );
+  const columns = React.useMemo(() => buildHashtagColumns({ sortState, onToggleSort }), [onToggleSort, sortState]);
 
   return (
     <DataTable
@@ -171,9 +200,7 @@ export function HashtagsDataTable({
       rows={rows}
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
-        row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 "
-          : undefined
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
       }
       loadingVariant="spinner"
       loadingLabel="해시태그 목록 불러오는 중"
@@ -184,7 +211,7 @@ export function HashtagsDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={(
+      rightActions={
         <div className="flex items-center gap-2">
           <SingleCheckboxFilterDropdown
             label="개수"
@@ -197,7 +224,7 @@ export function HashtagsDataTable({
             triggerClassName="h-9 px-2 text-xs"
           />
         </div>
-      )}
+      }
       emptyText="조건에 맞는 해시태그가 없습니다."
     />
   );

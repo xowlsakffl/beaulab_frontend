@@ -103,7 +103,9 @@ export function useHospitalEventCategorySelection({
       return next;
     });
 
-    const categoryUsage = normalizeHospitalEventCategoryUsage(detailCategories.find((category) => category.usage)?.usage);
+    const categoryUsage = normalizeHospitalEventCategoryUsage(
+      detailCategories.find((category) => category.usage)?.usage,
+    );
     const sectionKey = HOSPITAL_EVENT_CATEGORY_SECTIONS.find((section) => section.usage === categoryUsage)?.key;
     setCategorySectionKey(sectionKey ?? INITIAL_HOSPITAL_EVENT_CATEGORY_SECTION_KEY);
   }, []);

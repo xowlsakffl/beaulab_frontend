@@ -111,10 +111,13 @@ export default function HospitalEventRealModelDBDetailPageClient() {
       setStatusError(null);
 
       try {
-        const response = await api.patch<{ updated_count?: number; status?: string }>("/hospital-event-real-model-dbs/status", {
-          ids: [detail.id],
-          status,
-        });
+        const response = await api.patch<{ updated_count?: number; status?: string }>(
+          "/hospital-event-real-model-dbs/status",
+          {
+            ids: [detail.id],
+            status,
+          },
+        );
 
         if (!isApiSuccess(response)) {
           setStatusError(response.error.message || "승인여부 변경에 실패했습니다.");
@@ -167,7 +170,9 @@ export default function HospitalEventRealModelDBDetailPageClient() {
   }, [pendingStatus, updateStatus]);
 
   if (loading) {
-    return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="리얼모델 DB 상세 정보를 불러오는 중" />;
+    return (
+      <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="리얼모델 DB 상세 정보를 불러오는 중" />
+    );
   }
 
   if (loadError || !detail) {
@@ -190,10 +195,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
           onStatusChange={requestStatusChange}
         />
 
-        <MemberImagesCard
-          images={detail.images}
-          onPreview={(preview) => setPreviewMedia(preview)}
-        />
+        <MemberImagesCard images={detail.images} onPreview={(preview) => setPreviewMedia(preview)} />
 
         <div className="grid min-w-0 grid-cols-3 gap-4">
           <InfoPanel title="회원 특이사항">
@@ -331,38 +333,21 @@ function StatusConfirmModal({
   const statusLabel = status ? labelHospitalEventRealModelDBStatus(status) : "";
 
   return (
-    <Modal
-      isOpen={status !== null}
-      onClose={onClose}
-      showCloseButton={false}
-      className="mx-4 w-full max-w-md"
-    >
+    <Modal isOpen={status !== null} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">
       <ModalPanel>
         <ModalHeader className="pr-0">
           <ModalTitle>승인여부 변경</ModalTitle>
         </ModalHeader>
 
         <ModalBody className="mt-5">
-          <p className="text-sm font-medium text-gray-800">
-            해당 리얼모델DB를 {statusLabel}하시겠습니까?
-          </p>
+          <p className="text-sm font-medium text-gray-800">해당 리얼모델DB를 {statusLabel}하시겠습니까?</p>
         </ModalBody>
 
         <ModalFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={updatingStatus !== null}
-          >
+          <Button type="button" variant="outline" onClick={onClose} disabled={updatingStatus !== null}>
             취소
           </Button>
-          <Button
-            type="button"
-            variant="brand"
-            onClick={onConfirm}
-            disabled={updatingStatus !== null}
-          >
+          <Button type="button" variant="brand" onClick={onConfirm} disabled={updatingStatus !== null}>
             {updatingStatus !== null ? "처리 중..." : "확인"}
           </Button>
         </ModalFooter>
@@ -371,15 +356,7 @@ function StatusConfirmModal({
   );
 }
 
-function InfoRow({
-  label,
-  value,
-  compact = false,
-}: {
-  label: string;
-  value: React.ReactNode;
-  compact?: boolean;
-}) {
+function InfoRow({ label, value, compact = false }: { label: string; value: React.ReactNode; compact?: boolean }) {
   return (
     <div
       className={[
@@ -449,17 +426,15 @@ function EventSummaryCard({ detail }: { detail: HospitalEventRealModelDBDetail }
       </div>
     </>
   );
-  const className = "flex min-w-0 items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40";
+  const className =
+    "flex min-w-0 items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40";
 
   if (!detail.eventId) {
     return <div className={className}>{content}</div>;
   }
 
   return (
-    <Link
-      href={`/ads-manage/events/${detail.eventId}`}
-      className={className}
-    >
+    <Link href={`/ads-manage/events/${detail.eventId}`} className={className}>
       {content}
     </Link>
   );
@@ -491,7 +466,7 @@ function MemberImagesCard({
     <Card className={infoCardClassName}>
       <h3 className={`mb-5 ${cardTitleClassName}`}>회원이미지</h3>
       {images.length > 0 ? (
-        <div className="grid grid-flow-col auto-cols-[calc((100%_-_1rem)/2)] gap-4 overflow-x-auto pb-2 md:auto-cols-[calc((100%_-_3rem)/4)]">
+        <div className="grid auto-cols-[calc((100%_-_1rem)/2)] grid-flow-col gap-4 overflow-x-auto pb-2 md:auto-cols-[calc((100%_-_3rem)/4)]">
           {images.map((image, index) => (
             <RealModelImageTile
               key={String(image.id ?? `real-model-${index}`)}
@@ -551,13 +526,13 @@ function RealModelImageTile({
       className="relative flex aspect-[76/49] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left disabled:cursor-default"
       aria-label={canPreview ? `${badgeText} 원본보기` : undefined}
     >
-      <span className="absolute left-2 top-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
+      <span className="absolute top-2 left-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
         {badgeText}
       </span>
       {mediaUrl && isImage ? (
         <div className="flex h-full w-full items-center justify-center bg-gray-50 p-2">
           {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
-          <img src={mediaUrl} alt={badgeText} className="h-auto w-auto max-h-full max-w-full object-contain" />
+          <img src={mediaUrl} alt={badgeText} className="h-auto max-h-full w-auto max-w-full object-contain" />
         </div>
       ) : (
         <div className="flex h-full items-center justify-center px-4 text-center text-sm text-gray-500">
@@ -582,13 +557,7 @@ function isImageMedia(media?: HospitalEventRealModelDBMediaAsset | null) {
   return /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(mediaUrl.split("?")[0] ?? "");
 }
 
-function InfoPanel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function InfoPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card className={`${infoCardClassName} min-h-[12rem]`}>
       <h3 className={`mb-5 ${cardTitleClassName}`}>{title}</h3>
@@ -597,11 +566,7 @@ function InfoPanel({
   );
 }
 
-function SpecialNotesBlock({
-  notes,
-}: {
-  notes: HospitalEventRealModelDBDetail["specialNotes"];
-}) {
+function SpecialNotesBlock({ notes }: { notes: HospitalEventRealModelDBDetail["specialNotes"] }) {
   const selectedCodes = new Set(notes.map((note) => note.code));
 
   return (
@@ -627,10 +592,8 @@ function SpecialNotesBlock({
   );
 }
 
-function TextBlock({
-  content,
-}: {
-  content: string;
-}) {
-  return <p className="min-h-[144px] whitespace-pre-wrap break-words text-sm leading-7 text-gray-700">{content || "-"}</p>;
+function TextBlock({ content }: { content: string }) {
+  return (
+    <p className="min-h-[144px] text-sm leading-7 break-words whitespace-pre-wrap text-gray-700">{content || "-"}</p>
+  );
 }

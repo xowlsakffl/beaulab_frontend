@@ -162,27 +162,36 @@ export default function AccountUsersTableClient() {
     }));
   }, []);
 
-  const applyDatePreset = React.useCallback((preset: string) => {
-    applyDateRange(buildAccountUserPresetDateRange(preset));
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (preset: string) => {
+      applyDateRange(buildAccountUserPresetDateRange(preset));
+    },
+    [applyDateRange],
+  );
 
-  const changeDraftFilter = React.useCallback(<K extends keyof AccountUserFilters>(
-    key: K,
-    value: AccountUserFilters[K],
-  ) => {
-    setDraftFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
+  const changeDraftFilter = React.useCallback(
+    <K extends keyof AccountUserFilters>(key: K, value: AccountUserFilters[K]) => {
+      setDraftFilters((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    [],
+  );
 
-  const changeDateType = React.useCallback((value: AccountUserDateType) => {
-    changeDraftFilter("dateType", value);
-  }, [changeDraftFilter]);
+  const changeDateType = React.useCallback(
+    (value: AccountUserDateType) => {
+      changeDraftFilter("dateType", value);
+    },
+    [changeDraftFilter],
+  );
 
-  const changeWarningCount = React.useCallback((key: "warningCountMin" | "warningCountMax", value: string) => {
-    changeDraftFilter(key, value.replace(/[^\d]/g, ""));
-  }, [changeDraftFilter]);
+  const changeWarningCount = React.useCallback(
+    (key: "warningCountMin" | "warningCountMax", value: string) => {
+      changeDraftFilter(key, value.replace(/[^\d]/g, ""));
+    },
+    [changeDraftFilter],
+  );
 
   const toggleSort = React.useCallback((field: AccountUserSortField) => {
     setSortState((prev) => nextAccountUserSortState(prev, field));
@@ -193,12 +202,15 @@ export default function AccountUsersTableClient() {
     void Promise.all([fetchSummary(), fetchUsers(true)]);
   }, [fetchSummary, fetchUsers]);
 
-  const openDetail = React.useCallback((row: AccountUserRow) => {
-    const currentQueryString = searchParams.toString();
-    const returnTo = currentQueryString ? `${pathname}?${currentQueryString}` : pathname;
+  const openDetail = React.useCallback(
+    (row: AccountUserRow) => {
+      const currentQueryString = searchParams.toString();
+      const returnTo = currentQueryString ? `${pathname}?${currentQueryString}` : pathname;
 
-    router.push(`/user-manage/users/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
-  }, [pathname, router, searchParams]);
+      router.push(`/user-manage/users/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+    },
+    [pathname, router, searchParams],
+  );
 
   return (
     <div className="min-w-0 space-y-4">

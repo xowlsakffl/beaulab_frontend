@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/content-manage/banners");
 
 export default function ContentBannersPage() {
-    return renderAdminPage("/content-manage/banners");
+  return renderAdminPage("/content-manage/banners");
 }

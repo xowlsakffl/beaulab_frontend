@@ -12,11 +12,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import {
-  type SortField,
-  type SortState,
-  type TalkRow,
-} from "@/lib/talk/list";
+import { type SortField, type SortState, type TalkRow } from "@/lib/talk/list";
 import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 function renderSortMark(field: SortField, sortState: SortState) {
@@ -24,9 +20,7 @@ function renderSortMark(field: SortField, sortState: SortState) {
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function SortHeader({
@@ -67,13 +61,7 @@ function SelectionCheckbox({
 }) {
   return (
     <span onClick={(event) => event.stopPropagation()}>
-      <FormCheckbox
-        ariaLabel={label}
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        className="size-4"
-      />
+      <FormCheckbox ariaLabel={label} checked={checked} disabled={disabled} onChange={onChange} className="size-4" />
     </span>
   );
 }
@@ -153,9 +141,7 @@ function buildTalkColumns({
       cellClassName: `${cellBaseClass} min-w-[170px] lg:min-w-0 lg:w-[130px] xl:w-[10%]`,
       header: "토크유형",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-700 ">
-          {row.categoryName || "-"}
-        </div>
+        <div className="text-sm leading-6 break-words whitespace-normal text-gray-700">{row.categoryName || "-"}</div>
       ),
     },
     {
@@ -164,9 +150,7 @@ function buildTalkColumns({
       cellClassName: `${cellBaseClass} lg:w-[110px] xl:w-[8%]`,
       header: "닉네임",
       render: (row) => (
-        <span className="block whitespace-normal break-words text-sm text-gray-700 ">
-          {row.nickname}
-        </span>
+        <span className="block text-sm break-words whitespace-normal text-gray-700">{row.nickname}</span>
       ),
     },
     {
@@ -175,10 +159,7 @@ function buildTalkColumns({
       cellClassName: `${cellBaseClass} lg:w-[180px] xl:w-[13%]`,
       header: <SortHeader field="title" label="제목" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <span
-          className="block whitespace-normal break-words font-medium text-gray-800 "
-          style={twoLineClampStyle}
-        >
+        <span className="block font-medium break-words whitespace-normal text-gray-800" style={twoLineClampStyle}>
           {row.title}
         </span>
       ),
@@ -189,7 +170,7 @@ function buildTalkColumns({
       cellClassName: `${cellBaseClass} lg:w-[220px] xl:w-[17%]`,
       header: "내용",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 " style={twoLineClampStyle}>
+        <div className="text-sm leading-6 break-words whitespace-normal text-gray-600" style={twoLineClampStyle}>
           {row.contentPreview || "-"}
         </div>
       ),
@@ -293,24 +274,22 @@ export function TalksDataTable({
   onGoPage,
 }: TalksDataTableProps) {
   const selectedCount = selectedIds.size;
-  const selectableRows = React.useMemo(
-    () => rows.filter((row) => !row.visibilityChangeLocked),
-    [rows],
-  );
+  const selectableRows = React.useMemo(() => rows.filter((row) => !row.visibilityChangeLocked), [rows]);
   const allPageRowsSelected = selectableRows.length > 0 && selectableRows.every((row) => selectedIds.has(row.id));
   const columns = React.useMemo(
-    () => buildTalkColumns({
-      sortState,
-      selectedIds,
-      allPageRowsSelected,
-      hasSelectableRows: selectableRows.length > 0,
-      visibilityUpdatingIds,
-      visibilityControlsDisabled: bulkUpdating || loading || refreshing,
-      onToggleSort,
-      onToggleRow,
-      onToggleAllRows,
-      onRowVisibilityChange,
-    }),
+    () =>
+      buildTalkColumns({
+        sortState,
+        selectedIds,
+        allPageRowsSelected,
+        hasSelectableRows: selectableRows.length > 0,
+        visibilityUpdatingIds,
+        visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        onToggleSort,
+        onToggleRow,
+        onToggleAllRows,
+        onRowVisibilityChange,
+      }),
     [
       allPageRowsSelected,
       onRowVisibilityChange,
@@ -343,7 +322,7 @@ export function TalksDataTable({
       onRefresh={onRefresh}
       onRowClick={onOpenDetail}
       refreshPlacement="left"
-      rightActions={(
+      rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button
             type="button"
@@ -366,8 +345,8 @@ export function TalksDataTable({
             미노출
           </Button>
         </div>
-      )}
-      footerRight={(
+      }
+      footerRight={
         <Button
           type="button"
           variant="brand"
@@ -378,7 +357,7 @@ export function TalksDataTable({
         >
           {excelDownloading ? "다운로드 중..." : "엑셀 다운로드"}
         </Button>
-      )}
+      }
       emptyText="조건에 맞는 토크가 없습니다."
     />
   );

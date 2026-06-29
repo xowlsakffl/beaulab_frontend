@@ -27,9 +27,11 @@ export type PendingAllowStatusChange = {
   reason: string;
 };
 
-export const REVIEW_ALLOW_STATUS_ACTIONS = REVIEW_ALLOW_STATUS_ACTION_OPTIONS satisfies readonly AllowStatusActionOption[];
+export const REVIEW_ALLOW_STATUS_ACTIONS =
+  REVIEW_ALLOW_STATUS_ACTION_OPTIONS satisfies readonly AllowStatusActionOption[];
 
-const defaultButtonClassName = "h-10 min-w-16 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40";
+const defaultButtonClassName =
+  "h-10 min-w-16 px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40";
 
 export function resolveAllowStatusValue(status: AllowStatusLike): string {
   if (typeof status === "string") {

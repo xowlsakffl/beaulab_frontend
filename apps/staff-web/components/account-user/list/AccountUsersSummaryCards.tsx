@@ -3,10 +3,7 @@
 import React from "react";
 import { Card } from "@beaulab/ui-admin";
 
-import {
-  ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS,
-  type AccountUserSummary,
-} from "@/lib/account-user/list";
+import { ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS, type AccountUserSummary } from "@/lib/account-user/list";
 
 type AccountUsersSummaryCardsProps = {
   summary: AccountUserSummary | null;
@@ -25,12 +22,10 @@ export function AccountUsersSummaryCards({ summary }: AccountUsersSummaryCardsPr
   return (
     <div className="grid min-w-0 grid-cols-3 gap-3">
       {cards.map((card) => (
-        <Card key={card.label} className="rounded-xl bg-white px-5 py-4 ">
+        <Card key={card.label} className="rounded-xl bg-white px-5 py-4">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-gray-700 ">{card.label}</span>
-            <span className="text-base font-semibold text-gray-900 ">
-              {Number(card.value).toLocaleString()}명
-            </span>
+            <span className="text-sm font-medium text-gray-700">{card.label}</span>
+            <span className="text-base font-semibold text-gray-900">{Number(card.value).toLocaleString()}명</span>
           </div>
         </Card>
       ))}
@@ -46,27 +41,25 @@ export function AccountUsersSignupChannelCard({ summary }: AccountUsersSummaryCa
         .map((item) => [item.channel?.trim(), item]),
     );
 
-    return ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS
-      .filter((option) => option.value)
-      .map((option) => {
-        const item = summaryByChannel.get(option.value);
+    return ACCOUNT_USER_SIGNUP_CHANNEL_OPTIONS.filter((option) => option.value).map((option) => {
+      const item = summaryByChannel.get(option.value);
 
-        return {
-          channel: option.value,
-          label: item?.label?.trim() || option.label,
-          count: Number(item?.count ?? 0),
-        };
-      });
+      return {
+        channel: option.value,
+        label: item?.label?.trim() || option.label,
+        count: Number(item?.count ?? 0),
+      };
+    });
   }, [summary]);
 
   return (
-    <Card className="h-full rounded-xl bg-white p-5 ">
-      <h3 className="text-sm font-semibold text-gray-900 ">가입경로상세</h3>
+    <Card className="h-full rounded-xl bg-white p-5">
+      <h3 className="text-sm font-semibold text-gray-900">가입경로상세</h3>
       <div className="mt-4 space-y-2">
         {signupChannels.map((item) => (
           <div key={item.channel} className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-gray-600 ">{item.label}</span>
-            <span className="font-semibold text-gray-900 ">{Number(item.count ?? 0).toLocaleString()}명</span>
+            <span className="text-gray-600">{item.label}</span>
+            <span className="font-semibold text-gray-900">{Number(item.count ?? 0).toLocaleString()}명</span>
           </div>
         ))}
       </div>

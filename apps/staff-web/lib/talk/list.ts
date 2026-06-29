@@ -348,10 +348,8 @@ function normalizePositiveIdParam(value: string | null) {
 }
 
 export function normalizeTalk(item: TalkApiItem): TalkRow {
-  const categoryName = formatTalkCategoryName(item.category)
-    || item.categoryName?.trim()
-    || item.category_name?.trim()
-    || "-";
+  const categoryName =
+    formatTalkCategoryName(item.category) || item.categoryName?.trim() || item.category_name?.trim() || "-";
 
   const createdAtRaw = item.createdAt ?? item.created_at ?? "";
   const updatedAtRaw = item.updatedAt ?? item.updated_at ?? "";
@@ -393,15 +391,14 @@ export function nextSortState(prev: SortState, field: SortField): SortState {
 }
 
 export function parseTalksTableState(searchParams: URLSearchParams) {
-  const categoryIds = normalizePositiveIdListParam(
-    searchParams.get("category_ids") ?? searchParams.get("category_id"),
-  );
+  const categoryIds = normalizePositiveIdListParam(searchParams.get("category_ids") ?? searchParams.get("category_id"));
   const visibilityStatus = searchParams.get("status") ?? "";
   const reportStatus = searchParams.get("report_status") ?? "";
   const metricParam = searchParams.get("metric");
-  const metricField = metricParam && TALK_METRIC_VALUE_SET.has(metricParam as TalkMetricField)
-    ? (metricParam as TalkMetricField)
-    : DEFAULT_FILTERS.metricField;
+  const metricField =
+    metricParam && TALK_METRIC_VALUE_SET.has(metricParam as TalkMetricField)
+      ? (metricParam as TalkMetricField)
+      : DEFAULT_FILTERS.metricField;
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
@@ -411,9 +408,10 @@ export function parseTalksTableState(searchParams: URLSearchParams) {
 
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && TALK_SORT_FIELDS.has(sortFieldParam as SortField)
-    ? (sortFieldParam as SortField)
-    : DEFAULT_SORT.field;
+  const sortField =
+    sortFieldParam && TALK_SORT_FIELDS.has(sortFieldParam as SortField)
+      ? (sortFieldParam as SortField)
+      : DEFAULT_SORT.field;
   const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {

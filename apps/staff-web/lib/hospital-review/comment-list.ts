@@ -62,12 +62,7 @@ export type HospitalReviewCommentRow = {
   likeCount: number;
 };
 
-export type HospitalReviewCommentSortField =
-  | "id"
-  | "status"
-  | "like_count"
-  | "created_at"
-  | "updated_at";
+export type HospitalReviewCommentSortField = "id" | "status" | "like_count" | "created_at" | "updated_at";
 
 export type HospitalReviewCommentSortState = {
   field: HospitalReviewCommentSortField;
@@ -105,7 +100,9 @@ const HOSPITAL_REVIEW_COMMENT_SORT_FIELDS = new Set<HospitalReviewCommentSortFie
   "created_at",
   "updated_at",
 ]);
-const HOSPITAL_REVIEW_COMMENT_VISIBILITY_SET = new Set(HOSPITAL_REVIEW_VISIBILITY_OPTIONS.map((option) => option.value));
+const HOSPITAL_REVIEW_COMMENT_VISIBILITY_SET = new Set(
+  HOSPITAL_REVIEW_VISIBILITY_OPTIONS.map((option) => option.value),
+);
 
 export function normalizeHospitalReviewComment(item: HospitalReviewCommentApiItem): HospitalReviewCommentRow {
   const status = item.status?.trim() || "ACTIVE";
@@ -152,7 +149,7 @@ export function buildHospitalReviewCommentContentPreview(content?: string | null
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&#39;/gi, "'")
-    .replace(/&quot;/gi, "\"")
+    .replace(/&quot;/gi, '"')
     .replace(/\s+/g, " ")
     .trim();
 
@@ -165,9 +162,10 @@ export function buildHospitalReviewCommentContentPreview(content?: string | null
 export function parseHospitalReviewCommentSortState(searchParams: URLSearchParams): HospitalReviewCommentSortState {
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && HOSPITAL_REVIEW_COMMENT_SORT_FIELDS.has(sortFieldParam as HospitalReviewCommentSortField)
-    ? (sortFieldParam as HospitalReviewCommentSortField)
-    : DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT.field;
+  const sortField =
+    sortFieldParam && HOSPITAL_REVIEW_COMMENT_SORT_FIELDS.has(sortFieldParam as HospitalReviewCommentSortField)
+      ? (sortFieldParam as HospitalReviewCommentSortField)
+      : DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT.field;
   const sortDirection: HospitalReviewSortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {
@@ -222,11 +220,12 @@ export function buildHospitalReviewCommentsQuery({
     query.report_status = appliedFilters.reportStatus;
   }
 
-  const selectedCategoryId = appliedFilters.smallCategoryId
-    || appliedFilters.middleCategoryId
-    || appliedFilters.majorCategoryId
-    || appliedFilters.categoryIds[0]
-    || "";
+  const selectedCategoryId =
+    appliedFilters.smallCategoryId ||
+    appliedFilters.middleCategoryId ||
+    appliedFilters.majorCategoryId ||
+    appliedFilters.categoryIds[0] ||
+    "";
   const categoryIds = [selectedCategoryId].filter((value) => /^[1-9]\d*$/.test(value));
   if (categoryIds.length > 0) query.category_ids = Array.from(new Set(categoryIds)).join(",");
 

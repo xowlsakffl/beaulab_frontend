@@ -1,11 +1,7 @@
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import type { ContentReportSummary } from "@/lib/common/content-report";
-import {
-  formatTalkCategoryName,
-  type TalkAuthor,
-  type TalkCategory,
-} from "@/lib/talk/list";
+import { formatTalkCategoryName, type TalkAuthor, type TalkCategory } from "@/lib/talk/list";
 
 export type TalkMediaAsset = {
   id: number;

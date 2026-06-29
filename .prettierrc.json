@@ -1,0 +1,31 @@
+{
+  "semi": true,
+  "singleQuote": false,
+  "singleAttributePerLine": false,
+  "htmlWhitespaceSensitivity": "css",
+  "printWidth": 120,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "endOfLine": "auto",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "overrides": [
+    {
+      "files": ["apps/staff-web/**/*.{js,jsx,ts,tsx}", "packages/ui-admin/**/*.{js,jsx,ts,tsx}"],
+      "options": {
+        "tailwindStylesheet": "./apps/staff-web/app/globals.css"
+      }
+    },
+    {
+      "files": "apps/user-web/**/*.{js,jsx,ts,tsx}",
+      "options": {
+        "tailwindStylesheet": "./apps/user-web/app/globals.css"
+      }
+    },
+    {
+      "files": ["*.yml", "*.yaml"],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ]
+}

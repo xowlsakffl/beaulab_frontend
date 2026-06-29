@@ -82,7 +82,7 @@ export function HospitalsFilterPanel({
   const inlineLabelClass = "w-20 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
 
   return (
-    <Card className="rounded-xl p-3 ">
+    <Card className="rounded-xl p-3">
       <div className="grid grid-cols-[minmax(15rem,1fr)_minmax(13rem,0.85fr)_minmax(13rem,0.85fr)_minmax(13rem,0.85fr)] gap-x-4 gap-y-4">
         <div className="flex min-w-0 items-center gap-2 py-1.5">
           <span className={inlineLabelClass}>기간</span>
@@ -161,7 +161,7 @@ export function HospitalsFilterPanel({
                   }
                 }}
                 placeholder="HID, 병의원명, 병원아이디를 입력해 주세요."
-                className="bg-white "
+                className="bg-white"
               />
             </div>
           </div>
@@ -170,13 +170,7 @@ export function HospitalsFilterPanel({
             <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
               검색
             </Button>
-            <Button
-              type="button"
-              variant="brandOutline"
-              size="filter"
-              onClick={onResetFilters}
-              className="shrink-0"
-            >
+            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
               검색 초기화
             </Button>
             <Can permission="beaulab.hospital.create">

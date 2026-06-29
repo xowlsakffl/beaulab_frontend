@@ -2,15 +2,7 @@
 
 import React from "react";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Modal,
-  ModalBody,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
-} from "@beaulab/ui-admin";
+import { ChevronLeft, ChevronRight, Modal, ModalBody, ModalHeader, ModalPanel, ModalTitle } from "@beaulab/ui-admin";
 
 export type HospitalMediaPreviewItem = {
   url: string;
@@ -31,11 +23,7 @@ type HospitalMediaPreviewModalProps = {
   onClose: () => void;
 };
 
-export function HospitalMediaPreviewModal({
-  preview,
-  onChange,
-  onClose,
-}: HospitalMediaPreviewModalProps) {
+export function HospitalMediaPreviewModal({ preview, onChange, onClose }: HospitalMediaPreviewModalProps) {
   const items = preview?.items?.length ? preview.items : EMPTY_MEDIA_PREVIEW_ITEMS;
   const activeIndex = preview?.index ?? 0;
   const canNavigate = Boolean(preview && items.length > 1);
@@ -108,13 +96,17 @@ export function HospitalMediaPreviewModal({
           {currentPreview.isImage ? (
             <div className="relative flex min-h-[60vh] items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
-              <img src={currentPreview.url} alt={currentPreview.title} className="max-h-[76vh] max-w-full object-contain" />
+              <img
+                src={currentPreview.url}
+                alt={currentPreview.title}
+                className="max-h-[76vh] max-w-full object-contain"
+              />
               {canNavigate ? (
                 <>
                   <button
                     type="button"
                     onClick={() => navigateRelative(-1)}
-                    className="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm ring-1 ring-gray-200 transition hover:bg-white"
+                    className="absolute top-1/2 left-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm ring-1 ring-gray-200 transition hover:bg-white"
                     aria-label="이전 이미지"
                   >
                     <ChevronLeft className="size-5" />
@@ -122,7 +114,7 @@ export function HospitalMediaPreviewModal({
                   <button
                     type="button"
                     onClick={() => navigateRelative(1)}
-                    className="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm ring-1 ring-gray-200 transition hover:bg-white"
+                    className="absolute top-1/2 right-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow-sm ring-1 ring-gray-200 transition hover:bg-white"
                     aria-label="다음 이미지"
                   >
                     <ChevronRight className="size-5" />

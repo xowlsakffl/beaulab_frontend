@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/wallet-manage/deposits");
 
 export default function WalletDepositsPage() {
-    return renderAdminPage("/wallet-manage/deposits");
+  return renderAdminPage("/wallet-manage/deposits");
 }

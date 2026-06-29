@@ -45,10 +45,10 @@
 
 ## 앱 구조
 
-| App | 경로 | 상태 | 역할 |
-| --- | --- | --- | --- |
-| Staff Web | `apps/staff-web` | 운영 중심 | 내부 운영자 관리자 웹 |
-| User Web | `apps/user-web` | 테스트 앱 | 앱 사용자 채팅/알림 API 수동 검증 |
+| App       | 경로             | 상태      | 역할                              |
+| --------- | ---------------- | --------- | --------------------------------- |
+| Staff Web | `apps/staff-web` | 운영 중심 | 내부 운영자 관리자 웹             |
+| User Web  | `apps/user-web`  | 테스트 앱 | 앱 사용자 채팅/알림 API 수동 검증 |
 
 `apps/staff-web`는 관리자 제품 로직을 소유합니다. 메뉴, 권한, 라우트, 병원/뷰티 도메인 토글, 목록/상세/등록/수정 흐름은 이 앱 안에 둡니다.
 
@@ -60,27 +60,27 @@
 
 ### 계층 구조
 
-| 계층 | 위치 | 책임 |
-| --- | --- | --- |
-| App Route | `apps/*/app` | Next.js App Router 페이지, layout, route group |
-| Page Client | `apps/staff-web/app/**/**/*Client.tsx` | 페이지 단위 상태, fetch, submit, redirect, error state |
-| Domain Components | `apps/staff-web/components/{domain}` | 도메인 전용 section, table, filter, modal |
-| Domain Hooks | `apps/staff-web/hooks/{domain}` | endpoint, field name, DOM target에 묶인 도메인 훅 |
-| Domain Lib | `apps/staff-web/lib/{domain}` | form/list 상수, validation, mapper, query helper |
-| Staff Common | `apps/staff-web/components/common`, `apps/staff-web/lib/common` | staff 관리자 앱 전용 guard, sidebar, auth session, routing, navigation |
-| Workspace Packages | `packages/*` | 앱 비의존 공통 UI, auth, API client, type |
+| 계층               | 위치                                                            | 책임                                                                   |
+| ------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| App Route          | `apps/*/app`                                                    | Next.js App Router 페이지, layout, route group                         |
+| Page Client        | `apps/staff-web/app/**/**/*Client.tsx`                          | 페이지 단위 상태, fetch, submit, redirect, error state                 |
+| Domain Components  | `apps/staff-web/components/{domain}`                            | 도메인 전용 section, table, filter, modal                              |
+| Domain Hooks       | `apps/staff-web/hooks/{domain}`                                 | endpoint, field name, DOM target에 묶인 도메인 훅                      |
+| Domain Lib         | `apps/staff-web/lib/{domain}`                                   | form/list 상수, validation, mapper, query helper                       |
+| Staff Common       | `apps/staff-web/components/common`, `apps/staff-web/lib/common` | staff 관리자 앱 전용 guard, sidebar, auth session, routing, navigation |
+| Workspace Packages | `packages/*`                                                    | 앱 비의존 공통 UI, auth, API client, type                              |
 
 ### 도메인 경계
 
-| 영역 | 포함 기능 | 설명 |
-| --- | --- | --- |
-| Hospital Admin | `hospitals`, `doctors`, `videos`, `events`, `customer-db`, `talks`, `reviews`, `reported-content` | 병원, 의료진, 영상, 이벤트, 이벤트 DB/리얼모델 DB, 병원 토크, 성형후기, 시술후기, 병의원 평가, 신고 콘텐츠 운영 |
-| Beauty Admin | `beauty-*` placeholder pages | 현재 프론트에는 뷰티 도메인 메뉴/placeholder 화면만 있고, 뷰티 CRUD 전용 화면은 구현되어 있지 않음 |
-| Common Admin | `notices`, `users`, `hashtags`, `profile` | 현재 구현된 공통 운영 화면 |
-| Common Placeholder | `faqs`, `inquiries`, `categories`, `content`, `statistics`, `settings` | 메뉴와 placeholder만 존재하는 공통 운영 예정 화면 |
-| Communication Test | `apps/user-web` | 유저 간 채팅, 읽음, 알림, Reverb 이벤트 검증 |
-| Shared UI | `packages/ui-admin` | 제품 비의존 관리자 UI 컴포넌트와 layout |
-| Shared Runtime | `packages/api-client`, `packages/auth`, `packages/types` | API 요청, token/session storage, 공통 타입 |
+| 영역               | 포함 기능                                                                                         | 설명                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Hospital Admin     | `hospitals`, `doctors`, `videos`, `events`, `customer-db`, `talks`, `reviews`, `reported-content` | 병원, 의료진, 영상, 이벤트, 이벤트 DB/리얼모델 DB, 병원 토크, 성형후기, 시술후기, 병의원 평가, 신고 콘텐츠 운영 |
+| Beauty Admin       | `beauty-*` placeholder pages                                                                      | 현재 프론트에는 뷰티 도메인 메뉴/placeholder 화면만 있고, 뷰티 CRUD 전용 화면은 구현되어 있지 않음              |
+| Common Admin       | `notices`, `users`, `hashtags`, `profile`                                                         | 현재 구현된 공통 운영 화면                                                                                      |
+| Common Placeholder | `faqs`, `inquiries`, `categories`, `content`, `statistics`, `settings`                            | 메뉴와 placeholder만 존재하는 공통 운영 예정 화면                                                               |
+| Communication Test | `apps/user-web`                                                                                   | 유저 간 채팅, 읽음, 알림, Reverb 이벤트 검증                                                                    |
+| Shared UI          | `packages/ui-admin`                                                                               | 제품 비의존 관리자 UI 컴포넌트와 layout                                                                         |
+| Shared Runtime     | `packages/api-client`, `packages/auth`, `packages/types`                                          | API 요청, token/session storage, 공통 타입                                                                      |
 
 ### 요청 처리 흐름
 
@@ -206,12 +206,12 @@ Page
 
 ## 주요 패키지
 
-| Package | 경로 | 책임 |
-| --- | --- | --- |
-| `@beaulab/api-client` | `packages/api-client` | Actor별 token을 붙이는 fetch wrapper, query builder, ApiResponse 처리 |
-| `@beaulab/auth` | `packages/auth` | Actor별 token/session localStorage, permission helper |
-| `@beaulab/types` | `packages/types` | Actor, session, profile, ApiResponse 공통 타입 |
-| `@beaulab/ui-admin` | `packages/ui-admin` | 관리자 layout, form, table, modal, editor, uploader, alert, spinner UI |
+| Package               | 경로                  | 책임                                                                   |
+| --------------------- | --------------------- | ---------------------------------------------------------------------- |
+| `@beaulab/api-client` | `packages/api-client` | Actor별 token을 붙이는 fetch wrapper, query builder, ApiResponse 처리  |
+| `@beaulab/auth`       | `packages/auth`       | Actor별 token/session localStorage, permission helper                  |
+| `@beaulab/types`      | `packages/types`      | Actor, session, profile, ApiResponse 공통 타입                         |
+| `@beaulab/ui-admin`   | `packages/ui-admin`   | 관리자 layout, form, table, modal, editor, uploader, alert, spinner UI |
 
 ## 권한과 세션
 
@@ -366,14 +366,14 @@ pnpm --filter staff-web build
 
 ## 주요 환경변수
 
-| 변수 | 앱 | 설명 |
-| --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | `staff-web`, `user-web` | Laravel API base URL. 예: `http://localhost:8000` |
-| `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` | `staff-web` | Daum/Kakao 주소 검색 연동용 JavaScript key |
-| `NEXT_PUBLIC_REVERB_APP_KEY` | `user-web` | Laravel Reverb app key |
-| `NEXT_PUBLIC_REVERB_HOST` | `user-web` | Reverb host |
-| `NEXT_PUBLIC_REVERB_PORT` | `user-web` | Reverb port |
-| `NEXT_PUBLIC_REVERB_SCHEME` | `user-web` | Reverb scheme (`http`, `https`) |
+| 변수                               | 앱                      | 설명                                              |
+| ---------------------------------- | ----------------------- | ------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`              | `staff-web`, `user-web` | Laravel API base URL. 예: `http://localhost:8000` |
+| `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` | `staff-web`             | Daum/Kakao 주소 검색 연동용 JavaScript key        |
+| `NEXT_PUBLIC_REVERB_APP_KEY`       | `user-web`              | Laravel Reverb app key                            |
+| `NEXT_PUBLIC_REVERB_HOST`          | `user-web`              | Reverb host                                       |
+| `NEXT_PUBLIC_REVERB_PORT`          | `user-web`              | Reverb port                                       |
+| `NEXT_PUBLIC_REVERB_SCHEME`        | `user-web`              | Reverb scheme (`http`, `https`)                   |
 
 예시:
 

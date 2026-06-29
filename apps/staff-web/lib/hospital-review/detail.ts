@@ -145,16 +145,18 @@ export function formatHospitalReviewDetailCategories(categories?: HospitalReview
 }
 
 export function getHospitalReviewDetailCategoryFullPaths(categories?: HospitalReviewCategory[] | null) {
-  return Array.from(new Set(
-    (categories ?? [])
-      .map((category) => {
-        const fullPath = category.full_path?.trim();
-        if (fullPath) return fullPath;
+  return Array.from(
+    new Set(
+      (categories ?? [])
+        .map((category) => {
+          const fullPath = category.full_path?.trim();
+          if (fullPath) return fullPath;
 
-        return category.name?.trim() || "";
-      })
-      .filter(Boolean),
-  ));
+          return category.name?.trim() || "";
+        })
+        .filter(Boolean),
+    ),
+  );
 }
 
 export function formatHospitalReviewDetailAuthorName(author?: HospitalReviewAuthor | null) {

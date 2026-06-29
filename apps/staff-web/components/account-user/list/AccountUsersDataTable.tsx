@@ -93,7 +93,7 @@ function buildColumns({
       cellClassName: `${cellBaseClass} w-[210px]`,
       header: <SortHeader label="이메일" field="email" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <span className="block break-words font-medium text-gray-800 " title={row.email}>
+        <span className="block font-medium break-words text-gray-800" title={row.email}>
           {row.email}
         </span>
       ),
@@ -104,7 +104,7 @@ function buildColumns({
       cellClassName: `${cellBaseClass} w-[150px]`,
       header: <SortHeader label="닉네임" field="nickname" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <span className="block break-words text-gray-800 " title={row.nickname}>
+        <span className="block break-words text-gray-800" title={row.nickname}>
           {row.nickname}
         </span>
       ),
@@ -145,7 +145,9 @@ function buildColumns({
       key: "lastAccessedAt",
       headerClassName: `${headerBaseClass} w-[138px]`,
       cellClassName: `${nowrapCellClass} w-[138px]`,
-      header: <SortHeader label="최근 접속일" field="last_accessed_at" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: (
+        <SortHeader label="최근 접속일" field="last_accessed_at" sortState={sortState} onToggleSort={onToggleSort} />
+      ),
       render: (row) => row.lastAccessedAt,
     },
     {
@@ -177,10 +179,7 @@ export function AccountUsersDataTable({
   onGoPage,
   onOpenDetail,
 }: AccountUsersDataTableProps) {
-  const columns = React.useMemo(
-    () => buildColumns({ sortState, onToggleSort }),
-    [sortState, onToggleSort],
-  );
+  const columns = React.useMemo(() => buildColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable

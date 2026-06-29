@@ -2,7 +2,11 @@ import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import { resolveMediaAssetUrl } from "@/lib/common/media";
-import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_OPTIONS, reviewAllowStatusColor } from "@/lib/common/review-status";
+import {
+  labelReviewAllowStatus,
+  REVIEW_ALLOW_STATUS_OPTIONS,
+  reviewAllowStatusColor,
+} from "@/lib/common/review-status";
 
 type MediaAsset = {
   path?: string | null;
@@ -127,7 +131,9 @@ export const DEFAULT_FILTERS: Filters = {
 
 export const DOCTORS_PER_PAGE = 10;
 
-export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({ ...option }));
+export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({
+  ...option,
+}));
 
 export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
   { value: "대표원장", label: "대표원장" },
@@ -304,9 +310,7 @@ export function formatCareerPeriod(careerStartedAt?: string | null, now = new Da
   const startedAt = parseLocalDate(careerStartedAt);
   if (!startedAt) return "-";
 
-  let totalMonths =
-    (now.getFullYear() - startedAt.getFullYear()) * 12 +
-    (now.getMonth() - startedAt.getMonth());
+  let totalMonths = (now.getFullYear() - startedAt.getFullYear()) * 12 + (now.getMonth() - startedAt.getMonth());
 
   if (now.getDate() < startedAt.getDate()) {
     totalMonths -= 1;
@@ -462,9 +466,10 @@ export function parseDoctorsTableState(searchParams: URLSearchParams) {
 
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
-    ? (sortFieldParam as SortField)
-    : DEFAULT_SORT.field;
+  const sortField =
+    sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
+      ? (sortFieldParam as SortField)
+      : DEFAULT_SORT.field;
   const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {

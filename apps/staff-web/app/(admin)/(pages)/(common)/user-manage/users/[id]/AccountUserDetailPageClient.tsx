@@ -370,9 +370,8 @@ function ConsultationInfoCard({ user }: { user: AccountUserDetail }) {
   const router = useRouter();
   const consultation = user.consultation_info;
   const accountUserId = Number(user.id ?? 0);
-  const accountUserQuery = Number.isInteger(accountUserId) && accountUserId > 0
-    ? `?account_user_id=${accountUserId}`
-    : "";
+  const accountUserQuery =
+    Number.isInteger(accountUserId) && accountUserId > 0 ? `?account_user_id=${accountUserId}` : "";
 
   return (
     <Card>
@@ -408,8 +407,8 @@ function NotificationSettingsCard({ user }: { user: AccountUserDetail }) {
             <CardTitle>알림설정</CardTitle>
           </div>
           <div className="space-y-4">
-          <AgreementRow label="댓글" value={settings?.comment_notification_enabled} />
-          <AgreementRow label="쪽지" value={settings?.note_notification_enabled} />
+            <AgreementRow label="댓글" value={settings?.comment_notification_enabled} />
+            <AgreementRow label="쪽지" value={settings?.note_notification_enabled} />
           </div>
         </div>
 
@@ -418,10 +417,10 @@ function NotificationSettingsCard({ user }: { user: AccountUserDetail }) {
             <CardTitle>이벤트/마케팅 수신 동의</CardTitle>
           </div>
           <div className="space-y-4">
-          <AgreementRow label="SMS" value={settings?.marketing_sms_agreed} />
-          <AgreementRow label="이메일" value={settings?.marketing_email_agreed} />
-          <AgreementRow label="푸시" value={settings?.marketing_push_agreed} />
-          <AgreementRow label="야간푸시" value={settings?.marketing_night_push_agreed} />
+            <AgreementRow label="SMS" value={settings?.marketing_sms_agreed} />
+            <AgreementRow label="이메일" value={settings?.marketing_email_agreed} />
+            <AgreementRow label="푸시" value={settings?.marketing_push_agreed} />
+            <AgreementRow label="야간푸시" value={settings?.marketing_night_push_agreed} />
           </div>
         </div>
       </CardContent>
@@ -429,13 +428,7 @@ function NotificationSettingsCard({ user }: { user: AccountUserDetail }) {
   );
 }
 
-function AdminMemoCard({
-  notes,
-  onOpenNoteModal,
-}: {
-  notes: AdminNoteItem[];
-  onOpenNoteModal: () => void;
-}) {
+function AdminMemoCard({ notes, onOpenNoteModal }: { notes: AdminNoteItem[]; onOpenNoteModal: () => void }) {
   return (
     <Card>
       <CardHeader className={`${cardHeaderClassName} flex flex-row items-center justify-between`}>
@@ -451,7 +444,10 @@ function AdminMemoCard({
           ) : (
             <div className="divide-y divide-gray-100">
               {notes.map((note) => (
-                <div key={note.id ?? `${note.created_at}-${note.note}`} className="grid grid-cols-[7rem_6rem_minmax(0,1fr)] gap-3 py-4 text-sm">
+                <div
+                  key={note.id ?? `${note.created_at}-${note.note}`}
+                  className="grid grid-cols-[7rem_6rem_minmax(0,1fr)] gap-3 py-4 text-sm"
+                >
                   <span className="text-gray-500">{formatAccountUserDetailDateTime(note.created_at)}</span>
                   <span className="font-medium text-gray-700">{note.creator_name || "-"}</span>
                   <span className="min-w-0 break-words text-gray-700">{note.note || "-"}</span>
@@ -468,12 +464,9 @@ function AdminMemoCard({
 function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
   const router = useRouter();
   const accountUserId = Number(user.id ?? 0);
-  const authorQuery = Number.isInteger(accountUserId) && accountUserId > 0
-    ? `?author_id=${accountUserId}`
-    : "";
-  const reportedAuthorQuery = Number.isInteger(accountUserId) && accountUserId > 0
-    ? `?target_author_id=${accountUserId}`
-    : "";
+  const authorQuery = Number.isInteger(accountUserId) && accountUserId > 0 ? `?author_id=${accountUserId}` : "";
+  const reportedAuthorQuery =
+    Number.isInteger(accountUserId) && accountUserId > 0 ? `?target_author_id=${accountUserId}` : "";
   const activity = user.activity_info;
   const reported = user.reported_info;
   const warningCount = Number(reported?.warnings?.count ?? user.warning_count ?? 0);
@@ -504,7 +497,7 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
           </div>
         </div>
 
-              <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] gap-5">
+        <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] gap-5">
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">신고게시물</h3>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -559,7 +552,10 @@ function AccessInfoCard({ user }: { user: AccountUserDetail }) {
         ) : (
           <div className="divide-y divide-gray-100">
             {logs.map((log, index) => (
-              <div key={`${log.ip}-${log.accessed_at}-${index}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 py-3 text-sm text-gray-700">
+              <div
+                key={`${log.ip}-${log.accessed_at}-${index}`}
+                className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 py-3 text-sm text-gray-700"
+              >
                 <span className="min-w-0 break-words">{log.ip || "-"}</span>
                 <span>{formatAccountUserDetailDateTime(log.accessed_at)}</span>
               </div>
@@ -598,15 +594,7 @@ function CountBox({ label, value }: { label: string; value: number }) {
   );
 }
 
-function ClickableCountBox({
-  label,
-  value,
-  onClick,
-}: {
-  label: string;
-  value: string;
-  onClick: () => void;
-}) {
+function ClickableCountBox({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
   return (
     <button
       type="button"

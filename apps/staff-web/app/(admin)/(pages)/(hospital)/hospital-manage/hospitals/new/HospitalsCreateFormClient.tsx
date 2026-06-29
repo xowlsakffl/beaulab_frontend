@@ -47,7 +47,9 @@ export default function HospitalsCreateFormClient() {
   const [gallery, setGallery] = React.useState<File[]>([]);
   const [businessRegistrationFile, setBusinessRegistrationFile] = React.useState<File | null>(null);
   const [errors, setErrors] = React.useState<HospitalFormErrors>({});
-  const [uniqueChecks, setUniqueChecks] = React.useState<Record<HospitalUniqueCheckField, HospitalUniqueCheckState | null>>({
+  const [uniqueChecks, setUniqueChecks] = React.useState<
+    Record<HospitalUniqueCheckField, HospitalUniqueCheckState | null>
+  >({
     name: null,
     business_number: null,
   });
@@ -67,28 +69,25 @@ export default function HospitalsCreateFormClient() {
     });
   }, []);
 
-  const applyDuplicateCheckResult = React.useCallback(
-    (field: HospitalUniqueCheckField, available: boolean) => {
-      const message = DUPLICATE_ERROR_MESSAGES[field];
+  const applyDuplicateCheckResult = React.useCallback((field: HospitalUniqueCheckField, available: boolean) => {
+    const message = DUPLICATE_ERROR_MESSAGES[field];
 
-      setErrors((prev) => {
-        if (available) {
-          if (prev[field] !== message) return prev;
-          const next = { ...prev };
-          delete next[field];
-          return next;
-        }
+    setErrors((prev) => {
+      if (available) {
+        if (prev[field] !== message) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      }
 
-        if (prev[field] === message) return prev;
+      if (prev[field] === message) return prev;
 
-        return {
-          ...prev,
-          [field]: message,
-        };
-      });
-    },
-    [],
-  );
+      return {
+        ...prev,
+        [field]: message,
+      };
+    });
+  }, []);
 
   const resetUniqueCheck = React.useCallback((field: HospitalUniqueCheckField, value: string) => {
     const normalizedValue = field === "business_number" ? normalizeBusinessNumber(value) : value.trim();
@@ -146,9 +145,7 @@ export default function HospitalsCreateFormClient() {
         }
 
         const available =
-          typeof response.data.available === "boolean"
-            ? response.data.available
-            : !response.data.exists;
+          typeof response.data.available === "boolean" ? response.data.available : !response.data.exists;
 
         setUniqueChecks((prev) => ({
           ...prev,
@@ -194,9 +191,7 @@ export default function HospitalsCreateFormClient() {
         }
 
         const available =
-          typeof response.data.available === "boolean"
-            ? response.data.available
-            : !response.data.exists;
+          typeof response.data.available === "boolean" ? response.data.available : !response.data.exists;
 
         setUniqueChecks((prev) => ({
           ...prev,
@@ -274,7 +269,9 @@ export default function HospitalsCreateFormClient() {
         title: "병의원 등록 완료",
         message: "새로 등록된 병의원을 목록에서 확인할 수 있습니다.",
       });
-      router.push(response.data?.id ? `/hospital-manage/hospitals?highlight=${response.data.id}` : "/hospital-manage/hospitals");
+      router.push(
+        response.data?.id ? `/hospital-manage/hospitals?highlight=${response.data.id}` : "/hospital-manage/hospitals",
+      );
     } catch {
       showAlert({
         variant: "error",
@@ -289,7 +286,13 @@ export default function HospitalsCreateFormClient() {
   const headerActions = React.useMemo(
     () => (
       <>
-        <Button type="button" variant="outline" size="sm" onClick={() => router.push("/hospital-manage/hospitals")} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.push("/hospital-manage/hospitals")}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="submit" form={HOSPITAL_CREATE_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>

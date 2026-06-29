@@ -31,7 +31,8 @@ export function useFormFieldFocus<FieldName extends string>({
     (errors: FormFieldErrors<FieldName>) => {
       const firstField =
         focusOrder.find((field) => Boolean(errors[field])) ??
-        (Object.keys(errors).find((field): field is FieldName => Boolean(errors[field as FieldName])) ?? null);
+        Object.keys(errors).find((field): field is FieldName => Boolean(errors[field as FieldName])) ??
+        null;
 
       if (!firstField) return;
       focusField(firstField);

@@ -18,10 +18,7 @@ import {
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
+import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { api } from "@/lib/common/api";
 import {
   formatReportedContentAuthorName,
@@ -43,9 +40,11 @@ type WarningActionStatus = "WARNED" | "IGNORED";
 
 type ReportedChatDetailResponse = ReportedContentDetailResponse & {
   target?: ReportedChatMessageDetailTarget | null;
-  report?: ReportedContentDetailResponse["report"] & {
-    latest_report?: ReportedContentDetailReportItem | null;
-  } | null;
+  report?:
+    | (ReportedContentDetailResponse["report"] & {
+        latest_report?: ReportedContentDetailReportItem | null;
+      })
+    | null;
 };
 
 type ReportedChatMessageDisplay = {
@@ -84,9 +83,7 @@ export default function ReportedChatDetailPageClient() {
     setError(null);
 
     try {
-      const response = await api.get<ReportedChatDetailResponse>(
-        `/reported-contents/detail/${targetType}/${targetId}`,
-      );
+      const response = await api.get<ReportedChatDetailResponse>(`/reported-contents/detail/${targetType}/${targetId}`);
 
       if (!isApiSuccess(response)) {
         setError(response.error.message || "신고 채팅 상세 정보를 불러오지 못했습니다.");
@@ -194,15 +191,18 @@ export default function ReportedChatDetailPageClient() {
     setModalError(null);
   }, [updatingStatus]);
 
-  const openWarningModal = React.useCallback((nextStatus: WarningActionStatus) => {
-    if (!isReported) {
-      setIsWarningUnavailableModalOpen(true);
-      return;
-    }
+  const openWarningModal = React.useCallback(
+    (nextStatus: WarningActionStatus) => {
+      if (!isReported) {
+        setIsWarningUnavailableModalOpen(true);
+        return;
+      }
 
-    setPendingWarningStatus(nextStatus);
-    setWarningModalError(null);
-  }, [isReported]);
+      setPendingWarningStatus(nextStatus);
+      setWarningModalError(null);
+    },
+    [isReported],
+  );
 
   const closeWarningModal = React.useCallback(() => {
     if (updatingWarningStatus !== null) return;
@@ -219,24 +219,26 @@ export default function ReportedChatDetailPageClient() {
     return (
       <Card>
         <CardContent className="space-y-4 py-10">
-          <p className="text-sm text-rose-600 ">{error || "신고 채팅 상세 정보가 없습니다."}</p>
+          <p className="text-sm text-rose-600">{error || "신고 채팅 상세 정보가 없습니다."}</p>
         </CardContent>
       </Card>
     );
   }
 
-  const warningModalMessage = pendingWarningStatus === "WARNED"
-    ? warningStatus === "IGNORED"
-      ? "무시를 경고로 변경하시겠습니까?"
-      : "해당 유저에게 경고하시겠습니까?"
-    : warningStatus === "WARNED"
-      ? "해당 경고를 무시로 변경하시겠습니까?"
-      : "해당 채팅 신고의 경고 처리를 무시하시겠습니까?";
-  const statusModalMessage = pendingStatus === "VALID"
-    ? "해당 유저의 채팅내용 신고를 진행하시겠습니까?"
-    : pendingStatus === "INVALID"
-      ? "해당 유저의 채팅내용을 신고취소하시겠습니까?"
-      : "";
+  const warningModalMessage =
+    pendingWarningStatus === "WARNED"
+      ? warningStatus === "IGNORED"
+        ? "무시를 경고로 변경하시겠습니까?"
+        : "해당 유저에게 경고하시겠습니까?"
+      : warningStatus === "WARNED"
+        ? "해당 경고를 무시로 변경하시겠습니까?"
+        : "해당 채팅 신고의 경고 처리를 무시하시겠습니까?";
+  const statusModalMessage =
+    pendingStatus === "VALID"
+      ? "해당 유저의 채팅내용 신고를 진행하시겠습니까?"
+      : pendingStatus === "INVALID"
+        ? "해당 유저의 채팅내용을 신고취소하시겠습니까?"
+        : "";
 
   return (
     <div className="space-y-6">
@@ -260,10 +262,7 @@ export default function ReportedChatDetailPageClient() {
         </div>
 
         <div className="space-y-6">
-          <ReportedChatMessagesCard
-            messages={messages}
-            reportReason={latestReportReason}
-          />
+          <ReportedChatMessagesCard messages={messages} reportReason={latestReportReason} />
           <ChatReportActionCard
             isReported={isReported}
             isIgnoredReport={isIgnoredReport}
@@ -288,14 +287,8 @@ export default function ReportedChatDetailPageClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-gray-800 ">
-              {statusModalMessage}
-            </p>
-            {modalError ? (
-              <p className="text-sm font-medium text-rose-600 ">
-                {modalError}
-              </p>
-            ) : null}
+            <p className="text-sm font-medium text-gray-800">{statusModalMessage}</p>
+            {modalError ? <p className="text-sm font-medium text-rose-600">{modalError}</p> : null}
           </ModalBody>
 
           <ModalFooter>
@@ -305,7 +298,7 @@ export default function ReportedChatDetailPageClient() {
             <Button
               type="button"
               variant="brand"
-              onClick={() => pendingStatus ? void updateReportStatus(pendingStatus) : undefined}
+              onClick={() => (pendingStatus ? void updateReportStatus(pendingStatus) : undefined)}
               disabled={updatingStatus !== null}
             >
               {updatingStatus !== null ? "처리 중..." : "확인"}
@@ -322,9 +315,7 @@ export default function ReportedChatDetailPageClient() {
       >
         <ModalPanel>
           <ModalBody className="mt-2">
-            <p className="text-sm font-medium text-gray-800 ">
-              해당 상태에서는 경고여부를 선택할 수 없습니다.
-            </p>
+            <p className="text-sm font-medium text-gray-800">해당 상태에서는 경고여부를 선택할 수 없습니다.</p>
           </ModalBody>
 
           <ModalFooter>
@@ -347,32 +338,31 @@ export default function ReportedChatDetailPageClient() {
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-3">
-            <p className="text-sm font-medium text-gray-800 ">
-              {warningModalMessage}
-            </p>
+            <p className="text-sm font-medium text-gray-800">{warningModalMessage}</p>
             {pendingWarningStatus === "WARNED" ? (
-              <div className="space-y-1 text-sm text-gray-500 ">
+              <div className="space-y-1 text-sm text-gray-500">
                 <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
                 <p>
                   현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
                 </p>
               </div>
             ) : null}
-            {warningModalError ? (
-              <p className="text-sm font-medium text-rose-600 ">
-                {warningModalError}
-              </p>
-            ) : null}
+            {warningModalError ? <p className="text-sm font-medium text-rose-600">{warningModalError}</p> : null}
           </ModalBody>
 
           <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeWarningModal} disabled={updatingWarningStatus !== null}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={closeWarningModal}
+              disabled={updatingWarningStatus !== null}
+            >
               취소
             </Button>
             <Button
               type="button"
               variant="brand"
-              onClick={() => pendingWarningStatus ? void updateWarningStatus(pendingWarningStatus) : undefined}
+              onClick={() => (pendingWarningStatus ? void updateWarningStatus(pendingWarningStatus) : undefined)}
               disabled={updatingWarningStatus !== null}
             >
               {updatingWarningStatus !== null ? "처리 중..." : "확인"}
@@ -406,7 +396,10 @@ function ChatMemberInfoCard({
       </CardHeader>
       <CardContent>
         <div className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
-          <InfoValue label={title.startsWith("신고자") ? "신고자" : "작성자"} value={formatReportedContentAuthorName(user)} />
+          <InfoValue
+            label={title.startsWith("신고자") ? "신고자" : "작성자"}
+            value={formatReportedContentAuthorName(user)}
+          />
           <InfoValue label="전화번호" value={user?.phone?.trim() || "-"} />
           <InfoValue label={title.startsWith("신고자") ? "신고 IP" : "작성 IP"} value={ip?.trim() || "-"} />
           <InfoValue label={dateLabel} value={formatReportedContentDetailDateTime(date)} />
@@ -438,7 +431,7 @@ function ReportedChatMessagesCard({
       <CardHeader className="space-y-4 pb-4">
         <section className="flex flex-wrap items-center gap-x-8 gap-y-2">
           <CardTitle>신고 사유</CardTitle>
-          <p className="text-sm font-medium text-gray-800 ">{reportReason}</p>
+          <p className="text-sm font-medium text-gray-800">{reportReason}</p>
         </section>
         <CardTitle>신고 내용</CardTitle>
       </CardHeader>
@@ -447,17 +440,17 @@ function ReportedChatMessagesCard({
           <div className="space-y-4">
             {messages.map((message, index) => (
               <div key={message.key} className="flex items-start gap-4">
-                <span className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-700 ring-1 ring-gray-200   ">
+                <span className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-700 ring-1 ring-gray-200">
                   {index + 1}
                 </span>
-                <div className="min-w-0 rounded-lg bg-[#FA6FA9] px-4 py-2.5 text-sm font-semibold leading-6 text-white">
+                <div className="min-w-0 rounded-lg bg-[#FA6FA9] px-4 py-2.5 text-sm leading-6 font-semibold text-white">
                   {message.body}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500   ">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
             신고된 채팅 메시지가 없습니다.
           </div>
         )}
@@ -474,27 +467,27 @@ function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOpe
       </CardHeader>
       <CardContent>
         {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 ">
+          <div className="divide-y divide-gray-200">
             {histories.map((history, index) => (
               <div
                 key={history.id ?? `${history.created_at ?? "history"}-${index}`}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 ">
+                <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatReportedContentDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 break-words text-sm text-gray-600 ">
+                <span className="min-w-0 text-sm break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
             등록된 히스토리가 없습니다.
           </div>
         )}
@@ -524,17 +517,14 @@ function ChatReportActionCard({
     <Card>
       <CardContent className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900 ">신고여부</h3>
+          <h3 className="text-sm font-semibold text-gray-900">신고여부</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"
               variant={isReported ? "brand" : "outline"}
               disabled={updatingStatus !== null}
               onClick={() => onOpenStatusModal("VALID")}
-              className={[
-                "h-12 px-6 text-base font-semibold",
-                isReported ? "" : "text-gray-500",
-              ].join(" ")}
+              className={["h-12 px-6 text-base font-semibold", isReported ? "" : "text-gray-500"].join(" ")}
             >
               {updatingStatus === "VALID" ? "처리 중" : "신고"}
             </Button>
@@ -543,10 +533,7 @@ function ChatReportActionCard({
               variant={isIgnoredReport ? "brand" : "outline"}
               disabled={updatingStatus !== null}
               onClick={() => onOpenStatusModal("INVALID")}
-              className={[
-                "h-12 px-6 text-base font-semibold",
-                isIgnoredReport ? "" : "text-gray-500",
-              ].join(" ")}
+              className={["h-12 px-6 text-base font-semibold", isIgnoredReport ? "" : "text-gray-500"].join(" ")}
             >
               {updatingStatus === "INVALID" ? "처리 중" : "무시"}
             </Button>
@@ -554,17 +541,16 @@ function ChatReportActionCard({
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900 ">경고여부</h3>
+          <h3 className="text-sm font-semibold text-gray-900">경고여부</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"
               variant={warningStatus === "WARNED" ? "brand" : "outline"}
               disabled={warningStatus === "WARNED" || updatingWarningStatus !== null}
               onClick={() => onOpenWarningModal("WARNED")}
-              className={[
-                "h-12 px-6 text-base font-semibold",
-                warningStatus === "WARNED" ? "" : "text-gray-500",
-              ].join(" ")}
+              className={["h-12 px-6 text-base font-semibold", warningStatus === "WARNED" ? "" : "text-gray-500"].join(
+                " ",
+              )}
             >
               {updatingWarningStatus === "WARNED" ? "처리 중" : "경고"}
             </Button>
@@ -573,10 +559,9 @@ function ChatReportActionCard({
               variant={warningStatus === "IGNORED" ? "brand" : "outline"}
               disabled={warningStatus === "IGNORED" || updatingWarningStatus !== null}
               onClick={() => onOpenWarningModal("IGNORED")}
-              className={[
-                "h-12 px-6 text-base font-semibold",
-                warningStatus === "IGNORED" ? "" : "text-gray-500",
-              ].join(" ")}
+              className={["h-12 px-6 text-base font-semibold", warningStatus === "IGNORED" ? "" : "text-gray-500"].join(
+                " ",
+              )}
             >
               {updatingWarningStatus === "IGNORED" ? "처리 중" : "무시"}
             </Button>
@@ -606,10 +591,12 @@ function buildReportedMessages(
     return [];
   }
 
-  return [{
-    key: String(fallbackTarget.id ?? "target"),
-    body: messageBody(fallbackTarget, null),
-  }];
+  return [
+    {
+      key: String(fallbackTarget.id ?? "target"),
+      body: messageBody(fallbackTarget, null),
+    },
+  ];
 }
 
 function messageBody(target?: ReportedChatMessageDetailTarget | null, snapshot?: string | null) {

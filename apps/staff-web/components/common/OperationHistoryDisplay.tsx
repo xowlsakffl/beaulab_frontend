@@ -5,10 +5,7 @@ import { ArrowRight, StatusBadge } from "@beaulab/ui-admin";
 import type { BadgeColor } from "@beaulab/ui-admin";
 
 import { reportStatusBadgeColor } from "@/components/common/ReportStatusBadge";
-import {
-  hospitalEventAllowStatusColor,
-  labelHospitalEventAllowStatus,
-} from "@/lib/hospital-event/list";
+import { hospitalEventAllowStatusColor, labelHospitalEventAllowStatus } from "@/lib/hospital-event/list";
 
 export type OperationHistoryChangeLike = {
   field_key?: string | null;
@@ -45,7 +42,7 @@ export function OperationHistoryActionBadge({
   const baseLabel = history.action_label?.trim() || labelHistoryAction(action) || fallbackAction || "-";
   const label = actionLabelOverride?.(history, baseLabel) || baseLabel;
 
-  return <span className="whitespace-nowrap text-xs font-medium text-gray-700">{label}</span>;
+  return <span className="text-xs font-medium whitespace-nowrap text-gray-700">{label}</span>;
 }
 
 type OperationHistoryReasonProps = {
@@ -123,11 +120,7 @@ function HistoryReasonNote({ reason }: { reason: string }) {
 function normalizeDisplayReason(reason: string) {
   if (!reason) return "";
 
-  const legacyPrefixes = [
-    "신고 처리 노출중지 - ",
-    "신고 처리 - ",
-    "신고 무시 처리 - ",
-  ];
+  const legacyPrefixes = ["신고 처리 노출중지 - ", "신고 처리 - ", "신고 무시 처리 - "];
 
   for (const prefix of legacyPrefixes) {
     if (reason.startsWith(prefix)) {
@@ -223,11 +216,13 @@ function resolveReportStatusTransition(history: OperationHistoryLike) {
 }
 
 function isStatusField(field?: string | null) {
-  return field === "status"
-    || field === "allow_status"
-    || field === "receipt_status"
-    || field === "warning_status"
-    || field === "report_status";
+  return (
+    field === "status" ||
+    field === "allow_status" ||
+    field === "receipt_status" ||
+    field === "warning_status" ||
+    field === "report_status"
+  );
 }
 
 function HistoryStatusValueBadge({
@@ -252,14 +247,22 @@ function HistoryStatusValueBadge({
 
   if (transition.field === "report_status") {
     return (
-      <StatusBadge size="sm" color={reportStatusBadgeColor(stringifyHistoryValue(rawValue))} className="h-5 px-2 text-[11px] leading-none">
+      <StatusBadge
+        size="sm"
+        color={reportStatusBadgeColor(stringifyHistoryValue(rawValue))}
+        className="h-5 px-2 text-[11px] leading-none"
+      >
         {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
       </StatusBadge>
     );
   }
 
   return (
-    <StatusBadge size="sm" color={statusColor(transition.field, rawValue, statusBadgeColor)} className="h-5 px-2 text-[11px] leading-none">
+    <StatusBadge
+      size="sm"
+      color={statusColor(transition.field, rawValue, statusBadgeColor)}
+      className="h-5 px-2 text-[11px] leading-none"
+    >
       {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
     </StatusBadge>
   );
@@ -305,7 +308,11 @@ function statusDisplayLabel(
   return fallbackLabel || normalized || "-";
 }
 
-function statusColor(field?: string | null, value?: unknown, statusBadgeColor?: (status: string) => BadgeColor): BadgeColor {
+function statusColor(
+  field?: string | null,
+  value?: unknown,
+  statusBadgeColor?: (status: string) => BadgeColor,
+): BadgeColor {
   const normalized = stringifyHistoryValue(value);
   if (field === "status") {
     if (statusBadgeColor) {

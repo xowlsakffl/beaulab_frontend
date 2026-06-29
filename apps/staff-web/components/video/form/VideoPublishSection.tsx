@@ -1,5 +1,14 @@
 import React from "react";
-import { Card, CardDescription, CardHeader, CardTitle, FormSettingToggleRow, InputField, Label, Select } from "@beaulab/ui-admin";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  FormSettingToggleRow,
+  InputField,
+  Label,
+  Select,
+} from "@beaulab/ui-admin";
 
 import {
   extractYoutubeVideoId,
@@ -15,21 +24,20 @@ type VideoPublishSectionProps = {
   onFieldChange: (key: keyof VideoFormValues, value: VideoFormValues[keyof VideoFormValues]) => void;
 };
 
-export function VideoPublishSection({
-  form,
-  errors,
-  onFieldChange,
-}: VideoPublishSectionProps) {
-  const resolveYoutubeMetadata = React.useCallback((rawValue: string) => {
-    const videoId = extractYoutubeVideoId(rawValue);
-    if (!videoId) {
-      return;
-    }
+export function VideoPublishSection({ form, errors, onFieldChange }: VideoPublishSectionProps) {
+  const resolveYoutubeMetadata = React.useCallback(
+    (rawValue: string) => {
+      const videoId = extractYoutubeVideoId(rawValue);
+      if (!videoId) {
+        return;
+      }
 
-    if (form.external_video_id !== videoId) {
-      onFieldChange("external_video_id", videoId);
-    }
-  }, [form.external_video_id, onFieldChange]);
+      if (form.external_video_id !== videoId) {
+        onFieldChange("external_video_id", videoId);
+      }
+    },
+    [form.external_video_id, onFieldChange],
+  );
 
   return (
     <Card as="section">
@@ -77,7 +85,7 @@ export function VideoPublishSection({
             value={form.external_video_id}
             readOnly
             placeholder="외부 영상 URL 입력 시 자동 반영됩니다."
-            className="bg-gray-50 text-gray-700  "
+            className="bg-gray-50 text-gray-700"
             error={Boolean(errors.external_video_id)}
             hint={errors.external_video_id}
           />
@@ -99,7 +107,7 @@ export function VideoPublishSection({
 
         <div className="space-y-3">
           <Label>게시 기간</Label>
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80  ">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80">
             <FormSettingToggleRow
               title="무기한 게시"
               description="게시 종료 없이 계속 노출합니다."
@@ -108,7 +116,7 @@ export function VideoPublishSection({
               isLast
             >
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0 space-y-2">
                   <Label htmlFor="publish_start_at">게시 시작 시각</Label>
                   <InputField
                     id="publish_start_at"
@@ -122,7 +130,7 @@ export function VideoPublishSection({
                   />
                 </div>
 
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0 space-y-2">
                   <Label htmlFor="publish_end_at">게시 종료 시각</Label>
                   <InputField
                     id="publish_end_at"

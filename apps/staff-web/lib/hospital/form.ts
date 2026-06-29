@@ -362,14 +362,17 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     settlement_account_holder: settlementAccount?.account_holder ?? "",
     tax_invoice_email: settlementAccount?.tax_invoice_email ?? "",
     issued_at: businessRegistration?.issued_at ?? "",
-    category_ids: data.categories
-      ?.filter((category) => category.depth === undefined || category.depth === null || category.depth === 1)
-      .map((category) => category.id) ?? [],
+    category_ids:
+      data.categories
+        ?.filter((category) => category.depth === undefined || category.depth === null || category.depth === 1)
+        .map((category) => category.id) ?? [],
     feature_ids: data.features?.map((feature) => feature.id) ?? [],
   };
 }
 
-export function normalizeOperationHours(value: HospitalDetailResponse["operation_hours"]): HospitalOperationHoursFormValues {
+export function normalizeOperationHours(
+  value: HospitalDetailResponse["operation_hours"],
+): HospitalOperationHoursFormValues {
   const nextHours: HospitalOperationHoursFormValues = { ...INITIAL_OPERATION_HOURS };
 
   for (const key of Object.keys(INITIAL_OPERATION_HOURS) as HospitalOperationDayKey[]) {
@@ -528,9 +531,24 @@ export function buildUpdateHospitalFormData({
   appendChangedField(formData, "latitude", form.latitude.trim(), baseForm.latitude.trim());
   appendChangedField(formData, "longitude", form.longitude.trim(), baseForm.longitude.trim());
   appendChangedField(formData, "tel", form.tel.trim(), baseForm.tel.trim());
-  appendChangedField(formData, "ad_reception_phone_1", form.ad_reception_phone_1.trim(), baseForm.ad_reception_phone_1.trim());
-  appendChangedField(formData, "ad_reception_phone_2", form.ad_reception_phone_2.trim(), baseForm.ad_reception_phone_2.trim());
-  appendChangedField(formData, "ad_reception_phone_3", form.ad_reception_phone_3.trim(), baseForm.ad_reception_phone_3.trim());
+  appendChangedField(
+    formData,
+    "ad_reception_phone_1",
+    form.ad_reception_phone_1.trim(),
+    baseForm.ad_reception_phone_1.trim(),
+  );
+  appendChangedField(
+    formData,
+    "ad_reception_phone_2",
+    form.ad_reception_phone_2.trim(),
+    baseForm.ad_reception_phone_2.trim(),
+  );
+  appendChangedField(
+    formData,
+    "ad_reception_phone_3",
+    form.ad_reception_phone_3.trim(),
+    baseForm.ad_reception_phone_3.trim(),
+  );
   appendChangedField(formData, "email", form.email.trim(), baseForm.email.trim());
   appendChangedField(formData, "allow_status", form.allow_status, baseForm.allow_status);
   appendChangedField(formData, "status", form.status, baseForm.status);
@@ -550,10 +568,30 @@ export function buildUpdateHospitalFormData({
   appendChangedField(formData, "business_type", form.business_type.trim(), baseForm.business_type.trim());
   appendChangedField(formData, "business_item", form.business_item.trim(), baseForm.business_item.trim());
   appendChangedField(formData, "business_address", form.business_address.trim(), baseForm.business_address.trim());
-  appendChangedField(formData, "business_address_detail", form.business_address_detail.trim(), baseForm.business_address_detail.trim());
-  appendChangedField(formData, "settlement_bank_name", form.settlement_bank_name.trim(), baseForm.settlement_bank_name.trim());
-  appendChangedField(formData, "settlement_account_number", form.settlement_account_number.trim(), baseForm.settlement_account_number.trim());
-  appendChangedField(formData, "settlement_account_holder", form.settlement_account_holder.trim(), baseForm.settlement_account_holder.trim());
+  appendChangedField(
+    formData,
+    "business_address_detail",
+    form.business_address_detail.trim(),
+    baseForm.business_address_detail.trim(),
+  );
+  appendChangedField(
+    formData,
+    "settlement_bank_name",
+    form.settlement_bank_name.trim(),
+    baseForm.settlement_bank_name.trim(),
+  );
+  appendChangedField(
+    formData,
+    "settlement_account_number",
+    form.settlement_account_number.trim(),
+    baseForm.settlement_account_number.trim(),
+  );
+  appendChangedField(
+    formData,
+    "settlement_account_holder",
+    form.settlement_account_holder.trim(),
+    baseForm.settlement_account_holder.trim(),
+  );
   appendChangedField(formData, "tax_invoice_email", form.tax_invoice_email.trim(), baseForm.tax_invoice_email.trim());
   appendChangedField(formData, "issued_at", form.issued_at, baseForm.issued_at);
 
@@ -829,9 +867,8 @@ function appendChangedGallery(
 }
 
 function sameNumberSet(left: number[], right: number[]) {
-  const normalize = (items: number[]) => [...new Set(items.map(Number).filter((item) => Number.isFinite(item)))]
-    .sort((a, b) => a - b)
-    .join(",");
+  const normalize = (items: number[]) =>
+    [...new Set(items.map(Number).filter((item) => Number.isFinite(item)))].sort((a, b) => a - b).join(",");
 
   return normalize(left) === normalize(right);
 }

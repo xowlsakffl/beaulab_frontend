@@ -11,13 +11,7 @@ export type HospitalEventRealModelDBOption<T extends string = string> = {
 export type HospitalEventRealModelDBStatus = "RECEIVED" | "APPROVED" | "REJECTED";
 export type HospitalEventRealModelDBGender = "MALE" | "FEMALE";
 export type HospitalEventRealModelDBSortDirection = "asc" | "desc";
-export type HospitalEventRealModelDBSortField =
-  | "id"
-  | "status"
-  | "gender"
-  | "birth_date"
-  | "created_at"
-  | "updated_at";
+export type HospitalEventRealModelDBSortField = "id" | "status" | "gender" | "birth_date" | "created_at" | "updated_at";
 
 export type HospitalEventRealModelDBFilters = {
   accountUserId: string;
@@ -242,9 +236,7 @@ export function resolveHospitalEventRealModelDBMediaUrl(
   return resolveMediaAssetUrl(media, preferredVariant);
 }
 
-export function normalizeHospitalEventRealModelDB(
-  item: HospitalEventRealModelDBApiItem,
-): HospitalEventRealModelDBRow {
+export function normalizeHospitalEventRealModelDB(item: HospitalEventRealModelDBApiItem): HospitalEventRealModelDBRow {
   const status = item.status?.code?.trim() || "RECEIVED";
   const gender = item.gender?.code?.trim() || "";
   const surgeryPeriod = item.surgery_period?.code?.trim() || "";
@@ -284,9 +276,10 @@ export function parseHospitalEventRealModelDBsTableState(searchParams: URLSearch
   const sortDirectionParam = searchParams.get("direction");
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const sortField = sortFieldParam && HOSPITAL_EVENT_REAL_MODEL_DB_SORT_FIELDS.has(sortFieldParam as HospitalEventRealModelDBSortField)
-    ? (sortFieldParam as HospitalEventRealModelDBSortField)
-    : DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_SORT.field;
+  const sortField =
+    sortFieldParam && HOSPITAL_EVENT_REAL_MODEL_DB_SORT_FIELDS.has(sortFieldParam as HospitalEventRealModelDBSortField)
+      ? (sortFieldParam as HospitalEventRealModelDBSortField)
+      : DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_SORT.field;
 
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
@@ -377,9 +370,7 @@ export function mapDateRangeToHospitalEventRealModelDBFilter(range?: DateRange) 
   };
 }
 
-export function buildHospitalEventRealModelDBPresetDateRange(
-  preset: HospitalEventRealModelDBDatePresetKey,
-): DateRange {
+export function buildHospitalEventRealModelDBPresetDateRange(preset: HospitalEventRealModelDBDatePresetKey): DateRange {
   const today = normalizeRangeDate(new Date());
 
   if (preset === "today") return { from: today, to: today };

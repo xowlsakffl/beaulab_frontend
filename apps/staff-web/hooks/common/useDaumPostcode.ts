@@ -5,7 +5,8 @@ import React from "react";
 const DAUM_POSTCODE_SCRIPT_ID = "daum-postcode-script";
 const DAUM_POSTCODE_SCRIPT_SRC = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
 const KAKAO_MAP_SCRIPT_ID = "kakao-map-sdk-script";
-const KAKAO_MAP_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY ?? process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY ?? "";
+const KAKAO_MAP_APP_KEY =
+  process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY ?? process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY ?? "";
 
 function getKakaoMapScriptSrc() {
   if (!KAKAO_MAP_APP_KEY) {
@@ -41,10 +42,7 @@ type KakaoAddressSearchResult = {
 };
 
 type KakaoGeocoder = {
-  addressSearch: (
-    addr: string,
-    callback: (result: KakaoAddressSearchResult[], status: string) => void,
-  ) => void;
+  addressSearch: (addr: string, callback: (result: KakaoAddressSearchResult[], status: string) => void) => void;
 };
 
 declare global {
@@ -87,7 +85,9 @@ function loadDaumPostcodeScript(): Promise<void> {
 
     if (existingScript) {
       existingScript.addEventListener("load", () => resolve(), { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Failed to load Daum postcode script.")), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Failed to load Daum postcode script.")), {
+        once: true,
+      });
       return;
     }
 
@@ -162,7 +162,9 @@ function loadKakaoMapScript(): Promise<void> {
       }
 
       existingScript.addEventListener("load", initialize, { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("Failed to load Kakao map script.")), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Failed to load Kakao map script.")), {
+        once: true,
+      });
       return;
     }
 
@@ -206,7 +208,9 @@ export function formatDaumAddress(data: DaumPostcodeData) {
 }
 
 export function useDaumPostcode() {
-  const [isReady, setIsReady] = React.useState<boolean>(typeof window !== "undefined" && Boolean(window.daum?.Postcode));
+  const [isReady, setIsReady] = React.useState<boolean>(
+    typeof window !== "undefined" && Boolean(window.daum?.Postcode),
+  );
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {

@@ -83,7 +83,7 @@ export function TalksFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.65fr)_minmax(0,1.35fr)_minmax(0,0.75fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,0.95fr)_minmax(0,0.8fr)_minmax(0,0.7fr)]">
           <div className={filterRowClass}>
@@ -137,9 +137,11 @@ export function TalksFilterPanel({
           <div className={`${filterRowClass} max-[1800px]:col-span-2`}>
             <span className={inlineLabelClass}>{isCommentBoard ? "좋아요 수" : "지표"}</span>
             <div
-              className={isCommentBoard
-            ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"
-            : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"}
+              className={
+                isCommentBoard
+                  ? "grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"
+                  : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2"
+              }
             >
               {!isCommentBoard && (
                 <div className="min-w-0">
@@ -160,7 +162,7 @@ export function TalksFilterPanel({
                   onChange={(event) => onMetricMinChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="1"
-                  className="bg-white px-3 "
+                  className="bg-white px-3"
                 />
               </div>
               <span className="text-sm text-gray-400">~</span>
@@ -172,7 +174,7 @@ export function TalksFilterPanel({
                   onChange={(event) => onMetricMaxChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="500"
-                  className="bg-white px-3 "
+                  className="bg-white px-3"
                 />
               </div>
             </div>
@@ -202,7 +204,7 @@ export function TalksFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder={isCommentBoard ? "댓글 내용, 토크 제목, 닉네임 검색" : "제목, 내용, 닉네임 검색"}
-                  className="bg-white "
+                  className="bg-white"
                 />
               </div>
             </div>
@@ -211,13 +213,7 @@ export function TalksFilterPanel({
               <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
                 검색
               </Button>
-              <Button
-                type="button"
-                variant="brandOutline"
-                size="filter"
-                onClick={onResetFilters}
-                className="shrink-0"
-              >
+              <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
                 검색 초기화
               </Button>
             </div>

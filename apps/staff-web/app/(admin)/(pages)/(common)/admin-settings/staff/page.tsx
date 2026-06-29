@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/admin-settings/staff");
 
 export default function SettingsStaffPage() {
-    return renderAdminPage("/admin-settings/staff");
+  return renderAdminPage("/admin-settings/staff");
 }

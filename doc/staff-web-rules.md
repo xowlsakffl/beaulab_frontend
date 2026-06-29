@@ -273,14 +273,14 @@
 
 폼은 역할 기준으로 분리합니다.
 
-| 위치 | 책임 | 금지 |
-| --- | --- | --- |
-| `app/**/page.tsx` | metadata, params 전달, Client 렌더 | 상태, API, validation |
-| `*CreateFormClient.tsx`, `*EditFormClient.tsx` | 화면 흐름 조립, 초기 로드, submit 호출, 성공 후 이동, header action 연결 | 도메인 순수 로직 장문 구현 |
-| `lib/{domain}/form.ts` | 타입, 초기값, validation, normalize, payload/FormData builder, 서버 응답 -> form 변환 | React state, API 호출, router, modal |
-| `components/{domain}/form/*Section.tsx` | 섹션 UI 렌더링 | API 호출, submit, 라우팅, 서버 응답 파싱 |
-| `hooks/{domain}/use*FormState.ts` | 복잡한 form state 묶음 | API submit |
-| `hooks/{domain}/use*Submit.ts` | validation 실행, payload 생성, API 호출, submitting 상태 | 성공 후 page 이동 정책 |
+| 위치                                           | 책임                                                                                  | 금지                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `app/**/page.tsx`                              | metadata, params 전달, Client 렌더                                                    | 상태, API, validation                    |
+| `*CreateFormClient.tsx`, `*EditFormClient.tsx` | 화면 흐름 조립, 초기 로드, submit 호출, 성공 후 이동, header action 연결              | 도메인 순수 로직 장문 구현               |
+| `lib/{domain}/form.ts`                         | 타입, 초기값, validation, normalize, payload/FormData builder, 서버 응답 -> form 변환 | React state, API 호출, router, modal     |
+| `components/{domain}/form/*Section.tsx`        | 섹션 UI 렌더링                                                                        | API 호출, submit, 라우팅, 서버 응답 파싱 |
+| `hooks/{domain}/use*FormState.ts`              | 복잡한 form state 묶음                                                                | API submit                               |
+| `hooks/{domain}/use*Submit.ts`                 | validation 실행, payload 생성, API 호출, submitting 상태                              | 성공 후 page 이동 정책                   |
 
 `*Client.tsx`가 500줄을 넘기면 아래 중 하나를 우선 분리합니다.
 

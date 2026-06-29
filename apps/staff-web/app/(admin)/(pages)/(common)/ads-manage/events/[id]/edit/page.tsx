@@ -6,11 +6,7 @@ export const metadata: Metadata = {
   title: "이벤트 수정 | 뷰랩 관리자",
 };
 
-export default async function HospitalEventsEditPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function HospitalEventsEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const eventId = Number(id);
 

@@ -11,10 +11,7 @@ import {
   type HospitalEventImageFieldName,
   type HospitalEventType,
 } from "@/lib/hospital-event/form";
-import {
-  resolveHospitalEventMediaUrl,
-  type HospitalEventMedia,
-} from "@/lib/hospital-event/list";
+import { resolveHospitalEventMediaUrl, type HospitalEventMedia } from "@/lib/hospital-event/list";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
@@ -116,7 +113,13 @@ export function HospitalEventInlineImageFileField({
             >
               {displayText}
             </span>
-            <Button type="button" variant="brand" size="sm" className={fileButtonClassName} onClick={() => inputRef.current?.click()}>
+            <Button
+              type="button"
+              variant="brand"
+              size="sm"
+              className={fileButtonClassName}
+              onClick={() => inputRef.current?.click()}
+            >
               파일선택
             </Button>
           </div>
@@ -191,7 +194,11 @@ function SingleImagePreviewPanel({
       >
         {objectUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-          <img src={objectUrl} alt={title} className={tall ? "h-auto max-h-[32rem] w-full object-contain" : "h-full w-full object-cover"} />
+          <img
+            src={objectUrl}
+            alt={title}
+            className={tall ? "h-auto max-h-[32rem] w-full object-contain" : "h-full w-full object-cover"}
+          />
         ) : (
           <div className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-6 text-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">

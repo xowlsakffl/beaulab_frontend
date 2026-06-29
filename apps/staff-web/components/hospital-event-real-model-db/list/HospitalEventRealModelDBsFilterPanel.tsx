@@ -2,13 +2,7 @@
 
 import React from "react";
 import type { DateRange } from "react-day-picker";
-import {
-  Button,
-  Card,
-  DateRangeFilterDropdown,
-  InputField,
-  SingleCheckboxFilterDropdown,
-} from "@beaulab/ui-admin";
+import { Button, Card, DateRangeFilterDropdown, InputField, SingleCheckboxFilterDropdown } from "@beaulab/ui-admin";
 
 import {
   HOSPITAL_EVENT_REAL_MODEL_DB_DATE_PRESET_OPTIONS,
@@ -64,7 +58,7 @@ export function HospitalEventRealModelDBsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,1.45fr)_minmax(0,0.65fr)_minmax(0,0.8fr)_minmax(0,1.45fr)] gap-x-3 gap-y-3">
           <div className={filterRowClass}>
@@ -147,7 +141,7 @@ export function HospitalEventRealModelDBsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="RDID, 병의원, 이벤트, 이름을 입력해주세요"
-                  className="w-full bg-white "
+                  className="w-full bg-white"
                 />
               </div>
             </div>

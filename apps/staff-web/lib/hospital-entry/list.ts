@@ -44,13 +44,7 @@ export type HospitalEntrySummaryApiResponse = {
 };
 
 export type SortField =
-  | "id"
-  | "created_at"
-  | "hospital_name"
-  | "address"
-  | "ceo_name"
-  | "applicant_name"
-  | "allow_status";
+  "id" | "created_at" | "hospital_name" | "address" | "ceo_name" | "applicant_name" | "allow_status";
 
 export type SortDirection = "asc" | "desc";
 
@@ -286,9 +280,10 @@ export function parseHospitalEntriesTableState(searchParams: URLSearchParams) {
   ]);
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
-    ? (sortFieldParam as SortField)
-    : DEFAULT_SORT.field;
+  const sortField =
+    sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
+      ? (sortFieldParam as SortField)
+      : DEFAULT_SORT.field;
   const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {

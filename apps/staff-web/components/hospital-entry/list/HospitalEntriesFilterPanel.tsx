@@ -3,13 +3,7 @@
 import React from "react";
 import type { DateRange } from "react-day-picker";
 
-import {
-  Button,
-  Card,
-  CheckboxFilterDropdown,
-  DateRangeFilterDropdown,
-  InputField,
-} from "@beaulab/ui-admin";
+import { Button, Card, CheckboxFilterDropdown, DateRangeFilterDropdown, InputField } from "@beaulab/ui-admin";
 
 import {
   DATE_PRESET_OPTIONS,
@@ -122,13 +116,7 @@ export function HospitalEntriesFilterPanel({
             <Button type="button" variant="brand" size="filter" onClick={onApplyFilters} className="shrink-0">
               검색
             </Button>
-            <Button
-              type="button"
-              variant="brandOutline"
-              size="filter"
-              onClick={onResetFilters}
-              className="shrink-0"
-            >
+            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
               검색 초기화
             </Button>
           </div>

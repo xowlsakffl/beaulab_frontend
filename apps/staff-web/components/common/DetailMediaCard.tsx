@@ -47,45 +47,42 @@ export function DetailImageMediaCard({
 }: DetailImageMediaCardProps) {
   return (
     <div
-      className={[
-        "w-full max-w-none overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm",
-        className,
-      ]
+      className={["w-full max-w-none overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm", className]
         .join(" ")
         .trim()}
     >
-      <div className={["relative overflow-hidden bg-gray-50 ", aspectClassName].join(" ")}>
+      <div className={["relative overflow-hidden bg-gray-50", aspectClassName].join(" ")}>
         {badgeText ? (
-          <div className="absolute right-3 top-3 z-10 rounded-full bg-brand-500 px-2.5 py-1 text-[11px] font-semibold text-white">
+          <div className="absolute top-3 right-3 z-10 rounded-full bg-brand-500 px-2.5 py-1 text-[11px] font-semibold text-white">
             {badgeText}
           </div>
         ) : null}
 
         {imageUrl ? (
-          <div className="flex h-full w-full items-center justify-center bg-gray-50 p-3 ">
+          <div className="flex h-full w-full items-center justify-center bg-gray-50 p-3">
             {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
-            <img src={imageUrl} alt={previewAlt} className="h-auto w-auto max-h-full max-w-full object-contain" />
+            <img src={imageUrl} alt={previewAlt} className="h-auto max-h-full w-auto max-w-full object-contain" />
           </div>
         ) : (
-          <div className="flex h-full items-center justify-center px-4 text-center text-sm text-gray-500 ">
+          <div className="flex h-full items-center justify-center px-4 text-center text-sm text-gray-500">
             {unsupportedText}
           </div>
         )}
       </div>
 
-      <div className="border-t border-gray-200 p-3 ">
+      <div className="border-t border-gray-200 p-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-gray-900 " title={fileName}>
+          <p className="truncate text-sm font-semibold text-gray-900" title={fileName}>
             {fileName}
           </p>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {sizeText ? <p className="text-xs text-gray-500 ">{sizeText}</p> : null}
+            {sizeText ? <p className="text-xs text-gray-500">{sizeText}</p> : null}
             {fileUrl ? (
               <a
                 href={fileUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-medium text-brand-600 underline underline-offset-2 "
+                className="text-xs font-medium text-brand-600 underline underline-offset-2"
               >
                 원본보기
               </a>
@@ -111,51 +108,49 @@ export function DetailCompactMediaCard({
   showDownload = false,
 }: DetailCompactMediaCardProps) {
   const previewClassName =
-    previewMode === "cover"
-      ? "h-full w-full object-cover"
-      : "h-auto w-auto max-h-full max-w-full object-contain";
+    previewMode === "cover" ? "h-full w-full object-cover" : "h-auto w-auto max-h-full max-w-full object-contain";
 
   return (
-    <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none  ">
+    <div className="flex w-full max-w-[500px] items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:max-w-none">
       <div
         className={[
           "shrink-0 overflow-hidden rounded-xl",
           previewSizeClassName,
-          showPreviewFrame ? "bg-gray-50 " : "",
+          showPreviewFrame ? "bg-gray-50" : "",
         ].join(" ")}
       >
         {previewUrl ? (
-          <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 ">
+          <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50">
             {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
             <img src={previewUrl} alt={previewAlt} className={previewClassName} />
           </div>
         ) : (
-          <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-sm text-gray-500  ">
+          <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-sm text-gray-500">
             {previewFallbackText}
           </div>
         )}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-gray-900 " title={fileName}>
+        <p className="truncate text-sm font-semibold text-gray-900" title={fileName}>
           {fileName}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-          {sizeText ? <p className="text-xs text-gray-500 ">{sizeText}</p> : null}
+          {sizeText ? <p className="text-xs text-gray-500">{sizeText}</p> : null}
           {fileUrl ? (
             <>
               <a
                 href={fileUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-medium text-brand-600 underline underline-offset-2 "
+                className="text-xs font-medium text-brand-600 underline underline-offset-2"
               >
                 원본보기
               </a>
               {showDownload ? (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1 border-b border-current pb-px text-xs font-medium leading-none text-blue-600 "
+                  className="inline-flex items-center gap-1 border-b border-current pb-px text-xs leading-none font-medium text-blue-600"
                   onClick={() => {
                     void downloadFile(downloadUrl ?? fileUrl ?? "", fileName);
                   }}
@@ -175,7 +170,7 @@ export function DetailCompactMediaCard({
 
 export function DetailEmptyState({ children }: DetailEmptyStateProps) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500   ">
+    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
       {children}
     </div>
   );

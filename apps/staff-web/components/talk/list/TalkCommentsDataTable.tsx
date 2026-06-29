@@ -12,11 +12,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import {
-  type TalkCommentRow,
-  type TalkCommentSortField,
-  type TalkCommentSortState,
-} from "@/lib/talk/comment-list";
+import { type TalkCommentRow, type TalkCommentSortField, type TalkCommentSortState } from "@/lib/talk/comment-list";
 import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 function renderSortMark(field: TalkCommentSortField, sortState: TalkCommentSortState) {
@@ -24,9 +20,7 @@ function renderSortMark(field: TalkCommentSortField, sortState: TalkCommentSortS
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function SortHeader({
@@ -66,13 +60,7 @@ function SelectionCheckbox({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <FormCheckbox
-      ariaLabel={label}
-      checked={checked}
-      disabled={disabled}
-      onChange={onChange}
-      className="size-4"
-    />
+    <FormCheckbox ariaLabel={label} checked={checked} disabled={disabled} onChange={onChange} className="size-4" />
   );
 }
 
@@ -151,9 +139,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} min-w-[170px] lg:min-w-0 lg:w-[132px] xl:w-[11%]`,
       header: "토크유형",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-700 ">
-          {row.categoryName}
-        </div>
+        <div className="text-sm leading-6 break-words whitespace-normal text-gray-700">{row.categoryName}</div>
       ),
     },
     {
@@ -162,9 +148,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[116px] xl:w-[9%]`,
       header: "댓글 닉네임",
       render: (row) => (
-        <span className="block whitespace-normal break-words text-sm text-gray-700 ">
-          {row.nickname}
-        </span>
+        <span className="block text-sm break-words whitespace-normal text-gray-700">{row.nickname}</span>
       ),
     },
     {
@@ -173,15 +157,8 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[260px] xl:w-[22%]`,
       header: "댓글 내용",
       render: (row) => (
-        <div
-          className="whitespace-normal break-words text-sm leading-6 text-gray-600 "
-          style={twoLineClampStyle}
-        >
-          {row.mentionText && (
-            <span className="mr-1 font-semibold text-brand-500 ">
-              @{row.mentionText}
-            </span>
-          )}
+        <div className="text-sm leading-6 break-words whitespace-normal text-gray-600" style={twoLineClampStyle}>
+          {row.mentionText && <span className="mr-1 font-semibold text-brand-500">@{row.mentionText}</span>}
           <span>{row.contentPreview || "-"}</span>
         </div>
       ),
@@ -192,10 +169,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[220px] xl:w-[18%]`,
       header: "토크 제목",
       render: (row) => (
-        <span
-          className="block whitespace-normal break-words font-medium text-gray-800 "
-          style={twoLineClampStyle}
-        >
+        <span className="block font-medium break-words whitespace-normal text-gray-800" style={twoLineClampStyle}>
           {row.parentTalkTitle}
         </span>
       ),
@@ -270,24 +244,22 @@ export function TalkCommentsDataTable({
   onGoPage,
 }: TalkCommentsDataTableProps) {
   const selectedCount = selectedIds.size;
-  const selectableRows = React.useMemo(
-    () => rows.filter((row) => !row.visibilityChangeLocked),
-    [rows],
-  );
+  const selectableRows = React.useMemo(() => rows.filter((row) => !row.visibilityChangeLocked), [rows]);
   const allPageRowsSelected = selectableRows.length > 0 && selectableRows.every((row) => selectedIds.has(row.id));
   const columns = React.useMemo(
-    () => buildCommentColumns({
-      sortState,
-      selectedIds,
-      allPageRowsSelected,
-      hasSelectableRows: selectableRows.length > 0,
-      visibilityUpdatingIds,
-      visibilityControlsDisabled: bulkUpdating || loading || refreshing,
-      onToggleSort,
-      onToggleRow,
-      onToggleAllRows,
-      onRowVisibilityChange,
-    }),
+    () =>
+      buildCommentColumns({
+        sortState,
+        selectedIds,
+        allPageRowsSelected,
+        hasSelectableRows: selectableRows.length > 0,
+        visibilityUpdatingIds,
+        visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        onToggleSort,
+        onToggleRow,
+        onToggleAllRows,
+        onRowVisibilityChange,
+      }),
     [
       allPageRowsSelected,
       bulkUpdating,
@@ -319,7 +291,7 @@ export function TalkCommentsDataTable({
       onGoPage={onGoPage}
       onRefresh={onRefresh}
       refreshPlacement="left"
-      rightActions={(
+      rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button
             type="button"
@@ -342,7 +314,7 @@ export function TalkCommentsDataTable({
             미노출
           </Button>
         </div>
-      )}
+      }
       emptyText="조건에 맞는 토크 댓글이 없습니다."
     />
   );

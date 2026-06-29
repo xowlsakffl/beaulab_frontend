@@ -5,9 +5,9 @@ import HospitalEventRealModelDBsTableClient from "./HospitalEventRealModelDBsTab
 export const metadata = buildAdminPageMetadata("/customer-db-manage/real-models");
 
 export default function CustomerDbRealModelsPage() {
-    return (
-        <div className="space-y-4">
-            <HospitalEventRealModelDBsTableClient />
-        </div>
-    );
+  return (
+    <div className="space-y-4">
+      <HospitalEventRealModelDBsTableClient />
+    </div>
+  );
 }

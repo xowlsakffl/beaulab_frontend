@@ -21,13 +21,10 @@ export function HospitalEntriesSummaryCards({ summary }: HospitalEntriesSummaryC
         <Card key={card.label} className="rounded-xl bg-white px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm font-medium text-gray-700">{card.label}</span>
-            <span className="text-base font-semibold text-gray-900">
-              {Number(card.value).toLocaleString()}건
-            </span>
+            <span className="text-base font-semibold text-gray-900">{Number(card.value).toLocaleString()}건</span>
           </div>
         </Card>
       ))}
     </div>
   );
 }
-

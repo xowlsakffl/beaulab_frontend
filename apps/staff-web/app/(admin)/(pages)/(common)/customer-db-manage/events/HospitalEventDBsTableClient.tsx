@@ -169,7 +169,9 @@ export default function HospitalEventDBsTableClient() {
         onApplyDatePreset={applyDatePreset}
         onContactMethodChange={(value) => setDraftFilters((prev) => ({ ...prev, contactMethod: value }))}
         onPreferredTimeChange={(value) => setDraftFilters((prev) => ({ ...prev, preferredTime: value }))}
-        onAmountMetricChange={(value: HospitalEventDBAmountMetric) => setDraftFilters((prev) => ({ ...prev, amountMetric: value }))}
+        onAmountMetricChange={(value: HospitalEventDBAmountMetric) =>
+          setDraftFilters((prev) => ({ ...prev, amountMetric: value }))
+        }
         onAmountMinChange={(value) => setDraftFilters((prev) => ({ ...prev, amountMin: value }))}
         onAmountMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, amountMax: value }))}
         onStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, status: value }))}

@@ -188,10 +188,7 @@ export type BuildCreateNoticeFormDataParams = {
   attachments: File[];
 };
 
-export function buildCreateNoticeFormData({
-  form,
-  attachments,
-}: BuildCreateNoticeFormDataParams): FormData {
+export function buildCreateNoticeFormData({ form, attachments }: BuildCreateNoticeFormDataParams): FormData {
   const formData = new FormData();
 
   appendNoticeFormData(formData, form, attachments);
@@ -213,12 +210,7 @@ export function buildUpdateNoticeFormData({
   const formData = new FormData();
 
   formData.append("_method", "PATCH");
-  appendNoticeFormData(
-    formData,
-    form,
-    attachments.length > 0 ? attachments : null,
-    existingAttachmentIds,
-  );
+  appendNoticeFormData(formData, form, attachments.length > 0 ? attachments : null, existingAttachmentIds);
 
   return formData;
 }

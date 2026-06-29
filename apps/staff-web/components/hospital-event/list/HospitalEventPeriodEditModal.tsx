@@ -14,12 +14,7 @@ import {
   ModalTitle,
 } from "@beaulab/ui-admin";
 
-import {
-  formatLocalDate,
-  normalizeRangeDate,
-  parseDateParam,
-  type HospitalEventRow,
-} from "@/lib/hospital-event/list";
+import { formatLocalDate, normalizeRangeDate, parseDateParam, type HospitalEventRow } from "@/lib/hospital-event/list";
 
 export type HospitalEventPeriodEditState = {
   row: HospitalEventRow;
@@ -154,10 +149,22 @@ export function HospitalEventPeriodEditModal({
         </ModalBody>
 
         <ModalFooter className="mt-10 grid grid-cols-2 gap-2">
-          <Button type="button" variant="outline" className="h-12 w-full justify-center" disabled={updating} onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 w-full justify-center"
+            disabled={updating}
+            onClick={onClose}
+          >
             취소
           </Button>
-          <Button type="button" variant="brand" className="h-12 w-full justify-center" disabled={updating} onClick={() => void onSubmit()}>
+          <Button
+            type="button"
+            variant="brand"
+            className="h-12 w-full justify-center"
+            disabled={updating}
+            onClick={() => void onSubmit()}
+          >
             {updating ? "수정 중" : "수정하기"}
           </Button>
         </ModalFooter>

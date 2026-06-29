@@ -40,7 +40,9 @@ export default function HospitalEventRealModelDBsTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
   const [draftFilters, setDraftFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
-  const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventRealModelDBFilters>(initialTableState.filters);
+  const [appliedFilters, setAppliedFilters] = React.useState<HospitalEventRealModelDBFilters>(
+    initialTableState.filters,
+  );
   const [sortState, setSortState] = React.useState<HospitalEventRealModelDBSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);

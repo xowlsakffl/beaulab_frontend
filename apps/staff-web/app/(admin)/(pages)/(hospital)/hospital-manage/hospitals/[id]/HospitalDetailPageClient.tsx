@@ -5,10 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
-import {
-  AllowStatusActionButtons,
-  AllowStatusConfirmModal,
-} from "@/components/common/AllowStatusControls";
+import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
@@ -308,7 +305,7 @@ export default function HospitalDetailPageClient() {
   }, [updatingAllowStatus]);
 
   const updateAllowStatusReason = React.useCallback((reason: string) => {
-    setPendingAllowStatusChange((prev) => prev ? { ...prev, reason } : prev);
+    setPendingAllowStatusChange((prev) => (prev ? { ...prev, reason } : prev));
     setAllowStatusError(null);
   }, []);
 
@@ -339,7 +336,7 @@ export default function HospitalDetailPageClient() {
         return;
       }
 
-      setDetail((prev) => prev ? { ...prev, allow_status: pendingAllowStatusChange.allowStatus } : prev);
+      setDetail((prev) => (prev ? { ...prev, allow_status: pendingAllowStatusChange.allowStatus } : prev));
       setPendingAllowStatusChange(null);
       await refreshHistoriesFromFirstPage();
     } catch {
@@ -443,13 +440,13 @@ export default function HospitalDetailPageClient() {
           loading={historiesLoading}
           onPageChange={setHistoryPage}
         />
-        <AdminNotesCard
-          notes={notes}
-          loading={notesLoading}
-          onAdd={() => setIsNoteModalOpen(true)}
-        />
+        <AdminNotesCard notes={notes} loading={notesLoading} onAdd={() => setIsNoteModalOpen(true)} />
       </section>
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
         subjectLabel="해당 병의원을"
@@ -480,7 +477,7 @@ export default function HospitalDetailPageClient() {
             <ModalTitle>운영중지 처리</ModalTitle>
           </ModalHeader>
           <ModalBody className="mt-5 space-y-3">
-            <p className="whitespace-pre-line text-sm leading-6 text-gray-700 font-medium">
+            <p className="text-sm leading-6 font-medium whitespace-pre-line text-gray-700">
               해당 병의원을 운영중지 등록 하시겠습니까?
             </p>
             {suspendError ? <p className="text-sm text-rose-600">{suspendError}</p> : null}
@@ -746,7 +743,7 @@ function HospitalImagesCard({
     <Card className={cardClassName}>
       <h3 className="mb-4 text-sm font-bold text-gray-900">병의원이미지</h3>
       {gallery.length > 0 ? (
-        <div className="grid grid-flow-col auto-cols-[calc((100%_-_1rem)/2)] gap-4 overflow-x-auto pb-2 md:auto-cols-[calc((100%_-_3rem)/4)]">
+        <div className="grid auto-cols-[calc((100%_-_1rem)/2)] grid-flow-col gap-4 overflow-x-auto pb-2 md:auto-cols-[calc((100%_-_3rem)/4)]">
           {gallery.map((media, index) => (
             <HospitalImageTile
               key={String(media.id ?? `gallery-${index}`)}
@@ -807,11 +804,11 @@ function HospitalImageTile({
       className="relative flex aspect-[76/49] min-w-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm disabled:cursor-default"
       aria-label={canPreview ? `${getMediaFilename(media)} 원본보기` : undefined}
     >
-      <span className="absolute left-2 top-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
+      <span className="absolute top-2 left-2 z-10 rounded bg-gray-700 px-2 py-0.5 text-[10px] font-semibold text-white">
         {badgeText}
       </span>
       {isRepresentative ? (
-        <span className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm">
+        <span className="absolute top-3 right-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm">
           <Star className="size-4 fill-yellow-400 text-yellow-500" />
         </span>
       ) : null}
@@ -879,15 +876,7 @@ function OperationHistoryCard({
   );
 }
 
-function AdminNotesCard({
-  notes,
-  loading,
-  onAdd,
-}: {
-  notes: AdminNoteItem[];
-  loading: boolean;
-  onAdd: () => void;
-}) {
+function AdminNotesCard({ notes, loading, onAdd }: { notes: AdminNoteItem[]; loading: boolean; onAdd: () => void }) {
   return (
     <Card className={cardClassName}>
       <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
@@ -937,7 +926,12 @@ function NoteCreateModal({
           <ModalTitle>관리자 메모 등록</ModalTitle>
         </ModalHeader>
         <ModalBody className="mt-5">
-          <FormTextArea value={value} onChange={(next) => onChange(next.slice(0, 1000))} rows={5} placeholder="관리자 메모를 입력해 주세요." />
+          <FormTextArea
+            value={value}
+            onChange={(next) => onChange(next.slice(0, 1000))}
+            rows={5}
+            placeholder="관리자 메모를 입력해 주세요."
+          />
         </ModalBody>
         <ModalFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
@@ -982,15 +976,7 @@ function InfoField({
   );
 }
 
-function LinkInfoField({
-  label,
-  href,
-  className,
-}: {
-  label: string;
-  href?: string | null;
-  className?: string;
-}) {
+function LinkInfoField({ label, href, className }: { label: string; href?: string | null; className?: string }) {
   const value = href?.trim();
 
   return (
@@ -1012,17 +998,13 @@ function LinkInfoField({
   );
 }
 
-function BadgeInfoField({
-  label,
-  items,
-  compact = false,
-}: {
-  label: string;
-  items: string[];
-  compact?: boolean;
-}) {
+function BadgeInfoField({ label, items, compact = false }: { label: string; items: string[]; compact?: boolean }) {
   return (
-    <div className={compact ? "grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3" : "grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4"}>
+    <div
+      className={
+        compact ? "grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3" : "grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4"
+      }
+    >
       <p className={labelClassName}>{label}</p>
       <CategoryBadgeList values={items} empty={<p className={valueClassName}>-</p>} />
     </div>
@@ -1075,13 +1057,13 @@ function galleryImageTitle(media: MediaAsset, index: number) {
   return Boolean(media.is_primary) || index === 0 ? "대표이미지" : `내부이미지${index}`;
 }
 
-function settlementAccountNumber(account?: {
-  bank_name?: string | null;
-  account_number?: string | null;
-} | null) {
-  const parts = [account?.bank_name, account?.account_number]
-    .map((item) => item?.trim())
-    .filter(Boolean);
+function settlementAccountNumber(
+  account?: {
+    bank_name?: string | null;
+    account_number?: string | null;
+  } | null,
+) {
+  const parts = [account?.bank_name, account?.account_number].map((item) => item?.trim()).filter(Boolean);
 
   return parts.length > 0 ? parts.join(" ") : "-";
 }
@@ -1097,9 +1079,7 @@ function categoryLabels(categories?: Array<{ name?: string | null; full_path?: s
 function featureLabels(features?: Array<{ name?: string | null }> | null) {
   if (!features || features.length === 0) return [];
 
-  return features
-    .map((feature) => feature.name?.trim())
-    .filter((item): item is string => Boolean(item));
+  return features.map((feature) => feature.name?.trim()).filter((item): item is string => Boolean(item));
 }
 
 function operationHoursSummary(detail: HospitalDetailResponse) {
@@ -1266,7 +1246,7 @@ function parseOperationHoursHistoryValue(value: unknown) {
   try {
     const parsed = JSON.parse(trimmedValue);
     return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? parsed as Record<string, { start?: unknown; end?: unknown; is_closed?: unknown }>
+      ? (parsed as Record<string, { start?: unknown; end?: unknown; is_closed?: unknown }>)
       : null;
   } catch {
     return null;

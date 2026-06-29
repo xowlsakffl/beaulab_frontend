@@ -81,7 +81,7 @@ export function HospitalReviewCommentsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)_minmax(0,0.7fr)_minmax(0,0.9fr)] gap-x-2 gap-y-3">
           <div className={filterRowClass}>
@@ -158,7 +158,7 @@ export function HospitalReviewCommentsFilterPanel({
                 onChange={(event) => onMetricMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="1"
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -168,11 +168,10 @@ export function HospitalReviewCommentsFilterPanel({
                 onChange={(event) => onMetricMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="500"
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
             </div>
           </div>
-
         </div>
 
         <div className="grid min-w-0 grid-cols-[minmax(0,0.75fr)_minmax(0,3.2fr)] gap-x-3 gap-y-3">
@@ -198,7 +197,7 @@ export function HospitalReviewCommentsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="댓글ID, 후기ID, 댓글내용, 닉네임 등을 입력해주세요"
-                  className="bg-white "
+                  className="bg-white"
                 />
               </div>
             </div>
@@ -207,13 +206,7 @@ export function HospitalReviewCommentsFilterPanel({
               <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
                 검색
               </Button>
-              <Button
-                type="button"
-                variant="brandOutline"
-                size="filter"
-                onClick={onResetFilters}
-                className="shrink-0"
-              >
+              <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
                 검색 초기화
               </Button>
             </div>

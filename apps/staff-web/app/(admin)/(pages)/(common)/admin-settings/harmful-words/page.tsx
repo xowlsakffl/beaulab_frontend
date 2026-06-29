@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/admin-settings/harmful-words");
 
 export default function HarmfulWordsPage() {
-    return renderAdminPage("/admin-settings/harmful-words");
+  return renderAdminPage("/admin-settings/harmful-words");
 }

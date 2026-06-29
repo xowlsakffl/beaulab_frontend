@@ -96,7 +96,7 @@ export function CategorySelectPanel({
           </button>
 
           {isOpen ? (
-            <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+            <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
               {isLoading ? (
                 <div className="py-5">
                   <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="진료분야 불러오는 중" />

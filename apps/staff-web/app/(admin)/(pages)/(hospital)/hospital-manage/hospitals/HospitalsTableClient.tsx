@@ -205,9 +205,7 @@ export default function HospitalsTableClient() {
       const exists = prev.reviewStatuses.includes(value);
       return {
         ...prev,
-        reviewStatuses: exists
-          ? prev.reviewStatuses.filter((item) => item !== value)
-          : [...prev.reviewStatuses, value],
+        reviewStatuses: exists ? prev.reviewStatuses.filter((item) => item !== value) : [...prev.reviewStatuses, value],
       };
     });
   };
@@ -249,9 +247,7 @@ export default function HospitalsTableClient() {
       const exists = prev.departments.includes(value);
       return {
         ...prev,
-        departments: exists
-          ? prev.departments.filter((item) => item !== value)
-          : [...prev.departments, value],
+        departments: exists ? prev.departments.filter((item) => item !== value) : [...prev.departments, value],
       };
     });
   };
@@ -305,10 +301,7 @@ export default function HospitalsTableClient() {
   }, []);
 
   const refreshHospitals = React.useCallback(() => {
-    void Promise.all([
-      fetchHospitals(true),
-      fetchHospitalSummary(),
-    ]);
+    void Promise.all([fetchHospitals(true), fetchHospitalSummary()]);
   }, [fetchHospitalSummary, fetchHospitals]);
 
   return (

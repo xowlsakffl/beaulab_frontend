@@ -1,10 +1,5 @@
 export type ReportedContentTargetType =
-  | "talk"
-  | "talk_comment"
-  | "hospital_review"
-  | "hospital_review_comment"
-  | "hospital_evaluation"
-  | "chat_message";
+  "talk" | "talk_comment" | "hospital_review" | "hospital_review_comment" | "hospital_evaluation" | "chat_message";
 
 export type ReportedContentDetailAuthor = {
   id?: number | null;

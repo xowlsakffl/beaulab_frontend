@@ -38,7 +38,11 @@ export async function validateImageFileRuleMessage(file: File, rule: ImageFileVa
   return (await validateImageFileRule(file, rule)) ? null : message;
 }
 
-export async function validateImageFilesRuleMessage(files: readonly File[], rule: ImageFileValidationRule, message: string) {
+export async function validateImageFilesRuleMessage(
+  files: readonly File[],
+  rule: ImageFileValidationRule,
+  message: string,
+) {
   for (const file of files) {
     const validationMessage = await validateImageFileRuleMessage(file, rule, message);
     if (validationMessage) return validationMessage;
@@ -92,10 +96,10 @@ export function readImageDimensions(file: File): Promise<ImageDimensions | null>
 function needsImageDimensions(rule: ImageFileValidationRule) {
   return Boolean(
     rule.exactWidth !== undefined ||
-      rule.exactHeight !== undefined ||
-      rule.minWidth !== undefined ||
-      rule.minHeight !== undefined ||
-      rule.square,
+    rule.exactHeight !== undefined ||
+    rule.minWidth !== undefined ||
+    rule.minHeight !== undefined ||
+    rule.square,
   );
 }
 

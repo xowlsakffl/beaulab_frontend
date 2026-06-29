@@ -21,7 +21,10 @@ export function Guard(props: GuardProps) {
   const pathname = usePathname();
 
   const next = useMemo(() => (pathname ? `?next=${encodeURIComponent(pathname)}` : ""), [pathname]);
-  const routePermissionRule = useMemo(() => resolveRoutePermissionRule(pathname, ADMIN_ROUTE_PERMISSION_RULES), [pathname]);
+  const routePermissionRule = useMemo(
+    () => resolveRoutePermissionRule(pathname, ADMIN_ROUTE_PERMISSION_RULES),
+    [pathname],
+  );
 
   useEffect(() => {
     let isMounted = true;

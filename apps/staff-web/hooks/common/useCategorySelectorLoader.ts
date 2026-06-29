@@ -9,7 +9,13 @@ import type { CategorySelectorItem, CategorySelectorLoadParams } from "@beaulab/
 
 export function useCategorySelectorLoader() {
   return React.useCallback(
-    async ({ section, parentId, query, perPage, depth }: CategorySelectorLoadParams): Promise<CategorySelectorItem[]> => {
+    async ({
+      section,
+      parentId,
+      query,
+      perPage,
+      depth,
+    }: CategorySelectorLoadParams): Promise<CategorySelectorItem[]> => {
       try {
         const isRootRequest = parentId === undefined || parentId === null;
         const response = await api.get<CategoryApiItem[]>("/categories/selector", {
@@ -30,9 +36,7 @@ export function useCategorySelectorLoader() {
           throw new Error(response.error.message || "카테고리 목록을 불러오지 못했습니다.");
         }
 
-        return response.data
-          .filter((item) => item.status === "ACTIVE")
-          .map(normalizeCategorySelectorItem);
+        return response.data.filter((item) => item.status === "ACTIVE").map(normalizeCategorySelectorItem);
       } catch (error) {
         if (error instanceof Error && error.message) {
           throw error;

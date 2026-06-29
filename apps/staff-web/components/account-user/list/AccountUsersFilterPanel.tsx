@@ -68,7 +68,7 @@ export function AccountUsersFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)]">
           <div className={filterRowClass}>
@@ -140,7 +140,7 @@ export function AccountUsersFilterPanel({
                 value={draftFilters.warningCountMin}
                 onChange={(event) => onWarningCountMinChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -149,7 +149,7 @@ export function AccountUsersFilterPanel({
                 value={draftFilters.warningCountMax}
                 onChange={(event) => onWarningCountMaxChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
-                className="bg-white px-3 "
+                className="bg-white px-3"
               />
             </div>
           </div>
@@ -164,7 +164,7 @@ export function AccountUsersFilterPanel({
                 onChange={(event) => onSearchChange(event.target.value)}
                 onKeyDown={handleEnterToSearch}
                 placeholder="UID, 이메일, 닉네임 등을 입력해주세요"
-                className="w-full bg-white "
+                className="w-full bg-white"
               />
             </div>
           </div>

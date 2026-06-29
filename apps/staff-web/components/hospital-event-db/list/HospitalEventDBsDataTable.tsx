@@ -77,7 +77,9 @@ function DetailLink({
   const composedClassName = [
     "inline text-gray-800 underline decoration-gray-300 underline-offset-4 transition hover:text-brand-500 hover:decoration-brand-500",
     className,
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   if (!href) {
     return (
@@ -129,7 +131,7 @@ function buildColumns({
         <DetailLink
           href={row.hospitalId ? `/hospital-manage/hospitals/${row.hospitalId}` : null}
           title={row.hospitalName}
-          className="break-words font-medium"
+          className="font-medium break-words"
         >
           {row.hospitalName}
         </DetailLink>
@@ -174,7 +176,7 @@ function buildColumns({
         <DetailLink
           href={row.accountUserId ? `/user-manage/users/${row.accountUserId}` : null}
           title={row.applicantName}
-          className="block break-words font-medium"
+          className="block font-medium break-words"
         >
           {row.applicantName}
         </DetailLink>
@@ -212,7 +214,9 @@ function buildColumns({
       key: "consultationPrice",
       headerClassName: `${headerBaseClass} w-[110px]`,
       cellClassName: `${nowrapCellClass} w-[110px]`,
-      header: <SortHeader label="소진단가" field="consultation_price" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: (
+        <SortHeader label="소진단가" field="consultation_price" sortState={sortState} onToggleSort={onToggleSort} />
+      ),
       render: (row) => formatHospitalEventDBPrice(row.consultationPrice),
     },
     {
@@ -251,10 +255,7 @@ export function HospitalEventDBsDataTable({
   onRefresh,
   onGoPage,
 }: HospitalEventDBsDataTableProps) {
-  const columns = React.useMemo(
-    () => buildColumns({ sortState, onToggleSort }),
-    [sortState, onToggleSort],
-  );
+  const columns = React.useMemo(() => buildColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable

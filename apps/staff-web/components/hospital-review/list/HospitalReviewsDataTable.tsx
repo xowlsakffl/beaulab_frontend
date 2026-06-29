@@ -29,9 +29,7 @@ function renderSortMark(field: HospitalReviewSortField, sortState: HospitalRevie
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function SortHeader({
@@ -76,20 +74,14 @@ function SelectionCheckbox({
 }) {
   return (
     <span onClick={(event) => event.stopPropagation()}>
-      <FormCheckbox
-        ariaLabel={label}
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        className="size-4"
-      />
+      <FormCheckbox ariaLabel={label} checked={checked} disabled={disabled} onChange={onChange} className="size-4" />
     </span>
   );
 }
 
 function FeatureBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600  ">
+    <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600">
       {label}
     </span>
   );
@@ -119,7 +111,9 @@ function renderImagePreview(row: HospitalReviewRow) {
 
   if (!imageUrl) {
     return (
-      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}>
+      <div
+        className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}
+      >
         {imageCount > 0 ? `${imageCount}+` : "0"}
       </div>
     );
@@ -128,11 +122,7 @@ function renderImagePreview(row: HospitalReviewRow) {
   return (
     <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
-      <img
-        src={imageUrl}
-        alt={`후기 ${row.id} 이미지`}
-        className="h-full w-full object-cover"
-      />
+      <img src={imageUrl} alt={`후기 ${row.id} 이미지`} className="h-full w-full object-cover" />
       {imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
           {imageCount}+
@@ -229,7 +219,7 @@ function buildHospitalReviewColumns({
       cellClassName: `${cellBaseClass} lg:w-[112px] xl:w-[8.5%]`,
       header: "닉네임",
       render: (row) => (
-        <span className="block line-clamp-2 break-words" title={row.authorName}>
+        <span className="line-clamp-2 block break-words" title={row.authorName}>
           {row.authorName}
         </span>
       ),
@@ -240,7 +230,7 @@ function buildHospitalReviewColumns({
       cellClassName: `${cellBaseClass} lg:w-[142px] xl:w-[11%]`,
       header: "병의원명",
       render: (row) => (
-        <span className="block line-clamp-2 font-medium text-gray-800 " title={row.hospitalName}>
+        <span className="line-clamp-2 block font-medium text-gray-800" title={row.hospitalName}>
           {row.hospitalName}
         </span>
       ),
@@ -256,14 +246,18 @@ function buildHospitalReviewColumns({
       key: "rating",
       headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[3.8%]`,
       cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[3.8%]`,
-      header: <SortHeader field="rating" label="평점" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader field="rating" label="평점" sortState={sortState} onToggleSort={onToggleSort} align="center" />
+      ),
       render: (row) => formatHospitalReviewRating(row.rating),
     },
     {
       key: "status",
       headerClassName: `${headerBaseClass} lg:w-[62px] xl:w-[5%]`,
       cellClassName: `${nowrapCellClass} lg:w-[62px] xl:w-[5%]`,
-      header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
+      ),
       render: (row) => (
         <span onClick={(event) => event.stopPropagation()}>
           <Switch
@@ -287,28 +281,60 @@ function buildHospitalReviewColumns({
       key: "likeCount",
       headerClassName: `${metricHeaderClass} lg:w-[78px] xl:w-[5.5%]`,
       cellClassName: `${metricCellClass} lg:w-[78px] xl:w-[5.5%]`,
-      header: <SortHeader field="like_count" label="좋아요수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader
+          field="like_count"
+          label="좋아요수"
+          sortState={sortState}
+          onToggleSort={onToggleSort}
+          align="center"
+        />
+      ),
       render: (row) => row.likeCount.toLocaleString(),
     },
     {
       key: "saveCount",
       headerClassName: `${metricHeaderClass} lg:w-[68px] xl:w-[4.8%]`,
       cellClassName: `${metricCellClass} lg:w-[68px] xl:w-[4.8%]`,
-      header: <SortHeader field="save_count" label="저장횟수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader
+          field="save_count"
+          label="저장횟수"
+          sortState={sortState}
+          onToggleSort={onToggleSort}
+          align="center"
+        />
+      ),
       render: (row) => row.saveCount.toLocaleString(),
     },
     {
       key: "commentCount",
       headerClassName: `${metricHeaderClass} lg:w-[58px] xl:w-[4%]`,
       cellClassName: `${metricCellClass} lg:w-[58px] xl:w-[4%]`,
-      header: <SortHeader field="comment_count" label="댓글수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader
+          field="comment_count"
+          label="댓글수"
+          sortState={sortState}
+          onToggleSort={onToggleSort}
+          align="center"
+        />
+      ),
       render: (row) => row.commentCount.toLocaleString(),
     },
     {
       key: "viewCount",
       headerClassName: `${metricHeaderClass} lg:w-[58px] xl:w-[4%]`,
       cellClassName: `${metricCellClass} lg:w-[58px] xl:w-[4%]`,
-      header: <SortHeader field="view_count" label="조회수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader
+          field="view_count"
+          label="조회수"
+          sortState={sortState}
+          onToggleSort={onToggleSort}
+          align="center"
+        />
+      ),
       render: (row) => row.viewCount.toLocaleString(),
     },
     {
@@ -361,24 +387,22 @@ export function HospitalReviewsDataTable({
   onOpenDetail,
 }: HospitalReviewsDataTableProps) {
   const selectedCount = selectedIds.size;
-  const selectableRows = React.useMemo(
-    () => rows.filter((row) => !row.visibilityChangeLocked),
-    [rows],
-  );
+  const selectableRows = React.useMemo(() => rows.filter((row) => !row.visibilityChangeLocked), [rows]);
   const allPageRowsSelected = selectableRows.length > 0 && selectableRows.every((row) => selectedIds.has(row.id));
   const columns = React.useMemo(
-    () => buildHospitalReviewColumns({
-      sortState,
-      selectedIds,
-      allPageRowsSelected,
-      hasSelectableRows: selectableRows.length > 0,
-      visibilityUpdatingIds,
-      visibilityControlsDisabled: bulkUpdating || loading || refreshing,
-      onToggleSort,
-      onToggleRow,
-      onToggleAllRows,
-      onRowVisibilityChange,
-    }),
+    () =>
+      buildHospitalReviewColumns({
+        sortState,
+        selectedIds,
+        allPageRowsSelected,
+        hasSelectableRows: selectableRows.length > 0,
+        visibilityUpdatingIds,
+        visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        onToggleSort,
+        onToggleRow,
+        onToggleAllRows,
+        onRowVisibilityChange,
+      }),
     [
       allPageRowsSelected,
       bulkUpdating,
@@ -411,7 +435,7 @@ export function HospitalReviewsDataTable({
       onRefresh={onRefresh}
       onRowClick={onOpenDetail}
       refreshPlacement="left"
-      rightActions={(
+      rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button
             type="button"
@@ -434,7 +458,7 @@ export function HospitalReviewsDataTable({
             미노출
           </Button>
         </div>
-      )}
+      }
       emptyText="조건에 맞는 후기가 없습니다."
     />
   );

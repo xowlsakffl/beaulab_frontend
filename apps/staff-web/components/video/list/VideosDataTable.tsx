@@ -26,9 +26,7 @@ function renderSortMark(field: SortField, sortState: SortState) {
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function buildVideoColumns({
@@ -38,8 +36,7 @@ function buildVideoColumns({
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<VideoRow>[] {
-  const headerBaseClass =
-    "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
+  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
   const cellBaseClass = "px-3 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
 
@@ -49,7 +46,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[72px]`,
       cellClassName: `${nowrapCellClass} lg:w-[72px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("id")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("id")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
         </Button>
       ),
@@ -61,7 +64,7 @@ function buildVideoColumns({
       cellClassName: `${cellBaseClass} lg:w-[160px]`,
       header: "병의원명",
       render: (row) => (
-        <span className="block truncate font-medium text-gray-800 " title={row.hospitalName}>
+        <span className="block truncate font-medium text-gray-800" title={row.hospitalName}>
           {row.hospitalName}
         </span>
       ),
@@ -82,7 +85,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[290px]`,
       cellClassName: `${cellBaseClass} lg:w-[290px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("title")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("title")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           제목 <span className="text-xs text-gray-400">{renderSortMark("title", sortState)}</span>
         </Button>
       ),
@@ -93,14 +102,14 @@ function buildVideoColumns({
             <img
               src={row.thumbnailUrl}
               alt={row.title}
-              className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover "
+              className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover"
             />
           ) : (
-            <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400  ">
+            <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400">
               없음
             </div>
           )}
-          <span className="block min-w-0 truncate font-medium text-gray-800 " title={row.title}>
+          <span className="block min-w-0 truncate font-medium text-gray-800" title={row.title}>
             {row.title}
           </span>
         </div>
@@ -111,7 +120,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[110px]`,
       cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("distribution_channel")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("distribution_channel")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           배포채널 <span className="text-xs text-gray-400">{renderSortMark("distribution_channel", sortState)}</span>
         </Button>
       ),
@@ -122,7 +137,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[90px]`,
       cellClassName: `${nowrapCellClass} lg:w-[90px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("view_count")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("view_count")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
         </Button>
       ),
@@ -133,7 +154,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[100px]`,
       cellClassName: `${nowrapCellClass} lg:w-[100px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("like_count")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("like_count")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           좋아요 수 <span className="text-xs text-gray-400">{renderSortMark("like_count", sortState)}</span>
         </Button>
       ),
@@ -144,7 +171,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[100px]`,
       cellClassName: `${nowrapCellClass} lg:w-[100px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           운영 상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
@@ -159,7 +192,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[110px]`,
       cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allow_status")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("allow_status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           검수 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
         </Button>
       ),
@@ -183,7 +222,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[136px]`,
       cellClassName: `${nowrapCellClass} lg:w-[136px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("created_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("created_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           등록신청일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
         </Button>
       ),
@@ -194,7 +239,13 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[136px]`,
       cellClassName: `${nowrapCellClass} lg:w-[136px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allowed_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("allowed_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           등록완료일 <span className="text-xs text-gray-400">{renderSortMark("allowed_at", sortState)}</span>
         </Button>
       ),
@@ -234,10 +285,7 @@ export function VideosDataTable({
   onPerPageChange,
   onRowClick,
 }: VideosDataTableProps) {
-  const columns = React.useMemo(
-    () => buildVideoColumns({ sortState, onToggleSort }),
-    [sortState, onToggleSort],
-  );
+  const columns = React.useMemo(() => buildVideoColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable
@@ -248,9 +296,7 @@ export function VideosDataTable({
       rows={rows}
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
-        row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 "
-          : undefined
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
       }
       loadingVariant="spinner"
       loadingLabel="동영상 목록 불러오는 중"
@@ -261,7 +307,7 @@ export function VideosDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={(
+      rightActions={
         <div className="flex items-center gap-2">
           <SingleCheckboxFilterDropdown
             label="개수"
@@ -274,7 +320,7 @@ export function VideosDataTable({
             triggerClassName="h-9 px-2 text-xs"
           />
         </div>
-      )}
+      }
       emptyText="조건에 맞는 동영상이 없습니다."
     />
   );

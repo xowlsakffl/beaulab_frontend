@@ -141,7 +141,9 @@ export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "WITHDRAWN", label: "탈퇴" },
 ];
 
-export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({ ...option }));
+export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({
+  ...option,
+}));
 
 export const HOSPITAL_DEPARTMENT_OPTIONS: CheckboxFilterOption[] = [
   { value: "PLASTIC_SURGERY", label: "성형외과" },
@@ -326,7 +328,10 @@ export function parseHospitalsTableState(searchParams: URLSearchParams) {
     "evaluation_count",
     "evaluation_average_rating",
   ]);
-  const sortField = sortFieldParam && allowedSortFields.has(sortFieldParam as SortField) ? (sortFieldParam as SortField) : DEFAULT_SORT.field;
+  const sortField =
+    sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
+      ? (sortFieldParam as SortField)
+      : DEFAULT_SORT.field;
   const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {
@@ -360,15 +365,14 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
   const evaluation = item.evaluation ?? null;
   const reviewCounts = item.reviewCounts ?? item.review_counts ?? null;
   const lastLoginAt =
-    lastLoginDate && !Number.isNaN(lastLoginDate.getTime())
-      ? formatLocalDateTime(lastLoginDate)
-      : "-";
+    lastLoginDate && !Number.isNaN(lastLoginDate.getTime()) ? formatLocalDateTime(lastLoginDate) : "-";
 
   return {
     id: item.id,
     name: item.name,
     department: item.department ?? "UNKNOWN",
-    departmentLabel: item.departmentLabel ?? item.department_label ?? labelHospitalDepartment(item.department ?? "UNKNOWN"),
+    departmentLabel:
+      item.departmentLabel ?? item.department_label ?? labelHospitalDepartment(item.department ?? "UNKNOWN"),
     loginId: item.account?.nickname || "-",
     accountEmail: item.account?.email || item.email || "-",
     tel: item.tel,

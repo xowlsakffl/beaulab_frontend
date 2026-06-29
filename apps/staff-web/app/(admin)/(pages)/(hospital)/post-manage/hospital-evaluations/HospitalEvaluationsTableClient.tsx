@@ -4,10 +4,7 @@ import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  type CheckboxFilterOption,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { type CheckboxFilterOption, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { HospitalEvaluationsDataTable } from "@/components/hospital-evaluation/list/HospitalEvaluationsDataTable";
 import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation/list/HospitalEvaluationsFilterPanel";
@@ -139,10 +136,12 @@ export function HospitalEvaluationsTableClient() {
 
         if (cancelled) return;
 
-        setReviewTypeOptions(response.data.map((item) => ({
-          value: String(item.id),
-          label: item.name,
-        })));
+        setReviewTypeOptions(
+          response.data.map((item) => ({
+            value: String(item.id),
+            label: item.name,
+          })),
+        );
       } catch {
         if (!cancelled) {
           setReviewTypeOptions([]);
@@ -166,9 +165,7 @@ export function HospitalEvaluationsTableClient() {
 
   React.useEffect(() => {
     setSelectedIds((prev) => {
-      const selectableIds = new Set(rows
-        .filter((row) => !row.visibilityChangeLocked)
-        .map((row) => row.id));
+      const selectableIds = new Set(rows.filter((row) => !row.visibilityChangeLocked).map((row) => row.id));
       const next = new Set(Array.from(prev).filter((id) => selectableIds.has(id)));
 
       return next.size === prev.size ? prev : next;
@@ -224,9 +221,12 @@ export function HospitalEvaluationsTableClient() {
     }));
   }, []);
 
-  const applyDatePreset = React.useCallback((preset: HospitalEvaluationDatePresetKey) => {
-    applyDateRange(buildHospitalEvaluationPresetDateRange(preset));
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (preset: HospitalEvaluationDatePresetKey) => {
+      applyDateRange(buildHospitalEvaluationPresetDateRange(preset));
+    },
+    [applyDateRange],
+  );
 
   const toggleReviewType = React.useCallback((value: string) => {
     setDraftFilters((prev) => {
@@ -264,39 +264,42 @@ export function HospitalEvaluationsTableClient() {
     });
   }, []);
 
-  const toggleAllRows = React.useCallback((checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      const selectableIds = rows
-        .filter((row) => !row.visibilityChangeLocked)
-        .map((row) => row.id);
+  const toggleAllRows = React.useCallback(
+    (checked: boolean) => {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        const selectableIds = rows.filter((row) => !row.visibilityChangeLocked).map((row) => row.id);
 
-      if (checked) {
-        selectableIds.forEach((id) => next.add(id));
-      } else {
-        selectableIds.forEach((id) => next.delete(id));
-      }
+        if (checked) {
+          selectableIds.forEach((id) => next.add(id));
+        } else {
+          selectableIds.forEach((id) => next.delete(id));
+        }
 
-      return next;
-    });
-  }, [rows]);
+        return next;
+      });
+    },
+    [rows],
+  );
 
-  const requestBulkVisibilityChange = React.useCallback((status: "ACTIVE" | "INACTIVE") => {
-    if (selectedIds.size === 0) return;
+  const requestBulkVisibilityChange = React.useCallback(
+    (status: "ACTIVE" | "INACTIVE") => {
+      if (selectedIds.size === 0) return;
 
-    const currentRowsById = new Map(rows.map((row) => [row.id, row]));
-    const ids = Array.from(selectedIds)
-      .filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
-    if (ids.length === 0) return;
+      const currentRowsById = new Map(rows.map((row) => [row.id, row]));
+      const ids = Array.from(selectedIds).filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
+      if (ids.length === 0) return;
 
-    setActionError(null);
-    setPendingVisibilityChange({
-      source: "bulk",
-      ids,
-      status,
-      hiddenReason: "",
-    });
-  }, [rows, selectedIds]);
+      setActionError(null);
+      setPendingVisibilityChange({
+        source: "bulk",
+        ids,
+        status,
+        hiddenReason: "",
+      });
+    },
+    [rows, selectedIds],
+  );
 
   const requestRowVisibilityChange = React.useCallback((row: HospitalEvaluationRow, status: "ACTIVE" | "INACTIVE") => {
     if (row.visibilityChangeLocked || row.status === status) return;
@@ -316,7 +319,7 @@ export function HospitalEvaluationsTableClient() {
   }, [bulkUpdating, rowVisibilityUpdatingIds.size]);
 
   const updatePendingHiddenReason = React.useCallback((value: string) => {
-    setPendingVisibilityChange((prev) => prev ? { ...prev, hiddenReason: value } : prev);
+    setPendingVisibilityChange((prev) => (prev ? { ...prev, hiddenReason: value } : prev));
   }, []);
 
   const confirmVisibilityChange = React.useCallback(async () => {
@@ -342,7 +345,10 @@ export function HospitalEvaluationsTableClient() {
     setActionError(null);
 
     try {
-      const response = await api.patch<HospitalEvaluationVisibilityUpdateResponse>("/hospital-evaluations/status", payload);
+      const response = await api.patch<HospitalEvaluationVisibilityUpdateResponse>(
+        "/hospital-evaluations/status",
+        payload,
+      );
 
       if (!isApiSuccess(response)) {
         setActionError(response.error.message || "평가 노출 상태 변경에 실패했습니다.");
@@ -371,15 +377,24 @@ export function HospitalEvaluationsTableClient() {
     }
   }, [appliedFilters.visibilityStatus, pendingVisibilityChange, setRows]);
 
-  const openEvaluationDetail = React.useCallback((row: HospitalEvaluationRow) => {
-    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(`${pathname}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
-  }, [pathname, queryString, router]);
+  const openEvaluationDetail = React.useCallback(
+    (row: HospitalEvaluationRow) => {
+      const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(`${pathname}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+    },
+    [pathname, queryString, router],
+  );
 
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
-  const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
-    ? `해당 평가를 ${pendingVisibilityLabel} 하시겠습니까?`
-    : <>총 <span className="text-error-500">{pendingVisibilityChange?.ids.length ?? 0}</span>건을 {pendingVisibilityLabel}로 변경하시겠습니까?</>;
+  const pendingVisibilityMessage =
+    pendingVisibilityChange?.source === "row" ? (
+      `해당 평가를 ${pendingVisibilityLabel} 하시겠습니까?`
+    ) : (
+      <>
+        총 <span className="text-error-500">{pendingVisibilityChange?.ids.length ?? 0}</span>건을{" "}
+        {pendingVisibilityLabel}로 변경하시겠습니까?
+      </>
+    );
   const pendingVisibilityUpdating = pendingVisibilityChange
     ? pendingVisibilityChange.source === "bulk"
       ? bulkUpdating
@@ -411,8 +426,12 @@ export function HospitalEvaluationsTableClient() {
         onToggleAllReviewType={toggleAllReviewTypes}
         onCostMinChange={(value) => setDraftFilters((prev) => ({ ...prev, costMin: normalizeMetricBound(value) }))}
         onCostMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, costMax: normalizeMetricBound(value) }))}
-        onViewCountMinChange={(value) => setDraftFilters((prev) => ({ ...prev, viewCountMin: normalizeMetricBound(value) }))}
-        onViewCountMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, viewCountMax: normalizeMetricBound(value) }))}
+        onViewCountMinChange={(value) =>
+          setDraftFilters((prev) => ({ ...prev, viewCountMin: normalizeMetricBound(value) }))
+        }
+        onViewCountMaxChange={(value) =>
+          setDraftFilters((prev) => ({ ...prev, viewCountMax: normalizeMetricBound(value) }))
+        }
         onApplyDateRange={applyDateRange}
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}
@@ -420,7 +439,7 @@ export function HospitalEvaluationsTableClient() {
       />
 
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {actionError}
         </div>
       ) : null}

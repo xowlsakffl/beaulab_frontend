@@ -20,7 +20,10 @@ import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { HospitalEventAppPreviewModal } from "@/components/hospital-event/form/HospitalEventAppPreviewModal";
 import { EventInfoCard } from "@/components/hospital-event/form/HospitalEventInfoCard";
 import { HospitalEventMediaCard } from "@/components/hospital-event/form/HospitalEventMediaFields";
-import { CategoryDoctorPickerCard, HospitalPickerCard } from "@/components/hospital-event/form/HospitalEventPickerCards";
+import {
+  CategoryDoctorPickerCard,
+  HospitalPickerCard,
+} from "@/components/hospital-event/form/HospitalEventPickerCards";
 import { UploadWarningModal } from "@/components/hospital-event/form/HospitalEventUploadWarningModal";
 import { useHospitalEventCategorySelection } from "@/hooks/hospital-event/useHospitalEventCategorySelection";
 import { useHospitalEventFieldFocus } from "@/hooks/hospital-event/useHospitalEventFieldFocus";
@@ -130,12 +133,13 @@ function HospitalEventsFormClient({
         : null;
 
   const getReturnToPath = React.useCallback(
-    (highlightId?: number) => buildReturnToPath({
-      searchParams,
-      fallbackPath: "/ads-manage/events",
-      allowedPrefix: "/ads-manage/events",
-      highlightId,
-    }),
+    (highlightId?: number) =>
+      buildReturnToPath({
+        searchParams,
+        fallbackPath: "/ads-manage/events",
+        allowedPrefix: "/ads-manage/events",
+        highlightId,
+      }),
     [searchParams],
   );
 
@@ -201,7 +205,10 @@ function HospitalEventsFormClient({
       const response = await api.get<HospitalEventApiItem>(`/hospital-events/${targetEventId}`);
 
       if (!isApiSuccess(response)) {
-        setLoadError(response.error.message || (mode === "edit" ? "이벤트 정보를 불러오지 못했습니다." : "복제할 이벤트 정보를 불러오지 못했습니다."));
+        setLoadError(
+          response.error.message ||
+            (mode === "edit" ? "이벤트 정보를 불러오지 못했습니다." : "복제할 이벤트 정보를 불러오지 못했습니다."),
+        );
         return;
       }
 
@@ -211,7 +218,11 @@ function HospitalEventsFormClient({
       setErrors({});
       applyDetailCategories(detail.categories);
     } catch {
-      setLoadError(mode === "edit" ? "이벤트 정보를 불러오는 중 오류가 발생했습니다." : "복제할 이벤트 정보를 불러오는 중 오류가 발생했습니다.");
+      setLoadError(
+        mode === "edit"
+          ? "이벤트 정보를 불러오는 중 오류가 발생했습니다."
+          : "복제할 이벤트 정보를 불러오는 중 오류가 발생했습니다.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -262,15 +273,18 @@ function HospitalEventsFormClient({
     });
   }, []);
 
-  const setOption = React.useCallback((index: number, patch: Partial<HospitalEventOptionForm>) => {
-    setForm((prev) => {
-      const nextOptions = [...prev.options];
-      nextOptions[index] = { ...nextOptions[index], ...patch };
+  const setOption = React.useCallback(
+    (index: number, patch: Partial<HospitalEventOptionForm>) => {
+      setForm((prev) => {
+        const nextOptions = [...prev.options];
+        nextOptions[index] = { ...nextOptions[index], ...patch };
 
-      return { ...prev, options: nextOptions };
-    });
-    clearError("options");
-  }, [clearError]);
+        return { ...prev, options: nextOptions };
+      });
+      clearError("options");
+    },
+    [clearError],
+  );
 
   const validate = React.useCallback(() => {
     const nextErrors = validateCreateHospitalEventForm(form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
@@ -288,7 +302,16 @@ function HospitalEventsFormClient({
     }
 
     return true;
-  }, [eventPageImage, eventPriceError, existingEventPageImage, existingThumbnailImage, focusFirstErrorField, form, selectedCategoryUsage, thumbnailImage]);
+  }, [
+    eventPageImage,
+    eventPriceError,
+    existingEventPageImage,
+    existingThumbnailImage,
+    focusFirstErrorField,
+    form,
+    selectedCategoryUsage,
+    thumbnailImage,
+  ]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -328,7 +351,8 @@ function HospitalEventsFormClient({
         showAlert({
           variant: "error",
           title: mode === "edit" ? "이벤트 수정 실패" : "이벤트 등록 실패",
-          message: response.error.message || (mode === "edit" ? "이벤트 수정에 실패했습니다." : "이벤트 등록에 실패했습니다."),
+          message:
+            response.error.message || (mode === "edit" ? "이벤트 수정에 실패했습니다." : "이벤트 등록에 실패했습니다."),
         });
         return;
       }
@@ -336,7 +360,8 @@ function HospitalEventsFormClient({
       showAlert({
         variant: "success",
         title: mode === "edit" ? "이벤트 수정 완료" : "이벤트 등록 완료",
-        message: mode === "edit" ? "수정한 이벤트 정보를 확인할 수 있습니다." : "등록된 이벤트를 목록에서 확인할 수 있습니다.",
+        message:
+          mode === "edit" ? "수정한 이벤트 정보를 확인할 수 있습니다." : "등록된 이벤트를 목록에서 확인할 수 있습니다.",
       });
       router.push(mode === "edit" ? detailPath : getReturnToPath(Number(response.data.id)));
     } catch {
@@ -353,7 +378,13 @@ function HospitalEventsFormClient({
   const headerActions = React.useMemo(
     () => (
       <>
-        <Button type="button" variant="outline" size="sm" onClick={() => router.push(getReturnToPath())} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(getReturnToPath())}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="button" variant="brand" size="sm" onClick={openAppPreview}>
@@ -443,9 +474,19 @@ function HospitalEventsFormClient({
           onFieldChange={setField}
           onOptionChange={setOption}
           onAddOption={() => setField("options", [...form.options, emptyEventOption()])}
-          onRemoveOption={(index) => setField("options", form.options.filter((_, optionIndex) => optionIndex !== index))}
+          onRemoveOption={(index) =>
+            setField(
+              "options",
+              form.options.filter((_, optionIndex) => optionIndex !== index),
+            )
+          }
           onAddTextItem={(key) => setField(key, [...form[key], ""])}
-          onRemoveTextItem={(key, index) => setField(key, form[key].filter((_, itemIndex) => itemIndex !== index))}
+          onRemoveTextItem={(key, index) =>
+            setField(
+              key,
+              form[key].filter((_, itemIndex) => itemIndex !== index),
+            )
+          }
           onTextItemChange={(key, index, value) => {
             const nextItems = [...form[key]];
             nextItems[index] = value.slice(0, 90);
@@ -484,7 +525,7 @@ function HospitalEventsFormClient({
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium leading-6 text-gray-800">
+            <p className="text-sm leading-6 font-medium text-gray-800">
               카테고리 전환 시 기존 선택된 카테고리가 초기화 됩니다. 전환하시겠습니까?
             </p>
           </ModalBody>

@@ -134,13 +134,16 @@ export default function HospitalEventsTableClient() {
     }
   }, []);
 
-  const majorCategoryOptions = React.useMemo<SelectOption[]>(() => [
-    { value: "", label: "전체" },
-    ...majorCategoryItems.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
-  ], [majorCategoryItems]);
+  const majorCategoryOptions = React.useMemo<SelectOption[]>(
+    () => [
+      { value: "", label: "전체" },
+      ...majorCategoryItems.map((item) => ({
+        value: String(item.id),
+        label: item.name,
+      })),
+    ],
+    [majorCategoryItems],
+  );
 
   const middleCategoryOptions = React.useMemo<SelectOption[]>(() => {
     if (!draftFilters.majorCategoryId) return [{ value: "", label: "대분류 선택" }];
@@ -297,9 +300,7 @@ export default function HospitalEventsTableClient() {
 
       return {
         ...prev,
-        allowStatuses: exists
-          ? prev.allowStatuses.filter((item) => item !== value)
-          : [...prev.allowStatuses, value],
+        allowStatuses: exists ? prev.allowStatuses.filter((item) => item !== value) : [...prev.allowStatuses, value],
       };
     });
   };
@@ -307,9 +308,10 @@ export default function HospitalEventsTableClient() {
   const toggleAllAllowStatus = () => {
     setDraftFilters((prev) => ({
       ...prev,
-      allowStatuses: prev.allowStatuses.length === HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.length
-        ? []
-        : HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value),
+      allowStatuses:
+        prev.allowStatuses.length === HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.length
+          ? []
+          : HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value),
     }));
   };
 
@@ -352,19 +354,28 @@ export default function HospitalEventsTableClient() {
     });
   }, []);
 
-  const openEventDetailPage = React.useCallback((row: HospitalEventRow) => {
-    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(`/ads-manage/events/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
-  }, [pathname, queryString, router]);
+  const openEventDetailPage = React.useCallback(
+    (row: HospitalEventRow) => {
+      const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(`/ads-manage/events/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+    },
+    [pathname, queryString, router],
+  );
 
-  const duplicateEvent = React.useCallback((row: HospitalEventRow) => {
-    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(`/ads-manage/events/new?copyFrom=${row.id}&returnTo=${encodeURIComponent(returnTo)}`);
-  }, [pathname, queryString, router]);
+  const duplicateEvent = React.useCallback(
+    (row: HospitalEventRow) => {
+      const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(`/ads-manage/events/new?copyFrom=${row.id}&returnTo=${encodeURIComponent(returnTo)}`);
+    },
+    [pathname, queryString, router],
+  );
 
-  const openEventDBPage = React.useCallback((row: HospitalEventRow) => {
-    router.push(`/customer-db-manage/events?hospital_event_id=${row.id}`);
-  }, [router]);
+  const openEventDBPage = React.useCallback(
+    (row: HospitalEventRow) => {
+      router.push(`/customer-db-manage/events?hospital_event_id=${row.id}`);
+    },
+    [router],
+  );
 
   const closePeriodEditModal = React.useCallback(() => {
     if (periodUpdating) return;
@@ -450,10 +461,14 @@ export default function HospitalEventsTableClient() {
           void loadMiddleCategories(value);
         }}
         onMiddleCategoryChange={(value) => setDraftFilters((prev) => ({ ...prev, middleCategoryId: value }))}
-        onQuantityMetricChange={(value: HospitalEventQuantityMetric) => setDraftFilters((prev) => ({ ...prev, quantityMetric: value }))}
+        onQuantityMetricChange={(value: HospitalEventQuantityMetric) =>
+          setDraftFilters((prev) => ({ ...prev, quantityMetric: value }))
+        }
         onQuantityMinChange={(value) => setDraftFilters((prev) => ({ ...prev, quantityMin: value }))}
         onQuantityMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, quantityMax: value }))}
-        onAmountMetricChange={(value: HospitalEventAmountMetric) => setDraftFilters((prev) => ({ ...prev, amountMetric: value }))}
+        onAmountMetricChange={(value: HospitalEventAmountMetric) =>
+          setDraftFilters((prev) => ({ ...prev, amountMetric: value }))
+        }
         onAmountMinChange={(value) => setDraftFilters((prev) => ({ ...prev, amountMin: value }))}
         onAmountMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, amountMax: value }))}
         onApplyFilters={applyFilters}

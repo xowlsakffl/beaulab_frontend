@@ -316,7 +316,7 @@ function normalizeSortField(value: string | null): AccountUserSortField {
     "last_accessed_at",
   ]);
 
-  return value && allowed.has(value as AccountUserSortField) ? value as AccountUserSortField : "id";
+  return value && allowed.has(value as AccountUserSortField) ? (value as AccountUserSortField) : "id";
 }
 
 function parsePositiveInt(value: string | null, fallback: number) {

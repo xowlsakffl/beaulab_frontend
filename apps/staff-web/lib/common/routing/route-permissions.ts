@@ -58,12 +58,12 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
 
 export type StaticAdminRoutePath = keyof typeof STATIC_ADMIN_ROUTE_PERMISSIONS;
 
-const STATIC_ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = Object.entries(
-  STATIC_ADMIN_ROUTE_PERMISSIONS,
-).map(([path, requiredPermissions]) => ({
-  path,
-  requiredPermissions: [...requiredPermissions],
-}));
+const STATIC_ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = Object.entries(STATIC_ADMIN_ROUTE_PERMISSIONS).map(
+  ([path, requiredPermissions]) => ({
+    path,
+    requiredPermissions: [...requiredPermissions],
+  }),
+);
 
 export function getStaticRoutePermissions(path: StaticAdminRoutePath): string[] {
   return [...STATIC_ADMIN_ROUTE_PERMISSIONS[path]];
@@ -122,25 +122,30 @@ function getRuleScore(rulePath: string) {
   };
 }
 
-export function resolveRoutePermissionRule(pathname: string | null, rules: RoutePermissionRule[]): RoutePermissionRule | null {
+export function resolveRoutePermissionRule(
+  pathname: string | null,
+  rules: RoutePermissionRule[],
+): RoutePermissionRule | null {
   if (!pathname) return null;
 
-  return rules
-    .filter((rule) => matchRouteRule(pathname, rule.path))
-    .sort((a, b) => {
-      const aScore = getRuleScore(a.path);
-      const bScore = getRuleScore(b.path);
+  return (
+    rules
+      .filter((rule) => matchRouteRule(pathname, rule.path))
+      .sort((a, b) => {
+        const aScore = getRuleScore(a.path);
+        const bScore = getRuleScore(b.path);
 
-      if (aScore.staticSegmentCount !== bScore.staticSegmentCount) {
-        return bScore.staticSegmentCount - aScore.staticSegmentCount;
-      }
+        if (aScore.staticSegmentCount !== bScore.staticSegmentCount) {
+          return bScore.staticSegmentCount - aScore.staticSegmentCount;
+        }
 
-      if (aScore.segmentCount !== bScore.segmentCount) {
-        return bScore.segmentCount - aScore.segmentCount;
-      }
+        if (aScore.segmentCount !== bScore.segmentCount) {
+          return bScore.segmentCount - aScore.segmentCount;
+        }
 
-      return bScore.pathLength - aScore.pathLength;
-    })[0] ?? null;
+        return bScore.pathLength - aScore.pathLength;
+      })[0] ?? null
+  );
 }
 
 export function resolveRoutePermissions(pathname: string | null, rules: RoutePermissionRule[]): string[] {

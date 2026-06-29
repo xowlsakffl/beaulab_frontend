@@ -258,14 +258,20 @@ export default function NoticesTableClient() {
   const handleToggleAllStatuses = React.useCallback(() => {
     setDraftFilters((prev) => ({
       ...prev,
-      statuses: prev.statuses.length === NOTICE_STATUS_OPTIONS.length ? [] : NOTICE_STATUS_OPTIONS.map((option) => option.value),
+      statuses:
+        prev.statuses.length === NOTICE_STATUS_OPTIONS.length
+          ? []
+          : NOTICE_STATUS_OPTIONS.map((option) => option.value),
     }));
   }, []);
 
   const handleToggleAllChannels = React.useCallback(() => {
     setDraftFilters((prev) => ({
       ...prev,
-      channels: prev.channels.length === NOTICE_CHANNEL_OPTIONS.length ? [] : NOTICE_CHANNEL_OPTIONS.map((option) => option.value),
+      channels:
+        prev.channels.length === NOTICE_CHANNEL_OPTIONS.length
+          ? []
+          : NOTICE_CHANNEL_OPTIONS.map((option) => option.value),
     }));
   }, []);
 

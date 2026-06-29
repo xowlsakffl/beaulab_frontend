@@ -3,10 +3,7 @@
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  useGlobalAlert,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { HashtagUpsertModal } from "@/components/hashtag/list/HashtagUpsertModal";
 import { HashtagsDataTable } from "@/components/hashtag/list/HashtagsDataTable";
@@ -50,7 +47,9 @@ export default function HashtagsPageClient() {
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [isUpdatedDatePickerOpen, setIsUpdatedDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(initialTableState.draftUpdatedDateRange);
+  const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(
+    initialTableState.draftUpdatedDateRange,
+  );
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
@@ -145,7 +144,7 @@ export default function HashtagsPageClient() {
     if (!highlightedRowId) return;
 
     const timer = window.setTimeout(() => {
-      setHighlightedRowId((current) => current === highlightedRowId ? null : current);
+      setHighlightedRowId((current) => (current === highlightedRowId ? null : current));
     }, 2600);
 
     return () => window.clearTimeout(timer);
@@ -205,9 +204,7 @@ export default function HashtagsPageClient() {
       const exists = prev.statuses.includes(value);
       return {
         ...prev,
-        statuses: exists
-          ? prev.statuses.filter((item) => item !== value)
-          : [...prev.statuses, value],
+        statuses: exists ? prev.statuses.filter((item) => item !== value) : [...prev.statuses, value],
       };
     });
   }, []);
@@ -216,60 +213,64 @@ export default function HashtagsPageClient() {
     setDraftFilters((prev) => ({
       ...prev,
       statuses:
-        prev.statuses.length === HASHTAG_STATUS_OPTIONS.length
-          ? []
-          : HASHTAG_STATUS_OPTIONS.map((item) => item.value),
+        prev.statuses.length === HASHTAG_STATUS_OPTIONS.length ? [] : HASHTAG_STATUS_OPTIONS.map((item) => item.value),
     }));
   }, []);
 
-  const applyDateRange = React.useCallback((
-    key: DateFilterKey,
-    nextRange?: DateRange,
-    options?: {
-      closePicker?: boolean;
-    },
-  ) => {
-    const normalizedRange =
-      nextRange?.from || nextRange?.to
-        ? {
-            from: nextRange?.from ? normalizeRangeDate(nextRange.from) : undefined,
-            to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
-          }
-        : undefined;
-    const mapped = mapDateRangeToFilter(normalizedRange);
+  const applyDateRange = React.useCallback(
+    (
+      key: DateFilterKey,
+      nextRange?: DateRange,
+      options?: {
+        closePicker?: boolean;
+      },
+    ) => {
+      const normalizedRange =
+        nextRange?.from || nextRange?.to
+          ? {
+              from: nextRange?.from ? normalizeRangeDate(nextRange.from) : undefined,
+              to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
+            }
+          : undefined;
+      const mapped = mapDateRangeToFilter(normalizedRange);
 
-    if (key === "created") {
-      setDraftDateRange(normalizedRange);
+      if (key === "created") {
+        setDraftDateRange(normalizedRange);
+        setDraftFilters((prev) => ({
+          ...prev,
+          dateRange: mapped.label,
+          startDate: mapped.startDate,
+          endDate: mapped.endDate,
+        }));
+
+        if (options?.closePicker) {
+          setIsDatePickerOpen(false);
+        }
+
+        return;
+      }
+
+      setDraftUpdatedDateRange(normalizedRange);
       setDraftFilters((prev) => ({
         ...prev,
-        dateRange: mapped.label,
-        startDate: mapped.startDate,
-        endDate: mapped.endDate,
+        updatedDateRange: mapped.label,
+        updatedStartDate: mapped.startDate,
+        updatedEndDate: mapped.endDate,
       }));
 
       if (options?.closePicker) {
-        setIsDatePickerOpen(false);
+        setIsUpdatedDatePickerOpen(false);
       }
+    },
+    [],
+  );
 
-      return;
-    }
-
-    setDraftUpdatedDateRange(normalizedRange);
-    setDraftFilters((prev) => ({
-      ...prev,
-      updatedDateRange: mapped.label,
-      updatedStartDate: mapped.startDate,
-      updatedEndDate: mapped.endDate,
-    }));
-
-    if (options?.closePicker) {
-      setIsUpdatedDatePickerOpen(false);
-    }
-  }, []);
-
-  const applyDatePreset = React.useCallback((key: DateFilterKey, preset: DatePresetKey) => {
-    applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (key: DateFilterKey, preset: DatePresetKey) => {
+      applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
+    },
+    [applyDateRange],
+  );
 
   const handleSubmitHashtag = React.useCallback(
     async (name: string, status: string) => {
@@ -286,7 +287,9 @@ export default function HashtagsPageClient() {
           : await api.post<HashtagApiItem>("/hashtags", { name: sanitizedName, status });
 
         if (!isApiSuccess(response)) {
-          setSubmitError(response.error.message || (isEditMode ? "해시태그 수정에 실패했습니다." : "해시태그 등록에 실패했습니다."));
+          setSubmitError(
+            response.error.message || (isEditMode ? "해시태그 수정에 실패했습니다." : "해시태그 등록에 실패했습니다."),
+          );
           return;
         }
 

@@ -60,11 +60,7 @@ export type TalkCommentRow = {
   likeCount: number;
 };
 
-export type TalkCommentSortField =
-  | "id"
-  | "status"
-  | "like_count"
-  | "created_at";
+export type TalkCommentSortField = "id" | "status" | "like_count" | "created_at";
 
 export type TalkCommentSortState = {
   field: TalkCommentSortField;
@@ -94,12 +90,7 @@ export const DEFAULT_TALK_COMMENT_SORT: TalkCommentSortState = {
   enabled: true,
 };
 
-const TALK_COMMENT_SORT_FIELDS = new Set<TalkCommentSortField>([
-  "id",
-  "status",
-  "like_count",
-  "created_at",
-]);
+const TALK_COMMENT_SORT_FIELDS = new Set<TalkCommentSortField>(["id", "status", "like_count", "created_at"]);
 const TALK_COMMENT_VISIBILITY_SET = new Set(TALK_VISIBILITY_OPTIONS.map((option) => option.value));
 
 export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
@@ -129,9 +120,10 @@ export function normalizeTalkComment(item: TalkCommentApiItem): TalkCommentRow {
 export function parseTalkCommentSortState(searchParams: URLSearchParams): TalkCommentSortState {
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && TALK_COMMENT_SORT_FIELDS.has(sortFieldParam as TalkCommentSortField)
-    ? (sortFieldParam as TalkCommentSortField)
-    : DEFAULT_TALK_COMMENT_SORT.field;
+  const sortField =
+    sortFieldParam && TALK_COMMENT_SORT_FIELDS.has(sortFieldParam as TalkCommentSortField)
+      ? (sortFieldParam as TalkCommentSortField)
+      : DEFAULT_TALK_COMMENT_SORT.field;
   const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {

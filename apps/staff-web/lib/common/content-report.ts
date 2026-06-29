@@ -20,13 +20,9 @@ export const VISIBILITY_LOCKING_REPORT_STATUS_FILTER_OPTIONS: { value: string; l
   { value: "REEXPOSED", label: VISIBLE_REPORT_STATUS_LABELS.REEXPOSED },
 ];
 
-export const VISIBLE_REPORT_STATUS_VALUE_SET = new Set(
-  Object.keys(VISIBLE_REPORT_STATUS_LABELS),
-);
+export const VISIBLE_REPORT_STATUS_VALUE_SET = new Set(Object.keys(VISIBLE_REPORT_STATUS_LABELS));
 
-export const VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET = new Set(
-  ["AUTO_BLOCKED", "ADMIN_HIDDEN"],
-);
+export const VISIBILITY_LOCKING_REPORT_STATUS_VALUE_SET = new Set(["AUTO_BLOCKED", "ADMIN_HIDDEN"]);
 
 export function normalizeReportStatus(report?: ContentReportSummary | null) {
   return (report?.status ?? report?.report_status ?? "").trim();
@@ -40,26 +36,17 @@ export function formatVisibleReportStatusLabel(report?: ContentReportSummary | n
   const status = normalizeReportStatus(report);
   if (!VISIBLE_REPORT_STATUS_VALUE_SET.has(status)) return "";
 
-  return report?.label?.trim()
-    || report?.report_label?.trim()
-    || VISIBLE_REPORT_STATUS_LABELS[status]
-    || "";
+  return report?.label?.trim() || report?.report_label?.trim() || VISIBLE_REPORT_STATUS_LABELS[status] || "";
 }
 
-export function normalizePostManagementStatus(
-  report?: ContentReportSummary | null,
-  contentStatus?: string | null,
-) {
+export function normalizePostManagementStatus(report?: ContentReportSummary | null, contentStatus?: string | null) {
   const reportStatus = normalizeReportStatus(report);
   if (VISIBLE_REPORT_STATUS_VALUE_SET.has(reportStatus)) return reportStatus;
 
   return contentStatus?.trim() === "INACTIVE" ? "INACTIVE" : "";
 }
 
-export function formatPostManagementStatusLabel(
-  report?: ContentReportSummary | null,
-  contentStatus?: string | null,
-) {
+export function formatPostManagementStatusLabel(report?: ContentReportSummary | null, contentStatus?: string | null) {
   const reportLabel = formatVisibleReportStatusLabel(report);
   if (reportLabel) return reportLabel;
 

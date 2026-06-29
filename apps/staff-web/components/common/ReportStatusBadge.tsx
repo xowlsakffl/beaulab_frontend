@@ -13,13 +13,7 @@ export function reportStatusBadgeColor(status?: string | null): BadgeColor {
   return "gray";
 }
 
-export function ReportStatusBadge({
-  label,
-  status,
-}: {
-  label?: string | null;
-  status?: string | null;
-}) {
+export function ReportStatusBadge({ label, status }: { label?: string | null; status?: string | null }) {
   if (!label) return <span className="text-sm text-gray-400">-</span>;
 
   return (

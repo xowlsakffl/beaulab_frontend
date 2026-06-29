@@ -32,12 +32,8 @@ export function VisibilityActionButtons({
   onChange,
 }: VisibilityActionButtonsProps) {
   const visible = status !== "INACTIVE";
-  const activeButtonVariant = mode === "current"
-    ? (visible ? "brand" : "outline")
-    : (visible ? "outline" : "brand");
-  const inactiveButtonVariant = mode === "current"
-    ? (visible ? "outline" : "brand")
-    : (visible ? "brand" : "outline");
+  const activeButtonVariant = mode === "current" ? (visible ? "brand" : "outline") : visible ? "outline" : "brand";
+  const inactiveButtonVariant = mode === "current" ? (visible ? "outline" : "brand") : visible ? "brand" : "outline";
 
   return (
     <div className={["flex items-center gap-2", className].filter(Boolean).join(" ")}>
@@ -90,7 +86,7 @@ export function VisibilityConfirmModal({
   onClose: () => void;
   onConfirm: () => void;
 }) {
-  const requiresReason = showReasonInput ?? (status === "INACTIVE");
+  const requiresReason = showReasonInput ?? status === "INACTIVE";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">

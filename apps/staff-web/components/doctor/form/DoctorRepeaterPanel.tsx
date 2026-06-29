@@ -77,7 +77,9 @@ export function RepeaterPanel({
             className="disabled:cursor-not-allowed disabled:opacity-40"
           />
           {!canAddItem ? (
-            <p className="mt-2 text-center text-xs text-gray-500">최대 {MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.</p>
+            <p className="mt-2 text-center text-xs text-gray-500">
+              최대 {MAX_DOCTOR_TEXT_ITEM_COUNT}개까지 입력할 수 있습니다.
+            </p>
           ) : null}
           {error ? <p className="mt-2 text-xs text-error-500">{error}</p> : null}
         </div>

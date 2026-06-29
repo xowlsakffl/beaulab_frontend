@@ -233,7 +233,10 @@ export default function VideoEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
+    >
       <div className="min-w-0 space-y-6">
         <VideoBasicSection
           form={form}
@@ -259,7 +262,9 @@ export default function VideoEditFormClient() {
           thumbnailFile={thumbnailFile}
           existingThumbnail={thumbnailFile ? null : existingThumbnail}
           currentVideoFile={currentVideoFile}
-          videoFileDownloadUrl={Number.isFinite(videoId) && videoId > 0 ? `/videos/${videoId}/download-video-file` : null}
+          videoFileDownloadUrl={
+            Number.isFinite(videoId) && videoId > 0 ? `/videos/${videoId}/download-video-file` : null
+          }
           isCurrentVideoFileRemoved={Boolean(initialVideoFileIdRef.current) && !currentVideoFile}
           errors={errors}
           onThumbnailChange={(file) => {

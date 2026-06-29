@@ -106,7 +106,7 @@ export function HospitalEventsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,0.7fr)_minmax(0,1.55fr)_minmax(0,1.8fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.55fr)_minmax(0,1.15fr)]">
           <div className={filterRowClass}>
@@ -229,7 +229,7 @@ export function HospitalEventsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="병의원명, 이벤트명, 담당자를 입력해주세요"
-                  className="bg-white "
+                  className="bg-white"
                 />
               </div>
             </div>
@@ -238,13 +238,7 @@ export function HospitalEventsFilterPanel({
               <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
                 검색
               </Button>
-              <Button
-                type="button"
-                variant="brandOutline"
-                size="filter"
-                onClick={onResetFilters}
-                className="shrink-0"
-              >
+              <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
                 검색 초기화
               </Button>
               <Can permission="beaulab.hospital_event.create">
@@ -306,7 +300,7 @@ function MetricRangeFilter({
           onChange={(event) => onMinChange(event.target.value)}
           onKeyDown={onEnter}
           placeholder="0"
-          className="bg-white px-3 "
+          className="bg-white px-3"
         />
         <span className="text-sm text-gray-400">~</span>
         <InputField
@@ -316,7 +310,7 @@ function MetricRangeFilter({
           onChange={(event) => onMaxChange(event.target.value)}
           onKeyDown={onEnter}
           placeholder="999999999"
-          className="bg-white px-3 "
+          className="bg-white px-3"
         />
       </div>
     </div>

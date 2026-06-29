@@ -193,7 +193,9 @@ export function HospitalGalleryEditCard({
             },
           ]}
           filesByCollection={{ gallery }}
-          existingItemsByCollection={existingMediaByCollection ? { gallery: existingMediaByCollection.gallery } : undefined}
+          existingItemsByCollection={
+            existingMediaByCollection ? { gallery: existingMediaByCollection.gallery } : undefined
+          }
           orderByCollection={galleryOrder ? { gallery: galleryOrder } : undefined}
           onExistingItemsChange={onExistingItemsChange}
           onOrderChange={(key, order) => {

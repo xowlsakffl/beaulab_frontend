@@ -130,7 +130,10 @@ export function DoctorInfoEditorCard({
         </div>
 
         <div className="space-y-3">
-          <CareerDateField value={form.career_started_at} onChange={(value) => onFieldChange("career_started_at", value)} />
+          <CareerDateField
+            value={form.career_started_at}
+            onChange={(value) => onFieldChange("career_started_at", value)}
+          />
 
           <EditField label="의사면허 번호" required error={errors.license_number} target="license_number">
             <div className="space-y-2">
@@ -251,7 +254,7 @@ function HospitalAutocompleteField({
   return (
     <EditField label="병의원" required error={error} target="hospital_id">
       <div ref={containerRef} className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-gray-400" />
+        <Search className="pointer-events-none absolute top-1/2 left-3 z-10 size-4 -translate-y-1/2 text-gray-400" />
         <InputField
           id="hospital_id"
           value={query}
@@ -270,7 +273,7 @@ function HospitalAutocompleteField({
         />
 
         {isOpen ? (
-          <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+          <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
             {isLoading ? (
               <div className="py-5">
                 <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="병의원 검색 중" />
@@ -311,13 +314,7 @@ function HospitalAutocompleteField({
   );
 }
 
-function CareerDateField({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
+function CareerDateField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
     <EditField label="경력기간" target="career_started_at">
       <div className="space-y-1">
@@ -356,7 +353,11 @@ function EditField({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-4" data-field-target={target} tabIndex={target ? -1 : undefined}>
+    <div
+      className="grid grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-4"
+      data-field-target={target}
+      tabIndex={target ? -1 : undefined}
+    >
       <Label className={cx(labelClassName, "mb-0 pt-2")}>
         {label}
         {required ? <span className="ml-0.5 text-brand-500">*</span> : null}
@@ -421,7 +422,11 @@ function SelectedFileRow({
   return (
     <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
       <span className="min-w-0 truncate text-xs font-medium text-gray-700">{filename}</span>
-      <button type="button" onClick={onClear} className="shrink-0 text-xs font-semibold text-gray-500 hover:text-red-600">
+      <button
+        type="button"
+        onClick={onClear}
+        className="shrink-0 text-xs font-semibold text-gray-500 hover:text-red-600"
+      >
         삭제
       </button>
     </div>

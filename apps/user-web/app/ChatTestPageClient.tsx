@@ -218,7 +218,9 @@ function compactText(value: string | null | undefined, fallback = "-"): string {
   return text.length > 34 ? `${text.slice(0, 34)}...` : text;
 }
 
-function displayNickname(user: { nickname?: string | null; name?: string | null; id?: number | string } | null | undefined): string {
+function displayNickname(
+  user: { nickname?: string | null; name?: string | null; id?: number | string } | null | undefined,
+): string {
   const nickname = typeof user?.nickname === "string" ? user.nickname.trim() : "";
 
   if (nickname) {
@@ -341,15 +343,11 @@ function messageFromBroadcast(payload: BroadcastMessagePayload, currentUserId: n
 }
 
 function isReadByPeer(message: ChatMessage, otherLastReadMessageId: number | null): boolean {
-  return message.is_mine
-    && otherLastReadMessageId !== null
-    && message.id <= otherLastReadMessageId;
+  return message.is_mine && otherLastReadMessageId !== null && message.id <= otherLastReadMessageId;
 }
 
 function latestReadReceiptMessageId(messages: ChatMessage[], otherLastReadMessageId: number | null): number | null {
-  return messages
-    .filter((message) => isReadByPeer(message, otherLastReadMessageId))
-    .at(-1)?.id ?? null;
+  return messages.filter((message) => isReadByPeer(message, otherLastReadMessageId)).at(-1)?.id ?? null;
 }
 
 function latestMessageId(messages: ChatMessage[]): number | null {
@@ -371,7 +369,10 @@ function notificationActorName(slot: SlotState, notification: NotificationInbox)
     }
   }
 
-  if (typeof notification.payload?.sender_user_nickname === "string" && notification.payload.sender_user_nickname.trim()) {
+  if (
+    typeof notification.payload?.sender_user_nickname === "string" &&
+    notification.payload.sender_user_nickname.trim()
+  ) {
     return notification.payload.sender_user_nickname;
   }
 
@@ -389,8 +390,7 @@ function notificationDescription(notification: NotificationInbox): string {
 }
 
 function isFormControlClick(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement
-    && Boolean(target.closest("button,input,textarea,select,a"));
+  return target instanceof HTMLElement && Boolean(target.closest("button,input,textarea,select,a"));
 }
 
 export default function ChatTestPageClient() {
@@ -468,9 +468,10 @@ export default function ChatTestPageClient() {
     const json = (await response.json().catch(() => null)) as ApiResponse<TData, TMeta> | null;
 
     if (!response.ok || json === null || json.success === false) {
-      const message = json && json.success === false
-        ? `${json.error.message} ${json.error.details ? JSON.stringify(json.error.details) : ""}`.trim()
-        : `HTTP ${response.status}`;
+      const message =
+        json && json.success === false
+          ? `${json.error.message} ${json.error.details ? JSON.stringify(json.error.details) : ""}`.trim()
+          : `HTTP ${response.status}`;
 
       throw new Error(message);
     }
@@ -636,13 +637,15 @@ export default function ChatTestPageClient() {
     if (markAsRead) {
       await markChatAsRead(slotId, targetChatId, lastMessageId);
       updateSlot(slotId, (slot) => ({
-        chats: slot.chats.map((chat) => String(chat.id) === targetChatId
-          ? {
-              ...chat,
-              unread_count: 0,
-              last_read_message_id: maxMessageId(chat.last_read_message_id, lastMessageId),
-            }
-          : chat),
+        chats: slot.chats.map((chat) =>
+          String(chat.id) === targetChatId
+            ? {
+                ...chat,
+                unread_count: 0,
+                last_read_message_id: maxMessageId(chat.last_read_message_id, lastMessageId),
+              }
+            : chat,
+        ),
       }));
       await refreshSlot(slotId);
     }
@@ -661,13 +664,15 @@ export default function ChatTestPageClient() {
       attachmentFiles: [],
       attachmentInputKey: slot.attachmentInputKey + 1,
       otherLastReadMessageId: maxMessageId(slot.otherLastReadMessageId, chat.other_last_read_message_id),
-      chats: slot.chats.map((item) => item.id === chat.id
-        ? {
-            ...item,
-            unread_count: 0,
-            last_read_message_id: maxMessageId(item.last_read_message_id, lastMessageId),
-          }
-        : item),
+      chats: slot.chats.map((item) =>
+        item.id === chat.id
+          ? {
+              ...item,
+              unread_count: 0,
+              last_read_message_id: maxMessageId(item.last_read_message_id, lastMessageId),
+            }
+          : item,
+      ),
     }));
 
     await markChatAsRead(slotId, targetChatId, lastMessageId);
@@ -773,13 +778,15 @@ export default function ChatTestPageClient() {
 
       await markChatAsRead(slotId, chatId, lastReadMessageId);
       updateSlot(slotId, (currentSlot) => ({
-        chats: currentSlot.chats.map((chat) => String(chat.id) === chatId
-          ? {
-              ...chat,
-              unread_count: 0,
-              last_read_message_id: maxMessageId(chat.last_read_message_id, lastReadMessageId),
-            }
-          : chat),
+        chats: currentSlot.chats.map((chat) =>
+          String(chat.id) === chatId
+            ? {
+                ...chat,
+                unread_count: 0,
+                last_read_message_id: maxMessageId(chat.last_read_message_id, lastReadMessageId),
+              }
+            : chat,
+        ),
       }));
       await Promise.all(slotIds.map((item) => refreshSlot(item)));
     } finally {
@@ -913,10 +920,10 @@ export default function ChatTestPageClient() {
     const currentUserId = slots[slotId].user?.id;
 
     if (
-      currentUserId
-      && Number(payload.reader_user_id) !== Number(currentUserId)
-      && String(payload.chat_id) === slots[slotId].activeChatId
-      && slots[slotId].isChatOpen
+      currentUserId &&
+      Number(payload.reader_user_id) !== Number(currentUserId) &&
+      String(payload.chat_id) === slots[slotId].activeChatId &&
+      slots[slotId].isChatOpen
     ) {
       updateSlot(slotId, (slot) => ({
         otherLastReadMessageId: maxMessageId(slot.otherLastReadMessageId, payload.last_read_message_id),
@@ -980,7 +987,8 @@ export default function ChatTestPageClient() {
       connected[slotId] = echo;
       updateSlot(slotId, { realtimeStatus: "Reverb 연결 시도" });
 
-      echo.private(`user.${slot.userId}`)
+      echo
+        .private(`user.${slot.userId}`)
         .subscribed(() => updateSlot(slotId, { realtimeStatus: "개인 알림 채널 연결" }))
         .error((error: unknown) => {
           updateSlot(slotId, { realtimeStatus: "개인 알림 채널 오류" });
@@ -1005,7 +1013,8 @@ export default function ChatTestPageClient() {
     }
 
     const channel = `chat.${chatId}`;
-    echo.private(channel)
+    echo
+      .private(channel)
       .subscribed(() => {
         updateSlot("a", {
           realtimeStatus: `채팅 #${chatId} 실시간 연결`,
@@ -1033,7 +1042,8 @@ export default function ChatTestPageClient() {
     }
 
     const channel = `chat.${chatId}`;
-    echo.private(channel)
+    echo
+      .private(channel)
       .subscribed(() => {
         updateSlot("b", {
           realtimeStatus: `채팅 #${chatId} 실시간 연결`,
@@ -1071,8 +1081,7 @@ export default function ChatTestPageClient() {
             >
               <span>#{chat.id}</span>
               <span>
-                {displayNickname(chat.other_user)} / 안읽음 {chat.unread_count} /{" "}
-                {messageLabel(chat.last_message)}
+                {displayNickname(chat.other_user)} / 안읽음 {chat.unread_count} / {messageLabel(chat.last_message)}
               </span>
             </button>
           </li>
@@ -1136,7 +1145,8 @@ export default function ChatTestPageClient() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {name}{size ? ` / ${size}` : ""}
+                  {name}
+                  {size ? ` / ${size}` : ""}
                 </a>
               );
             })}
@@ -1206,7 +1216,9 @@ export default function ChatTestPageClient() {
             <p className="muted-line">실시간: {slot.realtimeStatus}</p>
           </div>
           <div className="button-row">
-            <button type="button" onClick={() => run(() => refreshSlot(slotId))}>동기화</button>
+            <button type="button" onClick={() => run(() => refreshSlot(slotId))}>
+              동기화
+            </button>
             <button type="button" onClick={() => run(() => startDraftChat(slotId))}>
               {slotId.toUpperCase()}-&gt;{peer.toUpperCase()} 작성
             </button>
@@ -1233,8 +1245,12 @@ export default function ChatTestPageClient() {
             />
           </div>
           <div className="button-row">
-            <button type="button" onClick={() => run(() => login(slotId))}>로그인</button>
-            <button type="button" onClick={() => run(() => logout(slotId))}>로그아웃</button>
+            <button type="button" onClick={() => run(() => login(slotId))}>
+              로그인
+            </button>
+            <button type="button" onClick={() => run(() => logout(slotId))}>
+              로그아웃
+            </button>
           </div>
         </section>
 
@@ -1273,7 +1289,9 @@ export default function ChatTestPageClient() {
         <section className="panel-section notification-section">
           <div className="section-head">
             <h3>알림</h3>
-            <button type="button" onClick={() => run(() => readAllNotifications(slotId))}>전체읽음</button>
+            <button type="button" onClick={() => run(() => readAllNotifications(slotId))}>
+              전체읽음
+            </button>
           </div>
           <p className="muted-line">
             unread rows {slot.unreadCount}, events {slot.unreadEventCount}
@@ -1297,9 +1315,15 @@ export default function ChatTestPageClient() {
                   <button type="button" disabled={!slot.activeChatId} onClick={() => run(() => loadMessages(slotId))}>
                     조회
                   </button>
-                  <button type="button" disabled={!hasOpenChat} onClick={() => run(() => readChat(slotId))}>읽음</button>
-                  <button type="button" disabled={!hasOpenChat} onClick={() => run(() => deleteChat(slotId))}>삭제</button>
-                  <button type="button" disabled={!slot.isChatOpen} onClick={() => closeChatWindow(slotId)}>닫기</button>
+                  <button type="button" disabled={!hasOpenChat} onClick={() => run(() => readChat(slotId))}>
+                    읽음
+                  </button>
+                  <button type="button" disabled={!hasOpenChat} onClick={() => run(() => deleteChat(slotId))}>
+                    삭제
+                  </button>
+                  <button type="button" disabled={!slot.isChatOpen} onClick={() => closeChatWindow(slotId)}>
+                    닫기
+                  </button>
                 </div>
               </div>
               <div
@@ -1334,7 +1358,9 @@ export default function ChatTestPageClient() {
                 <p className="muted-line attachment-selected">{selectedFilesLabel(slot.attachmentFiles)}</p>
               ) : null}
               <div className="button-row">
-                <button type="button" disabled={!canUseChat} onClick={() => run(() => sendMessage(slotId))}>전송</button>
+                <button type="button" disabled={!canUseChat} onClick={() => run(() => sendMessage(slotId))}>
+                  전송
+                </button>
               </div>
             </>
           ) : null}
@@ -1348,7 +1374,9 @@ export default function ChatTestPageClient() {
       <header className="topbar">
         <div>
           <h1>User Web 채팅/알림 테스트</h1>
-          <p>API {apiBase} / Reverb {reverbScheme}://{reverbHost}:{reverbPort}</p>
+          <p>
+            API {apiBase} / Reverb {reverbScheme}://{reverbHost}:{reverbPort}
+          </p>
         </div>
         <p>상태: {statusMessage || "-"}</p>
       </header>

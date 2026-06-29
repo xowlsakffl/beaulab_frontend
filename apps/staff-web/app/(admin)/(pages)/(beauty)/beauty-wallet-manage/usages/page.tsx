@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/beauty-wallet-manage/usages");
 
 export default function BeautyWalletUsagesPage() {
-    return renderAdminPage("/beauty-wallet-manage/usages");
+  return renderAdminPage("/beauty-wallet-manage/usages");
 }

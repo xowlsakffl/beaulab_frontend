@@ -112,12 +112,16 @@ export default function DoctorsTableClient() {
   const buildReturnToPath = React.useCallback(() => buildDoctorsReturnToPath(pathname, query), [pathname, query]);
 
   const fetchDoctorRows = React.useCallback(async (nextQuery: typeof query) => {
-    const response = await api.get<DoctorApiItem[]>("/doctors", {
-      ...nextQuery,
-      category_ids: expandDoctorCategoryIds(nextQuery.category_ids),
-    }, {
-      latestKey: "doctors:list",
-    });
+    const response = await api.get<DoctorApiItem[]>(
+      "/doctors",
+      {
+        ...nextQuery,
+        category_ids: expandDoctorCategoryIds(nextQuery.category_ids),
+      },
+      {
+        latestKey: "doctors:list",
+      },
+    );
     if (!isApiSuccess(response)) {
       throw new Error(response.error.message || "의료진 목록 조회에 실패했습니다.");
     }
@@ -295,9 +299,12 @@ export default function DoctorsTableClient() {
     [],
   );
 
-  const applyDatePreset = React.useCallback((key: DateFilterKey, preset: DatePresetKey) => {
-    applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (key: DateFilterKey, preset: DatePresetKey) => {
+      applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
+    },
+    [applyDateRange],
+  );
 
   const toggleSort = React.useCallback((field: SortField) => {
     setPage(1);
@@ -323,9 +330,7 @@ export default function DoctorsTableClient() {
 
       return {
         ...prev,
-        positions: exists
-          ? prev.positions.filter((item) => item !== value)
-          : [...prev.positions, value],
+        positions: exists ? prev.positions.filter((item) => item !== value) : [...prev.positions, value],
       };
     });
   }, []);
@@ -349,9 +354,7 @@ export default function DoctorsTableClient() {
 
       return {
         ...prev,
-        categoryIds: exists
-          ? prev.categoryIds.filter((item) => item !== value)
-          : [...prev.categoryIds, value],
+        categoryIds: exists ? prev.categoryIds.filter((item) => item !== value) : [...prev.categoryIds, value],
       };
     });
   }, []);
@@ -442,9 +445,7 @@ export default function DoctorsTableClient() {
           setDraftFilters((prev) => ({
             ...prev,
             categoryIds:
-              prev.categoryIds.length === categoryOptions.length
-                ? []
-                : categoryOptions.map((item) => item.value),
+              prev.categoryIds.length === categoryOptions.length ? [] : categoryOptions.map((item) => item.value),
           }))
         }
         onMetricChange={(value) => setDraftFilters((prev) => ({ ...prev, metric: value }))}

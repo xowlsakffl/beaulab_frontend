@@ -3,12 +3,7 @@
 import React from "react";
 import { useParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  Card,
-  SpinnerBlock,
-  useGlobalAlert,
-} from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import {
   AllowStatusActionButtons,
@@ -31,9 +26,7 @@ import {
   type HospitalEntryDetailResponse,
   type HospitalEntryMediaAsset,
 } from "@/lib/hospital-entry/detail";
-import {
-  labelHospitalEntryAllowStatus,
-} from "@/lib/hospital-entry/list";
+import { labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const cardTitleClassName = "text-sm font-semibold text-gray-800";
@@ -64,35 +57,38 @@ export default function HospitalEntryDetailPageClient() {
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
   const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
 
-  const fetchEntry = React.useCallback(async (options: { silent?: boolean } = {}) => {
-    if (!Number.isFinite(entryId) || entryId <= 0) {
-      setLoadError("올바르지 않은 입점신청 경로입니다.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!options.silent) {
-      setIsLoading(true);
-    }
-    setLoadError(null);
-
-    try {
-      const response = await api.get<HospitalEntryDetailResponse>(`/hospital-entries/${entryId}`);
-
-      if (!isApiSuccess(response)) {
-        setLoadError(response.error.message || "입점신청 정보를 불러오지 못했습니다.");
+  const fetchEntry = React.useCallback(
+    async (options: { silent?: boolean } = {}) => {
+      if (!Number.isFinite(entryId) || entryId <= 0) {
+        setLoadError("올바르지 않은 입점신청 경로입니다.");
+        setIsLoading(false);
         return;
       }
 
-      setDetail(response.data);
-    } catch {
-      setLoadError("입점신청 정보를 불러오는 중 오류가 발생했습니다.");
-    } finally {
       if (!options.silent) {
-        setIsLoading(false);
+        setIsLoading(true);
       }
-    }
-  }, [entryId]);
+      setLoadError(null);
+
+      try {
+        const response = await api.get<HospitalEntryDetailResponse>(`/hospital-entries/${entryId}`);
+
+        if (!isApiSuccess(response)) {
+          setLoadError(response.error.message || "입점신청 정보를 불러오지 못했습니다.");
+          return;
+        }
+
+        setDetail(response.data);
+      } catch {
+        setLoadError("입점신청 정보를 불러오는 중 오류가 발생했습니다.");
+      } finally {
+        if (!options.silent) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [entryId],
+  );
 
   React.useEffect(() => {
     void fetchEntry();
@@ -146,7 +142,7 @@ export default function HospitalEntryDetailPageClient() {
   }, [updatingStatus]);
 
   const updatePendingAllowStatusReason = React.useCallback((reason: string) => {
-    setPendingAllowStatusChange((prev) => prev ? { ...prev, reason } : prev);
+    setPendingAllowStatusChange((prev) => (prev ? { ...prev, reason } : prev));
     setPendingAllowStatusError(null);
   }, []);
 
@@ -189,11 +185,7 @@ export default function HospitalEntryDetailPageClient() {
         <HospitalEntryApplicantInfoCard detail={detail} />
       </section>
 
-      <HospitalEntryAllowStatusCard
-        detail={detail}
-        updating={updatingStatus}
-        onChange={requestAllowStatus}
-      />
+      <HospitalEntryAllowStatusCard detail={detail} updating={updatingStatus} onChange={requestAllowStatus} />
 
       <HospitalMediaPreviewModal
         preview={previewMedia}
@@ -241,12 +233,7 @@ function HospitalEntryHospitalInfoCard({
         />
         <InfoRow label="대표자" value={detail.ceo_name} />
         <InfoRow label="의사면허번호" value={detail.license_number} />
-        <FileInfoRow
-          label="의사면허증"
-          title="의사면허증"
-          media={detail.license_file ?? null}
-          onPreview={onPreview}
-        />
+        <FileInfoRow label="의사면허증" title="의사면허증" media={detail.license_file ?? null} onPreview={onPreview} />
       </div>
     </Card>
   );
@@ -321,7 +308,11 @@ function InfoRow({
   const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
 
   return (
-    <div className={["grid min-w-0 grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-4", className].filter(Boolean).join(" ")}>
+    <div
+      className={["grid min-w-0 grid-cols-[8.5rem_minmax(0,1fr)] items-start gap-4", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <p className={labelClassName}>{label}</p>
       <div className="flex min-w-0 items-center gap-2">
         <p className={`${valueClassName} min-w-0 flex-1 ${multiline ? "whitespace-pre-line" : ""}`}>{displayValue}</p>

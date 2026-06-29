@@ -12,22 +12,14 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import {
-  PER_PAGE_OPTIONS,
-  labelNoticeStatus,
-  type NoticeRow,
-  type SortField,
-  type SortState,
-} from "@/lib/notice/list";
+import { PER_PAGE_OPTIONS, labelNoticeStatus, type NoticeRow, type SortField, type SortState } from "@/lib/notice/list";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function buildNoticeColumns({
@@ -47,7 +39,13 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[72px]`,
       cellClassName: `${nowrapCellClass} lg:w-[72px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("id")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("id")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
         </Button>
       ),
@@ -58,7 +56,13 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("channel")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("channel")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           채널 <span className="text-xs text-gray-400">{renderSortMark("channel", sortState)}</span>
         </Button>
       ),
@@ -69,12 +73,18 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[320px]`,
       cellClassName: `${cellBaseClass} lg:w-[320px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("title")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("title")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           제목 <span className="text-xs text-gray-400">{renderSortMark("title", sortState)}</span>
         </Button>
       ),
       render: (row) => (
-        <span className="block truncate font-medium text-gray-800 " title={row.title}>
+        <span className="block truncate font-medium text-gray-800" title={row.title}>
           {row.title}
         </span>
       ),
@@ -84,7 +94,13 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[110px]`,
       cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
@@ -106,7 +122,13 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[96px]`,
       cellClassName: `${nowrapCellClass} lg:w-[96px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("view_count")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("view_count")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
         </Button>
       ),
@@ -117,7 +139,13 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("created_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("created_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           등록일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
         </Button>
       ),
@@ -128,7 +156,13 @@ function buildNoticeColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("updated_at")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("updated_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           수정일 <span className="text-xs text-gray-400">{renderSortMark("updated_at", sortState)}</span>
         </Button>
       ),
@@ -168,10 +202,7 @@ export function NoticesDataTable({
   onPerPageChange,
   onRowClick,
 }: NoticesDataTableProps) {
-  const columns = React.useMemo(
-    () => buildNoticeColumns({ sortState, onToggleSort }),
-    [sortState, onToggleSort],
-  );
+  const columns = React.useMemo(() => buildNoticeColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable
@@ -182,9 +213,7 @@ export function NoticesDataTable({
       rows={rows}
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
-        row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 "
-          : undefined
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
       }
       loadingVariant="spinner"
       loadingLabel="공지사항 목록 불러오는 중"
@@ -195,7 +224,7 @@ export function NoticesDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={(
+      rightActions={
         <div className="flex items-center gap-2">
           <SingleCheckboxFilterDropdown
             label="개수"
@@ -208,7 +237,7 @@ export function NoticesDataTable({
             triggerClassName="h-9 px-2 text-xs"
           />
         </div>
-      )}
+      }
       emptyText="조건에 맞는 공지사항이 없습니다."
     />
   );

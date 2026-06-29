@@ -74,19 +74,11 @@ export function HashtagUpsertModal({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={submitting ? () => undefined : onClose}
-      className="mx-4 w-full max-w-xl"
-    >
+    <Modal isOpen={isOpen} onClose={submitting ? () => undefined : onClose} className="mx-4 w-full max-w-xl">
       <ModalPanel>
         <ModalHeader>
-          <ModalTitle>
-            {mode === "create" ? "해시태그 등록" : "해시태그 수정"}
-          </ModalTitle>
-          <ModalDescription>
-            저장 시 고유 검색 키는 자동으로 정리됩니다.
-          </ModalDescription>
+          <ModalTitle>{mode === "create" ? "해시태그 등록" : "해시태그 수정"}</ModalTitle>
+          <ModalDescription>저장 시 고유 검색 키는 자동으로 정리됩니다.</ModalDescription>
         </ModalHeader>
 
         <form onSubmit={handleSubmit}>
@@ -103,14 +95,12 @@ export function HashtagUpsertModal({
                 placeholder="예: 강남성형외과"
                 error={Boolean(displayError)}
                 hint={displayError ?? undefined}
-                className="bg-white "
+                className="bg-white"
               />
-              <p className="mt-2 text-xs text-gray-500 ">
-                허용 문자: 영문, 숫자, 한글, 밑줄(_) / 최대 20자
-              </p>
+              <p className="mt-2 text-xs text-gray-500">허용 문자: 영문, 숫자, 한글, 밑줄(_) / 최대 20자</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 ">고유 검색 키</span>
-                <code className="inline-flex min-h-7 items-center rounded bg-gray-100 px-2 py-1 text-xs text-gray-700  ">
+                <span className="text-xs font-medium text-gray-500">고유 검색 키</span>
+                <code className="inline-flex min-h-7 items-center rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
                   {normalizedPreview || "-"}
                 </code>
               </div>
@@ -135,8 +125,12 @@ export function HashtagUpsertModal({
             </Button>
             <Button type="submit" variant="brand" disabled={submitting}>
               {submitting
-                ? mode === "create" ? "등록 중..." : "수정 중..."
-                : mode === "create" ? "등록" : "수정 저장"}
+                ? mode === "create"
+                  ? "등록 중..."
+                  : "수정 중..."
+                : mode === "create"
+                  ? "등록"
+                  : "수정 저장"}
             </Button>
           </ModalFooter>
         </form>

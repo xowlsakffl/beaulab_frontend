@@ -19,13 +19,7 @@ type DetailImageGalleryProps = {
   onPreview: (preview: HospitalMediaPreviewState) => void;
 };
 
-export function DetailImageGallery({
-  title,
-  items,
-  empty,
-  layout = "scroll",
-  onPreview,
-}: DetailImageGalleryProps) {
+export function DetailImageGallery({ title, items, empty, layout = "scroll", onPreview }: DetailImageGalleryProps) {
   const previewItems = React.useMemo(
     () =>
       items
@@ -42,7 +36,10 @@ export function DetailImageGallery({
     (item: DetailImageGalleryItem) => {
       if (!item.url) return;
 
-      const index = Math.max(0, previewItems.findIndex((previewItem) => previewItem.url === item.url));
+      const index = Math.max(
+        0,
+        previewItems.findIndex((previewItem) => previewItem.url === item.url),
+      );
       const previewItem = previewItems[index] ?? {
         url: item.url,
         title: item.title,
@@ -60,7 +57,7 @@ export function DetailImageGallery({
 
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 ">{title}</p>
+      <p className="text-xs font-semibold text-gray-500">{title}</p>
       {items.length > 0 ? (
         layout === "grid" ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -110,12 +107,14 @@ function DetailImageGalleryButton({
         "relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left disabled:cursor-default",
         item.url ? "cursor-pointer" : "",
         className,
-      ].filter(Boolean).join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
       style={style}
       aria-label={item.url ? `${item.title} 보기` : undefined}
     >
       {item.badge ? (
-        <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm  ">
+        <span className="absolute top-2 left-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
           {item.badge}
         </span>
       ) : null}
@@ -124,7 +123,7 @@ function DetailImageGalleryButton({
         // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
         <img src={item.url} alt="" className="h-full w-full object-cover" />
       ) : (
-        <span className="px-3 text-center text-xs text-gray-500 ">이미지 없음</span>
+        <span className="px-3 text-center text-xs text-gray-500">이미지 없음</span>
       )}
     </button>
   );

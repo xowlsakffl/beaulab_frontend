@@ -8,9 +8,8 @@ type LoginPageProps = {
 
 export default async function SignInPage({ searchParams }: LoginPageProps) {
   const resolvedSearchParams = await searchParams;
-  const nextPath = typeof resolvedSearchParams.next === "string"
-    ? resolvedSearchParams.next
-    : "/hospital-dashboard/dashboard";
+  const nextPath =
+    typeof resolvedSearchParams.next === "string" ? resolvedSearchParams.next : "/hospital-dashboard/dashboard";
 
   return <LoginPageClient nextPath={nextPath} />;
 }

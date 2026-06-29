@@ -33,7 +33,9 @@ function renderSortMark(field: HospitalEventSortField, sortState: HospitalEventS
 function categoryBadges(row: HospitalEventRow) {
   return (
     <CategoryBadgeList
-      values={row.categoryBadges.length > 0 ? row.categoryBadges.map((category) => category.label) : [row.categoryLabel]}
+      values={
+        row.categoryBadges.length > 0 ? row.categoryBadges.map((category) => category.label) : [row.categoryLabel]
+      }
       primaryValues={row.categoryBadges.filter((category) => category.isPrimary).map((category) => category.label)}
       title={row.categoryLabel}
     />
@@ -59,7 +61,7 @@ function EventInlineActionButton({
         event.stopPropagation();
         onClick?.(event);
       }}
-      className="h-8 min-w-12 border-gray-200 bg-white px-3 text-xs font-medium text-gray-500 disabled:opacity-60 "
+      className="h-8 min-w-12 border-gray-200 bg-white px-3 text-xs font-medium text-gray-500 disabled:opacity-60"
     >
       {children}
     </Button>
@@ -89,7 +91,13 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[58px]`,
       cellClassName: `${nowrapCellClass} lg:w-[58px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("id")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("id")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           EID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
         </Button>
       ),
@@ -101,7 +109,7 @@ function buildHospitalEventColumns({
       cellClassName: `${cellBaseClass} lg:w-[130px]`,
       header: "병의원",
       render: (row) => (
-        <span className="line-clamp-2 break-words font-medium text-gray-800 " title={row.hospitalName}>
+        <span className="line-clamp-2 font-medium break-words text-gray-800" title={row.hospitalName}>
           {row.hospitalName}
         </span>
       ),
@@ -129,10 +137,10 @@ function buildHospitalEventColumns({
             )}
           </div>
           <div className="relative min-h-20 min-w-0 flex-1 pb-9">
-            <span className="block line-clamp-2 break-words font-medium text-gray-800 " title={row.name}>
+            <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.name}>
               {row.name}
             </span>
-            <div className="absolute bottom-0 right-0">
+            <div className="absolute right-0 bottom-0">
               <EventInlineActionButton disabled={false} onClick={() => onDuplicate(row)}>
                 복제
               </EventInlineActionButton>
@@ -148,8 +156,8 @@ function buildHospitalEventColumns({
       header: "기간",
       render: (row) => (
         <div className="relative min-h-20 pb-9">
-          <span className="block whitespace-pre-line text-gray-700 ">{row.periodLabel}</span>
-          <div className="absolute bottom-0 right-0">
+          <span className="block whitespace-pre-line text-gray-700">{row.periodLabel}</span>
+          <div className="absolute right-0 bottom-0">
             <EventInlineActionButton disabled={false} onClick={() => onEditPeriod(row)}>
               수정
             </EventInlineActionButton>
@@ -162,7 +170,13 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("event_price")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("event_price")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           이벤트가격 <span className="text-xs text-gray-400">{renderSortMark("event_price", sortState)}</span>
         </Button>
       ),
@@ -180,8 +194,10 @@ function buildHospitalEventColumns({
       header: "상담신청수",
       render: (row) => (
         <div className="relative min-h-20 pb-9">
-          <span>{row.confirmedConsultationCount.toLocaleString()}/{row.consultationCount.toLocaleString()}건</span>
-          <div className="absolute bottom-0 right-0">
+          <span>
+            {row.confirmedConsultationCount.toLocaleString()}/{row.consultationCount.toLocaleString()}건
+          </span>
+          <div className="absolute right-0 bottom-0">
             <EventInlineActionButton disabled={false} onClick={() => onOpenConsultations(row)}>
               현황
             </EventInlineActionButton>
@@ -201,7 +217,13 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[72px]`,
       cellClassName: `${nowrapCellClass} lg:w-[72px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("status")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           노출여부 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
@@ -216,7 +238,13 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[88px]`,
       cellClassName: `${nowrapCellClass} lg:w-[88px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("allow_status")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("allow_status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           검수상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
         </Button>
       ),
@@ -231,7 +259,13 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[70px]`,
       cellClassName: `${nowrapCellClass} lg:w-[70px]`,
       header: (
-        <Button type="button" variant="ghost" size="sm" onClick={() => onToggleSort("view_count")} className="inline-flex items-center gap-1 px-0 text-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("view_count")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
           조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
         </Button>
       ),
@@ -243,7 +277,7 @@ function buildHospitalEventColumns({
       cellClassName: `${cellBaseClass} lg:w-[90px]`,
       header: "담당자",
       render: (row) => (
-        <span className="line-clamp-2 break-words text-gray-700 " title={row.managerName}>
+        <span className="line-clamp-2 break-words text-gray-700" title={row.managerName}>
           {row.managerName}
         </span>
       ),
@@ -299,9 +333,7 @@ export function HospitalEventsDataTable({
       loadingVariant="spinner"
       loadingLabel="이벤트 목록 불러오는 중"
       getRowClassName={(row) =>
-        row.id === highlightedRowId
-          ? "bg-emerald-50/90 transition-colors duration-500 "
-          : undefined
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
       }
       loading={loading}
       refreshing={refreshing}

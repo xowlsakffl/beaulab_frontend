@@ -3,10 +3,7 @@
 import React from "react";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
-import {
-  AllowStatusActionButtons,
-  AllowStatusConfirmModal,
-} from "@/components/common/AllowStatusControls";
+import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
@@ -15,11 +12,7 @@ import {
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
-import {
-  resolveDoctorMediaUrl,
-  type DoctorDetailResponse,
-  type DoctorMediaAsset,
-} from "@/lib/doctor/detail";
+import { resolveDoctorMediaUrl, type DoctorDetailResponse, type DoctorMediaAsset } from "@/lib/doctor/detail";
 import {
   formatCareerPeriod,
   labelDoctorApprovalStatus,
@@ -27,11 +20,7 @@ import {
   labelDoctorSpecialistField,
 } from "@/lib/doctor/list";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  Card,
-  SpinnerBlock,
-} from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -113,12 +102,15 @@ export default function DoctorDetailPageClient() {
     void fetchDoctor();
   }, [fetchDoctor]);
 
-  const requestAllowStatusChange = React.useCallback((allowStatus: string) => {
-    if (!detail || updatingAllowStatus || detail.allow_status === allowStatus) return;
+  const requestAllowStatusChange = React.useCallback(
+    (allowStatus: string) => {
+      if (!detail || updatingAllowStatus || detail.allow_status === allowStatus) return;
 
-    setAllowStatusError(null);
-    setPendingAllowStatusChange({ allowStatus, reason: "" });
-  }, [detail, updatingAllowStatus]);
+      setAllowStatusError(null);
+      setPendingAllowStatusChange({ allowStatus, reason: "" });
+    },
+    [detail, updatingAllowStatus],
+  );
 
   const closeAllowStatusModal = React.useCallback(() => {
     if (updatingAllowStatus) return;
@@ -128,7 +120,7 @@ export default function DoctorDetailPageClient() {
   }, [updatingAllowStatus]);
 
   const updateAllowStatusReason = React.useCallback((reason: string) => {
-    setPendingAllowStatusChange((prev) => prev ? { ...prev, reason } : prev);
+    setPendingAllowStatusChange((prev) => (prev ? { ...prev, reason } : prev));
     setAllowStatusError(null);
   }, []);
 
@@ -183,11 +175,7 @@ export default function DoctorDetailPageClient() {
   return (
     <div className="min-w-0 space-y-4">
       <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[18rem_minmax(0,1fr)]">
-        <ProfilePhotoCard
-          media={detail.profile_image ?? null}
-          doctorName={detail.name}
-          onPreview={setPreviewMedia}
-        />
+        <ProfilePhotoCard media={detail.profile_image ?? null} doctorName={detail.name} onPreview={setPreviewMedia} />
         <DoctorBasicInfoCard detail={detail} onPreview={setPreviewMedia} />
         <DoctorAllowStatusCard
           detail={detail}
@@ -212,7 +200,11 @@ export default function DoctorDetailPageClient() {
         </div>
       </section>
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
         subjectLabel="해당 의료진을"
@@ -319,12 +311,20 @@ function DoctorBasicInfoCard({
           <InfoRow
             label="의사면허 번호"
             value={detail.license_number}
-            action={<PreviewButton title="의사면허증 이미지" media={detail.license_image ?? null} onPreview={onPreview} />}
+            action={
+              <PreviewButton title="의사면허증 이미지" media={detail.license_image ?? null} onPreview={onPreview} />
+            }
           />
           <InfoRow
             label="전문의"
             value={labelDoctorSpecialistField(detail.specialist?.code, detail.specialist?.label)}
-            action={<PreviewButton title="전문의 증명서 이미지" media={detail.specialist_certificate_image ?? null} onPreview={onPreview} />}
+            action={
+              <PreviewButton
+                title="전문의 증명서 이미지"
+                media={detail.specialist_certificate_image ?? null}
+                onPreview={onPreview}
+              />
+            }
           />
         </div>
       </div>
@@ -385,13 +385,7 @@ function PreviewButton({
   );
 }
 
-function InfoPanel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function InfoPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card className={`${infoCardClassName} min-h-[12rem]`}>
       <h3 className={`mb-5 ${cardTitleClassName}`}>{title}</h3>

@@ -90,10 +90,10 @@ export function ReportedContentFilterPanel({
   const firstGridClass = singleLineFilters
     ? "grid min-w-0 grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,2.55fr)] gap-x-3 gap-y-3"
     : showVisibilityFilter && showReportStatusFilter
-    ? "grid min-w-0 grid-cols-[minmax(0,2.15fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
-    : showVisibilityFilter || showReportStatusFilter
-      ? "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
-      : "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3";
+      ? "grid min-w-0 grid-cols-[minmax(0,2.15fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
+      : showVisibilityFilter || showReportStatusFilter
+        ? "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
+        : "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3";
   const desktopSecondGridClass = showWarningFilter
     ? "grid min-w-0 grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)] gap-x-4 gap-y-3 max-[1800px]:hidden"
     : "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:hidden";
@@ -122,7 +122,7 @@ export function ReportedContentFilterPanel({
           onChange={(event) => onReportCountMinChange(event.target.value)}
           onKeyDown={handleEnterToSearch}
           placeholder="0"
-          className="bg-white px-3 "
+          className="bg-white px-3"
         />
         <span className="text-sm text-gray-400">~</span>
         <InputField
@@ -132,7 +132,7 @@ export function ReportedContentFilterPanel({
           onChange={(event) => onReportCountMaxChange(event.target.value)}
           onKeyDown={handleEnterToSearch}
           placeholder="100"
-          className="bg-white px-3 "
+          className="bg-white px-3"
         />
       </div>
     </div>
@@ -189,7 +189,7 @@ export function ReportedContentFilterPanel({
             onChange={(event) => onSearchChange(event.target.value)}
             onKeyDown={handleEnterToSearch}
             placeholder={searchInputPlaceholder ?? "ID, 닉네임, 병의원명, 내용 등을 입력해주세요"}
-            className="bg-white "
+            className="bg-white"
           />
         </div>
       </div>
@@ -198,13 +198,7 @@ export function ReportedContentFilterPanel({
         <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
           검색
         </Button>
-        <Button
-          type="button"
-          variant="brandOutline"
-          size="filter"
-          onClick={onResetFilters}
-          className="shrink-0"
-        >
+        <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
           검색 초기화
         </Button>
       </div>
@@ -212,7 +206,7 @@ export function ReportedContentFilterPanel({
   );
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className={firstGridClass}>
           <div className={filterRowClass}>
@@ -275,8 +269,16 @@ export function ReportedContentFilterPanel({
 
           {reportCountFilter}
 
-          {singleLineFilters ? visibilityFilter : <div className="contents max-[1800px]:hidden">{visibilityFilter}</div>}
-          {singleLineFilters ? reportStatusFilter : <div className="contents max-[1800px]:hidden">{reportStatusFilter}</div>}
+          {singleLineFilters ? (
+            visibilityFilter
+          ) : (
+            <div className="contents max-[1800px]:hidden">{visibilityFilter}</div>
+          )}
+          {singleLineFilters ? (
+            reportStatusFilter
+          ) : (
+            <div className="contents max-[1800px]:hidden">{reportStatusFilter}</div>
+          )}
           {singleLineFilters ? warningFilter : null}
           {singleLineFilters ? searchFilter : null}
         </div>
@@ -296,11 +298,7 @@ export function ReportedContentFilterPanel({
           </div>
         )}
 
-        {singleLineFilters ? null : (
-          <div className={compactSearchGridClass}>
-            {searchFilter}
-          </div>
-        )}
+        {singleLineFilters ? null : <div className={compactSearchGridClass}>{searchFilter}</div>}
       </div>
     </Card>
   );

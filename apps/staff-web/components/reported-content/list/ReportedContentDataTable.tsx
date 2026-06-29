@@ -41,9 +41,7 @@ function renderSortMark(field: ReportedContentSortField, sortState: ReportedCont
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function SortHeader({
@@ -76,14 +74,14 @@ function renderImagePreview(row: ReportedContentRow) {
 
   if (!imageUrl) {
     return (
-      <div className="flex h-[86px] w-[86px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400  ">
+      <div className="flex h-[86px] w-[86px] items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400">
         {row.imageCount > 0 ? `${row.imageCount}+` : "0"}
       </div>
     );
   }
 
   return (
-    <div className="relative h-[86px] w-[86px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50  ">
+    <div className="relative h-[86px] w-[86px] overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
       {/* eslint-disable-next-line @next/next/no-img-element -- image URL is provided by backend storage configuration */}
       <img src={imageUrl} alt={`신고 후기 ${row.id} 이미지`} className="h-full w-full object-cover" />
       {row.imageCount > 0 ? (
@@ -113,8 +111,18 @@ function buildColumns({
     cellClassName: `${nowrapCellClass} w-[70px]`,
     header: "경고",
     render: (row) => {
-      if (row.hasWarning) return <StatusBadge size="sm" color="red">경고</StatusBadge>;
-      if (row.hasIgnoredWarning) return <StatusBadge size="sm" color="gray">무시</StatusBadge>;
+      if (row.hasWarning)
+        return (
+          <StatusBadge size="sm" color="red">
+            경고
+          </StatusBadge>
+        );
+      if (row.hasIgnoredWarning)
+        return (
+          <StatusBadge size="sm" color="gray">
+            무시
+          </StatusBadge>
+        );
 
       return "-";
     },
@@ -126,7 +134,7 @@ function buildColumns({
       cellClassName: `${cellBaseClass} w-[120px]`,
       header: "신고사유",
       render: (row) => (
-        <span className="block line-clamp-2 break-words" title={row.reportReason}>
+        <span className="line-clamp-2 block break-words" title={row.reportReason}>
           {row.reportReason}
         </span>
       ),
@@ -142,7 +150,9 @@ function buildColumns({
       key: "firstReportedAt",
       headerClassName: `${headerBaseClass} w-[132px]`,
       cellClassName: `${nowrapCellClass} w-[132px]`,
-      header: <SortHeader field="first_reported_at" label="최초신고일" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: (
+        <SortHeader field="first_reported_at" label="최초신고일" sortState={sortState} onToggleSort={onToggleSort} />
+      ),
       render: (row) => row.firstReportedAt,
     },
     {
@@ -150,7 +160,11 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[86px]`,
       cellClassName: `${nowrapCellClass} w-[86px]`,
       header: "노출여부",
-      render: (row) => <span className={row.isVisible ? "font-semibold text-gray-900 " : "font-semibold text-gray-500"}>{row.visibilityLabel}</span>,
+      render: (row) => (
+        <span className={row.isVisible ? "font-semibold text-gray-900" : "font-semibold text-gray-500"}>
+          {row.visibilityLabel}
+        </span>
+      ),
     },
     {
       key: "reportStatus",
@@ -191,7 +205,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[280px]`,
         header: "채팅내용",
         render: (row) => (
-          <span className="block line-clamp-2 break-words" title={row.content}>
+          <span className="line-clamp-2 block break-words" title={row.content}>
             {row.content}
           </span>
         ),
@@ -209,7 +223,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} w-[130px]`,
         header: "신고사유",
         render: (row) => (
-          <span className="block line-clamp-2 break-words" title={row.reportReason}>
+          <span className="line-clamp-2 block break-words" title={row.reportReason}>
             {row.reportReason}
           </span>
         ),
@@ -261,7 +275,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[260px]`,
         header: "제목",
         render: (row) => (
-          <span className="block line-clamp-2 break-words font-medium text-gray-800 " title={row.title}>
+          <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.title}>
             {row.title}
           </span>
         ),
@@ -306,7 +320,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[220px]`,
         header: "댓글 내용",
         render: (row) => (
-          <span className="block line-clamp-2 break-words" title={row.content}>
+          <span className="line-clamp-2 block break-words" title={row.content}>
             {row.content}
           </span>
         ),
@@ -317,7 +331,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[180px]`,
         header: "토크 제목",
         render: (row) => (
-          <span className="block line-clamp-2 break-words font-medium text-gray-800 " title={row.parentTitle}>
+          <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.parentTitle}>
             {row.parentTitle}
           </span>
         ),
@@ -410,7 +424,7 @@ function buildColumns({
         cellClassName: `${cellBaseClass} min-w-[220px]`,
         header: "댓글내용",
         render: (row) => (
-          <span className="block line-clamp-2 break-words" title={row.content}>
+          <span className="line-clamp-2 block break-words" title={row.content}>
             {row.content}
           </span>
         ),
@@ -486,10 +500,7 @@ export function ReportedContentDataTable({
   onRefresh,
   onOpenDetail,
 }: ReportedContentDataTableProps) {
-  const columns = React.useMemo(
-    () => buildColumns({ kind, sortState, onToggleSort }),
-    [kind, onToggleSort, sortState],
-  );
+  const columns = React.useMemo(() => buildColumns({ kind, sortState, onToggleSort }), [kind, onToggleSort, sortState]);
 
   return (
     <DataTable

@@ -14,10 +14,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
+import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { api } from "@/lib/common/api";
 import {
@@ -39,16 +36,11 @@ import {
   type ReportedContentDetailResponse,
   type ReportedContentTargetType,
 } from "@/lib/reported-content/detail";
-import {
-  formatTalkCategoryName,
-} from "@/lib/talk/list";
+import { formatTalkCategoryName } from "@/lib/talk/list";
 import type { TalkOperationHistory } from "@/lib/talk/detail";
 import type { TalkCommentApiItem } from "@/lib/talk/comment-list";
 
-type ReportedContentCommentDetailType =
-  | "talk-comments"
-  | "surgery-review-comments"
-  | "treatment-review-comments";
+type ReportedContentCommentDetailType = "talk-comments" | "surgery-review-comments" | "treatment-review-comments";
 
 type ReportedContentCommentDetailKind = "talk-comment" | "review-comment";
 
@@ -102,9 +94,7 @@ const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
 const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
 
-export default function ReportedContentCommentDetailPageClient({
-  type,
-}: ReportedContentCommentDetailPageClientProps) {
+export default function ReportedContentCommentDetailPageClient({ type }: ReportedContentCommentDetailPageClientProps) {
   const config = COMMENT_DETAIL_CONFIGS[type];
   const params = useParams<{ id: string }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -195,7 +185,7 @@ export default function ReportedContentCommentDetailPageClient({
     return (
       <Card>
         <CardContent className="space-y-4 py-10">
-          <p className="text-sm text-rose-600 ">{error || "신고 댓글 상세 정보가 없습니다."}</p>
+          <p className="text-sm text-rose-600">{error || "신고 댓글 상세 정보가 없습니다."}</p>
         </CardContent>
       </Card>
     );
@@ -232,10 +222,7 @@ export default function ReportedContentCommentDetailPageClient({
   );
 }
 
-function renderCommentSummary(
-  config: ReportedContentCommentDetailConfig,
-  target: CommentTarget | null | undefined,
-) {
+function renderCommentSummary(config: ReportedContentCommentDetailConfig, target: CommentTarget | null | undefined) {
   return (
     <Card as="section">
       <CardHeader className="pb-4">
@@ -264,8 +251,14 @@ function renderCommentContent(config: ReportedContentCommentDetailConfig, target
         </CardHeader>
         <CardContent className="space-y-5">
           <DetailField label="토크유형" value={formatTalkCategoryName(comment?.category) || "-"} />
-          <DetailField label="토크제목" value={comment?.parentTalkTitle?.trim() || comment?.parent_talk_title?.trim() || "-"} />
-          <DetailField label="좋아요 수" value={Number(comment?.likeCount ?? comment?.like_count ?? 0).toLocaleString()} />
+          <DetailField
+            label="토크제목"
+            value={comment?.parentTalkTitle?.trim() || comment?.parent_talk_title?.trim() || "-"}
+          />
+          <DetailField
+            label="좋아요 수"
+            value={Number(comment?.likeCount ?? comment?.like_count ?? 0).toLocaleString()}
+          />
           {comment?.mention?.mention_text ? (
             <DetailField label="멘션" value={<MentionText text={comment.mention.mention_text} />} />
           ) : null}
@@ -276,9 +269,10 @@ function renderCommentContent(config: ReportedContentCommentDetailConfig, target
   }
 
   const comment = target as HospitalReviewCommentApiItem | null | undefined;
-  const categories = Array.isArray(comment?.categories) && comment.categories.length > 0
-    ? comment.categories
-    : comment?.parent?.categories ?? [];
+  const categories =
+    Array.isArray(comment?.categories) && comment.categories.length > 0
+      ? comment.categories
+      : (comment?.parent?.categories ?? []);
   const beforeImages = comment?.parent?.before_images ?? [];
   const afterImages = comment?.parent?.after_images ?? [];
 
@@ -318,31 +312,29 @@ function CommentHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
-            {error}
-          </div>
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
         ) : histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 ">
+          <div className="divide-y divide-gray-200">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 ">
+                <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatReportedContentDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 break-words text-sm text-gray-600 ">
+                <span className="min-w-0 text-sm break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
             등록된 히스토리가 없습니다.
           </div>
         )}
@@ -374,8 +366,8 @@ function DetailField({ label, value }: { label: string; value: React.ReactNode }
 function ContentBox({ content }: { content?: string | null }) {
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 ">댓글 내용</p>
-      <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
+      <p className="text-xs font-semibold text-gray-500">댓글 내용</p>
+      <div className="min-h-36 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 break-words whitespace-pre-wrap text-gray-800">
         {content?.trim() || "-"}
       </div>
     </section>
@@ -401,8 +393,8 @@ function ReviewImageGallery({
   if (images.length === 0) {
     return (
       <section className="space-y-2">
-        <p className="text-xs font-semibold text-gray-500 ">게시글 이미지</p>
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
+        <p className="text-xs font-semibold text-gray-500">게시글 이미지</p>
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
           등록된 이미지가 없습니다.
         </div>
       </section>
@@ -411,7 +403,7 @@ function ReviewImageGallery({
 
   return (
     <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 ">게시글 이미지</p>
+      <p className="text-xs font-semibold text-gray-500">게시글 이미지</p>
       <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="flex min-w-full gap-3">
           {images.map(({ image, label }, index) => {
@@ -423,10 +415,10 @@ function ReviewImageGallery({
                 href={imageUrl ?? undefined}
                 target={imageUrl ? "_blank" : undefined}
                 rel={imageUrl ? "noreferrer" : undefined}
-                className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50  "
+                className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50"
                 style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
               >
-                <span className="absolute left-2 top-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm  ">
+                <span className="absolute top-2 left-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
                   {label}
                 </span>
                 {imageUrl ? (
@@ -437,7 +429,7 @@ function ReviewImageGallery({
                     className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="px-3 text-center text-xs text-gray-500 ">미리보기 없음</span>
+                  <span className="px-3 text-center text-xs text-gray-500">미리보기 없음</span>
                 )}
               </a>
             );
@@ -449,11 +441,7 @@ function ReviewImageGallery({
 }
 
 function MentionText({ text }: { text: string }) {
-  return (
-    <span className="font-semibold text-brand-500">
-      {text.startsWith("@") ? text : `@${text}`}
-    </span>
-  );
+  return <span className="font-semibold text-brand-500">{text.startsWith("@") ? text : `@${text}`}</span>;
 }
 
 function formatCommentAuthorName(config: ReportedContentCommentDetailConfig, target?: CommentTarget | null) {

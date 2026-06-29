@@ -15,11 +15,7 @@ export function PageHeaderExtraProvider({
 }) {
   const setExtra = React.useCallback<PageHeaderExtraSetter>((extra) => onChange(extra), [onChange]);
 
-  return (
-    <PageHeaderExtraContext.Provider value={setExtra}>
-      {children}
-    </PageHeaderExtraContext.Provider>
-  );
+  return <PageHeaderExtraContext.Provider value={setExtra}>{children}</PageHeaderExtraContext.Provider>;
 }
 
 export function usePageHeaderExtra(extra: React.ReactNode | null) {

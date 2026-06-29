@@ -91,7 +91,7 @@ export default function NoticeDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -101,7 +101,12 @@ export default function NoticeDetailPageClient() {
 
             <div className="flex w-full flex-row gap-2 sm:w-auto">
               <Can permission="beaulab.notice.update">
-                <Button type="button" variant="brand" className="flex-1 sm:flex-none" onClick={() => router.push(editPath)}>
+                <Button
+                  type="button"
+                  variant="brand"
+                  className="flex-1 sm:flex-none"
+                  onClick={() => router.push(editPath)}
+                >
                   수정하기
                 </Button>
               </Can>
@@ -109,11 +114,11 @@ export default function NoticeDetailPageClient() {
           </div>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 ">
+        <div className="space-y-10 divide-y divide-gray-200">
           <section className="space-y-6 pb-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
-              <p className="text-xs text-gray-500 ">공지 채널과 작성 정보를 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800">기본 정보</h3>
+              <p className="text-xs text-gray-500">공지 채널과 작성 정보를 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -130,8 +135,8 @@ export default function NoticeDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">게시 옵션</h3>
-              <p className="text-xs text-gray-500 ">현재 게시 설정과 노출 기간을 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800">게시 옵션</h3>
+              <p className="text-xs text-gray-500">현재 게시 설정과 노출 기간을 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -144,14 +149,14 @@ export default function NoticeDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">내용</h3>
-              <p className="text-xs text-gray-500 ">공지사항 본문을 확인합니다.</p>
+              <h3 className="text-sm font-semibold text-gray-800">내용</h3>
+              <p className="text-xs text-gray-500">공지사항 본문을 확인합니다.</p>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5  ">
+            <div className="rounded-2xl border border-gray-200 bg-white p-5">
               {detail.content?.trim() ? (
                 <div
-                  className="notice-content-view break-words text-sm leading-7 text-gray-800  [&_a]:text-brand-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-300 [&_blockquote]:pl-4 [&_h2]:my-4 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:my-3 [&_h3]:text-base [&_h3]:font-semibold [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-xl [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+                  className="notice-content-view text-sm leading-7 break-words text-gray-800 [&_a]:text-brand-600 [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-300 [&_blockquote]:pl-4 [&_h2]:my-4 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:my-3 [&_h3]:text-base [&_h3]:font-semibold [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-xl [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
                   dangerouslySetInnerHTML={{ __html: detail.content }}
                 />
               ) : (
@@ -208,13 +213,7 @@ function DetailField({
   );
 }
 
-function StatusField({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | null;
-}) {
+function StatusField({ label, value }: { label: string; value?: string | null }) {
   const status = value?.trim() || "";
   const color = status ? (status === "ACTIVE" ? "success" : "error") : "light";
 
@@ -230,15 +229,7 @@ function StatusField({
   );
 }
 
-function BooleanField({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: boolean;
-  className?: string;
-}) {
+function BooleanField({ label, value, className }: { label: string; value: boolean; className?: string }) {
   return <DetailField label={label} value={value ? "예" : "아니오"} className={className} />;
 }
 

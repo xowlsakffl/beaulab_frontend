@@ -123,7 +123,9 @@ export function EventInfoCard({
         return;
       }
 
-      const eventStartAt = formatLocalDate(normalizeRangeDate(form.is_event_period_unlimited && selectedDay ? selectedDay : nextRange.from));
+      const eventStartAt = formatLocalDate(
+        normalizeRangeDate(form.is_event_period_unlimited && selectedDay ? selectedDay : nextRange.from),
+      );
       const eventEndAt = nextRange.to ? formatLocalDate(normalizeRangeDate(nextRange.to)) : "";
 
       onFieldChange("event_start_at", eventStartAt);
@@ -199,7 +201,12 @@ export function EventInfoCard({
             />
           </InlineField>
 
-          <InlineField label="기간선택" required error={errors.event_start_at ?? errors.event_end_at} target={errors.event_start_at ? "event_start_at" : "event_end_at"}>
+          <InlineField
+            label="기간선택"
+            required
+            error={errors.event_start_at ?? errors.event_end_at}
+            target={errors.event_start_at ? "event_start_at" : "event_end_at"}
+          >
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <DateRangeFilterDropdown
                 label="이벤트 기간"
@@ -238,19 +245,39 @@ export function EventInfoCard({
           <div className="rounded-xl border border-gray-200 bg-white px-4 py-4">
             <div className="space-y-3">
               <div className="grid h-6 grid-cols-[7rem_minmax(0,1fr)] items-center gap-3">
-                <FormCheckbox checked={form.is_vat_included} onChange={(checked) => onFieldChange("is_vat_included", checked)} label="VAT 포함" className="size-4 rounded-full" />
-                <span className="whitespace-nowrap text-xs leading-5 text-gray-500">부가가치세는 할인 금액에 반드시 포함해 주세요.</span>
+                <FormCheckbox
+                  checked={form.is_vat_included}
+                  onChange={(checked) => onFieldChange("is_vat_included", checked)}
+                  label="VAT 포함"
+                  className="size-4 rounded-full"
+                />
+                <span className="text-xs leading-5 whitespace-nowrap text-gray-500">
+                  부가가치세는 할인 금액에 반드시 포함해 주세요.
+                </span>
               </div>
               <div className="grid h-6 grid-cols-[7rem_minmax(0,1fr)] items-center gap-3">
-                <FormCheckbox checked={!form.is_vat_included} onChange={(checked) => onFieldChange("is_vat_included", !checked)} label="VAT 비대상" className="size-4 rounded-full" />
-                <span className="whitespace-nowrap text-xs leading-5 text-gray-500">실비·건강보험은 진료(치료)에 해당하는 경우에만 적용 가능합니다.</span>
+                <FormCheckbox
+                  checked={!form.is_vat_included}
+                  onChange={(checked) => onFieldChange("is_vat_included", !checked)}
+                  label="VAT 비대상"
+                  className="size-4 rounded-full"
+                />
+                <span className="text-xs leading-5 whitespace-nowrap text-gray-500">
+                  실비·건강보험은 진료(치료)에 해당하는 경우에만 적용 가능합니다.
+                </span>
               </div>
             </div>
             <div className="my-4 h-px bg-gray-200" />
             <div className="space-y-3">
-              <p className="text-xs text-gray-500">* 실비보험·건강보험 등 치료 목적이 아닌 경우에는 일괄 VAT 포함을 선택해 주세요.</p>
+              <p className="text-xs text-gray-500">
+                * 실비보험·건강보험 등 치료 목적이 아닌 경우에는 일괄 VAT 포함을 선택해 주세요.
+              </p>
               <InlineField label="정상 가격" required error={errors.normal_price} target="normal_price">
-                <PriceInput value={form.normal_price} onChange={(value) => onFieldChange("normal_price", value)} error={Boolean(errors.normal_price)} />
+                <PriceInput
+                  value={form.normal_price}
+                  onChange={(value) => onFieldChange("normal_price", value)}
+                  error={Boolean(errors.normal_price)}
+                />
               </InlineField>
               <InlineField
                 label="이벤트 가격"
@@ -260,7 +287,11 @@ export function EventInfoCard({
                 footer={<p className="text-xs text-gray-500">* 49% 이상 할인은 적용이 불가합니다.</p>}
               >
                 <div className="grid grid-cols-[minmax(0,1fr)_4.75rem] gap-2">
-                  <PriceInput value={form.event_price} onChange={(value) => onFieldChange("event_price", value)} error={Boolean(errors.event_price || eventPriceError)} />
+                  <PriceInput
+                    value={form.event_price}
+                    onChange={(value) => onFieldChange("event_price", value)}
+                    error={Boolean(errors.event_price || eventPriceError)}
+                  />
                   <div className="flex h-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-brand-500">
                     할인율 {discountRate}%
                   </div>
@@ -275,7 +306,9 @@ export function EventInfoCard({
                     error={Boolean(errors.consultation_price)}
                     unit="P (POINT)"
                   />
-                  <p className="text-xs text-gray-500">* 기준 단가보다 높게 책정하여 이벤트 진행 가능하지만, 해당 건의 환불이 불가능합니다.</p>
+                  <p className="text-xs text-gray-500">
+                    * 기준 단가보다 높게 책정하여 이벤트 진행 가능하지만, 해당 건의 환불이 불가능합니다.
+                  </p>
                 </div>
               </InlineField>
             </div>
@@ -371,7 +404,7 @@ export function EventInfoCard({
             <ModalTitle>상담신청단가 확인</ModalTitle>
           </ModalHeader>
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium leading-6 text-gray-800">
+            <p className="text-sm leading-6 font-medium text-gray-800">
               기준 단가보다 낮게 설정할 수 없어요. 최소 기준 단가로 되돌릴게요.
             </p>
           </ModalBody>
@@ -402,7 +435,11 @@ function InlineField({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3" data-field-target={target} tabIndex={target ? -1 : undefined}>
+    <div
+      className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3"
+      data-field-target={target}
+      tabIndex={target ? -1 : undefined}
+    >
       <Label className={`${labelClassName} pt-2`}>
         {label}
         {required ? <span className="ml-0.5 text-brand-500">*</span> : null}

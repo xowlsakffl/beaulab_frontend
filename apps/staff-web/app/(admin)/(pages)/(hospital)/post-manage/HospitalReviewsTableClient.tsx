@@ -169,41 +169,47 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     return buildHospitalReviewsQueryString(query);
   }, [activeBoard, commentQuery, query]);
 
-  const fetchReviewRows = React.useCallback(async (nextQuery: typeof query) => {
-    const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", nextQuery, {
-      latestKey: `hospital-reviews:${type}:posts`,
-    });
+  const fetchReviewRows = React.useCallback(
+    async (nextQuery: typeof query) => {
+      const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", nextQuery, {
+        latestKey: `hospital-reviews:${type}:posts`,
+      });
 
-    if (!isApiSuccess(response)) {
-      throw new Error(response.error.message || "후기 목록 조회에 실패했습니다.");
-    }
+      if (!isApiSuccess(response)) {
+        throw new Error(response.error.message || "후기 목록 조회에 실패했습니다.");
+      }
 
-    const normalizedRows = response.data.map(normalizeHospitalReview);
-    void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
+      const normalizedRows = response.data.map(normalizeHospitalReview);
+      void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
 
-    return {
-      rows: normalizedRows,
-      meta: (response.meta as DataTableMeta | null) ?? null,
-    };
-  }, [type]);
+      return {
+        rows: normalizedRows,
+        meta: (response.meta as DataTableMeta | null) ?? null,
+      };
+    },
+    [type],
+  );
 
-  const fetchReviewCommentRows = React.useCallback(async (nextQuery: typeof commentQuery) => {
-    const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", nextQuery, {
-      latestKey: `hospital-reviews:${type}:comments`,
-    });
+  const fetchReviewCommentRows = React.useCallback(
+    async (nextQuery: typeof commentQuery) => {
+      const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", nextQuery, {
+        latestKey: `hospital-reviews:${type}:comments`,
+      });
 
-    if (!isApiSuccess(response)) {
-      throw new Error(response.error.message || "후기 댓글 목록 조회에 실패했습니다.");
-    }
+      if (!isApiSuccess(response)) {
+        throw new Error(response.error.message || "후기 댓글 목록 조회에 실패했습니다.");
+      }
 
-    const normalizedRows = response.data.map(normalizeHospitalReviewComment);
-    void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
+      const normalizedRows = response.data.map(normalizeHospitalReviewComment);
+      void preloadImageUrls(normalizedRows.map((row) => resolveHospitalReviewMediaUrl(row.firstImage, "thumb")));
 
-    return {
-      rows: normalizedRows,
-      meta: (response.meta as DataTableMeta | null) ?? null,
-    };
-  }, [type]);
+      return {
+        rows: normalizedRows,
+        meta: (response.meta as DataTableMeta | null) ?? null,
+      };
+    },
+    [type],
+  );
 
   const {
     rows,
@@ -242,13 +248,16 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const loading = activeBoard === "comments" ? commentLoading : reviewLoading;
   const refreshing = activeBoard === "comments" ? commentRefreshing : reviewRefreshing;
 
-  const majorCategoryOptions = React.useMemo<SelectOption[]>(() => [
-    { value: "", label: "전체" },
-    ...majorCategoryItems.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
-  ], [majorCategoryItems]);
+  const majorCategoryOptions = React.useMemo<SelectOption[]>(
+    () => [
+      { value: "", label: "전체" },
+      ...majorCategoryItems.map((item) => ({
+        value: String(item.id),
+        label: item.name,
+      })),
+    ],
+    [majorCategoryItems],
+  );
   const middleCategoryOptions = React.useMemo<SelectOption[]>(() => {
     if (!draftFilters.majorCategoryId) {
       return [{ value: "", label: "대분류 선택" }];
@@ -371,7 +380,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     if (majorCategoryItems.length === 0 && middleCategoryItems.length === 0 && smallCategoryItems.length === 0) return;
 
     const hydrateCategorySelection = (filters: HospitalReviewFilters): HospitalReviewFilters => {
-      if (filters.majorCategoryId || filters.middleCategoryId || filters.smallCategoryId || filters.categoryIds.length === 0) {
+      if (
+        filters.majorCategoryId ||
+        filters.middleCategoryId ||
+        filters.smallCategoryId ||
+        filters.categoryIds.length === 0
+      ) {
         return filters;
       }
 
@@ -423,9 +437,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   React.useEffect(() => {
     setSelectedIds((prev) => {
       const activeRows = activeBoard === "comments" ? commentRows : rows;
-      const selectableIds = new Set(activeRows
-        .filter((row) => !row.visibilityChangeLocked)
-        .map((row) => row.id));
+      const selectableIds = new Set(activeRows.filter((row) => !row.visibilityChangeLocked).map((row) => row.id));
       const next = new Set(Array.from(prev).filter((id) => selectableIds.has(id)));
 
       return next.size === prev.size ? prev : next;
@@ -448,29 +460,23 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     return () => document.removeEventListener("mousedown", onOutsideClick);
   }, []);
 
-  const toggleDraftArrayValue = React.useCallback(
-    (key: "ratings", value: string) => {
-      setDraftFilters((prev) => {
-        const exists = prev[key].includes(value);
-        const nextValues = exists ? prev[key].filter((item) => item !== value) : [...prev[key], value];
+  const toggleDraftArrayValue = React.useCallback((key: "ratings", value: string) => {
+    setDraftFilters((prev) => {
+      const exists = prev[key].includes(value);
+      const nextValues = exists ? prev[key].filter((item) => item !== value) : [...prev[key], value];
 
-        return { ...prev, [key]: nextValues };
-      });
-    },
-    [],
-  );
+      return { ...prev, [key]: nextValues };
+    });
+  }, []);
 
-  const toggleAllDraftArrayValues = React.useCallback(
-    (key: "ratings", options: CheckboxFilterOption[]) => {
-      setDraftFilters((prev) => {
-        const allValues = options.map((option) => option.value);
-        const hasAll = allValues.length > 0 && allValues.every((value) => prev[key].includes(value));
+  const toggleAllDraftArrayValues = React.useCallback((key: "ratings", options: CheckboxFilterOption[]) => {
+    setDraftFilters((prev) => {
+      const allValues = options.map((option) => option.value);
+      const hasAll = allValues.length > 0 && allValues.every((value) => prev[key].includes(value));
 
-        return { ...prev, [key]: hasAll ? [] : allValues };
-      });
-    },
-    [],
-  );
+      return { ...prev, [key]: hasAll ? [] : allValues };
+    });
+  }, []);
 
   const applyFilters = React.useCallback(() => {
     const metricMin = normalizeMetricBound(draftFilters.metricMin);
@@ -517,9 +523,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     }));
   }, []);
 
-  const applyDatePreset = React.useCallback((preset: HospitalReviewDatePresetKey) => {
-    applyDateRange(buildHospitalReviewPresetDateRange(preset));
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (preset: HospitalReviewDatePresetKey) => {
+      applyDateRange(buildHospitalReviewPresetDateRange(preset));
+    },
+    [applyDateRange],
+  );
 
   const changeMetricField = React.useCallback((value: string) => {
     setDraftFilters((prev) => ({
@@ -528,53 +537,59 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     }));
   }, []);
 
-  const changeMajorCategory = React.useCallback((value: string) => {
-    void loadMiddleCategories(value);
-    void loadSmallCategories("");
+  const changeMajorCategory = React.useCallback(
+    (value: string) => {
+      void loadMiddleCategories(value);
+      void loadSmallCategories("");
 
-    setDraftFilters((prev) => ({
-      ...prev,
-      majorCategoryId: value,
-      middleCategoryId: "",
-      smallCategoryId: "",
-      categoryIds: value ? [value] : [],
-    }));
-  }, [loadMiddleCategories, loadSmallCategories]);
-
-  const changeMiddleCategory = React.useCallback((value: string) => {
-    void loadSmallCategories(value);
-
-    setDraftFilters((prev) => {
-      if (!prev.majorCategoryId) {
-        return {
-          ...prev,
-          middleCategoryId: "",
-          smallCategoryId: "",
-          categoryIds: [],
-        };
-      }
-
-      if (!value) {
-        return {
-          ...prev,
-          middleCategoryId: "",
-          smallCategoryId: "",
-          categoryIds: prev.majorCategoryId ? [prev.majorCategoryId] : [],
-        };
-      }
-
-      const middleItem = middleCategoryItems.find((item) => String(item.id) === value);
-      const majorCategoryId = middleItem?.parent_id ? String(middleItem.parent_id) : prev.majorCategoryId;
-
-      return {
+      setDraftFilters((prev) => ({
         ...prev,
-        majorCategoryId,
-        middleCategoryId: value,
+        majorCategoryId: value,
+        middleCategoryId: "",
         smallCategoryId: "",
-        categoryIds: [value],
-      };
-    });
-  }, [loadSmallCategories, middleCategoryItems]);
+        categoryIds: value ? [value] : [],
+      }));
+    },
+    [loadMiddleCategories, loadSmallCategories],
+  );
+
+  const changeMiddleCategory = React.useCallback(
+    (value: string) => {
+      void loadSmallCategories(value);
+
+      setDraftFilters((prev) => {
+        if (!prev.majorCategoryId) {
+          return {
+            ...prev,
+            middleCategoryId: "",
+            smallCategoryId: "",
+            categoryIds: [],
+          };
+        }
+
+        if (!value) {
+          return {
+            ...prev,
+            middleCategoryId: "",
+            smallCategoryId: "",
+            categoryIds: prev.majorCategoryId ? [prev.majorCategoryId] : [],
+          };
+        }
+
+        const middleItem = middleCategoryItems.find((item) => String(item.id) === value);
+        const majorCategoryId = middleItem?.parent_id ? String(middleItem.parent_id) : prev.majorCategoryId;
+
+        return {
+          ...prev,
+          majorCategoryId,
+          middleCategoryId: value,
+          smallCategoryId: "",
+          categoryIds: [value],
+        };
+      });
+    },
+    [loadSmallCategories, middleCategoryItems],
+  );
 
   const changeSmallCategory = React.useCallback((value: string) => {
     setDraftFilters((prev) => {
@@ -582,9 +597,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         return {
           ...prev,
           smallCategoryId: "",
-          categoryIds: prev.majorCategoryId
-            ? [prev.middleCategoryId || prev.majorCategoryId]
-            : [],
+          categoryIds: prev.majorCategoryId ? [prev.middleCategoryId || prev.majorCategoryId] : [],
         };
       }
 
@@ -616,30 +629,33 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     setSelectedIds(new Set());
   }, []);
 
-  const changeBoard = React.useCallback((board: HospitalReviewBoard) => {
-    if (board === activeBoard) return;
+  const changeBoard = React.useCallback(
+    (board: HospitalReviewBoard) => {
+      if (board === activeBoard) return;
 
-    const nextFilters = {
-      ...(board === "comments" ? resetHospitalReviewCommentFilters() : DEFAULT_HOSPITAL_REVIEW_FILTERS),
-      authorId: appliedFilters.authorId,
-    };
+      const nextFilters = {
+        ...(board === "comments" ? resetHospitalReviewCommentFilters() : DEFAULT_HOSPITAL_REVIEW_FILTERS),
+        authorId: appliedFilters.authorId,
+      };
 
-    setActiveBoard(board);
-    setSearchInput("");
-    setSearchKeyword("");
-    setDraftDateRange(undefined);
-    setDraftFilters(nextFilters);
-    setAppliedFilters(nextFilters);
-    setSortState(DEFAULT_HOSPITAL_REVIEW_SORT);
-    setCommentSortState(DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT);
-    setPage(1);
-    setSelectedIds(new Set());
-    setRowVisibilityUpdatingIds(new Set());
-    setPendingVisibilityChange(null);
-    setActionError(null);
-    if (board === "comments") resetCommentList();
-    else resetReviewList();
-  }, [activeBoard, appliedFilters.authorId, resetCommentList, resetReviewList]);
+      setActiveBoard(board);
+      setSearchInput("");
+      setSearchKeyword("");
+      setDraftDateRange(undefined);
+      setDraftFilters(nextFilters);
+      setAppliedFilters(nextFilters);
+      setSortState(DEFAULT_HOSPITAL_REVIEW_SORT);
+      setCommentSortState(DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT);
+      setPage(1);
+      setSelectedIds(new Set());
+      setRowVisibilityUpdatingIds(new Set());
+      setPendingVisibilityChange(null);
+      setActionError(null);
+      if (board === "comments") resetCommentList();
+      else resetReviewList();
+    },
+    [activeBoard, appliedFilters.authorId, resetCommentList, resetReviewList],
+  );
 
   const toggleRow = React.useCallback((row: HospitalReviewRow, checked: boolean) => {
     if (row.visibilityChangeLocked) return;
@@ -663,42 +679,45 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     });
   }, []);
 
-  const toggleAllRows = React.useCallback((checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
+  const toggleAllRows = React.useCallback(
+    (checked: boolean) => {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        const activeRows = activeBoard === "comments" ? commentRows : rows;
+        const selectableIds = activeRows.filter((row) => !row.visibilityChangeLocked).map((row) => row.id);
+
+        if (checked) {
+          selectableIds.forEach((id) => next.add(id));
+        } else {
+          selectableIds.forEach((id) => next.delete(id));
+        }
+
+        return next;
+      });
+    },
+    [activeBoard, commentRows, rows],
+  );
+
+  const requestBulkVisibilityChange = React.useCallback(
+    (status: "ACTIVE" | "INACTIVE") => {
+      if (selectedIds.size === 0) return;
+
       const activeRows = activeBoard === "comments" ? commentRows : rows;
-      const selectableIds = activeRows
-        .filter((row) => !row.visibilityChangeLocked)
-        .map((row) => row.id);
+      const currentRowsById = new Map(activeRows.map((row) => [row.id, row]));
+      const ids = Array.from(selectedIds).filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
+      if (ids.length === 0) return;
 
-      if (checked) {
-        selectableIds.forEach((id) => next.add(id));
-      } else {
-        selectableIds.forEach((id) => next.delete(id));
-      }
-
-      return next;
-    });
-  }, [activeBoard, commentRows, rows]);
-
-  const requestBulkVisibilityChange = React.useCallback((status: "ACTIVE" | "INACTIVE") => {
-    if (selectedIds.size === 0) return;
-
-    const activeRows = activeBoard === "comments" ? commentRows : rows;
-    const currentRowsById = new Map(activeRows.map((row) => [row.id, row]));
-    const ids = Array.from(selectedIds)
-      .filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
-    if (ids.length === 0) return;
-
-    setActionError(null);
-    setPendingVisibilityChange({
-      board: activeBoard,
-      source: "bulk",
-      ids,
-      status,
-      hiddenReason: "",
-    });
-  }, [activeBoard, commentRows, rows, selectedIds]);
+      setActionError(null);
+      setPendingVisibilityChange({
+        board: activeBoard,
+        source: "bulk",
+        ids,
+        status,
+        hiddenReason: "",
+      });
+    },
+    [activeBoard, commentRows, rows, selectedIds],
+  );
 
   const requestRowVisibilityChange = React.useCallback((row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => {
     if (row.visibilityChangeLocked || row.status === status) return;
@@ -713,18 +732,21 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     });
   }, []);
 
-  const requestCommentRowVisibilityChange = React.useCallback((row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => {
-    if (row.visibilityChangeLocked || row.status === status) return;
+  const requestCommentRowVisibilityChange = React.useCallback(
+    (row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => {
+      if (row.visibilityChangeLocked || row.status === status) return;
 
-    setActionError(null);
-    setPendingVisibilityChange({
-      board: "comments",
-      source: "row",
-      ids: [row.id],
-      status,
-      hiddenReason: "",
-    });
-  }, []);
+      setActionError(null);
+      setPendingVisibilityChange({
+        board: "comments",
+        source: "row",
+        ids: [row.id],
+        status,
+        hiddenReason: "",
+      });
+    },
+    [],
+  );
 
   const closeVisibilityConfirmModal = React.useCallback(() => {
     if (bulkUpdating || rowVisibilityUpdatingIds.size > 0) return;
@@ -732,7 +754,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   }, [bulkUpdating, rowVisibilityUpdatingIds.size]);
 
   const updatePendingHiddenReason = React.useCallback((value: string) => {
-    setPendingVisibilityChange((prev) => prev ? { ...prev, hiddenReason: value } : prev);
+    setPendingVisibilityChange((prev) => (prev ? { ...prev, hiddenReason: value } : prev));
   }, []);
 
   const confirmVisibilityChange = React.useCallback(async () => {
@@ -765,7 +787,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       );
 
       if (!isApiSuccess(response)) {
-        setActionError(response.error.message || `${isCommentChange ? "후기 댓글" : "후기"} 노출 상태 변경에 실패했습니다.`);
+        setActionError(
+          response.error.message || `${isCommentChange ? "후기 댓글" : "후기"} 노출 상태 변경에 실패했습니다.`,
+        );
         return;
       }
 
@@ -795,16 +819,25 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     }
   }, [appliedFilters.visibilityStatus, pendingVisibilityChange, setCommentRows, setRows]);
 
-  const openReviewDetail = React.useCallback((row: HospitalReviewRow) => {
-    const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(`${config.listPath}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
-  }, [config.listPath, pathname, queryString, router]);
+  const openReviewDetail = React.useCallback(
+    (row: HospitalReviewRow) => {
+      const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(`${config.listPath}/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+    },
+    [config.listPath, pathname, queryString, router],
+  );
 
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityTarget = pendingVisibilityChange?.board === "comments" ? "댓글" : "후기";
-  const pendingVisibilityMessage = pendingVisibilityChange?.source === "row"
-    ? `해당 ${pendingVisibilityTarget}을 ${pendingVisibilityLabel} 하시겠습니까?`
-    : <>총 <span className="text-error-500">{pendingVisibilityChange?.ids.length ?? 0}</span>건을 {pendingVisibilityLabel}로 변경하시겠습니까?</>;
+  const pendingVisibilityMessage =
+    pendingVisibilityChange?.source === "row" ? (
+      `해당 ${pendingVisibilityTarget}을 ${pendingVisibilityLabel} 하시겠습니까?`
+    ) : (
+      <>
+        총 <span className="text-error-500">{pendingVisibilityChange?.ids.length ?? 0}</span>건을{" "}
+        {pendingVisibilityLabel}로 변경하시겠습니까?
+      </>
+    );
   const pendingVisibilityUpdating = pendingVisibilityChange
     ? pendingVisibilityChange.source === "bulk"
       ? bulkUpdating
@@ -862,8 +895,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onReportStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, reportStatus: value }))}
           onBestChange={(value) => setDraftFilters((prev) => ({ ...prev, best: value }))}
           onMetricFieldChange={changeMetricField}
-          onMetricMinChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMin: normalizeMetricBound(value) }))}
-          onMetricMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMax: normalizeMetricBound(value) }))}
+          onMetricMinChange={(value) =>
+            setDraftFilters((prev) => ({ ...prev, metricMin: normalizeMetricBound(value) }))
+          }
+          onMetricMaxChange={(value) =>
+            setDraftFilters((prev) => ({ ...prev, metricMax: normalizeMetricBound(value) }))
+          }
           onApplyDateRange={applyDateRange}
           onApplyDatePreset={applyDatePreset}
           onApplyFilters={applyFilters}
@@ -889,8 +926,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onSmallCategoryChange={changeSmallCategory}
           onVisibilityChange={(value) => setDraftFilters((prev) => ({ ...prev, visibilityStatus: value }))}
           onReportStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, reportStatus: value }))}
-          onMetricMinChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMin: normalizeMetricBound(value) }))}
-          onMetricMaxChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMax: normalizeMetricBound(value) }))}
+          onMetricMinChange={(value) =>
+            setDraftFilters((prev) => ({ ...prev, metricMin: normalizeMetricBound(value) }))
+          }
+          onMetricMaxChange={(value) =>
+            setDraftFilters((prev) => ({ ...prev, metricMax: normalizeMetricBound(value) }))
+          }
           onApplyDateRange={applyDateRange}
           onApplyDatePreset={applyDatePreset}
           onApplyFilters={applyFilters}
@@ -899,7 +940,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       )}
 
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {actionError}
         </div>
       ) : null}
@@ -957,17 +998,11 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           </ModalHeader>
 
           <ModalBody className="mt-5">
-            <p className="text-sm font-medium leading-6 text-gray-800 ">
-              지표 기준을 선택해주세요.
-            </p>
+            <p className="text-sm leading-6 font-medium text-gray-800">지표 기준을 선택해주세요.</p>
           </ModalBody>
 
           <ModalFooter>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => setIsMetricRequiredModalOpen(false)}
-            >
+            <Button type="button" variant="brand" onClick={() => setIsMetricRequiredModalOpen(false)}>
               확인
             </Button>
           </ModalFooter>

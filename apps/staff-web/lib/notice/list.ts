@@ -262,19 +262,26 @@ export function parseNoticesTableState(searchParams: URLSearchParams) {
 
   const parsedPerPage = Number(searchParams.get("per_page"));
   const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage)
-    ? parsedPerPage
-    : 15;
+  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage) ? parsedPerPage : 15;
 
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  const allowedSortFields = new Set<SortField>(["id", "channel", "title", "status", "view_count", "created_at", "updated_at"]);
+  const allowedSortFields = new Set<SortField>([
+    "id",
+    "channel",
+    "title",
+    "status",
+    "view_count",
+    "created_at",
+    "updated_at",
+  ]);
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
-    ? (sortFieldParam as SortField)
-    : DEFAULT_SORT.field;
+  const sortField =
+    sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
+      ? (sortFieldParam as SortField)
+      : DEFAULT_SORT.field;
   const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {

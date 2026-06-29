@@ -25,12 +25,8 @@ export default function NoticesCreateFormClient() {
   const router = useRouter();
   const { showAlert } = useGlobalAlert();
   const { focusFirstErrorField } = useNoticeFieldFocus();
-  const {
-    uploadImage,
-    cleanupRemovedTempImages,
-    cleanupAllTempImages,
-    clearTrackedTempImages,
-  } = useNoticeEditorTempImages();
+  const { uploadImage, cleanupRemovedTempImages, cleanupAllTempImages, clearTrackedTempImages } =
+    useNoticeEditorTempImages();
 
   const shouldCleanupOnUnmountRef = React.useRef(true);
 
@@ -136,7 +132,10 @@ export default function NoticesCreateFormClient() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
+    >
       <div className="min-w-0">
         <NoticeMainSection
           form={form}

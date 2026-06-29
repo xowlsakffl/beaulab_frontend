@@ -1,13 +1,7 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import {
-  Button,
-  Card,
-  Pagination,
-  type BadgeColor,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { Button, Card, Pagination, type BadgeColor, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import {
@@ -73,7 +67,10 @@ export function OperationHistoryCard({
     <Card className={cardClassName}>
       <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">{title}</h3>
       {hasHistories ? (
-        <div className={["space-y-3", loading ? "pointer-events-none opacity-60" : ""].filter(Boolean).join(" ")} aria-busy={loading}>
+        <div
+          className={["space-y-3", loading ? "pointer-events-none opacity-60" : ""].filter(Boolean).join(" ")}
+          aria-busy={loading}
+        >
           <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
             {histories.map((history) => {
               const changes = history.changes ?? [];
@@ -109,7 +106,11 @@ export function OperationHistoryCard({
                           <span className="text-sm leading-none">-</span>
                         </Button>
                       ) : (
-                        <AddCircleButton label="변경 상세 열기" className="ml-auto" onClick={() => toggleExpandedHistory(history.id)} />
+                        <AddCircleButton
+                          label="변경 상세 열기"
+                          className="ml-auto"
+                          onClick={() => toggleExpandedHistory(history.id)}
+                        />
                       )
                     ) : (
                       <span aria-hidden="true" />
@@ -118,15 +119,24 @@ export function OperationHistoryCard({
                   {canExpand && isExpanded ? (
                     <div className="space-y-2 rounded-lg bg-gray-50 p-3">
                       {changes.map((change, index) => (
-                        <div key={`${history.id}-${change.field_key ?? index}`} className="space-y-1 text-xs text-gray-600">
-                          <p className="font-semibold text-gray-900">{change.field_label || change.field_key || "변경 항목"}</p>
+                        <div
+                          key={`${history.id}-${change.field_key ?? index}`}
+                          className="space-y-1 text-xs text-gray-600"
+                        >
+                          <p className="font-semibold text-gray-900">
+                            {change.field_label || change.field_key || "변경 항목"}
+                          </p>
                           <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
                             <span className="font-semibold text-gray-500">변경 전</span>
-                            <span className="whitespace-pre-line break-words">{changeValueDisplay(change, "before")}</span>
+                            <span className="break-words whitespace-pre-line">
+                              {changeValueDisplay(change, "before")}
+                            </span>
                           </div>
                           <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
                             <span className="font-semibold text-brand-600">변경 후</span>
-                            <span className="whitespace-pre-line break-words">{changeValueDisplay(change, "after")}</span>
+                            <span className="break-words whitespace-pre-line">
+                              {changeValueDisplay(change, "after")}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -138,7 +148,11 @@ export function OperationHistoryCard({
           </div>
           {meta ? (
             <div className="flex justify-center pt-2">
-              <Pagination currentPage={meta.current_page} totalPages={Math.max(1, meta.last_page)} onPageChange={onPageChange} />
+              <Pagination
+                currentPage={meta.current_page}
+                totalPages={Math.max(1, meta.last_page)}
+                onPageChange={onPageChange}
+              />
             </div>
           ) : null}
         </div>

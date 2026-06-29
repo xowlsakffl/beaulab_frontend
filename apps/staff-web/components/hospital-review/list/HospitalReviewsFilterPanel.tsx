@@ -95,7 +95,7 @@ export function HospitalReviewsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-12 gap-x-3 gap-y-3">
           <div className={`${filterRowClass} col-span-3 max-[1800px]:col-span-4`}>
@@ -174,7 +174,7 @@ export function HospitalReviewsFilterPanel({
                   onChange={(event) => onMetricMinChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="1"
-                  className="bg-white px-3 "
+                  className="bg-white px-3"
                 />
               </div>
               <span className="text-sm text-gray-400">~</span>
@@ -186,7 +186,7 @@ export function HospitalReviewsFilterPanel({
                   onChange={(event) => onMetricMaxChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="500"
-                  className="bg-white px-3 "
+                  className="bg-white px-3"
                 />
               </div>
             </div>
@@ -223,7 +223,7 @@ export function HospitalReviewsFilterPanel({
 
           <div className={`${filterRowClass} col-span-2 max-[1800px]:col-span-2`}>
             <span className={inlineLabelClass}>상태</span>
-            <div className="min-w-0 flex-1 max-w-[180px]">
+            <div className="max-w-[180px] min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
                 label="상태"
                 hideLabel
@@ -243,7 +243,7 @@ export function HospitalReviewsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="닉네임, 병의원명, 의료진명 등을 입력해주세요"
-                  className="bg-white "
+                  className="bg-white"
                 />
               </div>
             </div>
@@ -252,13 +252,7 @@ export function HospitalReviewsFilterPanel({
               <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
                 검색
               </Button>
-              <Button
-                type="button"
-                variant="brandOutline"
-                size="filter"
-                onClick={onResetFilters}
-                className="shrink-0"
-              >
+              <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
                 검색 초기화
               </Button>
             </div>

@@ -64,8 +64,8 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const [sortState, setSortState] = React.useState<ReportedContentSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
   const [summary, setSummary] = React.useState<ReportedContentSummary | null>(null);
-  const activeKind = activeBoard === "comments" ? config.commentKind ?? config.kind : config.kind;
-  const activeApiPath = activeBoard === "comments" ? config.commentApiPath ?? config.apiPath : config.apiPath;
+  const activeKind = activeBoard === "comments" ? (config.commentKind ?? config.kind) : config.kind;
+  const activeApiPath = activeBoard === "comments" ? (config.commentApiPath ?? config.apiPath) : config.apiPath;
   const showSummaryCards = config.showSummaryCards !== false;
 
   const query = React.useMemo(
@@ -95,30 +95,34 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     [activeApiPath, activeKind, query],
   );
 
-  const fetchReportedContentRows = React.useCallback(async (request: typeof listRequest) => {
-    const response = await api.get<ReportedContentApiItem[]>(request.apiPath, request.query, {
-      latestKey: "reported-content:list",
-    });
+  const fetchReportedContentRows = React.useCallback(
+    async (request: typeof listRequest) => {
+      const response = await api.get<ReportedContentApiItem[]>(request.apiPath, request.query, {
+        latestKey: "reported-content:list",
+      });
 
-    if (!isApiSuccess(response)) {
-      throw new Error(response.error.message || "신고게시물 목록 조회에 실패했습니다.");
-    }
+      if (!isApiSuccess(response)) {
+        throw new Error(response.error.message || "신고게시물 목록 조회에 실패했습니다.");
+      }
 
-    const normalizedRows = response.data
-      .map((item) => normalizeReportedContent(item, config, request.kind));
-    const responseMeta = (response.meta as DataTableMeta | null) ?? null;
-    void preloadImageUrls(normalizedRows.map((row) => resolveReportedReviewImageUrl(row.image)));
+      const normalizedRows = response.data.map((item) => normalizeReportedContent(item, config, request.kind));
+      const responseMeta = (response.meta as DataTableMeta | null) ?? null;
+      void preloadImageUrls(normalizedRows.map((row) => resolveReportedReviewImageUrl(row.image)));
 
-    return {
-      rows: normalizedRows,
-      meta: responseMeta ? {
-        current_page: responseMeta.current_page,
-        per_page: responseMeta.per_page,
-        total: responseMeta.total,
-        last_page: responseMeta.last_page,
-      } : null,
-    };
-  }, [config]);
+      return {
+        rows: normalizedRows,
+        meta: responseMeta
+          ? {
+              current_page: responseMeta.current_page,
+              per_page: responseMeta.per_page,
+              total: responseMeta.total,
+              last_page: responseMeta.last_page,
+            }
+          : null,
+      };
+    },
+    [config],
+  );
 
   const {
     rows,
@@ -201,26 +205,29 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     setPage(1);
   }, [config]);
 
-  const changeBoard = React.useCallback((nextBoard: ReportedContentBoardMode) => {
-    if (nextBoard === activeBoard || (nextBoard === "comments" && !supportsComments)) return;
+  const changeBoard = React.useCallback(
+    (nextBoard: ReportedContentBoardMode) => {
+      if (nextBoard === activeBoard || (nextBoard === "comments" && !supportsComments)) return;
 
-    const defaultFilters = {
-      ...defaultReportedContentFilters(config),
-      targetAuthorId: appliedFilters.targetAuthorId,
-    };
+      const defaultFilters = {
+        ...defaultReportedContentFilters(config),
+        targetAuthorId: appliedFilters.targetAuthorId,
+      };
 
-    setActiveBoard(nextBoard);
-    setSearchInput("");
-    setSearchKeyword("");
-    setDraftDateRange(undefined);
-    setDraftFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
-    setSortState(DEFAULT_REPORTED_CONTENT_SORT);
-    setIsDatePickerOpen(false);
-    setPage(1);
-    setSummary(null);
-    resetList();
-  }, [activeBoard, appliedFilters.targetAuthorId, config, resetList, supportsComments]);
+      setActiveBoard(nextBoard);
+      setSearchInput("");
+      setSearchKeyword("");
+      setDraftDateRange(undefined);
+      setDraftFilters(defaultFilters);
+      setAppliedFilters(defaultFilters);
+      setSortState(DEFAULT_REPORTED_CONTENT_SORT);
+      setIsDatePickerOpen(false);
+      setPage(1);
+      setSummary(null);
+      resetList();
+    },
+    [activeBoard, appliedFilters.targetAuthorId, config, resetList, supportsComments],
+  );
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToReportedContentFilter(nextRange);
@@ -234,33 +241,39 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     }));
   }, []);
 
-  const applyDatePreset = React.useCallback((preset: ReportedContentDatePresetKey) => {
-    applyDateRange(buildReportedContentPresetDateRange(preset));
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (preset: ReportedContentDatePresetKey) => {
+      applyDateRange(buildReportedContentPresetDateRange(preset));
+    },
+    [applyDateRange],
+  );
 
-  const changeDraftFilter = React.useCallback(<K extends keyof ReportedContentFilters>(
-    key: K,
-    value: ReportedContentFilters[K],
-  ) => {
-    setDraftFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
+  const changeDraftFilter = React.useCallback(
+    <K extends keyof ReportedContentFilters>(key: K, value: ReportedContentFilters[K]) => {
+      setDraftFilters((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    [],
+  );
 
   const toggleSort = React.useCallback((field: ReportedContentSortField) => {
     setSortState((prev) => nextReportedContentSortState(prev, field));
     setPage(1);
   }, []);
 
-  const openDetail = React.useCallback((row: ReportedContentRow) => {
-    if (!row.detailPath) return;
+  const openDetail = React.useCallback(
+    (row: ReportedContentRow) => {
+      if (!row.detailPath) return;
 
-    const [detailPath, detailQuery = ""] = row.detailPath.split("?");
-    const params = new URLSearchParams(detailQuery);
-    params.set("returnTo", queryString ? `${config.listPath}?${queryString}` : config.listPath);
-    router.push(`${detailPath}?${params.toString()}`);
-  }, [config.listPath, queryString, router]);
+      const [detailPath, detailQuery = ""] = row.detailPath.split("?");
+      const params = new URLSearchParams(detailQuery);
+      params.set("returnTo", queryString ? `${config.listPath}?${queryString}` : config.listPath);
+      router.push(`${detailPath}?${params.toString()}`);
+    },
+    [config.listPath, queryString, router],
+  );
 
   return (
     <div className="min-w-0 space-y-4">

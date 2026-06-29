@@ -9,10 +9,7 @@ import {
   parseNumberInput,
   type HospitalEventFormValues,
 } from "@/lib/hospital-event/form";
-import {
-  resolveHospitalEventMediaUrl,
-  type HospitalEventMedia,
-} from "@/lib/hospital-event/list";
+import { resolveHospitalEventMediaUrl, type HospitalEventMedia } from "@/lib/hospital-event/list";
 
 export function HospitalEventAppPreviewModal({
   isOpen,
@@ -43,7 +40,9 @@ export function HospitalEventAppPreviewModal({
   const heroPlaceholder = "썸네일 이미지를 등록해 주세요.";
   const procedureTargets = form.procedure_targets.map((item) => item.trim()).filter(Boolean);
   const procedureBenefits = form.procedure_benefits.map((item) => item.trim()).filter(Boolean);
-  const selectedDoctors = form.doctor_assignments.filter((assignment) => assignment.hospital_doctor_id && assignment.name.trim());
+  const selectedDoctors = form.doctor_assignments.filter(
+    (assignment) => assignment.hospital_doctor_id && assignment.name.trim(),
+  );
   const options = form.has_options ? form.options.filter((option) => option.name.trim()) : [];
 
   return (
@@ -53,7 +52,7 @@ export function HospitalEventAppPreviewModal({
       showCloseButton={false}
       className="mx-4 w-[calc(100%-2rem)] max-w-[430px] !rounded-[28px] !bg-transparent"
     >
-      <div className="mx-auto flex max-h-[86vh] w-full max-w-[390px] flex-col overflow-hidden rounded-[26px] bg-white shadow-2xl shadow-slate-950/30 ring-1 ring-black/10">
+      <div className="mx-auto flex max-h-[86vh] w-full max-w-[390px] flex-col overflow-hidden rounded-[26px] bg-white shadow-2xl ring-1 shadow-slate-950/30 ring-black/10">
         <div className="flex h-11 shrink-0 items-center justify-between px-8 text-[17px] font-bold text-gray-950">
           <span>9:41</span>
           <div className="flex items-center gap-1.5">
@@ -84,11 +83,7 @@ export function HospitalEventAppPreviewModal({
           <div className="bg-gray-50">
             {heroUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-              <img
-                src={heroUrl}
-                alt="썸네일 미리보기"
-                className="aspect-square w-full bg-white object-cover"
-              />
+              <img src={heroUrl} alt="썸네일 미리보기" className="aspect-square w-full bg-white object-cover" />
             ) : (
               <div className="flex aspect-square items-center justify-center bg-gray-100 px-8 text-center text-sm font-semibold text-gray-500">
                 {heroPlaceholder}
@@ -98,7 +93,7 @@ export function HospitalEventAppPreviewModal({
 
           <div className="space-y-4 px-4 py-4">
             <div>
-              <h2 className="break-keep text-[15px] font-bold leading-6 text-gray-900">
+              <h2 className="text-[15px] leading-6 font-bold break-keep text-gray-900">
                 {form.name.trim() || "이벤트명을 입력해 주세요."}
               </h2>
             </div>
@@ -122,7 +117,7 @@ export function HospitalEventAppPreviewModal({
 
             <div>
               <h3 className="text-sm font-bold text-gray-900">이벤트 설명</h3>
-              <p className="mt-2 break-keep text-xs leading-5 text-gray-500">
+              <p className="mt-2 text-xs leading-5 break-keep text-gray-500">
                 {form.description.trim() || "이벤트 설명을 입력해 주세요."}
               </p>
             </div>
@@ -151,11 +146,17 @@ export function HospitalEventAppPreviewModal({
                     return (
                       <div key={`${option.name}-${index}`} className="rounded-xl bg-gray-50 px-3 py-2">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-800">{option.name}</span>
-                          <span className="shrink-0 text-[11px] text-gray-500">{Math.max(1, Number(option.session_count) || 1)}회</span>
+                          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-gray-800">
+                            {option.name}
+                          </span>
+                          <span className="shrink-0 text-[11px] text-gray-500">
+                            {Math.max(1, Number(option.session_count) || 1)}회
+                          </span>
                         </div>
                         <div className="mt-1 flex items-center justify-end gap-2 text-xs">
-                          {optionDiscountRate > 0 ? <span className="font-semibold text-brand-500">{optionDiscountRate}%</span> : null}
+                          {optionDiscountRate > 0 ? (
+                            <span className="font-semibold text-brand-500">{optionDiscountRate}%</span>
+                          ) : null}
                           <span className="font-bold text-gray-900">{formatAppPreviewWon(optionEventPrice)}</span>
                         </div>
                       </div>
@@ -167,8 +168,16 @@ export function HospitalEventAppPreviewModal({
 
             {form.event_type === "TEXT" ? (
               <>
-                <AppPreviewListSection title="시술 대상" items={procedureTargets} emptyText="시술 대상을 입력해 주세요." />
-                <AppPreviewListSection title="시술 장점" items={procedureBenefits} emptyText="시술 장점을 입력해 주세요." />
+                <AppPreviewListSection
+                  title="시술 대상"
+                  items={procedureTargets}
+                  emptyText="시술 대상을 입력해 주세요."
+                />
+                <AppPreviewListSection
+                  title="시술 장점"
+                  items={procedureBenefits}
+                  emptyText="시술 장점을 입력해 주세요."
+                />
                 <AppPreviewSection title="의료진 정보">
                   {selectedDoctors.length > 0 ? (
                     <div className="space-y-2">
@@ -178,7 +187,9 @@ export function HospitalEventAppPreviewModal({
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             {doctor.is_career_visible ? <AppPreviewChip>경력사항</AppPreviewChip> : null}
                             {doctor.is_activity_visible ? <AppPreviewChip>활동사항</AppPreviewChip> : null}
-                            {!doctor.is_career_visible && !doctor.is_activity_visible ? <AppPreviewChip>정보 미노출</AppPreviewChip> : null}
+                            {!doctor.is_career_visible && !doctor.is_activity_visible ? (
+                              <AppPreviewChip>정보 미노출</AppPreviewChip>
+                            ) : null}
                           </div>
                         </div>
                       ))}
@@ -191,8 +202,9 @@ export function HospitalEventAppPreviewModal({
             ) : null}
 
             <AppPreviewSection title="부작용 안내">
-              <p className="whitespace-pre-line break-keep text-xs leading-5 text-gray-600">
-                {form.side_effect_notice.trim() || "수술/시술 후 염증, 출혈, 감염 등 부작용이 발생할 수 있어 주의가 필요합니다."}
+              <p className="text-xs leading-5 break-keep whitespace-pre-line text-gray-600">
+                {form.side_effect_notice.trim() ||
+                  "수술/시술 후 염증, 출혈, 감염 등 부작용이 발생할 수 있어 주의가 필요합니다."}
               </p>
             </AppPreviewSection>
           </div>
@@ -240,9 +252,7 @@ function AppPreviewListSection({ title, items, emptyText }: { title: string; ite
 
 function AppPreviewChip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-500">
-      {children}
-    </span>
+    <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-500">{children}</span>
   );
 }
 

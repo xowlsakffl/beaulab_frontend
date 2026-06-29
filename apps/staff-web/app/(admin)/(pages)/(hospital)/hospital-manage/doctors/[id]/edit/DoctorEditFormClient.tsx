@@ -249,7 +249,13 @@ export default function DoctorEditFormClient() {
   const headerActions = React.useMemo(
     () => (
       <>
-        <Button type="button" variant="outline" size="sm" onClick={() => router.push(getReturnToPath())} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(getReturnToPath())}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="submit" form={DOCTOR_EDIT_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
@@ -278,7 +284,6 @@ export default function DoctorEditFormClient() {
 
   return (
     <form id={DOCTOR_EDIT_FORM_ID} onSubmit={handleSubmit} autoComplete="off" className="min-w-0 space-y-4">
-
       <section className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
         <ProfileImageEditor
           file={profileImage}
@@ -347,7 +352,11 @@ export default function DoctorEditFormClient() {
         </div>
       </section>
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
       <Modal
         isOpen={Boolean(uploadModalMessage)}
         onClose={closeUploadModal}
@@ -358,7 +367,7 @@ export default function DoctorEditFormClient() {
             <ModalTitle className="text-base">이미지 업로드 조건 확인</ModalTitle>
           </ModalHeader>
           <ModalBody className="mt-5">
-            <p className="whitespace-pre-line text-sm font-medium leading-6 text-gray-800">{uploadModalMessage}</p>
+            <p className="text-sm leading-6 font-medium whitespace-pre-line text-gray-800">{uploadModalMessage}</p>
           </ModalBody>
           <ModalFooter>
             <Button type="button" variant="brand" onClick={closeUploadModal}>

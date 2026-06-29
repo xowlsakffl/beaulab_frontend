@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/content-manage/top-titles");
 
 export default function ContentTopTitlesPage() {
-    return renderAdminPage("/content-manage/top-titles");
+  return renderAdminPage("/content-manage/top-titles");
 }

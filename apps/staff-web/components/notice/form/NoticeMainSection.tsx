@@ -90,7 +90,7 @@ export function NoticeMainSection({
 
           <div className="space-y-3">
             <Label>게시 옵션</Label>
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80  ">
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80">
               <FormSettingToggleRow
                 title="상단 공지"
                 description="공지 목록 상단에 우선 노출합니다."
@@ -113,7 +113,7 @@ export function NoticeMainSection({
                 isLast
               >
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0 space-y-2">
                     <Label htmlFor="publish_start_at">게시 시작 일시</Label>
                     <InputField
                       id="publish_start_at"
@@ -127,7 +127,7 @@ export function NoticeMainSection({
                     />
                   </div>
 
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0 space-y-2">
                     <Label htmlFor="publish_end_at">게시 종료 일시</Label>
                     <InputField
                       id="publish_end_at"

@@ -75,7 +75,7 @@ export function HospitalEventDBsFilterPanel({
   };
 
   return (
-    <Card className="min-w-0 rounded-xl p-3 ">
+    <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
         <div className="grid min-w-0 grid-cols-[minmax(0,1.55fr)_minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1.5fr)] gap-x-3 gap-y-3">
           <div className={filterRowClass}>
@@ -176,7 +176,7 @@ export function HospitalEventDBsFilterPanel({
                   onChange={(event) => onSearchChange(event.target.value)}
                   onKeyDown={handleEnterToSearch}
                   placeholder="EDID, 병의원, 이벤트, 이름, 전화번호를 입력해주세요"
-                  className="w-full bg-white "
+                  className="w-full bg-white"
                 />
               </div>
             </div>
@@ -217,7 +217,7 @@ function AmountRangeFilter({
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2 py-1.5">
-      <span className="w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ">{label}</span>
+      <span className="w-16 shrink-0 text-right text-sm font-medium whitespace-nowrap text-gray-600">{label}</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select
           value={metricValue}
@@ -233,7 +233,7 @@ function AmountRangeFilter({
           onChange={(event) => onMinChange(event.target.value)}
           onKeyDown={onEnter}
           placeholder="0"
-          className="bg-white px-3 "
+          className="bg-white px-3"
         />
         <span className="text-sm text-gray-400">~</span>
         <InputField
@@ -243,7 +243,7 @@ function AmountRangeFilter({
           onChange={(event) => onMaxChange(event.target.value)}
           onKeyDown={onEnter}
           placeholder="999999999"
-          className="bg-white px-3 "
+          className="bg-white px-3"
         />
       </div>
     </div>

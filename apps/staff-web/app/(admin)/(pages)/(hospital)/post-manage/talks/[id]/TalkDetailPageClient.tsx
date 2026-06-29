@@ -22,10 +22,7 @@ import {
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  OperationHistoryActionBadge,
-  OperationHistoryReason,
-} from "@/components/common/OperationHistoryDisplay";
+import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import {
   VisibilityActionButtons as VisibilityButtons,
   VisibilityConfirmModal,
@@ -98,14 +95,10 @@ export default function TalkDetailPageClient() {
     parsePositivePage(searchParams.get("operation_histories_page"), historiesDefaultPage),
   );
   const [talkVisibilityUpdating, setTalkVisibilityUpdating] = React.useState(false);
-  const [commentVisibilityUpdatingIds, setCommentVisibilityUpdatingIds] = React.useState<Set<number>>(
-    () => new Set(),
-  );
+  const [commentVisibilityUpdatingIds, setCommentVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
-  const [expandedCommentHistoryIds, setExpandedCommentHistoryIds] = React.useState<Set<number>>(
-    () => new Set(),
-  );
+  const [expandedCommentHistoryIds, setExpandedCommentHistoryIds] = React.useState<Set<number>>(() => new Set());
   const hasLoadedRef = React.useRef(false);
 
   const syncDetailQuery = React.useCallback(
@@ -177,15 +170,13 @@ export default function TalkDetailPageClient() {
 
         return {
           ...prev,
-          items: (prev.items ?? []).map((comment) =>
-            comment.id === id ? { ...comment, status } : comment,
-          ),
+          items: (prev.items ?? []).map((comment) => (comment.id === id ? { ...comment, status } : comment)),
         };
       });
       return;
     }
 
-    setDetail((prev) => prev ? { ...prev, status } : prev);
+    setDetail((prev) => (prev ? { ...prev, status } : prev));
   }, []);
 
   const fetchTalkComments = React.useCallback(
@@ -460,7 +451,7 @@ export default function TalkDetailPageClient() {
   return (
     <div className="space-y-6">
       {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700   ">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {actionError}
         </div>
       ) : null}
@@ -510,16 +501,16 @@ export default function TalkDetailPageClient() {
         onConfirm={() => void confirmVisibilityChange()}
       />
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
     </div>
   );
 }
 
-function MemberSummaryCard({
-  detail,
-}: {
-  detail: TalkDetailResponse;
-}) {
+function MemberSummaryCard({ detail }: { detail: TalkDetailResponse }) {
   return (
     <Card as="section">
       <CardHeader className="pb-4">
@@ -575,8 +566,8 @@ function TalkContentCard({
         </div>
 
         <section className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 ">내용</p>
-          <div className="min-h-36 whitespace-pre-wrap break-words rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 text-gray-800   ">
+          <p className="text-xs font-semibold text-gray-500">내용</p>
+          <div className="min-h-36 rounded-2xl border border-gray-200 bg-white px-4 py-4 text-sm leading-7 break-words whitespace-pre-wrap text-gray-800">
             {detail.content?.trim() || "-"}
           </div>
         </section>
@@ -585,9 +576,9 @@ function TalkContentCard({
 
         <section className="space-y-3">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-gray-500 ">투표</p>
+            <p className="text-xs font-semibold text-gray-500">투표</p>
             {detail.poll?.allow_multiple ? (
-              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600  ">
+              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600">
                 중복가능
               </span>
             ) : null}
@@ -595,15 +586,11 @@ function TalkContentCard({
           {detail.poll ? (
             <div className="space-y-3">
               {pollOptions.map((option) => (
-                <PollBar
-                  key={option.id}
-                  option={option}
-                  totalVotes={totalPollVotes}
-                />
+                <PollBar key={option.id} option={option} totalVotes={totalPollVotes} />
               ))}
             </div>
           ) : (
-            <p className="text-sm font-semibold text-gray-800 ">등록된 투표가 없습니다.</p>
+            <p className="text-sm font-semibold text-gray-800">등록된 투표가 없습니다.</p>
           )}
         </section>
       </CardContent>
@@ -629,20 +616,20 @@ function TalkHistoryCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200 ">
+          <div className="divide-y divide-gray-200">
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)] "
+                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
-                <span className="whitespace-nowrap text-xs text-gray-500 ">
+                <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatTalkDetailDateTime(history.created_at)}
                 </span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 break-words text-sm text-gray-600 ">
+                <span className="min-w-0 text-sm break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -699,11 +686,11 @@ function CommentsCard({
           <div>
             <CardTitle>댓글 {commentCount.toLocaleString()}개</CardTitle>
           </div>
-          <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-500 ">
+          <label className="inline-flex items-center gap-2 text-xs font-medium text-gray-500">
             <select
               value={perPage}
               onChange={(event) => onChangePerPage(Number(event.target.value))}
-              className="h-9 rounded-lg border border-gray-200 bg-white pl-3 pr-8 text-sm text-gray-800 outline-none transition focus:border-brand-400   "
+              className="h-9 rounded-lg border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 transition outline-none focus:border-brand-400"
             >
               {TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
@@ -772,32 +759,28 @@ function CommentItem({
     <article
       className={[
         "space-y-4 py-5 first:pt-0 last:pb-0",
-        showSeparator ? "border-t border-gray-200 " : "",
-        comment.is_reply
-          ? "ml-8 border-l-2 border-gray-200 pl-5 "
-          : "",
-      ].filter(Boolean).join(" ")}
+        showSeparator ? "border-t border-gray-200" : "",
+        comment.is_reply ? "ml-8 border-l-2 border-gray-200 pl-5" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm font-semibold text-gray-900 ">
-          {formatTalkAuthorName(comment.author)}
-        </p>
-        <p className="text-xs text-gray-500 ">
+        <p className="text-sm font-semibold text-gray-900">{formatTalkAuthorName(comment.author)}</p>
+        <p className="text-xs text-gray-500">
           {formatTalkDetailDateTime(comment.created_at)} | {comment.author_ip?.trim() || "-"}
         </p>
       </div>
 
       <div className="space-y-3">
-        <div className="space-y-1 text-sm leading-6 text-gray-800 ">
+        <div className="space-y-1 text-sm leading-6 text-gray-800">
           {comment.mention?.mention_text?.trim() ? (
-            <span className="mr-1 font-semibold text-brand-500 ">
-              @{comment.mention.mention_text}
-            </span>
+            <span className="mr-1 font-semibold text-brand-500">@{comment.mention.mention_text}</span>
           ) : null}
           <span className="whitespace-pre-wrap">{comment.content?.trim() || "-"}</span>
         </div>
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <p className="text-sm text-gray-700 ">
+          <p className="text-sm text-gray-700">
             좋아요 <span className="font-semibold">{Number(comment.like_count ?? 0).toLocaleString()}</span>
           </p>
           <VisibilityButtons
@@ -809,7 +792,7 @@ function CommentItem({
       </div>
 
       {histories.length > 0 ? (
-        <div className="rounded-2xl bg-gray-50 px-4 py-3 ">
+        <div className="rounded-2xl bg-gray-50 px-4 py-3">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1 space-y-2">
               {visibleHistories.map((history, index) => (
@@ -820,7 +803,7 @@ function CommentItem({
               <button
                 type="button"
                 onClick={onToggleHistory}
-                className="-mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white p-0 text-xs font-semibold leading-none text-gray-600 transition hover:border-brand-400 hover:text-brand-600   "
+                className="-mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white p-0 text-xs leading-none font-semibold text-gray-600 transition hover:border-brand-400 hover:text-brand-600"
                 aria-label={expanded ? "댓글 히스토리 접기" : "댓글 히스토리 펼치기"}
               >
                 {expanded ? "-" : "+"}
@@ -842,10 +825,8 @@ function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   };
 
   return (
-    <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)] ">
-      <span className="whitespace-nowrap text-gray-500 ">
-        {formatTalkDetailDateTime(history.created_at)}
-      </span>
+    <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)]">
+      <span className="whitespace-nowrap text-gray-500">{formatTalkDetailDateTime(history.created_at)}</span>
       <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
       <span>
         <OperationHistoryActionBadge history={historyForDisplay} />
@@ -888,16 +869,13 @@ function PollBar({ option, totalVotes }: { option: TalkPollOption; totalVotes: n
   const optionContent = option.content?.trim() || "-";
 
   return (
-    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100 ">
+    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100">
       <div className="absolute inset-0">
         {fillWidth > 0 ? (
-          <div
-            className="h-full rounded-lg bg-brand-500 transition-[width]"
-            style={{ width: `${fillWidth}%` }}
-          />
+          <div className="h-full rounded-lg bg-brand-500 transition-[width]" style={{ width: `${fillWidth}%` }} />
         ) : null}
       </div>
-      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900 ">
+      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900">
         <span className="min-w-0 truncate">{optionContent}</span>
         <span className="shrink-0 text-xs">
           {votes.toLocaleString()}명 ({percentage}%)
@@ -907,15 +885,7 @@ function PollBar({ option, totalVotes }: { option: TalkPollOption; totalVotes: n
   );
 }
 
-function DetailField({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}) {
+function DetailField({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
     <div className={[detailGridClass, className].filter(Boolean).join(" ")}>
       <p className={detailLabelClass}>{label}</p>
@@ -926,7 +896,7 @@ function DetailField({
 
 function EmptyDetailState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500   ">
+    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
       {children}
     </div>
   );

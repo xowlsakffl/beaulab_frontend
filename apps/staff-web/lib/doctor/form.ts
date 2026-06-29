@@ -35,10 +35,7 @@ export type DoctorFormValues = {
   etc_contents: string[];
 };
 
-export type DoctorMediaField =
-  | "profile_image"
-  | "license_image"
-  | "specialist_certificate_image";
+export type DoctorMediaField = "profile_image" | "license_image" | "specialist_certificate_image";
 
 export type DoctorFieldName = keyof DoctorFormValues | DoctorMediaField;
 export type DoctorFormErrors = Partial<Record<DoctorFieldName, string>>;
@@ -203,9 +200,7 @@ export function extractDoctorFieldErrors(details: unknown): DoctorFormErrors {
 }
 
 export function sanitizeDoctorList(values: string[]) {
-  return values
-    .map((value) => value.trim())
-    .filter(Boolean);
+  return values.map((value) => value.trim()).filter(Boolean);
 }
 
 export function buildDoctorExistingFileItem(media?: DoctorMediaAsset | null): ExistingMediaItem | null {
@@ -217,7 +212,9 @@ export function buildDoctorExistingFileItem(media?: DoctorMediaAsset | null): Ex
     url,
     name: getDoctorMediaFilename(media),
     size: media.size ?? null,
-    isImage: media.mime_type?.startsWith("image/") ?? /\.(png|jpe?g|webp|gif|svg)$/i.test(`${media.path ?? ""} ${media.url ?? ""}`),
+    isImage:
+      media.mime_type?.startsWith("image/") ??
+      /\.(png|jpe?g|webp|gif|svg)$/i.test(`${media.path ?? ""} ${media.url ?? ""}`),
   };
 }
 

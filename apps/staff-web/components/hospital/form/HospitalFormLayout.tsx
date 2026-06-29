@@ -6,7 +6,10 @@ import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewState,
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
-import { HospitalBusinessAccountEditCard, HospitalMainInfoEditCard } from "@/components/hospital/form/HospitalMainInfoEditCards";
+import {
+  HospitalBusinessAccountEditCard,
+  HospitalMainInfoEditCard,
+} from "@/components/hospital/form/HospitalMainInfoEditCards";
 import { HospitalGalleryEditCard, HospitalLogoEditCard } from "@/components/hospital/form/HospitalMediaEditCards";
 import { HospitalOperationEditCard } from "@/components/hospital/form/HospitalOperationEditCard";
 import {
@@ -160,7 +163,10 @@ export function HospitalFormLayout({
           />
 
           {isCreate ? null : (
-            <HospitalVerifiedAccountContactEditCard accountHospital={accountHospital} className="h-full xl:col-start-2 xl:row-start-3" />
+            <HospitalVerifiedAccountContactEditCard
+              accountHospital={accountHospital}
+              className="h-full xl:col-start-2 xl:row-start-3"
+            />
           )}
 
           <div className="flex min-w-0 flex-col gap-4 xl:col-start-3 xl:row-span-2 xl:row-start-1 xl:h-full">
@@ -168,7 +174,12 @@ export function HospitalFormLayout({
             <HospitalAdReceptionEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
           </div>
 
-          {isCreate ? null : <HospitalAllowStatusReadOnlyCard allowStatus={form.allow_status} className="h-full xl:col-start-3 xl:row-start-3" />}
+          {isCreate ? null : (
+            <HospitalAllowStatusReadOnlyCard
+              allowStatus={form.allow_status}
+              className="h-full xl:col-start-3 xl:row-start-3"
+            />
+          )}
         </div>
 
         <HospitalGalleryEditCard
@@ -198,7 +209,11 @@ export function HospitalFormLayout({
 
         {isCreate ? null : <input type="hidden" name="mode" value="edit" readOnly />}
       </form>
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
       <Modal
         isOpen={Boolean(imageUploadWarning)}
         onClose={() => setImageUploadWarning(null)}
@@ -210,7 +225,7 @@ export function HospitalFormLayout({
             <ModalTitle className="text-base">이미지 업로드 조건 확인</ModalTitle>
           </ModalHeader>
           <ModalBody className="mt-5">
-            <p className="whitespace-pre-line text-sm font-medium leading-6 text-gray-800">{imageUploadWarning}</p>
+            <p className="text-sm leading-6 font-medium whitespace-pre-line text-gray-800">{imageUploadWarning}</p>
           </ModalBody>
           <ModalFooter>
             <Button type="button" variant="brand" onClick={() => setImageUploadWarning(null)}>

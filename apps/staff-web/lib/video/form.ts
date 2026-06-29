@@ -1,12 +1,7 @@
 import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
-import {
-  getVideoMediaFilename,
-  resolveVideoMediaUrl,
-  type VideoDetailResponse,
-  type VideoMediaAsset,
-} from "./detail";
+import { getVideoMediaFilename, resolveVideoMediaUrl, type VideoDetailResponse, type VideoMediaAsset } from "./detail";
 
 export type VideoHospitalOption = {
   id: number;
@@ -199,7 +194,9 @@ export function buildVideoExistingFileItem(media?: VideoMediaAsset | null): Exis
     url,
     name: getVideoMediaFilename(media),
     size: media.size ?? null,
-    isImage: media.mime_type?.startsWith("image/") ?? /\.(png|jpe?g|webp|gif|svg)$/i.test(`${media.path ?? ""} ${media.url ?? ""}`),
+    isImage:
+      media.mime_type?.startsWith("image/") ??
+      /\.(png|jpe?g|webp|gif|svg)$/i.test(`${media.path ?? ""} ${media.url ?? ""}`),
   };
 }
 
@@ -208,10 +205,7 @@ export type BuildCreateVideoFormDataParams = {
   thumbnailFile: File | null;
 };
 
-export function buildCreateVideoFormData({
-  form,
-  thumbnailFile,
-}: BuildCreateVideoFormDataParams): FormData {
+export function buildCreateVideoFormData({ form, thumbnailFile }: BuildCreateVideoFormDataParams): FormData {
   const formData = new FormData();
 
   formData.append("hospital_id", String(form.hospital_id));

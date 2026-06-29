@@ -37,7 +37,9 @@ export function useHospitalFeatureList() {
       } catch (fetchError) {
         if (!isMounted) return;
 
-        setError(fetchError instanceof Error ? fetchError.message : "병의원 특징 목록을 불러오는 중 오류가 발생했습니다.");
+        setError(
+          fetchError instanceof Error ? fetchError.message : "병의원 특징 목록을 불러오는 중 오류가 발생했습니다.",
+        );
       } finally {
         if (isMounted) {
           setIsLoading(false);

@@ -29,12 +29,8 @@ export default function NoticeEditFormClient() {
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
   const { focusFirstErrorField } = useNoticeFieldFocus();
-  const {
-    uploadImage,
-    cleanupRemovedTempImages,
-    cleanupAllTempImages,
-    clearTrackedTempImages,
-  } = useNoticeEditorTempImages();
+  const { uploadImage, cleanupRemovedTempImages, cleanupAllTempImages, clearTrackedTempImages } =
+    useNoticeEditorTempImages();
 
   const rawNoticeId = Array.isArray(params.id) ? params.id[0] : params.id;
   const noticeId = Number(rawNoticeId);
@@ -203,7 +199,10 @@ export default function NoticeEditFormClient() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
+    <form
+      onSubmit={handleSubmit}
+      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
+    >
       <div className="min-w-0">
         <NoticeMainSection
           form={form}

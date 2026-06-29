@@ -365,7 +365,13 @@ function BusinessCertificateEditField({
         {hasFile && filename ? (
           <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
             <span className="min-w-0 truncate text-xs font-medium text-gray-700">{filename}</span>
-            <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs text-gray-500 hover:text-red-600" onClick={clearFile}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-gray-500 hover:text-red-600"
+              onClick={clearFile}
+            >
               삭제
             </Button>
           </div>

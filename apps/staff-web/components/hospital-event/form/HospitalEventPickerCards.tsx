@@ -60,7 +60,11 @@ export function HospitalPickerCard({
 
   return (
     <Card className={cardClassName}>
-      <div className="grid grid-cols-[5rem_minmax(0,1fr)] items-start gap-x-2 gap-y-1" data-field-target="hospital_id" tabIndex={-1}>
+      <div
+        className="grid grid-cols-[5rem_minmax(0,1fr)] items-start gap-x-2 gap-y-1"
+        data-field-target="hospital_id"
+        tabIndex={-1}
+      >
         <Label className={`${labelClassName} flex h-9 items-center`}>
           병의원<span className="ml-0.5 text-brand-500">*</span>
         </Label>
@@ -81,7 +85,7 @@ export function HospitalPickerCard({
             className={inputClassName}
           />
           {isOpen ? (
-            <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+            <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
               {isLoading ? (
                 <div className="py-5">
                   <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="병의원 검색 중" />
@@ -162,7 +166,14 @@ export function CategoryDoctorPickerCard({
   const selectedDoctorIds = new Set(assignments.map((assignment) => assignment.hospital_doctor_id).filter(Boolean));
   const visibleAssignments = doctors.length > 0 ? assignments.slice(0, Math.min(3, doctors.length)) : [];
   const optionsForSlot = (currentId: number | null) => [
-    { value: "", label: !hospitalId ? "병의원을 먼저 선택해 주세요." : isLoading ? "의료진 불러오는 중" : "의료진을 선택해 주세요." },
+    {
+      value: "",
+      label: !hospitalId
+        ? "병의원을 먼저 선택해 주세요."
+        : isLoading
+          ? "의료진 불러오는 중"
+          : "의료진을 선택해 주세요.",
+    },
     ...doctors
       .filter((doctor) => !selectedDoctorIds.has(doctor.id) || doctor.id === currentId)
       .map((doctor) => ({ value: String(doctor.id), label: doctor.name })),
@@ -197,7 +208,12 @@ export function CategoryDoctorPickerCard({
         headerTitle={<h3 className="text-sm font-bold text-gray-900">카테고리 설정</h3>}
         afterColumns={
           <div className="flex items-center gap-4 pt-1">
-            <FormCheckbox checked={isMaleTargeted} onChange={onMaleTargetedChange} label="남자성형 이벤트" className="size-4 rounded-sm" />
+            <FormCheckbox
+              checked={isMaleTargeted}
+              onChange={onMaleTargetedChange}
+              label="남자성형 이벤트"
+              className="size-4 rounded-sm"
+            />
             <span className="text-xs text-gray-500">남성 대상 이벤트일 경우만 선택해주세요.</span>
           </div>
         }
@@ -231,7 +247,11 @@ export function CategoryDoctorPickerCard({
         </div>
       ) : (
         <div className="mt-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-400">
-          {!hospitalId ? "병의원을 먼저 선택해 주세요." : isLoading ? "의료진을 불러오는 중입니다." : "선택 가능한 의료진이 없습니다."}
+          {!hospitalId
+            ? "병의원을 먼저 선택해 주세요."
+            : isLoading
+              ? "의료진을 불러오는 중입니다."
+              : "선택 가능한 의료진이 없습니다."}
         </div>
       )}
       {loadError ? <p className="mt-2 text-xs text-error-500">{loadError}</p> : null}

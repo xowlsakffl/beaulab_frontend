@@ -357,7 +357,11 @@ function HospitalCategorySelect({
           선택 {selectedIds.length}/{HOSPITAL_CATEGORY_MAX_SELECTION}
         </span>
       </div>
-      <div className={["min-h-20 rounded-xl border bg-white p-2", error ? "border-error-500" : "border-gray-200"].join(" ")}>
+      <div
+        className={["min-h-20 rounded-xl border bg-white p-2", error ? "border-error-500" : "border-gray-200"].join(
+          " ",
+        )}
+      >
         {selectedLabels.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {selectedLabels.map((item) => (
@@ -388,7 +392,7 @@ function HospitalCategorySelect({
         </button>
 
         {isOpen ? (
-          <Card className="absolute left-0 right-0 top-full z-[80] mt-2 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+          <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
             {isLoading ? (
               <div className="py-5">
                 <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="진료과목 불러오는 중" />

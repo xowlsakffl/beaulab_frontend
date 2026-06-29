@@ -182,9 +182,7 @@ export default function HospitalEntriesTableClient() {
       const exists = prev.allowStatuses.includes(value);
       return {
         ...prev,
-        allowStatuses: exists
-          ? prev.allowStatuses.filter((item) => item !== value)
-          : [...prev.allowStatuses, value],
+        allowStatuses: exists ? prev.allowStatuses.filter((item) => item !== value) : [...prev.allowStatuses, value],
       };
     });
   };

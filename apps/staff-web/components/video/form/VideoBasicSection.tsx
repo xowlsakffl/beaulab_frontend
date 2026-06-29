@@ -118,9 +118,8 @@ export function VideoBasicSection({
                 return;
               }
 
-              const matched = doctorOptionsResult.options.find((item) => String(item.id) === value)
-                ?? selectedDoctorOption
-                ?? null;
+              const matched =
+                doctorOptionsResult.options.find((item) => String(item.id) === value) ?? selectedDoctorOption ?? null;
 
               onSelectDoctorOption(matched && String(matched.id) === value ? matched : null);
             }}
@@ -235,7 +234,7 @@ function VideoHospitalPicker({
               readOnly
               error={Boolean(error)}
               hint={error}
-              className="bg-gray-50 text-gray-700  "
+              className="bg-gray-50 text-gray-700"
             />
           </div>
           <Button
@@ -255,16 +254,16 @@ function VideoHospitalPicker({
           value={selectedHospital?.business_number ?? ""}
           placeholder="선택한 병의원의 사업자등록번호가 표시됩니다."
           readOnly
-          className="bg-gray-50 text-gray-600  "
+          className="bg-gray-50 text-gray-600"
         />
 
         {isOpen ? (
-          <Card className="absolute left-0 right-0 top-full z-20 mt-2 space-y-3 rounded-2xl p-4 shadow-lg">
+          <Card className="absolute top-full right-0 left-0 z-20 mt-2 space-y-3 rounded-2xl p-4 shadow-lg">
             <InputField
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="ID, 병의원명, 사업자등록번호 검색"
-              className="bg-white "
+              className="bg-white"
             />
 
             {isLoading ? (
@@ -272,7 +271,7 @@ function VideoHospitalPicker({
             ) : loadError ? (
               <p className="text-sm text-error-500">{loadError}</p>
             ) : options.length === 0 ? (
-              <p className="py-6 text-center text-sm text-gray-500 ">검색 결과가 없습니다.</p>
+              <p className="py-6 text-center text-sm text-gray-500">검색 결과가 없습니다.</p>
             ) : (
               <div className="space-y-2">
                 <div className="grid grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] gap-2 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500">
@@ -296,18 +295,18 @@ function VideoHospitalPicker({
                         }}
                         className={[
                           "w-full rounded-xl border px-4 py-3 text-left transition-colors",
-                          isSelected
-                            ? "border-brand-200 bg-brand-50  "
-                            : "border-gray-200 bg-white hover:bg-gray-50   ",
+                          isSelected ? "border-brand-200 bg-brand-50" : "border-gray-200 bg-white hover:bg-gray-50",
                         ].join(" ")}
                       >
                         <div className="grid grid-cols-[48px_minmax(0,2fr)_minmax(0,1fr)_auto] items-center gap-2">
-                          <span className="truncate text-sm font-medium text-gray-900 ">{hospital.id}</span>
-                          <span className="truncate text-sm font-medium text-gray-900 ">{hospital.name}</span>
+                          <span className="truncate text-sm font-medium text-gray-900">{hospital.id}</span>
+                          <span className="truncate text-sm font-medium text-gray-900">{hospital.name}</span>
                           <span className="col-auto truncate text-sm text-gray-500">
                             {hospital.business_number || "사업자번호 없음"}
                           </span>
-                          {isSelected ? <span className="block shrink-0 text-xs font-semibold text-brand-500">선택됨</span> : null}
+                          {isSelected ? (
+                            <span className="block shrink-0 text-xs font-semibold text-brand-500">선택됨</span>
+                          ) : null}
                         </div>
                       </button>
                     );

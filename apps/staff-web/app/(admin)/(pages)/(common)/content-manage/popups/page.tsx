@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/content-manage/popups");
 
 export default function ContentPopupsPage() {
-    return renderAdminPage("/content-manage/popups");
+  return renderAdminPage("/content-manage/popups");
 }

@@ -3,12 +3,7 @@
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  SpinnerBlock,
-  useGlobalAlert,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
@@ -94,43 +89,46 @@ export default function HospitalEventDetailPageClient() {
       : `/ads-manage/events/${eventId}/edit`;
   }, [eventId, searchParams]);
 
-  const fetchEvent = React.useCallback(async (options?: { silent?: boolean }) => {
-    const silent = Boolean(options?.silent);
+  const fetchEvent = React.useCallback(
+    async (options?: { silent?: boolean }) => {
+      const silent = Boolean(options?.silent);
 
-    if (!Number.isFinite(eventId) || eventId <= 0) {
-      if (!silent) {
-        setLoadError("잘못된 이벤트 경로입니다.");
-        setIsLoading(false);
-      }
-      return;
-    }
-
-    if (!silent) {
-      setIsLoading(true);
-      setLoadError(null);
-    }
-
-    try {
-      const response = await api.get<HospitalEventApiItem>(`/hospital-events/${eventId}`);
-
-      if (!isApiSuccess(response)) {
+      if (!Number.isFinite(eventId) || eventId <= 0) {
         if (!silent) {
-          setLoadError(response.error.message || "이벤트 정보를 불러오지 못했습니다.");
+          setLoadError("잘못된 이벤트 경로입니다.");
+          setIsLoading(false);
         }
         return;
       }
 
-      setDetail(response.data);
-    } catch {
       if (!silent) {
-        setLoadError("이벤트 정보를 불러오는 중 오류가 발생했습니다.");
+        setIsLoading(true);
+        setLoadError(null);
       }
-    } finally {
-      if (!silent) {
-        setIsLoading(false);
+
+      try {
+        const response = await api.get<HospitalEventApiItem>(`/hospital-events/${eventId}`);
+
+        if (!isApiSuccess(response)) {
+          if (!silent) {
+            setLoadError(response.error.message || "이벤트 정보를 불러오지 못했습니다.");
+          }
+          return;
+        }
+
+        setDetail(response.data);
+      } catch {
+        if (!silent) {
+          setLoadError("이벤트 정보를 불러오는 중 오류가 발생했습니다.");
+        }
+      } finally {
+        if (!silent) {
+          setIsLoading(false);
+        }
       }
-    }
-  }, [eventId]);
+    },
+    [eventId],
+  );
 
   const fetchNotes = React.useCallback(async () => {
     if (!Number.isFinite(eventId) || eventId <= 0) return;
@@ -206,7 +204,11 @@ export default function HospitalEventDetailPageClient() {
         });
 
         if (!isApiSuccess(response)) {
-          showAlert({ variant: "error", title: "노출상태 변경 실패", message: response.error.message || "노출상태를 변경하지 못했습니다." });
+          showAlert({
+            variant: "error",
+            title: "노출상태 변경 실패",
+            message: response.error.message || "노출상태를 변경하지 못했습니다.",
+          });
           return false;
         }
 
@@ -243,7 +245,11 @@ export default function HospitalEventDetailPageClient() {
         });
 
         if (!isApiSuccess(response)) {
-          showAlert({ variant: "error", title: "검수상태 변경 실패", message: response.error.message || "검수상태를 변경하지 못했습니다." });
+          showAlert({
+            variant: "error",
+            title: "검수상태 변경 실패",
+            message: response.error.message || "검수상태를 변경하지 못했습니다.",
+          });
           return false;
         }
 
@@ -262,7 +268,7 @@ export default function HospitalEventDetailPageClient() {
   }, [updatingStatus]);
 
   const updatePendingVisibilityReason = React.useCallback((reason: string) => {
-    setPendingVisibilityChange((prev) => prev ? { ...prev, reason } : prev);
+    setPendingVisibilityChange((prev) => (prev ? { ...prev, reason } : prev));
   }, []);
 
   const confirmVisibilityChange = React.useCallback(async () => {
@@ -287,7 +293,7 @@ export default function HospitalEventDetailPageClient() {
   }, [updatingStatus]);
 
   const updatePendingAllowStatusReason = React.useCallback((reason: string) => {
-    setPendingAllowStatusChange((prev) => prev ? { ...prev, reason } : prev);
+    setPendingAllowStatusChange((prev) => (prev ? { ...prev, reason } : prev));
     setPendingAllowStatusError(null);
   }, []);
 
@@ -322,7 +328,11 @@ export default function HospitalEventDetailPageClient() {
       });
 
       if (!isApiSuccess(response)) {
-        showAlert({ variant: "error", title: "관리자 메모 저장 실패", message: response.error.message || "관리자 메모를 저장하지 못했습니다." });
+        showAlert({
+          variant: "error",
+          title: "관리자 메모 저장 실패",
+          message: response.error.message || "관리자 메모를 저장하지 못했습니다.",
+        });
         return;
       }
 
@@ -371,20 +381,12 @@ export default function HospitalEventDetailPageClient() {
   return (
     <div className="min-w-0 space-y-4">
       <section className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(420px,1fr)_minmax(360px,0.85fr)_minmax(280px,0.55fr)]">
-        <EventMainCard
-          detail={detail}
-          updating={updatingStatus}
-          onVisibilityChange={requestVisibilityStatus}
-        />
+        <EventMainCard detail={detail} updating={updatingStatus} onVisibilityChange={requestVisibilityStatus} />
 
         <div className="min-w-0 space-y-4">
           <EventInfoSummaryCard detail={detail} />
           <AllowStatusCard detail={detail} updating={updatingStatus} onChange={requestAllowStatus} />
-          <AdminNotesCard
-            notes={notes}
-            loading={notesLoading}
-            onAdd={() => setIsNoteModalOpen(true)}
-          />
+          <AdminNotesCard notes={notes} loading={notesLoading} onAdd={() => setIsNoteModalOpen(true)} />
           <OperationHistoryCard
             histories={histories}
             meta={historyMeta}
@@ -396,7 +398,11 @@ export default function HospitalEventDetailPageClient() {
         <EventMediaColumn detail={detail} onPreview={setPreviewMedia} />
       </section>
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
       <VisibilityConfirmModal
         isOpen={Boolean(pendingVisibilityChange)}
         status={pendingVisibilityChange?.status}

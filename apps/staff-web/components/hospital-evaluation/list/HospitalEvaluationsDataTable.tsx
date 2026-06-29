@@ -27,9 +27,7 @@ function renderSortMark(field: HospitalEvaluationSortField, sortState: HospitalE
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function SortHeader({
@@ -74,13 +72,7 @@ function SelectionCheckbox({
 }) {
   return (
     <span onClick={(event) => event.stopPropagation()}>
-      <FormCheckbox
-        ariaLabel={label}
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        className="size-4"
-      />
+      <FormCheckbox ariaLabel={label} checked={checked} disabled={disabled} onChange={onChange} className="size-4" />
     </span>
   );
 }
@@ -90,11 +82,7 @@ function renderReceipt(row: HospitalEvaluationRow) {
     return <span className="text-sm text-gray-400">-</span>;
   }
 
-  return (
-    <span className="whitespace-nowrap text-sm font-medium text-gray-700 ">
-      {row.receiptLabel}
-    </span>
-  );
+  return <span className="text-sm font-medium whitespace-nowrap text-gray-700">{row.receiptLabel}</span>;
 }
 
 function buildHospitalEvaluationColumns({
@@ -175,7 +163,7 @@ function buildHospitalEvaluationColumns({
       cellClassName: `${cellBaseClass} lg:w-[130px] xl:w-[10.5%]`,
       header: "병의원명",
       render: (row) => (
-        <span className="block line-clamp-2 font-medium text-gray-800 " title={row.hospitalName}>
+        <span className="line-clamp-2 block font-medium text-gray-800" title={row.hospitalName}>
           {row.hospitalName}
         </span>
       ),
@@ -186,7 +174,7 @@ function buildHospitalEvaluationColumns({
       cellClassName: `${cellBaseClass} lg:w-[92px] xl:w-[7.5%]`,
       header: "의료진명",
       render: (row) => (
-        <span className="block line-clamp-2 break-words" title={row.doctorName}>
+        <span className="line-clamp-2 block break-words" title={row.doctorName}>
           {row.doctorName}
         </span>
       ),
@@ -197,7 +185,7 @@ function buildHospitalEvaluationColumns({
       cellClassName: `${cellBaseClass} lg:w-[92px] xl:w-[7.5%]`,
       header: "닉네임",
       render: (row) => (
-        <span className="block line-clamp-2 break-words" title={row.authorName}>
+        <span className="line-clamp-2 block break-words" title={row.authorName}>
           {row.authorName}
         </span>
       ),
@@ -220,7 +208,9 @@ function buildHospitalEvaluationColumns({
       key: "status",
       headerClassName: `${headerBaseClass} lg:w-[62px] xl:w-[5%]`,
       cellClassName: `${nowrapCellClass} lg:w-[62px] xl:w-[5%]`,
-      header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
+      ),
       render: (row) => (
         <span onClick={(event) => event.stopPropagation()}>
           <Switch
@@ -237,21 +227,39 @@ function buildHospitalEvaluationColumns({
       key: "averageRating",
       headerClassName: `${metricHeaderClass} lg:w-[54px] xl:w-[4.5%]`,
       cellClassName: `${metricCellClass} lg:w-[54px] xl:w-[4.5%]`,
-      header: <SortHeader field="average_rating" label="평점" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader
+          field="average_rating"
+          label="평점"
+          sortState={sortState}
+          onToggleSort={onToggleSort}
+          align="center"
+        />
+      ),
       render: (row) => formatHospitalEvaluationRating(row.averageRating),
     },
     {
       key: "viewCount",
       headerClassName: `${metricHeaderClass} lg:w-[62px] xl:w-[5%]`,
       cellClassName: `${metricCellClass} lg:w-[62px] xl:w-[5%]`,
-      header: <SortHeader field="view_count" label="조회수" sortState={sortState} onToggleSort={onToggleSort} align="center" />,
+      header: (
+        <SortHeader
+          field="view_count"
+          label="조회수"
+          sortState={sortState}
+          onToggleSort={onToggleSort}
+          align="center"
+        />
+      ),
       render: (row) => row.viewCount.toLocaleString(),
     },
     {
       key: "receipt",
       headerClassName: `${headerBaseClass} lg:w-[86px] xl:w-[7%]`,
       cellClassName: `${cellBaseClass} lg:w-[86px] xl:w-[7%]`,
-      header: <SortHeader field="receipt_status" label="영수증인증" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: (
+        <SortHeader field="receipt_status" label="영수증인증" sortState={sortState} onToggleSort={onToggleSort} />
+      ),
       render: renderReceipt,
     },
     {
@@ -304,24 +312,22 @@ export function HospitalEvaluationsDataTable({
   onOpenDetail,
 }: HospitalEvaluationsDataTableProps) {
   const selectedCount = selectedIds.size;
-  const selectableRows = React.useMemo(
-    () => rows.filter((row) => !row.visibilityChangeLocked),
-    [rows],
-  );
+  const selectableRows = React.useMemo(() => rows.filter((row) => !row.visibilityChangeLocked), [rows]);
   const allPageRowsSelected = selectableRows.length > 0 && selectableRows.every((row) => selectedIds.has(row.id));
   const columns = React.useMemo(
-    () => buildHospitalEvaluationColumns({
-      sortState,
-      selectedIds,
-      allPageRowsSelected,
-      hasSelectableRows: selectableRows.length > 0,
-      visibilityUpdatingIds,
-      visibilityControlsDisabled: bulkUpdating || loading || refreshing,
-      onToggleSort,
-      onToggleRow,
-      onToggleAllRows,
-      onRowVisibilityChange,
-    }),
+    () =>
+      buildHospitalEvaluationColumns({
+        sortState,
+        selectedIds,
+        allPageRowsSelected,
+        hasSelectableRows: selectableRows.length > 0,
+        visibilityUpdatingIds,
+        visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        onToggleSort,
+        onToggleRow,
+        onToggleAllRows,
+        onRowVisibilityChange,
+      }),
     [
       allPageRowsSelected,
       bulkUpdating,
@@ -354,7 +360,7 @@ export function HospitalEvaluationsDataTable({
       onRefresh={onRefresh}
       onRowClick={onOpenDetail}
       refreshPlacement="left"
-      rightActions={(
+      rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button
             type="button"
@@ -377,7 +383,7 @@ export function HospitalEvaluationsDataTable({
             미노출
           </Button>
         </div>
-      )}
+      }
       emptyText="조건에 맞는 평가가 없습니다."
     />
   );

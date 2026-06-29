@@ -19,9 +19,7 @@ import {
   type HospitalReviewCommentSortField,
   type HospitalReviewCommentSortState,
 } from "@/lib/hospital-review/comment-list";
-import {
-  resolveHospitalReviewMediaUrl,
-} from "@/lib/hospital-review/list";
+import { resolveHospitalReviewMediaUrl } from "@/lib/hospital-review/list";
 import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 function renderSortMark(field: HospitalReviewCommentSortField, sortState: HospitalReviewCommentSortState) {
@@ -29,9 +27,7 @@ function renderSortMark(field: HospitalReviewCommentSortField, sortState: Hospit
     return <ChevronsUpDown className="size-4" />;
   }
 
-  return sortState.direction === "desc"
-    ? <ChevronDown className="size-4" />
-    : <ChevronUp className="size-4" />;
+  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
 }
 
 function SortHeader({
@@ -72,13 +68,7 @@ function SelectionCheckbox({
 }) {
   return (
     <span onClick={(event) => event.stopPropagation()}>
-      <FormCheckbox
-        ariaLabel={label}
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        className="size-4"
-      />
+      <FormCheckbox ariaLabel={label} checked={checked} disabled={disabled} onChange={onChange} className="size-4" />
     </span>
   );
 }
@@ -93,7 +83,9 @@ function renderParentImage(row: HospitalReviewCommentRow) {
 
   if (!imageUrl) {
     return (
-      <div className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}>
+      <div
+        className={`${imageFrameClass} flex items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400`}
+      >
         {row.imageCount > 0 ? `${row.imageCount}+` : "0"}
       </div>
     );
@@ -102,11 +94,7 @@ function renderParentImage(row: HospitalReviewCommentRow) {
   return (
     <div className={`${imageFrameClass} relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration */}
-      <img
-        src={imageUrl}
-        alt={`후기 ${row.parentReviewId ?? row.id} 이미지`}
-        className="h-full w-full object-cover"
-      />
+      <img src={imageUrl} alt={`후기 ${row.parentReviewId ?? row.id} 이미지`} className="h-full w-full object-cover" />
       {row.imageCount > 0 ? (
         <span className="absolute right-0 bottom-0 rounded-tl-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white">
           {row.imageCount}+
@@ -200,7 +188,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[120px] xl:w-[10%]`,
       header: "댓글작성자",
       render: (row) => (
-        <span className="block line-clamp-2 break-words text-sm text-gray-700 " title={row.authorName}>
+        <span className="line-clamp-2 block text-sm break-words text-gray-700" title={row.authorName}>
           {row.authorName}
         </span>
       ),
@@ -211,7 +199,7 @@ function buildCommentColumns({
       cellClassName: `${cellBaseClass} lg:w-[260px] xl:w-[23%]`,
       header: "댓글내용",
       render: (row) => (
-        <div className="whitespace-normal break-words text-sm leading-6 text-gray-600 " style={twoLineClampStyle}>
+        <div className="text-sm leading-6 break-words whitespace-normal text-gray-600" style={twoLineClampStyle}>
           {row.contentPreview}
         </div>
       ),
@@ -295,24 +283,22 @@ export function HospitalReviewCommentsDataTable({
   onRowVisibilityChange,
 }: HospitalReviewCommentsDataTableProps) {
   const selectedCount = selectedIds.size;
-  const selectableRows = React.useMemo(
-    () => rows.filter((row) => !row.visibilityChangeLocked),
-    [rows],
-  );
+  const selectableRows = React.useMemo(() => rows.filter((row) => !row.visibilityChangeLocked), [rows]);
   const allPageRowsSelected = selectableRows.length > 0 && selectableRows.every((row) => selectedIds.has(row.id));
   const columns = React.useMemo(
-    () => buildCommentColumns({
-      sortState,
-      selectedIds,
-      allPageRowsSelected,
-      hasSelectableRows: selectableRows.length > 0,
-      visibilityUpdatingIds,
-      visibilityControlsDisabled: bulkUpdating || loading || refreshing,
-      onToggleSort,
-      onToggleRow,
-      onToggleAllRows,
-      onRowVisibilityChange,
-    }),
+    () =>
+      buildCommentColumns({
+        sortState,
+        selectedIds,
+        allPageRowsSelected,
+        hasSelectableRows: selectableRows.length > 0,
+        visibilityUpdatingIds,
+        visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        onToggleSort,
+        onToggleRow,
+        onToggleAllRows,
+        onRowVisibilityChange,
+      }),
     [
       allPageRowsSelected,
       bulkUpdating,
@@ -344,7 +330,7 @@ export function HospitalReviewCommentsDataTable({
       onGoPage={onGoPage}
       onRefresh={onRefresh}
       refreshPlacement="left"
-      rightActions={(
+      rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button
             type="button"
@@ -367,7 +353,7 @@ export function HospitalReviewCommentsDataTable({
             미노출
           </Button>
         </div>
-      )}
+      }
       emptyText="조건에 맞는 후기 댓글이 없습니다."
     />
   );

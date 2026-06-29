@@ -177,7 +177,13 @@ export default function DoctorsCreateFormClient() {
   const headerActions = React.useMemo(
     () => (
       <>
-        <Button type="button" variant="outline" size="sm" onClick={() => router.push(getReturnToPath())} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(getReturnToPath())}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="submit" form={DOCTOR_CREATE_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
@@ -260,7 +266,11 @@ export default function DoctorsCreateFormClient() {
         </div>
       </section>
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
       <Modal
         isOpen={Boolean(uploadModalMessage)}
         onClose={closeUploadModal}
@@ -271,7 +281,7 @@ export default function DoctorsCreateFormClient() {
             <ModalTitle className="text-base">이미지 업로드 조건 확인</ModalTitle>
           </ModalHeader>
           <ModalBody className="mt-5">
-            <p className="whitespace-pre-line text-sm font-medium leading-6 text-gray-800">{uploadModalMessage}</p>
+            <p className="text-sm leading-6 font-medium whitespace-pre-line text-gray-800">{uploadModalMessage}</p>
           </ModalBody>
           <ModalFooter>
             <Button type="button" variant="brand" onClick={closeUploadModal}>

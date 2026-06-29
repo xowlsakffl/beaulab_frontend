@@ -105,11 +105,7 @@ export function EventMainCard({
           value="-"
           customValue={<CategoryBadgeList values={categoryBadges.map((category) => category.label)} />}
         />
-        <ReadonlyField
-          label="의료진 선택"
-          value="-"
-          customValue={<DoctorBadgeList detail={detail} />}
-        />
+        <ReadonlyField label="의료진 선택" value="-" customValue={<DoctorBadgeList detail={detail} />} />
         <ReadonlyField label="이벤트명" value={detail.name} />
         <ReadonlyField label="이벤트설명" value={detail.description} />
         <ReadonlyField label="이벤트기간" value={eventPeriodLabel(detail)} />
@@ -222,9 +218,20 @@ export function EventMediaColumn({
 }) {
   return (
     <div className="min-w-0 space-y-4">
-      <MediaPreviewCard title="썸네일" helper="800px x 800px 이상, 1:1비율, 2MB 이하" media={detail.thumbnail_image ?? null} onPreview={onPreview} />
+      <MediaPreviewCard
+        title="썸네일"
+        helper="800px x 800px 이상, 1:1비율, 2MB 이하"
+        media={detail.thumbnail_image ?? null}
+        onPreview={onPreview}
+      />
       {detail.event_type === "IMAGE" ? (
-        <MediaPreviewCard title="이벤트 페이지" helper="가로 800px 이상, 5MB 이하" media={detail.event_page_image ?? null} onPreview={onPreview} tall />
+        <MediaPreviewCard
+          title="이벤트 페이지"
+          helper="가로 800px 이상, 5MB 이하"
+          media={detail.event_page_image ?? null}
+          onPreview={onPreview}
+          tall
+        />
       ) : null}
     </div>
   );
@@ -261,7 +268,11 @@ function MediaPreviewCard({
       >
         {mediaUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-          <img src={mediaUrl} alt={title} className={tall ? "h-auto max-h-[32rem] w-full object-contain" : "h-full w-full object-cover"} />
+          <img
+            src={mediaUrl}
+            alt={title}
+            className={tall ? "h-auto max-h-[32rem] w-full object-contain" : "h-full w-full object-cover"}
+          />
         ) : (
           <span className="p-6 text-center text-sm text-gray-400">등록된 이미지가 없습니다.</span>
         )}
@@ -285,7 +296,11 @@ function PriceSummaryCard({ detail }: { detail: HospitalEventApiItem }) {
             <span className="ml-2 font-bold text-brand-500">할인율 {discountRate}%</span>
           </div>
         </div>
-        <ReadonlyField label="상담신청단가" value={formatHospitalEventPoint(Number(detail.consultation_price ?? 0))} compact />
+        <ReadonlyField
+          label="상담신청단가"
+          value={formatHospitalEventPoint(Number(detail.consultation_price ?? 0))}
+          compact
+        />
       </div>
     </div>
   );
@@ -313,7 +328,12 @@ export function NoteCreateModal({
           <ModalTitle>관리자 메모 등록</ModalTitle>
         </ModalHeader>
         <ModalBody className="mt-5">
-          <FormTextArea value={value} onChange={(next) => onChange(next.slice(0, 1000))} rows={5} placeholder="관리자 메모를 입력해 주세요." />
+          <FormTextArea
+            value={value}
+            onChange={(next) => onChange(next.slice(0, 1000))}
+            rows={5}
+            placeholder="관리자 메모를 입력해 주세요."
+          />
         </ModalBody>
         <ModalFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
@@ -340,7 +360,13 @@ function ReadonlyField({
   compact?: boolean;
 }) {
   return (
-    <div className={compact ? "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3" : "grid grid-cols-[8rem_minmax(0,1fr)] items-start gap-4"}>
+    <div
+      className={
+        compact
+          ? "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3"
+          : "grid grid-cols-[8rem_minmax(0,1fr)] items-start gap-4"
+      }
+    >
       <p className={labelClassName}>{label}</p>
       <div className={valueClassName}>{customValue ?? displayValue(value)}</div>
     </div>

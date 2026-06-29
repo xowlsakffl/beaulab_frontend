@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Pagination,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { Card, CardContent, CardHeader, CardTitle, Pagination, type DataTableMeta } from "@beaulab/ui-admin";
 
 import {
   OperationHistoryActionBadge,
@@ -48,12 +41,12 @@ export function ReportedOriginalHistoryCard<THistory extends ReportedOriginalHis
                 key={history.id ?? index}
                 className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
-                <span className="whitespace-nowrap text-xs text-gray-500">{formatDate(history)}</span>
+                <span className="text-xs whitespace-nowrap text-gray-500">{formatDate(history)}</span>
                 <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 break-words text-sm text-gray-600">
+                <span className="min-w-0 text-sm break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>

@@ -7,22 +7,13 @@ export type HospitalEventDBOption<T extends string = string> = {
 };
 
 export type HospitalEventDBStatus = "NEW" | "CONFIRMED" | "DUPLICATE";
-export type HospitalEventDBAllowStatus =
-  | "UNVERIFIED_REPORTED"
-  | "UNVERIFIED_CONFIRMED"
-  | "NORMAL_CONFIRMED";
+export type HospitalEventDBAllowStatus = "UNVERIFIED_REPORTED" | "UNVERIFIED_CONFIRMED" | "NORMAL_CONFIRMED";
 export type HospitalEventDBContactMethod = "KAKAO" | "PHONE" | "SMS";
 export type HospitalEventDBPreferredTime = "MORNING" | "AFTERNOON" | "ANYTIME";
 export type HospitalEventDBAmountMetric = "all" | "event_price" | "consultation_price";
 export type HospitalEventDBSortDirection = "asc" | "desc";
 export type HospitalEventDBSortField =
-  | "id"
-  | "event_price"
-  | "consultation_price"
-  | "status"
-  | "allow_status"
-  | "created_at"
-  | "updated_at";
+  "id" | "event_price" | "consultation_price" | "status" | "allow_status" | "created_at" | "updated_at";
 
 export type HospitalEventDBFilters = {
   accountUserId: string;
@@ -174,8 +165,7 @@ export const HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS = [
   { key: "recent30", label: "최근 30일" },
 ] as const satisfies readonly DatePresetOption[];
 
-export type HospitalEventDBDatePresetKey =
-  (typeof HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS)[number]["key"];
+export type HospitalEventDBDatePresetKey = (typeof HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS)[number]["key"];
 
 export const HOSPITAL_EVENT_DB_CONTACT_METHOD_OPTIONS: HospitalEventDBOption[] = [
   { value: "", label: "전체" },
@@ -325,9 +315,10 @@ export function parseHospitalEventDBsTableState(searchParams: URLSearchParams) {
   const sortDirectionParam = searchParams.get("direction");
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const sortField = sortFieldParam && HOSPITAL_EVENT_DB_SORT_FIELDS.has(sortFieldParam as HospitalEventDBSortField)
-    ? (sortFieldParam as HospitalEventDBSortField)
-    : DEFAULT_HOSPITAL_EVENT_DB_SORT.field;
+  const sortField =
+    sortFieldParam && HOSPITAL_EVENT_DB_SORT_FIELDS.has(sortFieldParam as HospitalEventDBSortField)
+      ? (sortFieldParam as HospitalEventDBSortField)
+      : DEFAULT_HOSPITAL_EVENT_DB_SORT.field;
 
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
@@ -341,9 +332,10 @@ export function parseHospitalEventDBsTableState(searchParams: URLSearchParams) {
       endDate,
       contactMethod: normalizeOptionValue(searchParams.get("contact_methods"), CONTACT_METHOD_VALUES),
       preferredTime: normalizeOptionValue(searchParams.get("preferred_times"), PREFERRED_TIME_VALUES),
-      amountMetric: amountMetric && AMOUNT_METRIC_VALUES.has(amountMetric as HospitalEventDBAmountMetric)
-        ? (amountMetric as HospitalEventDBAmountMetric)
-        : "all",
+      amountMetric:
+        amountMetric && AMOUNT_METRIC_VALUES.has(amountMetric as HospitalEventDBAmountMetric)
+          ? (amountMetric as HospitalEventDBAmountMetric)
+          : "all",
       amountMin: normalizeNumberBound(searchParams.get("amount_min")),
       amountMax: normalizeNumberBound(searchParams.get("amount_max")),
       status: normalizeOptionValue(searchParams.get("statuses"), STATUS_VALUES),

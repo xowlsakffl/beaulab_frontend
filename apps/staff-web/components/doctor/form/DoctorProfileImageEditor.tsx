@@ -75,11 +75,23 @@ export function ProfileImageEditor({
       )}
 
       {previewUrl ? (
-        <Button type="button" variant="brand" size="sm" className="mt-3 w-full" onClick={() => inputRef.current?.click()}>
+        <Button
+          type="button"
+          variant="brand"
+          size="sm"
+          className="mt-3 w-full"
+          onClick={() => inputRef.current?.click()}
+        >
           이미지 수정하기
         </Button>
       ) : (
-        <Button type="button" variant="brand" size="sm" className="mt-3 w-full" onClick={() => inputRef.current?.click()}>
+        <Button
+          type="button"
+          variant="brand"
+          size="sm"
+          className="mt-3 w-full"
+          onClick={() => inputRef.current?.click()}
+        >
           이미지 등록하기
         </Button>
       )}

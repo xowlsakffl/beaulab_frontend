@@ -25,11 +25,7 @@ import {
 } from "@/lib/hospital/form";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  SpinnerBlock,
-  useGlobalAlert,
-} from "@beaulab/ui-admin";
+import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 
@@ -81,6 +77,7 @@ export default function HospitalEditFormClient() {
   const [galleryOrder, setGalleryOrder] = React.useState<string[]>([]);
   const [existingCertificate, setExistingCertificate] = React.useState<MediaAsset | null>(null);
   const [accountHospital, setAccountHospital] = React.useState<HospitalDetailResponse["account_hospital"]>(null);
+  const [pointBalance, setPointBalance] = React.useState<HospitalDetailResponse["point_balance"]>(null);
   const [initialLogoId, setInitialLogoId] = React.useState<string | null>(null);
   const [initialCertificateId, setInitialCertificateId] = React.useState<string | null>(null);
   const [initialGalleryOrder, setInitialGalleryOrder] = React.useState<string[]>([]);
@@ -158,6 +155,7 @@ export default function HospitalEditFormClient() {
       setInitialGalleryOrder(nextGalleryOrder);
       setExistingCertificate(data.business_registration?.certificate_media ?? null);
       setAccountHospital(data.account_hospital ?? null);
+      setPointBalance(data.point_balance ?? null);
       setInitialLogoId(hospitalMediaId(data.logo));
       setInitialCertificateId(hospitalMediaId(data.business_registration?.certificate_media ?? null));
     } catch {
@@ -257,7 +255,13 @@ export default function HospitalEditFormClient() {
   const headerActions = React.useMemo(
     () => (
       <>
-        <Button type="button" variant="outline" size="sm" onClick={() => router.push(getReturnToPath())} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(getReturnToPath())}
+          disabled={isSubmitting}
+        >
           취소
         </Button>
         <Button type="submit" form={HOSPITAL_EDIT_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
@@ -271,9 +275,7 @@ export default function HospitalEditFormClient() {
   usePageHeaderExtra(isLoading || loadError ? null : headerActions);
 
   if (isLoading) {
-    return (
-      <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="병의원 정보 불러오는 중" />
-    );
+    return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="병의원 정보 불러오는 중" />;
   }
 
   if (loadError) {
@@ -300,6 +302,7 @@ export default function HospitalEditFormClient() {
       businessRegistrationFile={businessRegistrationFile}
       existingCertificate={existingCertificate}
       accountHospital={accountHospital}
+      pointBalance={pointBalance}
       selectedCategoryItems={selectedCategoryItems}
       hospitalFeatures={hospitalFeatures}
       isHospitalFeaturesLoading={isHospitalFeaturesLoading}
@@ -317,7 +320,9 @@ export default function HospitalEditFormClient() {
       onExistingItemsChange={(key, items) => {
         if (key !== "gallery") return;
 
-        const galleryById = new Map(existingGallery.map((media, index) => [String(media.id ?? `gallery-${index}`), media]));
+        const galleryById = new Map(
+          existingGallery.map((media, index) => [String(media.id ?? `gallery-${index}`), media]),
+        );
         const nextGallery = items
           .map((item) => galleryById.get(String(item.id)))
           .filter((media): media is MediaAsset => Boolean(media));

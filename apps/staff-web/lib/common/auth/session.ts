@@ -3,7 +3,6 @@ import { tokenStorage, sessionStorage } from "@beaulab/auth";
 import type { ActorAuthorization, StaffProfile, StaffSession } from "@beaulab/types";
 import { isApiSuccess } from "@beaulab/types";
 
-
 type LoginPayload = { nickname: string; password: string };
 type AuthFields = {
   auth?: Partial<ActorAuthorization>;
@@ -23,9 +22,7 @@ type StaffProfileResponse = {
 function resolveAuth(data: AuthFields): Partial<ActorAuthorization> | undefined {
   if (data.auth) return data.auth;
 
-  const hasAuthFields =
-      Array.isArray(data.roles) ||
-      Array.isArray(data.permissions)
+  const hasAuthFields = Array.isArray(data.roles) || Array.isArray(data.permissions);
 
   if (!hasAuthFields) return undefined;
 
@@ -94,7 +91,6 @@ export async function ensureSession(): Promise<StaffSession | null> {
     return null;
   }
 }
-
 
 export function logout() {
   tokenStorage.clear("staff");

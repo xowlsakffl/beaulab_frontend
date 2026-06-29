@@ -276,7 +276,12 @@ const HOSPITAL_REVIEW_SORT_FIELDS = new Set<HospitalReviewSortField>([
 ]);
 const HOSPITAL_REVIEW_VISIBILITY_VALUE_SET = new Set(HOSPITAL_REVIEW_VISIBILITY_OPTIONS.map((option) => option.value));
 const HOSPITAL_REVIEW_RATING_VALUE_SET = new Set(HOSPITAL_REVIEW_RATING_OPTIONS.map((option) => option.value));
-const HOSPITAL_REVIEW_METRIC_VALUE_SET = new Set<HospitalReviewMetricField>(["like_count", "save_count", "comment_count", "view_count"]);
+const HOSPITAL_REVIEW_METRIC_VALUE_SET = new Set<HospitalReviewMetricField>([
+  "like_count",
+  "save_count",
+  "comment_count",
+  "view_count",
+]);
 
 export function resolveHospitalReviewMediaUrl(
   media?: HospitalReviewMediaAsset | null,
@@ -316,11 +321,9 @@ export function formatHospitalReviewCategoryPath(category?: HospitalReviewCatego
 }
 
 export function formatHospitalReviewCategories(categories?: HospitalReviewCategory[] | null, maxDepth = 2) {
-  const names = Array.from(new Set(
-    (categories ?? [])
-      .map((category) => formatHospitalReviewCategoryPath(category, maxDepth))
-      .filter(Boolean),
-  ));
+  const names = Array.from(
+    new Set((categories ?? []).map((category) => formatHospitalReviewCategoryPath(category, maxDepth)).filter(Boolean)),
+  );
 
   return names.length > 0 ? names.join("\n") : "-";
 }
@@ -493,17 +496,17 @@ export function nextHospitalReviewSortState(
 }
 
 export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
-  const categoryIds = normalizePositiveIdListParam(
-    searchParams.get("category_ids") ?? searchParams.get("category_id"),
-  );
+  const categoryIds = normalizePositiveIdListParam(searchParams.get("category_ids") ?? searchParams.get("category_id"));
   const visibilityStatus = searchParams.get("status") ?? "";
   const reportStatus = searchParams.get("report_status") ?? "";
-  const ratings = normalizeListParam(searchParams.get("ratings") ?? searchParams.get("rating"))
-    .filter((value) => HOSPITAL_REVIEW_RATING_VALUE_SET.has(value));
+  const ratings = normalizeListParam(searchParams.get("ratings") ?? searchParams.get("rating")).filter((value) =>
+    HOSPITAL_REVIEW_RATING_VALUE_SET.has(value),
+  );
   const metricParam = searchParams.get("metric");
-  const metricField = metricParam && HOSPITAL_REVIEW_METRIC_VALUE_SET.has(metricParam as HospitalReviewMetricField)
-    ? (metricParam as HospitalReviewMetricField)
-    : DEFAULT_HOSPITAL_REVIEW_FILTERS.metricField;
+  const metricField =
+    metricParam && HOSPITAL_REVIEW_METRIC_VALUE_SET.has(metricParam as HospitalReviewMetricField)
+      ? (metricParam as HospitalReviewMetricField)
+      : DEFAULT_HOSPITAL_REVIEW_FILTERS.metricField;
   const best = parseBooleanParam(searchParams.get("is_main_featured"))
     ? "main"
     : parseBooleanParam(searchParams.get("is_sub_featured"))
@@ -518,9 +521,10 @@ export function parseHospitalReviewsTableState(searchParams: URLSearchParams) {
 
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
-  const sortField = sortFieldParam && HOSPITAL_REVIEW_SORT_FIELDS.has(sortFieldParam as HospitalReviewSortField)
-    ? (sortFieldParam as HospitalReviewSortField)
-    : DEFAULT_HOSPITAL_REVIEW_SORT.field;
+  const sortField =
+    sortFieldParam && HOSPITAL_REVIEW_SORT_FIELDS.has(sortFieldParam as HospitalReviewSortField)
+      ? (sortFieldParam as HospitalReviewSortField)
+      : DEFAULT_HOSPITAL_REVIEW_SORT.field;
   const sortDirection: HospitalReviewSortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {
@@ -583,11 +587,12 @@ export function buildHospitalReviewsQuery({
     query.report_status = appliedFilters.reportStatus;
   }
 
-  const selectedCategoryId = appliedFilters.smallCategoryId
-    || appliedFilters.middleCategoryId
-    || appliedFilters.majorCategoryId
-    || appliedFilters.categoryIds[0]
-    || "";
+  const selectedCategoryId =
+    appliedFilters.smallCategoryId ||
+    appliedFilters.middleCategoryId ||
+    appliedFilters.majorCategoryId ||
+    appliedFilters.categoryIds[0] ||
+    "";
   const categoryIds = [selectedCategoryId].filter((value) => /^[1-9]\d*$/.test(value));
   if (categoryIds.length > 0) query.category_ids = Array.from(new Set(categoryIds)).join(",");
 

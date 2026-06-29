@@ -3,5 +3,5 @@ import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/ad
 export const metadata = buildAdminPageMetadata("/beauty-dashboard/dashboard");
 
 export default function BeautyDashboardPage() {
-    return renderAdminPage("/beauty-dashboard/dashboard");
+  return renderAdminPage("/beauty-dashboard/dashboard");
 }

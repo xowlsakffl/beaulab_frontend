@@ -28,7 +28,13 @@ export function HospitalVerifiedAccountContactEditCard({
   );
 }
 
-export function HospitalAllowStatusReadOnlyCard({ allowStatus, className }: { allowStatus: string; className?: string }) {
+export function HospitalAllowStatusReadOnlyCard({
+  allowStatus,
+  className,
+}: {
+  allowStatus: string;
+  className?: string;
+}) {
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">

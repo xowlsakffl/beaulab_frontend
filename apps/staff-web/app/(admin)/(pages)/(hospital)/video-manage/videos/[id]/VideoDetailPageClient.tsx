@@ -16,11 +16,7 @@ import {
 
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  DetailCompactMediaCard,
-  DetailEmptyState,
-  DetailImageMediaCard,
-} from "@/components/common/DetailMediaCard";
+import { DetailCompactMediaCard, DetailEmptyState, DetailImageMediaCard } from "@/components/common/DetailMediaCard";
 import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { api } from "@/lib/common/api";
 import {
@@ -109,7 +105,7 @@ export default function VideoDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:items-start lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start">
       <Card as="section" className="min-w-0">
         <CardHeader className="pb-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -132,13 +128,11 @@ export default function VideoDetailPageClient() {
           </div>
         </CardHeader>
 
-        <div className="space-y-10 divide-y divide-gray-200 ">
+        <div className="space-y-10 divide-y divide-gray-200">
           <section className="space-y-6 pb-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">기본 정보</h3>
-              <p className="text-xs text-gray-500 ">
-                동영상의 병의원, 의료진, 상태 정보를 확인합니다.
-              </p>
+              <h3 className="text-sm font-semibold text-gray-800">기본 정보</h3>
+              <p className="text-xs text-gray-500">동영상의 병의원, 의료진, 상태 정보를 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -148,14 +142,23 @@ export default function VideoDetailPageClient() {
               <DetailField label="설명" value={detail.description} className="md:col-span-2" />
               <DetailField label="조회수" value={formatCount(detail.view_count)} />
               <DetailField label="좋아요 수" value={formatCount(detail.like_count)} />
-              <StatusField label="운영 상태" tone="success" value={detail.status} formatter={labelVideoOperatingStatus} />
+              <StatusField
+                label="운영 상태"
+                tone="success"
+                value={detail.status}
+                formatter={labelVideoOperatingStatus}
+              />
               <StatusField
                 label="검수 상태"
                 tone="warning"
                 value={detail.allow_status}
                 formatter={labelVideoApprovalStatus}
               />
-              <TagField label="카테고리" values={detail.categories?.map((item) => item.full_path || item.name) ?? []} className="md:col-span-2" />
+              <TagField
+                label="카테고리"
+                values={detail.categories?.map((item) => item.full_path || item.name) ?? []}
+                className="md:col-span-2"
+              />
               <DetailField label="등록신청일" value={formatLocalDateTime(detail.created_at)} />
               <DetailField label="등록완료일" value={formatLocalDateTime(detail.allowed_at)} />
             </div>
@@ -163,10 +166,8 @@ export default function VideoDetailPageClient() {
 
           <section className="space-y-6">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800 ">배포 정보</h3>
-              <p className="text-xs text-gray-500 ">
-                외부 영상 연동과 게시 기간 정보를 확인합니다.
-              </p>
+              <h3 className="text-sm font-semibold text-gray-800">배포 정보</h3>
+              <p className="text-xs text-gray-500">외부 영상 연동과 게시 기간 정보를 확인합니다.</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -217,15 +218,7 @@ function DetailField({
   );
 }
 
-function LinkField({
-  label,
-  href,
-  className,
-}: {
-  label: string;
-  href?: string | null;
-  className?: string;
-}) {
+function LinkField({ label, href, className }: { label: string; href?: string | null; className?: string }) {
   const trimmedHref = href?.trim();
 
   return (
@@ -236,7 +229,7 @@ function LinkField({
           href={trimmedHref}
           target="_blank"
           rel="noreferrer"
-          className="break-all text-sm leading-6 text-brand-600 underline underline-offset-2 "
+          className="text-sm leading-6 break-all text-brand-600 underline underline-offset-2"
         >
           {trimmedHref}
         </a>
@@ -273,15 +266,7 @@ function StatusField({
   );
 }
 
-function TagField({
-  label,
-  values,
-  className,
-}: {
-  label: string;
-  values: string[];
-  className?: string;
-}) {
+function TagField({ label, values, className }: { label: string; values: string[]; className?: string }) {
   return (
     <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
       <p className={detailLabelClass}>{label}</p>
@@ -290,15 +275,7 @@ function TagField({
   );
 }
 
-function BooleanField({
-  label,
-  value,
-  className,
-}: {
-  label: string;
-  value: boolean;
-  className?: string;
-}) {
+function BooleanField({ label, value, className }: { label: string; value: boolean; className?: string }) {
   return <DetailField label={label} value={value ? "예" : "아니오"} className={className} />;
 }
 
@@ -309,7 +286,7 @@ function ThumbnailSection({ media }: { media?: VideoMediaAsset | null }) {
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 ">썸네일</h3>
+        <h3 className="text-sm font-semibold text-gray-800">썸네일</h3>
       </div>
 
       {fileUrl && fileName ? (
@@ -342,7 +319,7 @@ function FileSummaryField({
   return (
     <section className="space-y-3">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800 ">{label}</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{label}</h3>
       </div>
 
       {fileUrl && fileName ? (

@@ -10,16 +10,8 @@ import {
   type ExistingMediaItem,
 } from "@beaulab/ui-admin";
 
-import {
-  formatBytes,
-  getVideoMediaFilename,
-  resolveVideoMediaUrl,
-  type VideoMediaAsset,
-} from "@/lib/video/detail";
-import {
-  VIDEO_THUMBNAIL_COLLECTIONS,
-  type VideoFormErrors,
-} from "@/lib/video/form";
+import { formatBytes, getVideoMediaFilename, resolveVideoMediaUrl, type VideoMediaAsset } from "@/lib/video/detail";
+import { VIDEO_THUMBNAIL_COLLECTIONS, type VideoFormErrors } from "@/lib/video/form";
 import { downloadFile } from "@/lib/common/api";
 
 type VideoMediaPanelProps = {
@@ -76,17 +68,17 @@ export function VideoMediaPanel({
         />
 
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-gray-800 ">원본 동영상 파일</p>
+          <p className="text-sm font-semibold text-gray-800">원본 동영상 파일</p>
           {currentVideoFile ? (
-            <div className="rounded-2xl border border-gray-200 p-4 ">
+            <div className="rounded-2xl border border-gray-200 p-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-gray-900 ">
+                  <p className="truncate text-sm font-semibold text-gray-900">
                     {getVideoMediaFilename(currentVideoFile)}
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                     {currentVideoFile.size ? (
-                      <p className="text-xs text-gray-500 ">{formatBytes(currentVideoFile.size)}</p>
+                      <p className="text-xs text-gray-500">{formatBytes(currentVideoFile.size)}</p>
                     ) : null}
                     {currentVideoFileUrl ? (
                       <>
@@ -94,13 +86,13 @@ export function VideoMediaPanel({
                           href={currentVideoFileUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs font-medium text-brand-600 underline underline-offset-2 "
+                          className="text-xs font-medium text-brand-600 underline underline-offset-2"
                         >
                           파일 보기
                         </a>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1 border-b border-current pb-px text-xs font-medium leading-none text-blue-600 "
+                          className="inline-flex items-center gap-1 border-b border-current pb-px text-xs leading-none font-medium text-blue-600"
                           onClick={() => {
                             void downloadFile(
                               videoFileDownloadUrl ?? currentVideoFileUrl ?? "",
@@ -130,11 +122,11 @@ export function VideoMediaPanel({
               </div>
             </div>
           ) : isCurrentVideoFileRemoved ? (
-            <div className="rounded-2xl border border-dashed border-red-300 bg-red-50/40 px-4 py-5 text-sm text-red-600   ">
+            <div className="rounded-2xl border border-dashed border-red-300 bg-red-50/40 px-4 py-5 text-sm text-red-600">
               원본 동영상 파일이 저장 시 삭제됩니다.
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-5 text-sm text-gray-500  ">
+            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-5 text-sm text-gray-500">
               제출된 원본 동영상 파일이 없습니다.
             </div>
           )}

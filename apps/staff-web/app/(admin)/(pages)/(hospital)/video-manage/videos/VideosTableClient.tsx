@@ -38,9 +38,7 @@ export default function VideosTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [initialTableState] = React.useState(() =>
-    parseVideosTableState(new URLSearchParams(searchParams.toString())),
-  );
+  const [initialTableState] = React.useState(() => parseVideosTableState(new URLSearchParams(searchParams.toString())));
 
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
@@ -249,10 +247,13 @@ export default function VideosTableClient() {
     [],
   );
 
-  const applyDatePreset = React.useCallback((key: DateFilterKey, preset: DatePresetKey) => {
-    const range = buildPresetDateRange(preset);
-    applyDateRange(key, range, { closePicker: true });
-  }, [applyDateRange]);
+  const applyDatePreset = React.useCallback(
+    (key: DateFilterKey, preset: DatePresetKey) => {
+      const range = buildPresetDateRange(preset);
+      applyDateRange(key, range, { closePicker: true });
+    },
+    [applyDateRange],
+  );
 
   const toggleOperatingStatus = React.useCallback((value: string) => {
     setDraftFilters((prev) => ({
