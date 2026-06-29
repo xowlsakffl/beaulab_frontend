@@ -2,9 +2,7 @@ import React from "react";
 import { getStaticRoutePermissions, type StaticAdminRoutePath } from "@/lib/common/routing/route-permissions";
 import {
   type SidebarNavItem,
-  LayoutGrid,
   Hospital,
-  Wallet,
   Database,
   Megaphone,
   Video,
@@ -13,9 +11,6 @@ import {
   Bell,
   Users,
   Tags,
-  Images,
-  ChartColumn,
-  Settings2,
 } from "@beaulab/ui-admin";
 
 type VisibilityRule = { requiredPermissions?: string[] };
@@ -56,25 +51,12 @@ function routeSubItem(item: { name: string; path: StaticAdminRoutePath }): AppNa
 const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
   main: [
     {
-      icon: <LayoutGrid className={iconClass} />,
-      name: "병의원 대시보드",
-      subItems: [routeSubItem({ name: "대시보드", path: "/hospital-dashboard/dashboard" })],
-    },
-    {
       icon: <Hospital className={iconClass} />,
       name: "병의원 관리",
       subItems: [
         routeSubItem({ name: "병의원", path: "/hospital-manage/hospitals" }),
         routeSubItem({ name: "의료진", path: "/hospital-manage/doctors" }),
         routeSubItem({ name: "입점신청", path: "/hospital-manage/hospital-entries" }),
-      ],
-    },
-    {
-      icon: <Wallet className={iconClass} />,
-      name: "충전금 관리",
-      subItems: [
-        routeSubItem({ name: "입금/충전 관리", path: "/wallet-manage/deposits" }),
-        routeSubItem({ name: "충전금 전체내역", path: "/wallet-manage/history" }),
       ],
     },
     {
@@ -88,11 +70,7 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     {
       icon: <Megaphone className={iconClass} />,
       name: "광고 관리",
-      subItems: [
-        routeSubItem({ name: "이벤트 관리", path: "/ads-manage/events" }),
-        routeSubItem({ name: "상품 등록 관리", path: "/ads-manage/products" }),
-        routeSubItem({ name: "상품 캘린더", path: "/ads-manage/calendar" }),
-      ],
+      subItems: [routeSubItem({ name: "이벤트 관리", path: "/ads-manage/events" })],
     },
     {
       icon: <Video className={iconClass} />,
@@ -125,60 +103,7 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
 };
 
 const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
-  main: [
-    {
-      icon: <LayoutGrid className={iconClass} />,
-      name: "뷰티 대시보드",
-      subItems: [routeSubItem({ name: "대시보드", path: "/beauty-dashboard/dashboard" })],
-    },
-    {
-      icon: <Hospital className={iconClass} />,
-      name: "뷰티샵 관리",
-      subItems: [
-        routeSubItem({ name: "뷰티샵", path: "/beauty-shop-manage/beauties" }),
-        routeSubItem({ name: "뷰티전문가", path: "/beauty-shop-manage/experts" }),
-      ],
-    },
-    {
-      icon: <Wallet className={iconClass} />,
-      name: "충전금 관리",
-      subItems: [
-        routeSubItem({ name: "뷰티샵 목록", path: "/beauty-wallet-manage/beauties" }),
-        routeSubItem({ name: "충전금 사용 목록", path: "/beauty-wallet-manage/usages" }),
-      ],
-    },
-    {
-      icon: <Database className={iconClass} />,
-      name: "고객 DB 관리",
-      subItems: [routeSubItem({ name: "리얼모델 DB", path: "/beauty-customer-db-manage/real-models" })],
-    },
-    {
-      icon: <Megaphone className={iconClass} />,
-      name: "광고 관리",
-      subItems: [
-        routeSubItem({ name: "이벤트 관리", path: "/beauty-ads-manage/events" }),
-        routeSubItem({ name: "상품 등록 관리", path: "/beauty-ads-manage/products" }),
-        routeSubItem({ name: "상품 캘린더", path: "/beauty-ads-manage/calendar" }),
-      ],
-    },
-    {
-      icon: <MessageSquareText className={iconClass} />,
-      name: "게시물 관리",
-      subItems: [
-        routeSubItem({ name: "뷰티 후기", path: "/beauty-post-manage/beauty-posts" }),
-        routeSubItem({ name: "뷰티 리뷰", path: "/beauty-post-manage/beauty-reviews" }),
-        routeSubItem({ name: "토크(커뮤니티)", path: "/beauty-post-manage/talks" }),
-      ],
-    },
-    {
-      icon: <ShieldAlert className={iconClass} />,
-      name: "신고컨텐츠 관리",
-      subItems: [
-        routeSubItem({ name: "게시물", path: "/beauty-reported-content-manage/posts" }),
-        routeSubItem({ name: "댓글", path: "/beauty-reported-content-manage/comments" }),
-      ],
-    },
-  ],
+  main: [],
   others: [],
 };
 
@@ -187,11 +112,7 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     {
       icon: <Bell className={iconClass} />,
       name: "공지사항 관리",
-      subItems: [
-        routeSubItem({ name: "공지사항", path: "/notice-manage/notices" }),
-        routeSubItem({ name: "자주하는 질문", path: "/notice-manage/faqs" }),
-        routeSubItem({ name: "1:1문의", path: "/notice-manage/inquiries" }),
-      ],
+      subItems: [routeSubItem({ name: "공지사항", path: "/notice-manage/notices" })],
     },
     {
       icon: <Users className={iconClass} />,
@@ -200,34 +121,8 @@ const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     },
     {
       icon: <Tags className={iconClass} />,
-      name: "카테고리 / 해시태그 관리",
-      subItems: [
-        routeSubItem({ name: "카테고리", path: "/category-hashtag-manage/categories" }),
-        routeSubItem({ name: "해시태그", path: "/category-hashtag-manage/hashtags" }),
-      ],
-    },
-    {
-      icon: <Images className={iconClass} />,
-      name: "컨텐츠 관리",
-      subItems: [
-        routeSubItem({ name: "배너", path: "/content-manage/banners" }),
-        routeSubItem({ name: "팝업", path: "/content-manage/popups" }),
-        routeSubItem({ name: "상단타이틀", path: "/content-manage/top-titles" }),
-      ],
-    },
-    {
-      icon: <ChartColumn className={iconClass} />,
-      name: "통계 관리",
-      subItems: [routeSubItem({ name: "통계", path: "/statistics-manage/statistics" })],
-    },
-    {
-      icon: <Settings2 className={iconClass} />,
-      name: "관리자 설정",
-      subItems: [
-        routeSubItem({ name: "유해성 단어 설정", path: "/admin-settings/harmful-words" }),
-        routeSubItem({ name: "닉네임 관리", path: "/admin-settings/nicknames" }),
-        routeSubItem({ name: "직원 관리", path: "/admin-settings/staff" }),
-      ],
+      name: "해시태그 관리",
+      subItems: [routeSubItem({ name: "해시태그", path: "/category-hashtag-manage/hashtags" })],
     },
   ],
   others: [],
@@ -293,21 +188,7 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
   }
 
   if (
-    pathname.startsWith("/beauty-dashboard") ||
-    pathname.startsWith("/beauty-shop-manage") ||
-    pathname.startsWith("/beauty-wallet-manage") ||
-    pathname.startsWith("/beauty-customer-db-manage") ||
-    pathname.startsWith("/beauty-ads-manage") ||
-    pathname.startsWith("/beauty-post-manage") ||
-    pathname.startsWith("/beauty-reported-content-manage")
-  ) {
-    return "beauty";
-  }
-
-  if (
-    pathname.startsWith("/hospital-dashboard") ||
     pathname.startsWith("/hospital-manage") ||
-    pathname.startsWith("/wallet-manage") ||
     pathname.startsWith("/customer-db-manage") ||
     pathname.startsWith("/ads-manage") ||
     pathname.startsWith("/video-manage") ||

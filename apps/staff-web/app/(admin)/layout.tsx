@@ -50,6 +50,10 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     () => mergeStaffSidebarMenu(sidebarMenus, activeDomain),
     [activeDomain, sidebarMenus],
   );
+  const brandHref = React.useMemo(
+    () => resolveFirstSidebarPath(menuByActor) ?? "/admin-settings/profile",
+    [menuByActor],
+  );
   const profile = session?.profile;
   const displayName = profile?.name || profile?.nickname || "뷰랩 관리자";
   const subtitle = profile?.nickname ? `아이디 ${profile.nickname}` : "스태프 관리자";
@@ -129,7 +133,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
             others: "공통메뉴",
           }}
           brand={{
-            href: activeDomain === "beauty" ? "/beauty-dashboard/dashboard" : "/hospital-dashboard/dashboard",
+            href: brandHref,
             expandedLogo: (
               <div className="flex items-center">
                 <Image
@@ -168,6 +172,23 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
       </div>
     </PageHeaderExtraProvider>
   );
+}
+
+function resolveFirstSidebarPath(menu: ReturnType<typeof mergeStaffSidebarMenu>) {
+  const items = [...menu.main, ...(menu.others ?? [])];
+
+  for (const item of items) {
+    if (item.path) {
+      return item.path;
+    }
+
+    const firstSubItem = item.subItems?.[0];
+    if (firstSubItem?.path) {
+      return firstSubItem.path;
+    }
+  }
+
+  return null;
 }
 
 function resolveHeaderPageTitle(

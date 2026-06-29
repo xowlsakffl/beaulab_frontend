@@ -3,8 +3,12 @@
 import React from "react";
 
 import { api } from "@/lib/common/api";
+import { getTimedCache, setTimedCache } from "@/lib/common/request-cache";
 import type { VideoDoctorOption } from "@/lib/video/form";
 import { isApiSuccess } from "@beaulab/types";
+
+const VIDEO_DOCTOR_OPTIONS_CACHE_TTL_MS = 5 * 60 * 1000;
+const videoDoctorOptionsCache = new Map<string, { expiresAt: number; value: VideoDoctorOption[] }>();
 
 export function useVideoDoctorOptions(hospitalId: number | null) {
   const [options, setOptions] = React.useState<VideoDoctorOption[]>([]);
@@ -22,6 +26,16 @@ export function useVideoDoctorOptions(hospitalId: number | null) {
     let isMounted = true;
 
     const fetchOptions = async () => {
+      const cacheKey = String(hospitalId);
+      const cachedOptions = getTimedCache(videoDoctorOptionsCache, cacheKey);
+
+      if (cachedOptions) {
+        setOptions(cachedOptions);
+        setIsLoading(false);
+        setError(null);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -39,6 +53,7 @@ export function useVideoDoctorOptions(hospitalId: number | null) {
           return;
         }
 
+        setTimedCache(videoDoctorOptionsCache, cacheKey, response.data, VIDEO_DOCTOR_OPTIONS_CACHE_TTL_MS);
         setOptions(response.data);
       } catch {
         if (!isMounted) return;

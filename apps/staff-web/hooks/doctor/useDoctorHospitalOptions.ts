@@ -3,8 +3,12 @@
 import React from "react";
 
 import { api } from "@/lib/common/api";
+import { getTimedCache, setTimedCache } from "@/lib/common/request-cache";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
 import { isApiSuccess } from "@beaulab/types";
+
+const DOCTOR_HOSPITAL_OPTIONS_CACHE_TTL_MS = 5 * 60 * 1000;
+const doctorHospitalOptionsCache = new Map<string, { expiresAt: number; value: DoctorHospitalOption[] }>();
 
 export function useDoctorHospitalOptions(enabled: boolean, query: string) {
   const [options, setOptions] = React.useState<DoctorHospitalOption[]>([]);
@@ -18,13 +22,23 @@ export function useDoctorHospitalOptions(enabled: boolean, query: string) {
     const timer = window.setTimeout(async () => {
       requestIdRef.current += 1;
       const requestId = requestIdRef.current;
+      const trimmedQuery = query.trim();
+      const cacheKey = trimmedQuery;
+      const cachedOptions = getTimedCache(doctorHospitalOptionsCache, cacheKey);
+
+      if (cachedOptions) {
+        setOptions(cachedOptions);
+        setIsLoading(false);
+        setError(null);
+        return;
+      }
 
       setIsLoading(true);
       setError(null);
 
       try {
         const response = await api.get<DoctorHospitalOption[]>("/doctors/hospital-options", {
-          q: query.trim() || undefined,
+          q: trimmedQuery || undefined,
           per_page: 10,
         });
 
@@ -38,6 +52,7 @@ export function useDoctorHospitalOptions(enabled: boolean, query: string) {
           return;
         }
 
+        setTimedCache(doctorHospitalOptionsCache, cacheKey, response.data, DOCTOR_HOSPITAL_OPTIONS_CACHE_TTL_MS);
         setOptions(response.data);
       } catch {
         if (requestId !== requestIdRef.current) {

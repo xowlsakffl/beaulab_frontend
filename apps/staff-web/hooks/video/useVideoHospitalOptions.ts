@@ -3,8 +3,12 @@
 import React from "react";
 
 import { api } from "@/lib/common/api";
+import { getTimedCache, setTimedCache } from "@/lib/common/request-cache";
 import type { VideoHospitalOption } from "@/lib/video/form";
 import { isApiSuccess } from "@beaulab/types";
+
+const VIDEO_HOSPITAL_OPTIONS_CACHE_TTL_MS = 5 * 60 * 1000;
+const videoHospitalOptionsCache = new Map<string, { expiresAt: number; value: VideoHospitalOption[] }>();
 
 export function useVideoHospitalOptions(enabled: boolean, query: string) {
   const [options, setOptions] = React.useState<VideoHospitalOption[]>([]);
@@ -18,13 +22,23 @@ export function useVideoHospitalOptions(enabled: boolean, query: string) {
     const timer = window.setTimeout(async () => {
       requestIdRef.current += 1;
       const requestId = requestIdRef.current;
+      const trimmedQuery = query.trim();
+      const cacheKey = trimmedQuery;
+      const cachedOptions = getTimedCache(videoHospitalOptionsCache, cacheKey);
+
+      if (cachedOptions) {
+        setOptions(cachedOptions);
+        setIsLoading(false);
+        setError(null);
+        return;
+      }
 
       setIsLoading(true);
       setError(null);
 
       try {
         const response = await api.get<VideoHospitalOption[]>("/videos/hospital-options", {
-          q: query.trim() || undefined,
+          q: trimmedQuery || undefined,
           per_page: 10,
         });
 
@@ -38,6 +52,7 @@ export function useVideoHospitalOptions(enabled: boolean, query: string) {
           return;
         }
 
+        setTimedCache(videoHospitalOptionsCache, cacheKey, response.data, VIDEO_HOSPITAL_OPTIONS_CACHE_TTL_MS);
         setOptions(response.data);
       } catch {
         if (requestId !== requestIdRef.current) {
