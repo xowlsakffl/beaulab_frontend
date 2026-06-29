@@ -1,15 +1,12 @@
 # Frontend Architecture
 
-이 문서는 현재 `beaulab_frontend`의 실제 구조를 기준으로 정리한 운영 문서입니다.
+작성 기준: 2026-06-29
 
-작성 기준: 2026-06-22
+이 문서는 현재 `beaulab_frontend` 코드 기준의 구조 문서다. 미래 계획이 아니라 지금 유지해야 하는 기준만 적는다.
 
 ## 1. 범위
 
-현재 실제 운영 기준 앱은 `apps/staff-web`입니다.
-`apps/user-web`은 앱 사용자 채팅 API를 화면에서 검증하기 위한 임시 테스트 앱입니다.
-
-모노레포 전체 구조는 아래처럼 봅니다.
+현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/user-web`은 앱 사용자 로그인, 채팅, 알림, Reverb 이벤트를 브라우저에서 수동 검증하기 위한 테스트 앱이다.
 
 ```text
 beaulab_frontend/
@@ -24,12 +21,12 @@ beaulab_frontend/
 └─ doc/
 ```
 
-핵심 전제:
+원칙:
 
-- `packages/*`는 범용 레이어입니다.
-- 실제 관리자 제품 로직은 `apps/staff-web`가 소유합니다.
-- 앱 사용자 채팅 수동 테스트 화면은 `apps/user-web`가 소유합니다.
-- 이 문서는 “미래에 이렇게 될 예정”이 아니라 “지금 이렇게 되어 있음”만 적습니다.
+- `packages/*`는 앱/도메인 비의존 레이어다.
+- 관리자 제품 로직은 `apps/staff-web`가 소유한다.
+- `apps/user-web`은 관리자 shell, 메뉴, `ui-admin` 스타일을 공유하지 않는다.
+- 서버 권한 검증은 Laravel API가 최종 책임을 가진다. 프론트 권한은 UX 제어다.
 
 ## 2. 계층
 
@@ -44,21 +41,10 @@ apps/staff-web
   -> 관리자 앱 화면, 라우트, 메뉴, 권한 매핑, feature 흐름
 
 apps/user-web
-  -> 앱 사용자 로그인/채팅 API를 브라우저에서 수동 검증하는 임시 화면
+  -> 앱 사용자 로그인/채팅/알림 API 수동 검증
 ```
 
-규칙:
-
-- 앱은 `packages/*`를 조합합니다.
-- `packages/*`는 앱 도메인이나 라우트를 알면 안 됩니다.
-- 메뉴, 보호 라우트, actor 세션, 병의원/공지사항/의료진 업무 흐름은 `apps/staff-web`에 둡니다.
-- `apps/user-web`은 현재 채팅 테스트 목적의 독립 앱이므로 `staff-web` 관리자 shell, 메뉴, UI 패키지 스타일을 공유하지 않습니다.
-- 설명이 붙는 공통 form UI 패턴은 `packages/ui-admin`에 둡니다.
-- 반복되는 modal panel / header / footer 패턴도 `packages/ui-admin`에 둡니다.
-
-## 3. `apps/staff-web` 현재 구조
-
-현재 기준 권장 구조이자 실제 구조는 아래와 같습니다.
+## 3. `apps/staff-web` 구조
 
 ```text
 apps/staff-web/
@@ -73,440 +59,263 @@ apps/staff-web/
 │  ├─ account-user/
 │  ├─ common/
 │  ├─ doctor/
-│  │  ├─ form/
-│  │  └─ list/
 │  ├─ hashtag/
-│  │  └─ list/
 │  ├─ hospital/
-│  │  ├─ form/
-│  │  └─ list/
+│  ├─ hospital-entry/
 │  ├─ hospital-evaluation/
 │  ├─ hospital-event/
 │  ├─ hospital-event-db/
 │  ├─ hospital-event-real-model-db/
 │  ├─ hospital-review/
-│  │  └─ list/
 │  ├─ notice/
-│  │  ├─ form/
-│  │  └─ list/
 │  ├─ reported-content/
 │  ├─ talk/
-│  │  └─ list/
 │  └─ video/
-│     ├─ form/
-│     └─ list/
 ├─ hooks/
 │  ├─ common/
-│  ├─ hospital/
-│  ├─ notice/
 │  ├─ doctor/
+│  ├─ hospital/
+│  ├─ hospital-event/
+│  ├─ notice/
 │  └─ video/
 └─ lib/
    ├─ account-user/
    ├─ common/
-   │  ├─ api.ts
-   │  ├─ category.ts
-   │  ├─ auth/
-   │  │  └─ session.ts
-   │  ├─ navigation/
-   │  │  └─ buildReturnToPath.ts
-   │  └─ routing/
-   │     ├─ admin-pages.tsx
-   │     └─ route-permissions.ts
    ├─ doctor/
-   │  ├─ form.ts
-   │  └─ list.ts
    ├─ hashtag/
-   │  └─ list.ts
    ├─ hospital/
-   │  ├─ detail.ts
-   │  ├─ form.ts
-   │  └─ list.ts
+   ├─ hospital-entry/
    ├─ hospital-evaluation/
    ├─ hospital-event/
    ├─ hospital-event-db/
    ├─ hospital-event-real-model-db/
    ├─ hospital-review/
-   │  ├─ comment-list.ts
-   │  └─ list.ts
    ├─ notice/
-   │  ├─ form.ts
-   │  └─ list.ts
    ├─ reported-content/
    ├─ talk/
-   │  ├─ comment-list.ts
-   │  ├─ detail.ts
-   │  └─ list.ts
    └─ video/
-      ├─ form.ts
-      └─ list.ts
 ```
+
+`app/(admin)/(pages)` route group은 `(common)`, `(hospital)`, `(beauty)` 세 가지만 사용한다. URL prefix는 메뉴 상위 그룹을 번역한 값으로 맞춘다.
+
+현재 주요 URL prefix:
+
+| Prefix                     | 소유 영역                                             |
+| -------------------------- | ----------------------------------------------------- |
+| `/hospital-dashboard`      | 병의원 대시보드                                       |
+| `/hospital-manage`         | 병의원, 의료진, 입점신청                              |
+| `/video-manage`            | 동영상                                                |
+| `/ads-manage`              | 병원 이벤트                                           |
+| `/customer-db-manage`      | 이벤트 DB, 리얼모델 DB                                |
+| `/post-manage`             | 토크, 성형후기, 시술후기, 병의원 평가                 |
+| `/reported-post-manage`    | 신고 토크/후기/평가/채팅                              |
+| `/notice-manage`           | 공지사항, FAQ, 1:1 문의 placeholder                   |
+| `/user-manage`             | 일반 회원                                             |
+| `/category-hashtag-manage` | 카테고리, 해시태그                                    |
+| `/wallet-manage`           | 충전금 placeholder                                    |
+| `/content-manage`          | 배너/팝업/상단 타이틀 placeholder                     |
+| `/statistics-manage`       | 통계 placeholder                                      |
+| `/admin-settings`          | 프로필, 직원, 유해성 단어, 닉네임, 대행사 placeholder |
+| `/beauty-*`                | 뷰티 도메인 placeholder                               |
+
+API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 화면 URL은 `/ads-manage/events`지만 API 리소스는 `/api/v1/staff/hospital-events`다.
 
 ## 4. 디렉토리 책임
 
 ### 4.1 `app/`
 
-페이지 엔트리와 레이아웃을 둡니다.
+- page/layout 정의
+- metadata, params 전달
+- `*Client.tsx` 연결
+- 보호 shell 진입
 
-역할:
-
-- 라우트 단위 page/layout 정의
-- 페이지 클라이언트 컴포넌트 연결
-- 권한 보호 shell 진입
-- `(admin)/(pages)` 아래 route group과 공통 페이지는 `common / hospital / beauty` 기준으로만 나눕니다.
-- 병의원 도메인 게시물은 `(hospital)` 아래에 둡니다. 현재 성형후기/시술후기/병의원 평가는 `/(hospital)/reviews/*`에 둡니다.
-
-원칙:
-
-- `page.tsx`는 얇게 유지합니다.
-- 무거운 폼/목록 로직은 `*Client.tsx`로 분리합니다.
+`page.tsx`에는 상태, API 호출, validation을 넣지 않는다.
 
 ### 4.2 `components/common/`
 
-`staff-web` 관리자 앱 전체에서 공통으로 쓰는 앱 전용 컴포넌트를 둡니다.
+`staff-web` 관리자 앱 전체에서 쓰는 앱 전용 컴포넌트를 둔다.
 
-현재 예:
+현재 주요 파일:
 
-- [guard.tsx](/root/beaulab_frontend/apps/staff-web/components/common/guard.tsx)
-- [sidebar-menu.tsx](/root/beaulab_frontend/apps/staff-web/components/common/sidebar-menu.tsx)
+- `guard.tsx`: 세션 복구, route permission 확인, 미인증 로그인 이동
+- `sidebar-menu.tsx`: 권한 기반 메뉴 정의/조합
+- `LoadErrorState.tsx`: 중앙 정렬 문구 + 다시 불러오기 UI
+- `AllowStatusControls.tsx`: 신청/검수/승인/반려 계열 공통 컨트롤
+- `VisibilityActionButtons.tsx`: 노출/미노출 계열 버튼
+- `OperationHistoryCard.tsx`, `OperationHistoryDisplay.tsx`: 운영 히스토리 렌더링
+- `DetailImageGallery.tsx`, `DetailMediaCard.tsx`: 상세/수정 미디어 표시
 
-여기는 `packages/ui-admin`와 다릅니다.
+`components/common`은 `packages/ui-admin`과 다르다. `ui-admin`은 제품 비의존 UI이고, `components/common`은 staff 관리자 앱 adapter다.
 
-- `ui-admin`은 제품 비의존 UI
-- `components/common`은 staff 관리자 앱 전용 adapter
+### 4.3 도메인 컴포넌트
 
-현재 사이드바 메뉴는 아래 기준으로 조합합니다.
-
-- `sidebar-menu.tsx`가 병의원/뷰티 도메인 메뉴와 공통 메뉴를 따로 정의합니다.
-- `app/(admin)/layout.tsx`가 현재 domain toggle 상태를 들고 최종 메뉴를 합칩니다.
-- `packages/ui-admin`의 `AppSidebar`는 전달받은 `topContent`와 메뉴를 렌더링만 합니다.
-- 최종 렌더링에서도 `main=도메인 메뉴`, `others=공통 메뉴`를 유지해서 섹션 라벨을 분리합니다.
-- 대시보드도 도메인별로 분리합니다. 현재 기준 병의원은 `/`, 뷰티는 `/beauty-dashboard`를 사용합니다.
-- 뷰티 도메인 전용 placeholder 페이지는 병의원/공통 경로와 의미 충돌을 피하려고 `/beauty-*` prefix route를 사용합니다.
-
-### 4.3 도메인 컴포넌트 폴더
-
-도메인 전용 UI를 둡니다.
-
-현재 원칙:
-
-- 폼은 섹션 단위까지만 분리합니다.
-- 목록도 toolbar / filter / table 정도까지만 분리합니다.
-- 해시태그처럼 단일 필드 관리자 마스터 CRUD는 목록 페이지 기준으로 `toolbar / table / modal` 정도만 분리합니다.
-- 모달 내부 레이아웃이 여러 화면에서 반복되면 `packages/ui-admin`의 modal 조합 컴포넌트를 우선 재사용합니다.
+도메인 field name, endpoint, 화면 용어를 아는 UI는 각 도메인 폴더에 둔다.
 
 예:
 
-- 병의원 폼: `Basic / Business / Media`
-- 공지사항 폼: `Main(Basic+Content) / Attachments`
-- 의료진 폼: `Basic / Category / Medical`
-- 동영상 폼: `Basic / Category / Publish / Media`
-- 병원 이벤트 폼: 기본 정보, 카테고리/의료진, 옵션, 이미지, 게시/검수 상태
-- 해시태그 목록: `Toolbar / DataTable / UpsertModal`
-- 토크 목록: `Toolbar / Filter / DataTable`
-- 토크 상세: 본문, 투표, 이미지, 댓글, 댓글 처리 이력
-- 병의원 후기 목록: 게시글 탭과 댓글 탭을 같은 페이지 클라이언트가 소유하되, 필터 상태는 탭별로 분리합니다.
-- 병의원 후기 댓글 목록: 부모 후기 정보를 `parent` 객체 기준으로 표시하고, 카테고리는 부모 후기 카테고리를 기준으로 필터링합니다.
-- 병의원 평가: 목록/상세와 영수증 상태 정보를 분리합니다.
-- 신고 콘텐츠: 신고 대상 타입별 목록/상세를 같은 도메인 폴더에서 다룹니다.
-- 일반 회원: 회원 목록/상세 표시와 상태 수정 UI를 다룹니다.
-- 이벤트 DB/리얼모델 DB: 고객 신청 목록, 상세, 상태 변경 UI를 다룹니다.
-
-현재 실제 도메인 컴포넌트 폴더:
-
-- `components/account-user`
-- `components/doctor`
-- `components/hashtag`
-- `components/hospital`
-- `components/hospital-evaluation`
-- `components/hospital-event`
-- `components/hospital-event-db`
-- `components/hospital-event-real-model-db`
-- `components/hospital-review`
-- `components/notice`
-- `components/reported-content`
-- `components/talk`
-- `components/video`
+- 병의원: 기본정보, 사업자/계좌정보, 미디어, 인증 계정 정보, 검수상태
+- 의료진: 기본정보, 시술분야, 의사정보, 프로필/증빙 미디어, 검수상태
+- 이벤트: 기본정보, 카테고리/의료진, 옵션, 이미지, 검수상태, 상담신청 현황 버튼
+- 입점신청: 목록/summary/상세/승인상태 변경
+- 이벤트 DB/리얼모델 DB: 신청 목록/상세/상태 변경
+- 게시물/신고: 토크, 후기, 평가, 채팅 신고 목록/상세/처리
+- 회원: 목록/상세, 상담/활동/신고/이벤트/리얼모델 실데이터 연결
 
 ### 4.4 `hooks/common/`
 
-도메인 이름 없이 설명 가능한 훅만 둡니다.
+도메인 이름 없이 설명 가능한 hook만 둔다.
 
-현재 예:
+현재 주요 파일:
 
-- [useCategorySelectorLoader.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useCategorySelectorLoader.ts)
-- [useDaumPostcode.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useDaumPostcode.ts)
-- [useFormFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useFormFieldFocus.ts)
-- [useGoBack.ts](/root/beaulab_frontend/apps/staff-web/hooks/common/useGoBack.ts)
+- `useListData.ts`: 목록 fetch lifecycle 공통화
+- `useCategorySelectorLoader.ts`: 공통 카테고리 selector 로드
+- `useDaumPostcode.ts`: 주소 검색
+- `useFormFieldFocus.ts`: validation field focus
+- `useObjectUrl.ts`: object URL 생성/해제
+- `useGoBack.ts`: 상세/수정 뒤로가기
 
-### 4.5 `hooks/hospital`, `hooks/notice`, `hooks/doctor`, `hooks/video`
+도메인 endpoint나 field key를 알면 `hooks/common`이 아니다.
 
-도메인 필드명, DOM target, API endpoint에 직접 묶인 훅을 둡니다.
+### 4.5 도메인 hook
 
-현재 예:
+도메인 endpoint, field key, DOM target을 아는 hook은 도메인 폴더에 둔다.
 
-- [useHospitalAddressSearch.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalAddressSearch.ts)
-- [useHospitalFeatureList.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFeatureList.ts)
-- [useHospitalFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/hospital/useHospitalFieldFocus.ts)
-- [useNoticeFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/notice/useNoticeFieldFocus.ts)
-- [useNoticeEditorTempImages.ts](/root/beaulab_frontend/apps/staff-web/hooks/notice/useNoticeEditorTempImages.ts)
-- [useDoctorHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorHospitalOptions.ts)
-- [useDoctorFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/doctor/useDoctorFieldFocus.ts)
-- [useVideoHospitalOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoHospitalOptions.ts)
-- [useVideoDoctorOptions.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoDoctorOptions.ts)
-- [useVideoFieldFocus.ts](/root/beaulab_frontend/apps/staff-web/hooks/video/useVideoFieldFocus.ts)
+예:
+
+- `hooks/hospital/useHospitalAddressSearch.ts`
+- `hooks/hospital/useHospitalFeatureList.ts`
+- `hooks/hospital/useHospitalFieldFocus.ts`
+- `hooks/doctor/useDoctorHospitalOptions.ts`
+- `hooks/doctor/useDoctorMediaState.ts`
+- `hooks/hospital-event/useHospitalEventMediaState.ts`
+- `hooks/video/useVideoHospitalOptions.ts`
+- `hooks/video/useVideoDoctorOptions.ts`
 
 ### 4.6 `lib/common/`
 
-`staff-web` 전체에서 공통으로 쓰는 순수 함수, 설정, 세션, 라우팅 규칙을 둡니다.
+`staff-web` 전체 공통 순수 함수, 설정, 세션, 라우팅 규칙을 둔다.
 
-현재 세부 구조:
+현재 주요 파일:
 
-- `api.ts`
-  - staff API client
-- `category.ts`
-  - 카테고리 selector 정규화 타입/함수
-- `auth/session.ts`
-  - login / restoreSession / ensureSession / logout
-- `routing/admin-pages.tsx`
-  - placeholder 관리자 페이지 정의와 metadata/breadcrumb helper
-- `routing/route-permissions.ts`
-  - 정적 관리자 경로 permission source
-  - 동적 경로 permission 매칭 규칙
-- `navigation/buildReturnToPath.ts`
-  - list -> detail -> list 복귀 경로 조립
+- `api.ts`: staff API client
+- `auth/session.ts`: login / restoreSession / ensureSession / logout
+- `routing/route-permissions.ts`: 정적/동적 route permission 단일 소스
+- `routing/admin-pages.tsx`: placeholder 페이지 metadata/렌더 정의
+- `routing/page-header-extra.tsx`: 페이지 header action 주입
+- `navigation/buildReturnToPath.ts`: list/detail/form 복귀 경로 조립
+- `request-cache.ts`: 짧은 TTL request cache
+- `media.ts`, `media-validation.ts`: 미디어 타입/검증 공통 helper
+- `content-report.ts`, `review-status.ts`, `visibility-row.ts`: staff 공통 표시/상태 helper
 
-### 4.7 도메인 lib 폴더
+### 4.7 도메인 lib
 
-도메인별 상수, validation, mapper, query helper를 둡니다.
-
-현재 역할:
-
-- `form.ts`
-  - form 기본값
-  - option 상수
-  - 응답 타입
-  - field error 정규화
-  - detail -> form 매핑
-  - submit 전 검증
-- `list.ts`
-  - 목록 filter/sort/query builder
-  - URL state parse/build
-  - row normalize
-  - returnTo helper
-
-공지사항, 동영상처럼 독립 CRUD 기능도 같은 기준으로 `lib/notice/form.ts`, `lib/notice/list.ts`, `lib/video/form.ts`, `lib/video/list.ts`에 둡니다.
-해시태그처럼 단일 페이지 CRUD는 `lib/hashtag/list.ts` 하나에서 목록 query helper와 입력 sanitize/validate를 같이 둘 수 있습니다.
-토크처럼 병의원 게시물 하위의 독립 목록은 `lib/talk/list.ts`, 댓글 목록은 `lib/talk/comment-list.ts`, 상세 mapper는 `lib/talk/detail.ts`에 둡니다.
-성형후기/시술후기 같은 병의원 후기 게시글 목록은 `lib/hospital-review/list.ts`, 댓글 목록은 `lib/hospital-review/comment-list.ts`에 둡니다.
-병원 이벤트, 이벤트 DB, 리얼모델 DB, 병의원 평가, 신고 콘텐츠, 일반 회원도 각각 독립 도메인 lib 폴더를 가진다.
-
-현재 실제 도메인 lib 폴더:
-
-- `lib/account-user`
-- `lib/doctor`
-- `lib/hashtag`
-- `lib/hospital`
-- `lib/hospital-evaluation`
-- `lib/hospital-event`
-- `lib/hospital-event-db`
-- `lib/hospital-event-real-model-db`
-- `lib/hospital-review`
-- `lib/notice`
-- `lib/reported-content`
-- `lib/talk`
-- `lib/video`
-
-## 5. 현재 CRUD 패턴
-
-### 5.1 목록
-
-병의원, 공지사항, 의료진, 동영상, 병원 이벤트, 이벤트 DB, 리얼모델 DB, 토크, 병의원 후기, 병의원 평가, 신고 콘텐츠, 일반 회원 목록은 같은 운영 패턴을 따릅니다.
-
-핵심 흐름:
-
-1. URL query를 파싱해 초기 목록 상태를 만듭니다.
-2. 검색/필터/정렬/페이지를 상태로 관리합니다.
-3. 상태가 바뀌면 query string도 다시 맞춥니다.
-4. API 응답은 도메인 `list.ts`에서 row 형태로 정규화합니다.
-5. 행 클릭 시 detail URL로 이동하면서 `returnTo` 문맥을 유지합니다.
-6. 등록/수정 후 목록으로 복귀하면 `highlight` query로 행 강조를 처리합니다.
-
-현재 관련 파일:
-
-- 병의원 목록
-  - [HospitalsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/HospitalsTableClient.tsx>)
-  - [HospitalsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital/list/HospitalsDataTable.tsx)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/list.ts)
-- 공지사항 목록
-  - [NoticesTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/NoticesTableClient.tsx>)
-  - [NoticesDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/notice/list/NoticesDataTable.tsx)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/notice/list.ts)
-- 의료진 목록
-  - [DoctorsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/DoctorsTableClient.tsx>)
-  - [DoctorsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/doctor/list/DoctorsDataTable.tsx)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/list.ts)
-- 동영상 목록
-  - [VideosTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/VideosTableClient.tsx>)
-  - [VideosDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/video/list/VideosDataTable.tsx)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/video/list.ts)
-- 토크 목록
-  - [TalksTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/talks/TalksTableClient.tsx>)
-  - [TalksDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/talk/list/TalksDataTable.tsx)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/talk/list.ts)
-- 병의원 후기 목록
-  - [HospitalReviewsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/HospitalReviewsTableClient.tsx>)
-  - [HospitalReviewsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital-review/list/HospitalReviewsDataTable.tsx)
-  - [HospitalReviewCommentsDataTable.tsx](/root/beaulab_frontend/apps/staff-web/components/hospital-review/list/HospitalReviewCommentsDataTable.tsx)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-review/list.ts)
-  - [comment-list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-review/comment-list.ts)
-- 병의원 평가 목록
-  - [HospitalEvaluationsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reviews/hospital-evaluations/HospitalEvaluationsTableClient.tsx>)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-evaluation/list.ts)
-- 병원 이벤트 목록
-  - [HospitalEventsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/HospitalEventsTableClient.tsx>)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event/list.ts)
-- 이벤트 DB 목록
-  - [HospitalEventDBsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/customer-db/events/HospitalEventDBsTableClient.tsx>)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event-db/list.ts)
-- 리얼모델 DB 목록
-  - [HospitalEventRealModelDBsTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/customer-db/real-models/HospitalEventRealModelDBsTableClient.tsx>)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event-real-model-db/list.ts)
-- 신고 콘텐츠 목록
-  - [ReportedContentTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/reported-content/ReportedContentTableClient.tsx>)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/reported-content/list.ts)
-- 일반 회원 목록
-  - [AccountUsersTableClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/users/AccountUsersTableClient.tsx>)
-  - [list.ts](/root/beaulab_frontend/apps/staff-web/lib/account-user/list.ts)
-
-### 5.2 등록/수정 폼
-
-병의원, 공지사항, 의료진, 동영상, 병원 이벤트 폼은 같은 큰 흐름을 따릅니다.
-
-핵심 흐름:
-
-1. `*Client.tsx`가 실제 상태/submit/fetch를 소유합니다.
-2. 화면은 섹션 컴포넌트에 분리합니다.
-3. form 상수와 검증은 도메인 `form.ts`에 둡니다.
-4. 에러가 나면 첫 번째 필드로 스크롤 + 포커스를 보냅니다.
-5. 성공 알림은 전역 하단 alert를 사용합니다.
-6. 성공 후에는 목록으로 복귀하고 `highlight`를 남깁니다.
-7. 병의원 폼의 `병의원정보(feature_ids)`는 create/edit 모두 최소 1개 이상 선택해야 합니다.
-
-권한이 분리된 리소스는 상세와 수정을 같은 route에 섞지 않습니다.
-
-- 상세: `/resource/[id]`
-- 수정: `/resource/[id]/edit`
-- 수정 페이지 데이터 로딩은 별도 `/edit` API를 만들지 않고, 상세 GET(`/resource/{id}`)를 재사용합니다.
-
-현재 관련 파일:
-
-- 병의원 생성/수정
-  - [HospitalsCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/new/HospitalsCreateFormClient.tsx>)
-  - [HospitalDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/HospitalDetailPageClient.tsx>)
-  - [HospitalEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/hospitals/[id]/edit/HospitalEditFormClient.tsx>)
-  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital/form.ts)
-- 공지사항 생성/수정
-  - [NoticesCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/new/NoticesCreateFormClient.tsx>)
-  - [NoticeDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/NoticeDetailPageClient.tsx>)
-  - [NoticeEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(common)/notices/[id]/edit/NoticeEditFormClient.tsx>)
-  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/notice/form.ts)
-- 의료진 생성/수정
-  - [DoctorsCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/new/DoctorsCreateFormClient.tsx>)
-  - [DoctorDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/DoctorDetailPageClient.tsx>)
-  - [DoctorEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/doctors/[id]/edit/DoctorEditFormClient.tsx>)
-  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/doctor/form.ts)
-- 동영상 생성/수정
-  - [VideosCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/new/VideosCreateFormClient.tsx>)
-  - [VideoDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/VideoDetailPageClient.tsx>)
-  - [VideoEditFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/videos/[id]/edit/VideoEditFormClient.tsx>)
-  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/video/form.ts)
-  - 무기한 게시가 아니면 `publish_start_at`, `publish_end_at`를 둘 다 필수로 검증합니다.
-  - 공지사항 본문 편집은 [RichTextEditor.tsx](/root/beaulab_frontend/packages/ui-admin/src/components/form/RichTextEditor.tsx) 공용 컴포넌트를 사용하고, notice editor image API에 업로드를 연결합니다.
-- 병원 이벤트 생성/수정
-  - [HospitalEventsCreateFormClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/new/HospitalEventsCreateFormClient.tsx>)
-  - [HospitalEventDetailPageClient.tsx](</root/beaulab_frontend/apps/staff-web/app/(admin)/(pages)/(hospital)/events/[id]/HospitalEventDetailPageClient.tsx>)
-  - [form.ts](/root/beaulab_frontend/apps/staff-web/lib/hospital-event/form.ts)
-
-## 6. 권한/메뉴/세션
-
-현재 기준 보호 흐름은 아래 조합으로 동작합니다.
-
-- 세션 관리
-  - [session.ts](/root/beaulab_frontend/apps/staff-web/lib/common/auth/session.ts)
-- 라우트 권한
-  - [route-permissions.ts](/root/beaulab_frontend/apps/staff-web/lib/common/routing/route-permissions.ts)
-- guard
-  - [guard.tsx](/root/beaulab_frontend/apps/staff-web/components/common/guard.tsx)
-- 사이드바 메뉴
-  - [sidebar-menu.tsx](/root/beaulab_frontend/apps/staff-web/components/common/sidebar-menu.tsx)
-- 관리자 기본 페이지 정의
-  - [admin-pages.tsx](/root/beaulab_frontend/apps/staff-web/lib/common/routing/admin-pages.tsx)
-
-`admin-pages.tsx`로 렌더되는 화면은 현재 placeholder 화면이다. 메뉴에 존재하더라도 별도 `*Client.tsx`와 도메인 lib/components가 없으면 실제 구현 화면으로 보지 않는다.
+도메인별 `form.ts`, `list.ts`, `detail.ts`는 타입, 초기값, validation, mapper, query builder, formatter만 가진다.
 
 규칙:
 
-- 메뉴 권한과 라우트 권한은 같은 permission 모델을 공유해야 합니다.
-- 서버 검증을 대체하지 않습니다.
-- 프론트 권한은 UX 제어 목적으로만 사용합니다.
-- 병의원 후기 라우트(`/reviews/surgery-reviews`, `/reviews/treatment-reviews`)는 `beaulab.hospital_review.show` 권한을 사용합니다.
-- 병의원 평가 라우트(`/reviews/hospital-evaluations`)는 `beaulab.hospital_evaluation.show` 권한을 사용합니다.
+- React state, router, modal, API submit orchestration은 넣지 않는다.
+- DTO 응답을 그대로 들고 다니지 않고 화면 shape로 normalize한다.
+- form payload/FormData 생성은 가능한 한 도메인 lib의 pure helper로 둔다.
+- 목록 query parse/build와 row mapper는 `lib/{domain}/list.ts`에 둔다.
 
-## 7. UI 정책
+## 5. 목록 패턴
 
-현재 관리자 UI 정책은 아래를 따릅니다.
+목록 화면은 URL query를 상태의 단일 기준으로 사용한다.
 
-- 브라우저 `alert()` 금지
-- 성공/실패 피드백은 하단 전역 alert 사용
-- 페이지/섹션 로딩은 spinner 사용
-- status/approval 같은 선택은 기존 `Select` 재사용 우선
-- create/edit 미디어 UX는 같은 컴포넌트를 재사용
+흐름:
 
-## 8. 무엇을 어디에 둘 것인가
+1. URL query parse
+2. draft filter와 applied query 분리
+3. `useListData` 또는 동일한 fetch lifecycle로 중복 fetch 방지
+4. summary/list/options는 의존성이 없으면 병렬 호출
+5. API 응답을 도메인 `list.ts`에서 row로 normalize
+6. 상세 진입 시 `returnTo` 유지
+7. 등록/수정 후 `highlight`로 행 강조
 
-### `components/common`으로 갈 수 있는 것
+공통 원칙:
 
-- staff 관리자 전체에서 재사용되는 앱 전용 adapter
-- guard, sidebar menu, admin shell helper
+- 검색어 입력마다 API를 호출하지 않는다.
+- table 렌더를 이미지 preload가 막지 않는다.
+- 같은 option API는 `request-cache.ts` 또는 상위 상태로 중복 호출을 줄인다.
+- load error UI는 `LoadErrorState`를 사용한다. 흰 박스/취소 버튼 없이 문구와 다시 불러오기만 중앙 배치한다.
 
-### `hooks/common`으로 갈 수 있는 것
+## 6. 폼 패턴
 
-- 도메인 이름 없이 설명 가능한 훅
-- 병의원/의료진 둘 다 같은 방식으로 쓰는 훅
+폼은 다음 책임을 분리한다.
 
-### `lib/common`으로 갈 수 있는 것
+| 위치                                           | 책임                                                                 |
+| ---------------------------------------------- | -------------------------------------------------------------------- |
+| `page.tsx`                                     | metadata, params 전달, Client 렌더                                   |
+| `*CreateFormClient.tsx`, `*EditFormClient.tsx` | 초기 로드, form state 조립, submit 호출, 성공 후 이동, header action |
+| `lib/{domain}/form.ts`                         | 타입, 초기값, validation, normalize, payload builder                 |
+| `components/{domain}/form/*Section.tsx`        | 섹션 UI 렌더링                                                       |
+| `hooks/{domain}/use*MediaState.ts`             | create/edit 반복 미디어 상태                                         |
 
-- 순수 함수
-- 세션 복구/로그인
-- 라우트 권한 매핑
-- query path 조립
+Submit 순서:
 
-### 도메인 폴더에 남겨야 하는 것
+```text
+validate -> payload build -> api call -> success/error handling
+```
 
-- 병의원/의료진 필드명에 직접 묶인 코드
-- 특정 API endpoint에만 의미가 있는 코드
-- 특정 DOM selector를 아는 포커스 로직
-- 도메인 상수, option, validation, mapper
+Validation 규칙:
 
-## 9. 같이 봐야 할 문서
+- validation은 side effect 없는 pure function이다.
+- error key는 form field key와 일치시킨다.
+- UI 컴포넌트에서 필수 문구를 임의로 만들지 않는다.
+- 첫 번째 에러 필드로 스크롤/포커스를 보낸다.
 
-- [리팩토링 규칙 문서](/root/beaulab_frontend/doc/staff-web-rules.md)
-- [루트 README](/root/beaulab_frontend/README.md)
+## 7. 미디어 계약
 
-## 10. 미디어 수정 계약
+- 수정 폼의 미디어 payload는 최종 상태 기준으로 전송한다.
+- 단일 파일은 `existing_*_id`와 선택적인 새 파일을 함께 사용한다.
+- 다중 파일은 `existing_*_ids[]`와 새 파일 배열을 함께 사용한다.
+- 기존/신규 다중 파일을 섞어 정렬해야 하면 `gallery_order[]` 같은 명시적 순서 payload를 사용한다.
+- 병의원 갤러리는 `existing:{id}` / `new:{index}` 토큰 기반 `gallery_order[]`를 사용한다.
+- 동영상 원본 파일은 staff가 교체하지 않고 삭제만 할 수 있으므로 `remove_video_file`을 사용한다.
+- object URL 생성/해제는 `useObjectUrl`을 사용한다.
+- 원본보기/미리보기/다운로드 문구는 도메인별로 새로 만들지 않고 공통 용어를 우선 사용한다.
 
-- 수정 폼의 미디어는 최종 상태 기준으로 전송합니다.
-- 단일 파일 컬렉션은 `existing_*_id`와 선택적인 새 파일 필드를 함께 사용합니다.
-- 다중 파일 컬렉션은 `existing_*_ids[]`와 선택적인 새 파일 배열을 함께 사용합니다.
-- 다중 파일 컬렉션에서 기존/신규를 섞어 순서 변경과 대표 지정이 필요하면 `gallery_order[]` 같은 명시적 순서 계약을 사용합니다.
-- 삭제는 `remove_*` 플래그가 아니라, 명시적으로 보낸 기존 id 목록에서 빠지는 것으로 표현합니다.
-- 백엔드 update action은 이 값을 sync semantics로 처리합니다.
-  - 목록에 남은 기존 파일은 유지
-  - 목록에서 빠진 기존 파일은 삭제
-  - 새 파일은 기존 유지 목록 뒤에 추가
-- 다중 파일 수정 UI는 기존 파일과 새 파일을 같은 화면에 함께 보여주고, 최대 개수 계산도 두 집합을 합산해서 처리합니다.
-- 병의원 갤러리는 현재 `gallery_order[] = existing:{id} | new:{index}` 계약으로 기존/신규 merged reorder를 처리합니다.
-- 예외: 동영상 원본 파일(`video_file`)은 staff가 교체하지 않습니다.
-  - 병원계정이 업로드한 원본을 staff가 삭제만 할 수 있으므로 `remove_video_file` boolean으로 처리합니다.
-  - 즉 이 케이스는 단일 파일 sync semantics보다 도메인 규칙이 우선합니다.
+## 8. 권한/메뉴/세션
+
+현재 보호 흐름:
+
+- `lib/common/auth/session.ts`: 세션 저장/복구
+- `lib/common/routing/route-permissions.ts`: route permission source
+- `components/common/guard.tsx`: 미인증/미권한 접근 처리
+- `components/common/sidebar-menu.tsx`: 권한 기반 메뉴 필터링
+- `app/(admin)/layout.tsx`: 병의원/뷰티 도메인 toggle과 shell
+
+규칙:
+
+- 메뉴 노출과 route 보호는 같은 permission source를 공유한다.
+- 신규 route는 fail-closed가 기본이다. 권한 매핑이 없으면 접근 불가가 맞다.
+- placeholder 페이지도 노출한다면 권한 매핑을 가져야 한다.
+- 프론트 권한은 UX 제어이고, 서버 권한 검증을 대체하지 않는다.
+
+## 9. 포맷/검증 명령
+
+루트 `package.json` 기준:
+
+```bash
+pnpm format
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+Prettier 설정:
+
+- `.prettierrc.json`
+- `prettier-plugin-tailwindcss`
+- `printWidth: 120`
+- `singleQuote: false`
+- `endOfLine: auto`
+
+문서/코드 변경 후 최소 `pnpm format:check`, `pnpm lint`, `pnpm typecheck`를 확인한다. 배포 전에는 `pnpm build`까지 확인한다.
+
+## 10. 관련 문서
+
+- [Staff Web Rules](/root/beaulab_frontend/doc/staff-web-rules.md)
+- [TODO](/root/beaulab_frontend/doc/todo.md)
+- [Root README](/root/beaulab_frontend/README.md)

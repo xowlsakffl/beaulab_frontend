@@ -11,4 +11,6 @@
 - `common`은 `apps/staff-web` 관리자 앱 전체 공통을 뜻한다.
 - 도메인 field name, endpoint, DOM target에 묶인 코드는 `common`으로 올리지 않는다.
 - 병의원/의료진 폼은 섹션 단위까지만 컴포넌트를 분리한다.
+- 신규 관리자 route는 fail-closed 기준으로 `route-permissions.ts` 권한 매핑을 먼저 확인한다.
+- 포맷은 Prettier 기준이다. 변경 후 `pnpm format:check`를 확인한다.
 - 구조나 규칙이 바뀌면 위 두 문서를 먼저 갱신한다.

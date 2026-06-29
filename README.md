@@ -24,7 +24,7 @@
   - 공지사항 관리
   - 일반 회원 관리
   - 해시태그 관리
-  - 메뉴/placeholder만 있는 영역: 뷰티 대시보드, 뷰티샵/전문가, 충전금, 비대면상담 DB, 광고/상품/캘린더, FAQ, 1:1 문의, 카테고리, 배너/팝업/상단 타이틀, 통계, 유해성 단어, 닉네임, 직원 설정
+  - 메뉴/placeholder만 있는 영역: 뷰티 대시보드, 뷰티샵/전문가, 충전금, 광고/상품/캘린더, FAQ, 1:1 문의, 카테고리, 배너/팝업/상단 타이틀, 통계, 유해성 단어, 닉네임, 직원 설정
 - User Web
   - 일반 사용자 로그인 테스트
   - 유저 간 1:1 채팅방 목록 조회
@@ -221,6 +221,7 @@ Page
 - 메뉴와 라우트 guard는 `roles`, `permissions`를 UX 제어에 사용합니다.
 - 라우트 권한 단일 소스는 `apps/staff-web/lib/common/routing/route-permissions.ts`입니다.
 - 사이드바 메뉴는 정적 path별 permission helper를 참조합니다.
+- 신규 관리자 route는 fail-closed가 기본이며, route permission 매핑이 없으면 접근 불가로 처리합니다.
 - 서버 권한 검증은 프론트 권한 처리로 대체하지 않습니다.
 
 ## UI 정책
@@ -234,6 +235,18 @@ Page
 - HTML 본문 편집은 `RichTextEditor`를 우선 재사용합니다.
 - 업로드는 `MediaUploader`를 우선 재사용합니다.
 - 반복되는 modal panel/header/footer 구조는 `ui-admin`의 modal 조합 컴포넌트를 우선 재사용합니다.
+
+## 개발 명령
+
+```bash
+pnpm format
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+포맷은 Prettier와 `prettier-plugin-tailwindcss`를 사용합니다. 구조/규칙 변경 시 [Frontend Architecture](doc/architecture.md), [Staff Web Rules](doc/staff-web-rules.md)를 함께 갱신합니다.
 
 ## 미디어 처리
 

@@ -3,7 +3,13 @@
 ## 토크 댓글 멘션 회원 상세 연결
 
 - 현재 토크 댓글 목록은 멘션 정보를 받아 `@닉네임` 텍스트를 표시한다.
-- 일반 회원 목록/상세 라우트는 현재 `apps/staff-web/app/(admin)/(pages)/(common)/users`에 구현되어 있다.
+- 일반 회원 목록/상세 라우트는 현재 `/user-manage/users`, `/user-manage/users/[id]`에 구현되어 있다.
 - 후속 작업: 토크 댓글, 병의원 후기 댓글, 신고 콘텐츠 상세 등 멘션을 표시하는 UI에서 `@닉네임` 텍스트를 일반 회원 상세 화면 링크로 전환한다.
-- 이동 기준: 멘션 응답의 `mentioned_user_id`를 사용해 `/users/{mentioned_user_id}`로 연결한다.
+- 이동 기준: 멘션 응답의 `mentioned_user_id`를 사용해 `/user-manage/users/{mentioned_user_id}`로 연결한다.
 - 보류 이유: 상세 라우트 부재가 아니라, 각 댓글/신고 상세 렌더러에 링크 UI 적용 작업이 아직 남아 있기 때문이다.
+
+## 운영 전 남은 확인
+
+- 실데이터 규모에서 목록 새로고침 시간을 다시 측정한다.
+- placeholder route는 메뉴 노출 여부와 권한 매핑을 함께 점검한다.
+- `ads-manage`는 현재 병원 이벤트 관리 URL prefix로 사용 중이다. 실제 광고 등록 도메인을 만들 때 병원 이벤트와 광고 상품/광고 슬롯의 URL/권한을 분리한다.
