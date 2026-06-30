@@ -9,6 +9,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dropdown,
+  DropdownItem,
   FormTextArea,
   Modal,
   ModalBody,
@@ -16,11 +18,14 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
+  MoreVertical,
   SpinnerBlock,
   StatusBadge,
 } from "@beaulab/ui-admin";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
+import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { api } from "@/lib/common/api";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
@@ -44,6 +49,41 @@ const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm text-gray-800";
 const cardHeaderClassName = "mb-5";
 
+function labelAccountUserStatus(status: string) {
+  if (status === "BLOCKED") return "차단";
+  return status;
+}
+
+function buildStatusHistoryText(user: AccountUserDetail) {
+  const history = user.latest_status_history;
+  const fallbackReason = user.status === "WITHDRAWN" ? user.withdrawal_reason?.trim() || "탈퇴사유 없음" : "";
+  const fallbackDate =
+    user.status === "WITHDRAWN"
+      ? formatShortDateTime(user.deleted_at)
+      : user.status === "BLOCKED"
+        ? formatShortDateTime(user.blocked_at)
+        : "";
+
+  return [history?.reason?.trim() || fallbackReason, formatShortDateTime(history?.created_at) || fallbackDate]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function formatShortDateTime(value?: string | null) {
+  if (!value) return "";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  const year = String(parsed.getFullYear() % 100).padStart(2, "0");
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  const hours = String(parsed.getHours()).padStart(2, "0");
+  const minutes = String(parsed.getMinutes()).padStart(2, "0");
+
+  return `${year}.${month}.${day} ${hours}:${minutes}`;
+}
+
 export default function AccountUserDetailPageClient() {
   const params = useParams<{ id: string }>();
   const rawUserId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -59,6 +99,7 @@ export default function AccountUserDetailPageClient() {
   const [noteInput, setNoteInput] = React.useState("");
   const [noteError, setNoteError] = React.useState<string | null>(null);
   const [blockError, setBlockError] = React.useState<string | null>(null);
+  const [blockReason, setBlockReason] = React.useState("");
   const [savingNote, setSavingNote] = React.useState(false);
   const [blocking, setBlocking] = React.useState(false);
   const hasLoadedRef = React.useRef(false);
@@ -118,21 +159,32 @@ export default function AccountUserDetailPageClient() {
   const openBlockModal = React.useCallback(() => {
     setIsMenuOpen(false);
     setBlockError(null);
+    setBlockReason("");
     setIsBlockModalOpen(true);
   }, []);
 
   const closeBlockModal = React.useCallback(() => {
     if (blocking) return;
     setIsBlockModalOpen(false);
+    setBlockError(null);
+    setBlockReason("");
   }, [blocking]);
 
   const submitBlock = React.useCallback(async () => {
+    const reason = blockReason.trim();
+
+    if (!reason) {
+      setBlockError("차단 사유를 입력해주세요.");
+      return;
+    }
+
     setBlocking(true);
     setBlockError(null);
 
     try {
       const response = await api.patch<AccountUserUpdateResponse>(`/users/${userId}`, {
         status: "BLOCKED",
+        reason,
       });
 
       if (!isApiSuccess(response)) {
@@ -157,7 +209,7 @@ export default function AccountUserDetailPageClient() {
     } finally {
       setBlocking(false);
     }
-  }, [fetchUser, userId]);
+  }, [blockReason, fetchUser, userId]);
 
   const openNoteModal = React.useCallback(() => {
     setNoteInput("");
@@ -231,6 +283,7 @@ export default function AccountUserDetailPageClient() {
             user={user}
             isMenuOpen={isMenuOpen}
             onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+            onCloseMenu={() => setIsMenuOpen(false)}
             onOpenBlockModal={openBlockModal}
           />
           <ConsultationInfoCard user={user} />
@@ -244,25 +297,24 @@ export default function AccountUserDetailPageClient() {
         </div>
       </div>
 
-      <Modal isOpen={isBlockModalOpen} onClose={closeBlockModal} className="mx-4 max-w-md" showCloseButton={false}>
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>차단신고</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="mt-5">
-            <p className="text-sm text-gray-700">해당 회원을 차단하기 위해 등록하시겠습니까?</p>
-            {blockError ? <p className="text-sm text-rose-600">{blockError}</p> : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeBlockModal} disabled={blocking}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" onClick={submitBlock} disabled={blocking}>
-              등록
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+      <AllowStatusConfirmModal
+        pending={isBlockModalOpen ? { allowStatus: "BLOCKED", reason: blockReason } : null}
+        title="차단 처리"
+        subjectLabel="해당 회원을"
+        messageAction="등록"
+        labelStatus={labelAccountUserStatus}
+        updating={blocking}
+        error={blockError}
+        rejectStatus="BLOCKED"
+        reasonInputId="account-user-block-reason"
+        reasonLabel="차단 사유"
+        reasonPlaceholder="차단 사유를 입력해주세요."
+        processingText="등록 중"
+        confirmText="등록"
+        onReasonChange={setBlockReason}
+        onClose={closeBlockModal}
+        onConfirm={() => void submitBlock()}
+      />
 
       <Modal isOpen={isNoteModalOpen} onClose={closeNoteModal} className="mx-4 max-w-lg" showCloseButton={false}>
         <ModalPanel>
@@ -297,16 +349,19 @@ function MemberInfoCard({
   user,
   isMenuOpen,
   onToggleMenu,
+  onCloseMenu,
   onOpenBlockModal,
 }: {
   user: AccountUserDetail;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
+  onCloseMenu: () => void;
   onOpenBlockModal: () => void;
 }) {
   const status = user.status ?? "";
-  const shouldShowStatus = status === "BLOCKED" || status === "WITHDRAWN";
-  const canBlock = status !== "BLOCKED" && status !== "WITHDRAWN";
+  const statusHistoryText = buildStatusHistoryText(user);
+  const shouldShowStatus = Boolean(status && status !== "ACTIVE");
+  const cannotBlock = status === "BLOCKED" || status === "WITHDRAWN";
 
   return (
     <Card>
@@ -319,37 +374,42 @@ function MemberInfoCard({
                 {user.status_label ?? status}
               </StatusBadge>
             ) : null}
-            {status === "WITHDRAWN" ? (
-              <span className="text-xs font-medium text-gray-500">
-                [{user.withdrawal_reason || "탈퇴사유 없음"} · {formatAccountUserDetailDateTime(user.deleted_at)}]
-              </span>
+            {shouldShowStatus && statusHistoryText ? (
+              <span className="text-xs text-gray-700">[{statusHistoryText}]</span>
             ) : null}
           </div>
         </div>
 
-        {canBlock ? (
+        <Can permission="beaulab.user.update">
           <div className="relative">
             <button
               type="button"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-xl leading-none text-gray-500 hover:bg-gray-100"
-              onClick={onToggleMenu}
+              className="dropdown-toggle rounded-full p-1 text-gray-700 hover:bg-gray-50"
               aria-label="회원 메뉴"
+              aria-expanded={isMenuOpen}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleMenu();
+              }}
             >
-              ⋮
+              <MoreVertical className="size-4" />
             </button>
-            {isMenuOpen ? (
-              <div className="absolute right-0 z-10 mt-1 min-w-32 rounded-lg border border-gray-200 bg-white p-1 shadow-lg">
-                <button
-                  type="button"
-                  className="block w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                  onClick={onOpenBlockModal}
-                >
-                  차단신고
-                </button>
-              </div>
-            ) : null}
+            <Dropdown isOpen={isMenuOpen} onClose={onCloseMenu} className="w-36 overflow-hidden py-1">
+              <DropdownItem
+                disabled={cannotBlock}
+                onItemClick={onCloseMenu}
+                onClick={onOpenBlockModal}
+                baseClassName={
+                  cannotBlock
+                    ? "block w-full cursor-not-allowed px-4 py-2 text-left text-sm font-semibold text-gray-300"
+                    : "block w-full px-4 py-2 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                }
+              >
+                차단
+              </DropdownItem>
+            </Dropdown>
           </div>
-        ) : null}
+        </Can>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">

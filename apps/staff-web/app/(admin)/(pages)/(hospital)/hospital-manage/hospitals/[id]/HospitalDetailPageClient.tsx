@@ -109,6 +109,7 @@ export default function HospitalDetailPageClient() {
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const [isActionMenuOpen, setIsActionMenuOpen] = React.useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = React.useState(false);
+  const [suspendReason, setSuspendReason] = React.useState("");
   const [suspendError, setSuspendError] = React.useState<string | null>(null);
   const [suspending, setSuspending] = React.useState(false);
   const [updatingAllowStatus, setUpdatingAllowStatus] = React.useState(false);
@@ -251,6 +252,7 @@ export default function HospitalDetailPageClient() {
   const openSuspendModal = React.useCallback(() => {
     setIsActionMenuOpen(false);
     setSuspendError(null);
+    setSuspendReason("");
     setIsSuspendModalOpen(true);
   }, []);
 
@@ -259,10 +261,13 @@ export default function HospitalDetailPageClient() {
 
     setIsSuspendModalOpen(false);
     setSuspendError(null);
+    setSuspendReason("");
   }, [suspending]);
 
   const submitSuspend = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
+
+    const reason = suspendReason.trim();
 
     setSuspending(true);
     setSuspendError(null);
@@ -270,6 +275,7 @@ export default function HospitalDetailPageClient() {
     try {
       const response = await api.patch<HospitalDetailResponse>(`/hospitals/${hospitalId}/status`, {
         status: "SUSPENDED",
+        ...(reason ? { reason } : {}),
       });
 
       if (!isApiSuccess(response)) {
@@ -279,13 +285,14 @@ export default function HospitalDetailPageClient() {
 
       setDetail(response.data);
       setIsSuspendModalOpen(false);
+      setSuspendReason("");
       await refreshHistoriesFromFirstPage();
     } catch {
       setSuspendError("운영중지 등록 중 오류가 발생했습니다.");
     } finally {
       setSuspending(false);
     }
-  }, [hospitalId, refreshHistoriesFromFirstPage]);
+  }, [hospitalId, refreshHistoriesFromFirstPage, suspendReason]);
 
   const requestAllowStatusChange = React.useCallback(
     (allowStatus: string) => {
@@ -471,27 +478,24 @@ export default function HospitalDetailPageClient() {
         }}
         onSave={saveNote}
       />
-      <Modal isOpen={isSuspendModalOpen} onClose={closeSuspendModal} className="mx-4 max-w-md" showCloseButton={false}>
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>운영중지 처리</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="mt-5 space-y-3">
-            <p className="text-sm leading-6 font-medium whitespace-pre-line text-gray-700">
-              해당 병의원을 운영중지 등록 하시겠습니까?
-            </p>
-            {suspendError ? <p className="text-sm text-rose-600">{suspendError}</p> : null}
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeSuspendModal} disabled={suspending}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" onClick={() => void submitSuspend()} disabled={suspending}>
-              {suspending ? "등록 중" : "등록"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+      <AllowStatusConfirmModal
+        pending={isSuspendModalOpen ? { allowStatus: "SUSPENDED", reason: suspendReason } : null}
+        title="운영중지 처리"
+        subjectLabel="해당 병의원을"
+        messageAction="등록"
+        labelStatus={labelApprovalStatus}
+        updating={suspending}
+        error={suspendError}
+        rejectStatus="SUSPENDED"
+        reasonInputId="hospital-suspend-reason"
+        reasonLabel="운영중지 사유"
+        reasonPlaceholder="운영중지 사유를 입력해주세요."
+        processingText="등록 중"
+        confirmText="등록"
+        onReasonChange={setSuspendReason}
+        onClose={closeSuspendModal}
+        onConfirm={() => void submitSuspend()}
+      />
     </div>
   );
 }

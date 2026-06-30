@@ -32,6 +32,11 @@ export type AccountUserAccessLog = {
   accessed_at?: string | null;
 };
 
+export type AccountUserStatusHistory = {
+  reason?: string | null;
+  created_at?: string | null;
+};
+
 export type AccountUserDetail = {
   id?: number | null;
   name?: string | null;
@@ -42,6 +47,7 @@ export type AccountUserDetail = {
   signup_channel_label?: string | null;
   status?: string | null;
   status_label?: string | null;
+  latest_status_history?: AccountUserStatusHistory | null;
   warning_count?: number | null;
   blocked_at?: string | null;
   withdrawal_reason?: string | null;
