@@ -1,7 +1,6 @@
 "use client";
 
-import { Card } from "@beaulab/ui-admin";
-
+import { SummaryCountCard } from "@/components/common/SummaryCountCard";
 import type { HospitalEventSummary } from "@/lib/hospital-event/list";
 
 type HospitalEventsSummaryCardsProps = {
@@ -23,12 +22,13 @@ export function HospitalEventsSummaryCards({ summary }: HospitalEventsSummaryCar
   return (
     <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
-        <Card key={card.label} className="rounded-xl bg-white px-4 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-gray-700">{card.label}</span>
-            <span className="text-base font-semibold text-gray-900">{Number(card.value).toLocaleString()}개</span>
-          </div>
-        </Card>
+        <SummaryCountCard
+          key={card.label}
+          label={card.label}
+          value={card.value}
+          unit="개"
+          className="rounded-xl bg-white px-4 py-4"
+        />
       ))}
     </div>
   );

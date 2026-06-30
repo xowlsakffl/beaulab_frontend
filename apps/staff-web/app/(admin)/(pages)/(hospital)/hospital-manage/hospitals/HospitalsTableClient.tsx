@@ -2,7 +2,7 @@
 
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
-import { HospitalsSummaryCards } from "@/components/hospital/list/HospitalsSummaryCards";
+import { HospitalsSummaryCards, type HospitalSummaryCardKey } from "@/components/hospital/list/HospitalsSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
@@ -33,6 +33,56 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import type { DateRange } from "react-day-picker";
+
+function buildSummaryFilters(key: HospitalSummaryCardKey): Filters {
+  const filters: Filters = {
+    ...DEFAULT_FILTERS,
+    departments: [],
+    hospitalStatuses: [],
+    reviewStatuses: [],
+  };
+
+  if (key === "pending") {
+    return { ...filters, reviewStatuses: ["PENDING"] };
+  }
+
+  if (key === "rejected") {
+    return { ...filters, reviewStatuses: ["REJECTED"] };
+  }
+
+  if (key === "dormant") {
+    return { ...filters, dormantOnly: true };
+  }
+
+  if (key === "suspended") {
+    return { ...filters, hospitalStatuses: ["SUSPENDED"] };
+  }
+
+  return { ...filters, hospitalStatuses: ["WITHDRAWN"] };
+}
+
+function resolveActiveSummaryKey(filters: Filters): HospitalSummaryCardKey | null {
+  const hasBaseFilters =
+    filters.departments.length > 0 || Boolean(filters.dateRange || filters.startDate || filters.endDate);
+
+  if (hasBaseFilters) return null;
+
+  if (filters.dormantOnly && filters.reviewStatuses.length === 0 && filters.hospitalStatuses.length === 0) {
+    return "dormant";
+  }
+
+  if (!filters.dormantOnly && filters.reviewStatuses.length === 1 && filters.hospitalStatuses.length === 0) {
+    if (filters.reviewStatuses[0] === "PENDING") return "pending";
+    if (filters.reviewStatuses[0] === "REJECTED") return "rejected";
+  }
+
+  if (!filters.dormantOnly && filters.hospitalStatuses.length === 1 && filters.reviewStatuses.length === 0) {
+    if (filters.hospitalStatuses[0] === "SUSPENDED") return "suspended";
+    if (filters.hospitalStatuses[0] === "WITHDRAWN") return "withdrawn";
+  }
+
+  return null;
+}
 
 export default function HospitalsTableClient() {
   const router = useRouter();
@@ -76,6 +126,7 @@ export default function HospitalsTableClient() {
   );
 
   const queryString = React.useMemo(() => buildHospitalsQueryString(query), [query]);
+  const activeSummaryKey = React.useMemo(() => resolveActiveSummaryKey(appliedFilters), [appliedFilters]);
 
   const buildReturnToPath = React.useCallback(() => {
     return buildHospitalsReturnToPath(pathname, query);
@@ -177,6 +228,7 @@ export default function HospitalsTableClient() {
       departments: [...draftFilters.departments],
       hospitalStatuses: [...draftFilters.hospitalStatuses],
       reviewStatuses: [...draftFilters.reviewStatuses],
+      dormantOnly: draftFilters.dormantOnly,
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
@@ -195,6 +247,21 @@ export default function HospitalsTableClient() {
     setPage(1);
     setAppliedFilters(DEFAULT_FILTERS);
   };
+
+  const applySummaryFilter = React.useCallback((key: HospitalSummaryCardKey) => {
+    const nextFilters = buildSummaryFilters(key);
+
+    setDraftFilters(nextFilters);
+    setAppliedFilters(nextFilters);
+    setDraftDateRange(undefined);
+    setSearchInput("");
+    setSearchKeyword("");
+    setIsStatusDropdownOpen(false);
+    setIsReviewDropdownOpen(false);
+    setIsDepartmentDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setPage(1);
+  }, []);
 
   const toggleReviewStatus = (value: string) => {
     setDraftFilters((prev) => {
@@ -302,7 +369,7 @@ export default function HospitalsTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalsSummaryCards summary={summary} />
+      <HospitalsSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
 
       <HospitalsFilterPanel
         draftFilters={draftFilters}

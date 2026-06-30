@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-import { Card } from "@beaulab/ui-admin";
-
+import { SummaryCountCard } from "@/components/common/SummaryCountCard";
 import type { ReportedContentSummary } from "@/lib/reported-content/list";
 
 type ReportedContentStatsCardsProps = {
@@ -32,12 +30,7 @@ export function ReportedContentStatsCards({ summary }: ReportedContentStatsCards
   return (
     <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
-        <Card key={card.label} className="rounded-xl bg-white px-5 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-gray-700">{card.label}</span>
-            <span className="text-base font-semibold text-gray-900">{Number(card.value).toLocaleString()}</span>
-          </div>
-        </Card>
+        <SummaryCountCard key={card.label} label={card.label} value={card.value} />
       ))}
     </div>
   );

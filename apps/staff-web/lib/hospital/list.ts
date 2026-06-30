@@ -105,6 +105,7 @@ export type Filters = {
   departments: string[];
   hospitalStatuses: string[];
   reviewStatuses: string[];
+  dormantOnly: boolean;
   dateRange: string;
   startDate: string;
   endDate: string;
@@ -115,6 +116,7 @@ export type HospitalsQuery = {
   department?: string;
   status?: string;
   allow_status?: string;
+  dormant?: "1";
   start_date?: string;
   end_date?: string;
   sort: SortField;
@@ -127,6 +129,7 @@ export const DEFAULT_FILTERS: Filters = {
   departments: [],
   hospitalStatuses: [],
   reviewStatuses: [],
+  dormantOnly: false,
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -254,6 +257,7 @@ export function buildHospitalsQuery({
   if (appliedFilters.departments.length > 0) query.department = appliedFilters.departments.join(",");
   if (appliedFilters.hospitalStatuses.length > 0) query.status = appliedFilters.hospitalStatuses.join(",");
   if (appliedFilters.reviewStatuses.length > 0) query.allow_status = appliedFilters.reviewStatuses.join(",");
+  if (appliedFilters.dormantOnly) query.dormant = "1";
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
 
@@ -308,6 +312,7 @@ export function parseHospitalsTableState(searchParams: URLSearchParams) {
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
+  const dormantOnly = searchParams.get("dormant") === "1";
 
   const perPage = HOSPITALS_PER_PAGE;
 
@@ -340,6 +345,7 @@ export function parseHospitalsTableState(searchParams: URLSearchParams) {
       departments,
       hospitalStatuses,
       reviewStatuses,
+      dormantOnly,
       dateRange: createdDateState.label,
       startDate,
       endDate,
@@ -387,9 +393,10 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
     hospitalStatus: item.status,
     lastLoginAt,
     isDormant:
-      lastLoginDate !== null &&
-      !Number.isNaN(lastLoginDate.getTime()) &&
-      Date.now() - lastLoginDate.getTime() > 30 * 24 * 60 * 60 * 1000,
+      !lastLoginRaw ||
+      (lastLoginDate !== null &&
+        !Number.isNaN(lastLoginDate.getTime()) &&
+        Date.now() - lastLoginDate.getTime() > 30 * 24 * 60 * 60 * 1000),
     createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
     updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
     logoUrl: resolveMediaUrl(item.logo as MediaAsset | null, "thumb"),
@@ -444,6 +451,7 @@ export function buildHospitalsQueryString(query: HospitalsQuery) {
   if (query.department) params.set("department", query.department);
   if (query.status) params.set("status", query.status);
   if (query.allow_status) params.set("allow_status", query.allow_status);
+  if (query.dormant) params.set("dormant", query.dormant);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);

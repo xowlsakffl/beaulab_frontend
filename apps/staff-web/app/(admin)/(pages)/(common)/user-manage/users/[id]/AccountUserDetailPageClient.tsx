@@ -27,6 +27,7 @@ import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import { SummaryCountCard } from "@/components/common/SummaryCountCard";
 import { api } from "@/lib/common/api";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
 import {
@@ -440,12 +441,14 @@ function ConsultationInfoCard({ user }: { user: AccountUserDetail }) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <ClickableCountBox
+          <SummaryCountCard
+            layout="center"
             label="이벤트 DB"
             value={Number(consultation?.event_dbs ?? 0).toLocaleString()}
             onClick={() => router.push(`/customer-db-manage/events${accountUserQuery}`)}
           />
-          <ClickableCountBox
+          <SummaryCountCard
+            layout="center"
             label="리얼모델 DB"
             value={Number(consultation?.real_model_dbs ?? 0).toLocaleString()}
             onClick={() => router.push(`/customer-db-manage/real-models${accountUserQuery}`)}
@@ -539,17 +542,20 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
       <CardContent className="space-y-8">
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <ClickableCountBox
+            <SummaryCountCard
+              layout="center"
               label="성형후기/댓글"
               value={compactPostCommentCount(activity?.hospital_reviews)}
               onClick={() => router.push(`/post-manage/surgery-reviews${authorQuery}`)}
             />
-            <ClickableCountBox
+            <SummaryCountCard
+              layout="center"
               label="토크/댓글"
               value={compactPostCommentCount(activity?.talks)}
               onClick={() => router.push(`/post-manage/talks${authorQuery}`)}
             />
-            <ClickableCountBox
+            <SummaryCountCard
+              layout="center"
               label="병의원평가"
               value={totalCount(activity?.hospital_evaluations)}
               onClick={() => router.push(`/post-manage/hospital-evaluations${authorQuery}`)}
@@ -561,22 +567,26 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">신고게시물</h3>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <ClickableCountBox
+              <SummaryCountCard
+                layout="center"
                 label="성형후기/댓글"
                 value={compactPostCommentCount(reported?.hospital_reviews)}
                 onClick={() => router.push(`/reported-post-manage/surgery-reviews${reportedAuthorQuery}`)}
               />
-              <ClickableCountBox
+              <SummaryCountCard
+                layout="center"
                 label="토크/댓글"
                 value={compactPostCommentCount(reported?.talks)}
                 onClick={() => router.push(`/reported-post-manage/talks${reportedAuthorQuery}`)}
               />
-              <ClickableCountBox
+              <SummaryCountCard
+                layout="center"
                 label="병의원평가"
                 value={totalCount(reported?.hospital_evaluations)}
                 onClick={() => router.push(`/reported-post-manage/hospital-evaluations${reportedAuthorQuery}`)}
               />
-              <ClickableCountBox
+              <SummaryCountCard
+                layout="center"
                 label="채팅"
                 value={totalCount(reported?.chats)}
                 onClick={() => router.push(`/reported-post-manage/chats${reportedAuthorQuery}`)}
@@ -586,7 +596,7 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
 
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">경고횟수</h3>
-            <CountBox label="경고" value={warningCount} />
+            <SummaryCountCard layout="center" label="경고" value={warningCount} />
           </div>
         </div>
       </CardContent>
@@ -642,27 +652,5 @@ function AgreementRow({ label, value }: { label: string; value?: boolean | null 
       <span className="font-medium text-gray-700">{label}</span>
       <span className="text-gray-800">{formatAgreementLabel(value)}</span>
     </div>
-  );
-}
-
-function CountBox({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-gray-300 px-4 py-3 text-center">
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      <p className="mt-1 text-base font-semibold text-gray-900">{value.toLocaleString()}</p>
-    </div>
-  );
-}
-
-function ClickableCountBox({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-lg border border-gray-300 px-4 py-3 text-center transition-colors hover:border-brand-300 hover:bg-brand-50"
-    >
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      <p className="mt-1 text-base font-semibold text-gray-900">{value}</p>
-    </button>
   );
 }
