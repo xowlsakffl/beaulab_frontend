@@ -61,6 +61,7 @@ type MediaUploaderProps<T extends string = string> = {
 type MediaListLayout = "stack" | "horizontal";
 export type DropzoneVariant = "panel" | "button";
 export type MediaCardVariant = "default" | "imageOnly";
+type ScrollAxis = "x" | "y";
 
 type MergedMediaEntry =
   | {
@@ -113,10 +114,10 @@ function getMediaListClassName(layout: MediaListLayout) {
 
 function getMediaListItemClassName(layout: MediaListLayout, itemIndex: number, itemCount: number) {
   if (layout === "horizontal") {
-    return "relative min-w-0";
+    return "relative min-w-0 will-change-transform";
   }
 
-  return `relative ${itemIndex === 0 ? "pt-4" : ""} ${itemIndex === itemCount - 1 ? "pb-4" : ""}`;
+  return `relative will-change-transform ${itemIndex === 0 ? "pt-4" : ""} ${itemIndex === itemCount - 1 ? "pb-4" : ""}`;
 }
 
 function resolveDropPosition(event: React.DragEvent<HTMLElement>, layout: MediaListLayout): DropPosition {
@@ -170,6 +171,98 @@ function reorderItemsByInsertionIndex<T>(items: T[], draggedIndex: number, inser
   return nextItems;
 }
 
+function useMediaListLayoutAnimation(itemKeys: string[], layout: MediaListLayout) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const previousRectsRef = React.useRef<Map<string, DOMRect>>(new Map());
+  const keySignature = itemKeys.join("|");
+
+  React.useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const nextItems = measureMediaListItemLayouts(container);
+    const shouldReduceMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!shouldReduceMotion) {
+      nextItems.forEach(({ element, rect }, key) => {
+        const previousRect = previousRectsRef.current.get(key);
+        if (!previousRect) return;
+
+        const deltaX = previousRect.left - rect.left;
+        const deltaY = layout === "horizontal" ? 0 : previousRect.top - rect.top;
+        if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
+
+        element.getAnimations().forEach((animation) => animation.cancel());
+        element.animate([{ transform: `translate(${deltaX}px, ${deltaY}px)` }, { transform: "translate(0, 0)" }], {
+          duration: 220,
+          easing: "cubic-bezier(0.2, 0, 0, 1)",
+        });
+      });
+    }
+
+    previousRectsRef.current = new Map(Array.from(nextItems.entries()).map(([key, item]) => [key, item.rect]));
+  }, [keySignature, layout]);
+
+  return containerRef;
+}
+
+function measureMediaListItemLayouts(container: HTMLElement) {
+  const items = new Map<string, { element: HTMLElement; rect: DOMRect }>();
+
+  container.querySelectorAll<HTMLElement>("[data-media-list-token]").forEach((element) => {
+    const key = element.dataset.mediaListToken;
+    if (!key) return;
+
+    items.set(key, {
+      element,
+      rect: element.getBoundingClientRect(),
+    });
+  });
+
+  return items;
+}
+
+function useObjectUrlRegistry() {
+  const objectUrlByTokenRef = React.useRef(new Map<string, string>());
+
+  React.useEffect(
+    () => () => {
+      if (typeof URL === "undefined" || typeof URL.revokeObjectURL !== "function") return;
+
+      objectUrlByTokenRef.current.forEach((url) => URL.revokeObjectURL(url));
+      objectUrlByTokenRef.current.clear();
+    },
+    [],
+  );
+
+  const getObjectUrl = React.useCallback((token: string, file: File) => {
+    const existingUrl = objectUrlByTokenRef.current.get(token);
+    if (existingUrl) return existingUrl;
+    if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") return null;
+
+    const url = URL.createObjectURL(file);
+    objectUrlByTokenRef.current.set(token, url);
+
+    return url;
+  }, []);
+
+  const retainObjectUrls = React.useCallback((tokens: Set<string>) => {
+    if (typeof URL === "undefined" || typeof URL.revokeObjectURL !== "function") return;
+
+    objectUrlByTokenRef.current.forEach((url, token) => {
+      if (tokens.has(token)) return;
+
+      URL.revokeObjectURL(url);
+      objectUrlByTokenRef.current.delete(token);
+    });
+  }, []);
+
+  return { getObjectUrl, retainObjectUrls };
+}
+
 function DropIndicator({ position, layout }: { position: DropPosition; layout: MediaListLayout }) {
   if (layout === "horizontal") {
     return (
@@ -198,18 +291,21 @@ function DropIndicator({ position, layout }: { position: DropPosition; layout: M
   );
 }
 
-function getScrollContainer(node: HTMLElement | null): HTMLElement | Window {
+function getScrollContainer(node: HTMLElement | null, axis: ScrollAxis): HTMLElement | Window {
   if (typeof window === "undefined") {
     return window;
   }
 
-  let currentNode = node?.parentElement ?? null;
+  let currentNode = node ?? null;
 
   while (currentNode) {
     const style = window.getComputedStyle(currentNode);
-    const overflowY = style.overflowY;
+    const overflow = axis === "x" ? style.overflowX : style.overflowY;
     const canScroll =
-      (overflowY === "auto" || overflowY === "scroll") && currentNode.scrollHeight > currentNode.clientHeight;
+      (overflow === "auto" || overflow === "scroll") &&
+      (axis === "x"
+        ? currentNode.scrollWidth > currentNode.clientWidth
+        : currentNode.scrollHeight > currentNode.clientHeight);
 
     if (canScroll) {
       return currentNode;
@@ -221,14 +317,19 @@ function getScrollContainer(node: HTMLElement | null): HTMLElement | Window {
   return window;
 }
 
-function autoScrollDuringDrag(event: React.DragEvent<HTMLElement>) {
+function autoScrollDuringDrag(event: React.DragEvent<HTMLElement>, layout: MediaListLayout) {
   if (typeof window === "undefined") {
+    return;
+  }
+
+  if (layout === "horizontal") {
+    autoScrollHorizontalContainerDuringDrag(event);
     return;
   }
 
   const threshold = 120;
   const maxStep = 20;
-  const scrollContainer = getScrollContainer(event.currentTarget);
+  const scrollContainer = getScrollContainer(event.currentTarget, "y");
 
   if (scrollContainer === window) {
     return;
@@ -248,6 +349,32 @@ function autoScrollDuringDrag(event: React.DragEvent<HTMLElement>) {
   if (bottomDistance < threshold) {
     const velocity = Math.ceil(((threshold - bottomDistance) / threshold) * maxStep);
     scrollElement.scrollTop += velocity;
+  }
+}
+
+function autoScrollHorizontalContainerDuringDrag(event: React.DragEvent<HTMLElement>) {
+  const threshold = 96;
+  const maxStep = 18;
+  const scrollContainer = getScrollContainer(event.currentTarget, "x");
+
+  if (scrollContainer === window) {
+    return;
+  }
+
+  const scrollElement = scrollContainer as HTMLElement;
+  const rect = scrollElement.getBoundingClientRect();
+  const leftDistance = event.clientX - rect.left;
+  const rightDistance = rect.right - event.clientX;
+
+  if (leftDistance < threshold) {
+    const velocity = Math.ceil(((threshold - leftDistance) / threshold) * maxStep);
+    scrollElement.scrollLeft -= velocity;
+    return;
+  }
+
+  if (rightDistance < threshold) {
+    const velocity = Math.ceil(((threshold - rightDistance) / threshold) * maxStep);
+    scrollElement.scrollLeft += velocity;
   }
 }
 
@@ -1208,6 +1335,8 @@ function SortableExistingMediaList({
 }) {
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
+  const itemKeys = React.useMemo(() => items.map((item) => String(item.id)), [items]);
+  const listRef = useMediaListLayoutAnimation(itemKeys, layout);
   const previewItems = React.useMemo(
     () =>
       items
@@ -1235,26 +1364,24 @@ function SortableExistingMediaList({
 
   return (
     <div
+      ref={listRef}
       className={getMediaListClassName(layout)}
       onDragOver={(event) => {
         if (draggedIndex === null) return;
         event.preventDefault();
-        if (layout !== "horizontal") {
-          autoScrollDuringDrag(event);
-        }
+        autoScrollDuringDrag(event, layout);
       }}
     >
       {items.map((item, itemIndex) => (
         <div
           key={String(item.id)}
+          data-media-list-token={String(item.id)}
           className={getMediaListItemClassName(layout, itemIndex, items.length)}
           onDragOver={(event) => {
             if (draggedIndex === null) return;
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
-            if (layout !== "horizontal") {
-              autoScrollDuringDrag(event);
-            }
+            autoScrollDuringDrag(event, layout);
             const insertionIndex = resolveInsertionIndex(
               itemIndex,
               resolveDropPositionWithBias(event, itemIndex, items.length, layout),
@@ -1337,17 +1464,18 @@ function SortableMediaFileList({
 }) {
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
+  const itemKeys = React.useMemo(() => files.map((file) => getFileId(file)), [files, getFileId]);
+  const listRef = useMediaListLayoutAnimation(itemKeys, layout);
   useWindowAutoScrollWhileDragging(layout !== "horizontal" && draggedIndex !== null);
 
   return (
     <div
+      ref={listRef}
       className={getMediaListClassName(layout)}
       onDragOver={(event) => {
         if (draggedIndex === null) return;
         event.preventDefault();
-        if (layout !== "horizontal") {
-          autoScrollDuringDrag(event);
-        }
+        autoScrollDuringDrag(event, layout);
       }}
     >
       {files.map((file, fileIndex) => {
@@ -1356,14 +1484,13 @@ function SortableMediaFileList({
         return (
           <div
             key={fileId}
+            data-media-list-token={fileId}
             className={getMediaListItemClassName(layout, fileIndex, files.length)}
             onDragOver={(event) => {
               if (draggedIndex === null) return;
               event.preventDefault();
               event.dataTransfer.dropEffect = "move";
-              if (layout !== "horizontal") {
-                autoScrollDuringDrag(event);
-              }
+              autoScrollDuringDrag(event, layout);
               const insertionIndex = resolveInsertionIndex(
                 fileIndex,
                 resolveDropPositionWithBias(event, fileIndex, files.length, layout),
@@ -1432,27 +1559,55 @@ function SortableMergedMediaList({
 }) {
   const [draggedToken, setDraggedToken] = React.useState<string | null>(null);
   const [dropInsertionIndex, setDropInsertionIndex] = React.useState<number | null>(null);
-  const existingPreviewItems = React.useMemo(
+  const itemKeys = React.useMemo(() => items.map((item) => item.token), [items]);
+  const listRef = useMediaListLayoutAnimation(itemKeys, layout);
+  const { getObjectUrl, retainObjectUrls } = useObjectUrlRegistry();
+  const newItemTokens = React.useMemo(
+    () =>
+      new Set(
+        items
+          .filter((item): item is Extract<MergedMediaEntry, { kind: "new" }> => item.kind === "new")
+          .map((item) => item.token),
+      ),
+    [items],
+  );
+  React.useEffect(() => {
+    retainObjectUrls(newItemTokens);
+  }, [newItemTokens, retainObjectUrls]);
+  const previewItems = React.useMemo(
     () =>
       items.reduce<MediaUploaderPreviewItem[]>((accumulator, item) => {
-        if (item.kind !== "existing" || !item.item.url) return accumulator;
+        if (item.kind === "existing") {
+          if (!item.item.url) return accumulator;
+
+          accumulator.push({
+            url: item.item.url,
+            title: item.item.name,
+            isImage: item.item.isImage !== false,
+          });
+
+          return accumulator;
+        }
+
+        const previewUrl = getObjectUrl(item.token, item.file);
+        if (!previewUrl) return accumulator;
 
         accumulator.push({
-          url: item.item.url,
-          title: item.item.name,
-          isImage: item.item.isImage !== false,
+          url: previewUrl,
+          title: item.file.name,
+          isImage: isImageFile(item.file),
         });
 
         return accumulator;
       }, []),
-    [items],
+    [getObjectUrl, items],
   );
   const previewIndexByToken = React.useMemo(() => {
     const map = new Map<string, number>();
     let nextIndex = 0;
 
     items.forEach((item) => {
-      if (item.kind !== "existing" || !item.item.url) return;
+      if (item.kind === "existing" && !item.item.url) return;
       map.set(item.token, nextIndex);
       nextIndex += 1;
     });
@@ -1465,13 +1620,12 @@ function SortableMergedMediaList({
 
   return (
     <div
+      ref={listRef}
       className={getMediaListClassName(layout)}
       onDragOver={(event) => {
         if (!draggedToken) return;
         event.preventDefault();
-        if (layout !== "horizontal") {
-          autoScrollDuringDrag(event);
-        }
+        autoScrollDuringDrag(event, layout);
       }}
     >
       {items.map((item, itemIndex) => {
@@ -1480,14 +1634,13 @@ function SortableMergedMediaList({
         return (
           <div
             key={item.token}
+            data-media-list-token={item.token}
             className={getMediaListItemClassName(layout, itemIndex, items.length)}
             onDragOver={(event) => {
               if (!draggedToken) return;
               event.preventDefault();
               event.dataTransfer.dropEffect = "move";
-              if (layout !== "horizontal") {
-                autoScrollDuringDrag(event);
-              }
+              autoScrollDuringDrag(event, layout);
               const insertionIndex = resolveInsertionIndex(
                 itemIndex,
                 resolveDropPositionWithBias(event, itemIndex, items.length, layout),
@@ -1534,7 +1687,7 @@ function SortableMergedMediaList({
                     ? (preview) =>
                         onPreview({
                           ...preview,
-                          items: existingPreviewItems,
+                          items: previewItems,
                           index: previewIndexByToken.get(item.token) ?? 0,
                         })
                     : undefined
@@ -1556,7 +1709,16 @@ function SortableMergedMediaList({
                 cardVariant={cardVariant}
                 onRemove={() => onRemove(item.token)}
                 onMakeRepresentative={() => onMakeRepresentative(item.token)}
-                onPreview={onPreview}
+                onPreview={
+                  onPreview
+                    ? (preview) =>
+                        onPreview({
+                          ...preview,
+                          items: previewItems,
+                          index: previewIndexByToken.get(item.token) ?? 0,
+                        })
+                    : undefined
+                }
                 onDragStart={() => setDraggedToken(item.token)}
                 onDragEnd={() => {
                   setDraggedToken(null);
