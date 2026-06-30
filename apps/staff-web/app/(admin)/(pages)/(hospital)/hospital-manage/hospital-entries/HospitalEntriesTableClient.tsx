@@ -6,7 +6,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { HospitalEntriesDataTable } from "@/components/hospital-entry/list/HospitalEntriesDataTable";
 import { HospitalEntriesFilterPanel } from "@/components/hospital-entry/list/HospitalEntriesFilterPanel";
-import { HospitalEntriesSummaryCards } from "@/components/hospital-entry/list/HospitalEntriesSummaryCards";
+import {
+  HospitalEntriesSummaryCards,
+  type HospitalEntrySummaryCardKey,
+} from "@/components/hospital-entry/list/HospitalEntriesSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
@@ -32,6 +35,30 @@ import {
 } from "@/lib/hospital-entry/list";
 import { isApiSuccess } from "@beaulab/types";
 import type { DataTableMeta } from "@beaulab/ui-admin";
+
+function buildSummaryFilters(key: HospitalEntrySummaryCardKey): Filters {
+  const status = {
+    pending: "PENDING",
+    rejected: "REJECTED",
+    approved: "APPROVED",
+  }[key];
+
+  return {
+    ...DEFAULT_FILTERS,
+    allowStatuses: [status],
+  };
+}
+
+function resolveActiveSummaryKey(filters: Filters): HospitalEntrySummaryCardKey | null {
+  if (filters.dateRange || filters.startDate || filters.endDate) return null;
+  if (filters.allowStatuses.length !== 1) return null;
+
+  if (filters.allowStatuses[0] === "PENDING") return "pending";
+  if (filters.allowStatuses[0] === "REJECTED") return "rejected";
+  if (filters.allowStatuses[0] === "APPROVED") return "approved";
+
+  return null;
+}
 
 export default function HospitalEntriesTableClient() {
   const router = useRouter();
@@ -69,6 +96,7 @@ export default function HospitalEntriesTableClient() {
   );
 
   const queryString = React.useMemo(() => buildHospitalEntriesQueryString(query), [query]);
+  const activeSummaryKey = React.useMemo(() => resolveActiveSummaryKey(appliedFilters), [appliedFilters]);
 
   const buildReturnToPath = React.useCallback(() => {
     const rawQueryString = searchParams.toString();
@@ -177,6 +205,19 @@ export default function HospitalEntriesTableClient() {
     setAppliedFilters(DEFAULT_FILTERS);
   };
 
+  const applySummaryFilter = React.useCallback((key: HospitalEntrySummaryCardKey) => {
+    const nextFilters = buildSummaryFilters(key);
+
+    setDraftFilters(nextFilters);
+    setAppliedFilters(nextFilters);
+    setDraftDateRange(undefined);
+    setSearchInput("");
+    setSearchKeyword("");
+    setIsAllowStatusDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setPage(1);
+  }, []);
+
   const toggleAllowStatus = (value: string) => {
     setDraftFilters((prev) => {
       const exists = prev.allowStatuses.includes(value);
@@ -219,7 +260,7 @@ export default function HospitalEntriesTableClient() {
 
   return (
     <div className="space-y-4">
-      <HospitalEntriesSummaryCards summary={summary} />
+      <HospitalEntriesSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
       <HospitalEntriesFilterPanel
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
