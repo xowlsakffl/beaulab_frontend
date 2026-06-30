@@ -159,9 +159,9 @@ export function AdminNotesCard({
 }) {
   return (
     <Card className={cardClassName}>
-      <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
+      <div className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
         <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
-        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} />
+        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} className="absolute top-0 right-0" />
       </div>
       {loading ? (
         <p className="text-sm text-gray-500">메모를 불러오는 중입니다.</p>

@@ -182,7 +182,7 @@ export default function AccountUserDetailPageClient() {
     setBlockError(null);
 
     try {
-      const response = await api.patch<AccountUserUpdateResponse>(`/users/${userId}`, {
+      const response = await api.patch<AccountUserUpdateResponse>(`/users/${userId}/status`, {
         status: "BLOCKED",
         reason,
       });
@@ -491,26 +491,26 @@ function NotificationSettingsCard({ user }: { user: AccountUserDetail }) {
 function AdminMemoCard({ notes, onOpenNoteModal }: { notes: AdminNoteItem[]; onOpenNoteModal: () => void }) {
   return (
     <Card>
-      <CardHeader className={`${cardHeaderClassName} flex flex-row items-center justify-between`}>
-        <CardTitle>관리자 메모</CardTitle>
-        <AddCircleButton label="관리자 메모 추가" onClick={onOpenNoteModal} />
+      <CardHeader className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
+        <CardTitle className="font-bold text-gray-900">관리자 메모</CardTitle>
+        <AddCircleButton label="관리자 메모 추가" onClick={onOpenNoteModal} className="absolute top-0 right-0" />
       </CardHeader>
       <CardContent>
-        <div className="max-h-44 overflow-y-auto border-t border-gray-200">
+        <div className="max-h-44 overflow-y-auto pr-1">
           {notes.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
               등록된 관리자 메모가 없습니다.
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="space-y-3">
               {notes.map((note) => (
                 <div
                   key={note.id ?? `${note.created_at}-${note.note}`}
-                  className="grid grid-cols-[7rem_6rem_minmax(0,1fr)] gap-3 py-4 text-sm"
+                  className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600"
                 >
-                  <span className="text-gray-500">{formatAccountUserDetailDateTime(note.created_at)}</span>
-                  <span className="font-medium text-gray-700">{note.creator_name || "-"}</span>
-                  <span className="min-w-0 break-words text-gray-700">{note.note || "-"}</span>
+                  <span>{formatAccountUserDetailDateTime(note.created_at)}</span>
+                  <span>{note.creator_name || "-"}</span>
+                  <span className="break-words">{note.note || "-"}</span>
                 </div>
               ))}
             </div>
