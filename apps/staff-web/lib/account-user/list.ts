@@ -83,20 +83,10 @@ export type AccountUserRow = {
   lastAccessIp: string;
 };
 
-export type AccountUserSignupChannelSummary = {
-  channel?: string | null;
-  label?: string | null;
-  count?: number | null;
-};
-
 export type AccountUserSummary = {
-  daily_visitors?: number | null;
-  monthly_visitors?: number | null;
-  total_users?: number | null;
   withdrawn_users?: number | null;
   blocked_users?: number | null;
   warned_users?: number | null;
-  signup_channels?: AccountUserSignupChannelSummary[] | null;
 };
 
 export const ACCOUNT_USERS_PER_PAGE = 15;

@@ -8,10 +8,7 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import { AccountUsersDataTable } from "@/components/account-user/list/AccountUsersDataTable";
 import { AccountUsersFilterPanel } from "@/components/account-user/list/AccountUsersFilterPanel";
-import {
-  AccountUsersSignupChannelCard,
-  AccountUsersSummaryCards,
-} from "@/components/account-user/list/AccountUsersSummaryCards";
+import { AccountUsersSummaryCards } from "@/components/account-user/list/AccountUsersSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
@@ -214,32 +211,26 @@ export default function AccountUsersTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_16rem]">
-        <div className="min-w-0 space-y-4">
-          <AccountUsersSummaryCards summary={summary} />
+      <AccountUsersSummaryCards summary={summary} />
 
-          <AccountUsersFilterPanel
-            searchInput={searchInput}
-            draftFilters={draftFilters}
-            draftDateRange={draftDateRange}
-            isDatePickerOpen={isDatePickerOpen}
-            datePickerRef={datePickerRef}
-            onSearchChange={setSearchInput}
-            onDateTypeChange={changeDateType}
-            onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
-            onApplyDateRange={applyDateRange}
-            onApplyDatePreset={applyDatePreset}
-            onSignupChannelChange={(value) => changeDraftFilter("signupChannel", value)}
-            onStatusChange={(value) => changeDraftFilter("status", value)}
-            onWarningCountMinChange={(value) => changeWarningCount("warningCountMin", value)}
-            onWarningCountMaxChange={(value) => changeWarningCount("warningCountMax", value)}
-            onApplyFilters={applyFilters}
-            onResetFilters={resetFilters}
-          />
-        </div>
-
-        <AccountUsersSignupChannelCard summary={summary} />
-      </div>
+      <AccountUsersFilterPanel
+        searchInput={searchInput}
+        draftFilters={draftFilters}
+        draftDateRange={draftDateRange}
+        isDatePickerOpen={isDatePickerOpen}
+        datePickerRef={datePickerRef}
+        onSearchChange={setSearchInput}
+        onDateTypeChange={changeDateType}
+        onToggleDatePicker={() => setIsDatePickerOpen((prev) => !prev)}
+        onApplyDateRange={applyDateRange}
+        onApplyDatePreset={applyDatePreset}
+        onSignupChannelChange={(value) => changeDraftFilter("signupChannel", value)}
+        onStatusChange={(value) => changeDraftFilter("status", value)}
+        onWarningCountMinChange={(value) => changeWarningCount("warningCountMin", value)}
+        onWarningCountMaxChange={(value) => changeWarningCount("warningCountMax", value)}
+        onApplyFilters={applyFilters}
+        onResetFilters={resetFilters}
+      />
 
       <AccountUsersDataTable
         rows={rows}
