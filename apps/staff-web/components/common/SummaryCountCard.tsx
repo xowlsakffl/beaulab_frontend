@@ -35,7 +35,9 @@ export function SummaryCountCard({
 
   if (layout === "center") {
     const centerClassName = onClick
-      ? "rounded-lg border border-gray-300 px-4 py-3 text-center transition-colors hover:border-brand-300 hover:bg-brand-50"
+      ? `rounded-lg border px-4 py-3 text-center transition-colors ${
+          pressed ? "border-brand-300 bg-brand-50" : "border-gray-300 hover:border-brand-300 hover:bg-brand-50"
+        }`
       : "rounded-lg border border-gray-300 px-4 py-3 text-center";
 
     if (onClick) {
@@ -63,7 +65,9 @@ export function SummaryCountCard({
         type="button"
         onClick={onClick}
         aria-pressed={pressed}
-        className={`w-full border border-gray-200 text-left transition-colors hover:border-brand-300 hover:bg-brand-50 ${horizontalClassName}`}
+        className={`w-full border text-left transition-colors ${
+          pressed ? "!border-brand-300 !bg-brand-50" : "border-gray-200 hover:border-brand-300 hover:bg-brand-50"
+        } ${horizontalClassName}`}
       >
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-gray-700">{label}</span>

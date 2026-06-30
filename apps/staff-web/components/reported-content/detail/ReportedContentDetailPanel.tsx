@@ -276,7 +276,7 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
 
         <CardContent className="space-y-8">
           {loading ? (
-            <SpinnerBlock label="신고 상세 불러오는 중" />
+            <SpinnerBlock className="min-h-[12rem]" spinnerClassName="size-10" label="신고 상세 불러오는 중" />
           ) : error ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
           ) : (
@@ -289,7 +289,7 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
                 </div>
 
                 {reportsLoading ? (
-                  <SpinnerBlock label="신고 내역 불러오는 중" />
+                  <SpinnerBlock className="min-h-[10rem]" spinnerClassName="size-10" label="신고 내역 불러오는 중" />
                 ) : reportsError ? (
                   <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                     {reportsError}

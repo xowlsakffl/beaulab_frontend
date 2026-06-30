@@ -439,7 +439,9 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   }, [config.kind, detail, receiptDecision, receiptRejectReason, receiptRejectReasonText, refreshDetail]);
 
   if (loading && !detail) {
-    return <SpinnerBlock label="신고게시물 상세 정보를 불러오는 중" />;
+    return (
+      <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="신고게시물 상세 정보를 불러오는 중" />
+    );
   }
 
   if (error || !detail) {

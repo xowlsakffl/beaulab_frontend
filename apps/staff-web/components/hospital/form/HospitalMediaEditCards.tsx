@@ -153,10 +153,18 @@ export function HospitalGalleryEditCard({
   const maxGalleryCount = galleryCollection.maxFiles ?? 5;
   const currentGalleryCount = gallery.length + (existingMediaByCollection?.gallery.length ?? 0);
   const isGalleryFull = currentGalleryCount >= maxGalleryCount;
+  const galleryPreviewItems = React.useMemo(
+    () => buildGalleryPreviewItems(existingMediaByCollection?.gallery ?? [], gallery, galleryOrder),
+    [existingMediaByCollection?.gallery, gallery, galleryOrder],
+  );
 
   const openFilePicker = () => {
     if (isGalleryFull) return;
     uploaderRef.current?.querySelector<HTMLInputElement>('input[data-media-file-input="true"]')?.click();
+  };
+
+  const handlePreview = (preview: HospitalMediaPreviewState) => {
+    onPreview(normalizeGalleryPreviewTitle(preview, galleryPreviewItems));
   };
 
   return (
@@ -202,7 +210,7 @@ export function HospitalGalleryEditCard({
             if (key !== "gallery") return;
             onGalleryOrderChange?.(order);
           }}
-          onPreview={(_, preview) => onPreview(preview)}
+          onPreview={(_, preview) => handlePreview(preview)}
           onBeforeAddFiles={async (_, files) => {
             const message = await validateHospitalGalleryUploadFiles(files);
 
@@ -225,4 +233,93 @@ export function HospitalGalleryEditCard({
 
 function RequiredMark() {
   return <span className="text-error-500">*</span>;
+}
+
+type GalleryPreviewItem = {
+  url?: string;
+  name: string;
+  title: string;
+};
+
+function buildGalleryPreviewItems(
+  existingItems: ExistingMediaItem[],
+  files: File[],
+  galleryOrder?: string[],
+): GalleryPreviewItem[] {
+  const existingItemByToken = new Map(existingItems.map((item) => [buildExistingMediaToken(item), item]));
+  const newTokens = (galleryOrder ?? []).filter((token) => token.startsWith("new:"));
+  const fileByToken = new Map(
+    newTokens
+      .map((token, index) => [token, files[index]])
+      .filter((entry): entry is [string, File] => Boolean(entry[1])),
+  );
+  const defaultItems = [...existingItems.map(existingItemToPreviewItem), ...files.map(fileToPreviewItem)];
+  const orderedItems =
+    galleryOrder && galleryOrder.length > 0
+      ? galleryOrder
+          .map((token) => {
+            const existingItem = existingItemByToken.get(token);
+            if (existingItem) return existingItemToPreviewItem(existingItem);
+
+            const file = fileByToken.get(token);
+            return file ? fileToPreviewItem(file) : null;
+          })
+          .filter((item): item is Omit<GalleryPreviewItem, "title"> => Boolean(item))
+      : defaultItems;
+
+  return orderedItems.map((item, index) => ({
+    ...item,
+    title: galleryImageTitle(index),
+  }));
+}
+
+function normalizeGalleryPreviewTitle(
+  preview: HospitalMediaPreviewState,
+  galleryPreviewItems: GalleryPreviewItem[],
+): HospitalMediaPreviewState {
+  const items = preview.items?.map((item) => ({
+    ...item,
+    title: resolveGalleryPreviewTitle(item, galleryPreviewItems) ?? item.title,
+  }));
+  const currentItemTitle =
+    resolveGalleryPreviewTitle(preview, galleryPreviewItems) ??
+    (typeof preview.index === "number" ? items?.[preview.index]?.title : null) ??
+    preview.title;
+
+  return {
+    ...preview,
+    title: currentItemTitle,
+    items,
+  };
+}
+
+function resolveGalleryPreviewTitle(
+  preview: Pick<HospitalMediaPreviewState, "url" | "title">,
+  galleryPreviewItems: GalleryPreviewItem[],
+) {
+  const matchedByUrl = galleryPreviewItems.find((item) => item.url && item.url === preview.url);
+  if (matchedByUrl) return matchedByUrl.title;
+
+  return galleryPreviewItems.find((item) => item.name === preview.title)?.title ?? null;
+}
+
+function existingItemToPreviewItem(item: ExistingMediaItem): Omit<GalleryPreviewItem, "title"> {
+  return {
+    url: item.url,
+    name: item.name,
+  };
+}
+
+function fileToPreviewItem(file: File): Omit<GalleryPreviewItem, "title"> {
+  return {
+    name: file.name,
+  };
+}
+
+function buildExistingMediaToken(item: ExistingMediaItem) {
+  return `existing:${String(item.id)}`;
+}
+
+function galleryImageTitle(index: number) {
+  return index === 0 ? "대표이미지" : `내부이미지${index}`;
 }

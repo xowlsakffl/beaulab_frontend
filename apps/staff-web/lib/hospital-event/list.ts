@@ -130,6 +130,8 @@ export type HospitalEventSummary = {
 export type HospitalEventDateType = "event_start_at" | "event_end_at";
 export type HospitalEventQuantityMetric = "all" | "consultation_count" | "view_count";
 export type HospitalEventAmountMetric = "all" | "event_price" | "consultation_price" | "total_spent_point";
+export type HospitalEventSummaryFilter =
+  "active" | "recent_created" | "ending_soon" | "recent_stopped" | "pending" | "reviewing" | "approved" | "rejected";
 export type HospitalEventSortField =
   | "id"
   | "event_price"
@@ -150,6 +152,7 @@ export type HospitalEventSortState = {
 };
 
 export type HospitalEventFilters = {
+  summaryFilter: HospitalEventSummaryFilter | "";
   dateTypes: HospitalEventDateType[];
   dateRange: string;
   startDate: string;
@@ -168,6 +171,7 @@ export type HospitalEventFilters = {
 
 export type HospitalEventsQuery = {
   q?: string;
+  summary_filter?: HospitalEventSummaryFilter;
   date_types?: string;
   start_date?: string;
   end_date?: string;
@@ -195,6 +199,7 @@ export const DEFAULT_HOSPITAL_EVENT_SORT: HospitalEventSortState = {
 };
 
 export const DEFAULT_HOSPITAL_EVENT_FILTERS: HospitalEventFilters = {
+  summaryFilter: "",
   dateTypes: ["event_start_at"],
   dateRange: "",
   startDate: "",
@@ -274,6 +279,16 @@ const HOSPITAL_EVENT_AMOUNT_METRIC_VALUE_SET = new Set(
   HOSPITAL_EVENT_AMOUNT_METRIC_OPTIONS.map((option) => option.value),
 );
 const HOSPITAL_EVENT_DATE_TYPE_VALUE_SET = new Set(HOSPITAL_EVENT_DATE_TYPE_OPTIONS.map((option) => option.value));
+const HOSPITAL_EVENT_SUMMARY_FILTER_VALUE_SET = new Set<HospitalEventSummaryFilter>([
+  "active",
+  "recent_created",
+  "ending_soon",
+  "recent_stopped",
+  "pending",
+  "reviewing",
+  "approved",
+  "rejected",
+]);
 export function resolveHospitalEventMediaUrl(
   media?: HospitalEventMedia | null,
   preferredVariant: MediaVariantPreference = "original",
@@ -536,6 +551,7 @@ export function parseHospitalEventsTableState(searchParams: URLSearchParams) {
   );
   const quantityMetricParam = searchParams.get("quantity_metric");
   const amountMetricParam = searchParams.get("amount_metric");
+  const summaryFilter = normalizeHospitalEventSummaryFilter(searchParams.get("summary_filter"));
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const sortFieldParam = searchParams.get("sort");
@@ -550,6 +566,7 @@ export function parseHospitalEventsTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       ...DEFAULT_HOSPITAL_EVENT_FILTERS,
+      summaryFilter,
       dateTypes: dateTypes.length > 0 ? [dateTypes[0]] : DEFAULT_HOSPITAL_EVENT_FILTERS.dateTypes,
       dateRange: dateState.label,
       startDate,
@@ -602,6 +619,7 @@ export function buildHospitalEventsQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
+  if (appliedFilters.summaryFilter) query.summary_filter = appliedFilters.summaryFilter;
   if (appliedFilters.dateTypes.length > 0) query.date_types = appliedFilters.dateTypes.join(",");
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
@@ -635,6 +653,7 @@ export function buildHospitalEventsQueryString(query: HospitalEventsQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
+  if (query.summary_filter) params.set("summary_filter", query.summary_filter);
   if (query.date_types) params.set("date_types", query.date_types);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
@@ -672,4 +691,10 @@ function normalizePositiveId(value: string | null | undefined) {
   const trimmedValue = (value ?? "").trim();
 
   return /^[1-9]\d*$/.test(trimmedValue) ? trimmedValue : "";
+}
+
+function normalizeHospitalEventSummaryFilter(value: string | null | undefined): HospitalEventSummaryFilter | "" {
+  return value && HOSPITAL_EVENT_SUMMARY_FILTER_VALUE_SET.has(value as HospitalEventSummaryFilter)
+    ? (value as HospitalEventSummaryFilter)
+    : "";
 }

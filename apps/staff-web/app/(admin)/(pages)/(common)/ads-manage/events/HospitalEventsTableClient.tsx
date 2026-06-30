@@ -12,7 +12,10 @@ import {
   HospitalEventPeriodEditModal,
   type HospitalEventPeriodEditState,
 } from "@/components/hospital-event/list/HospitalEventPeriodEditModal";
-import { HospitalEventsSummaryCards } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
+import {
+  HospitalEventsSummaryCards,
+  type HospitalEventSummaryCardKey,
+} from "@/components/hospital-event/list/HospitalEventsSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
@@ -56,6 +59,80 @@ function buildCategoryItemsCacheKey(params: Record<string, string | number>) {
     .join("|");
 }
 
+function cloneDefaultHospitalEventFilters(): HospitalEventFilters {
+  return {
+    ...DEFAULT_HOSPITAL_EVENT_FILTERS,
+    dateTypes: [...DEFAULT_HOSPITAL_EVENT_FILTERS.dateTypes],
+    allowStatuses: [...DEFAULT_HOSPITAL_EVENT_FILTERS.allowStatuses],
+  };
+}
+
+function buildSummaryFilterState(key: HospitalEventSummaryCardKey): {
+  filters: HospitalEventFilters;
+  draftDateRange?: DateRange;
+} {
+  const filters = cloneDefaultHospitalEventFilters();
+
+  if (key === "active") {
+    return {
+      filters: {
+        ...filters,
+        summaryFilter: key,
+        visibilityStatus: "ACTIVE",
+      },
+    };
+  }
+
+  if (key === "ending_soon") {
+    const from = normalizeRangeDate(new Date());
+    const to = new Date(from);
+    to.setDate(from.getDate() + 30);
+
+    const draftDateRange = { from, to };
+    const mappedDateRange = mapDateRangeToHospitalEventFilter(draftDateRange);
+
+    return {
+      draftDateRange,
+      filters: {
+        ...filters,
+        summaryFilter: key,
+        dateTypes: ["event_end_at"],
+        dateRange: mappedDateRange.label,
+        startDate: mappedDateRange.startDate,
+        endDate: mappedDateRange.endDate,
+      },
+    };
+  }
+
+  if (key === "pending" || key === "reviewing" || key === "approved" || key === "rejected") {
+    const allowStatusMap = {
+      pending: "PENDING",
+      reviewing: "REVIEWING",
+      approved: "APPROVED",
+      rejected: "REJECTED",
+    } satisfies Record<typeof key, string>;
+
+    return {
+      filters: {
+        ...filters,
+        summaryFilter: key,
+        allowStatuses: [allowStatusMap[key]],
+      },
+    };
+  }
+
+  return {
+    filters: {
+      ...filters,
+      summaryFilter: key,
+    },
+  };
+}
+
+function resolveActiveSummaryKey(filters: HospitalEventFilters): HospitalEventSummaryCardKey | null {
+  return filters.summaryFilter || null;
+}
+
 export default function HospitalEventsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -95,6 +172,7 @@ export default function HospitalEventsTableClient() {
   );
 
   const queryString = React.useMemo(() => buildHospitalEventsQueryString(query), [query]);
+  const activeSummaryKey = React.useMemo(() => resolveActiveSummaryKey(appliedFilters), [appliedFilters]);
   const fetchEventRows = React.useCallback(async (nextQuery: typeof query) => {
     const response = await api.get<HospitalEventApiItem[]>("/hospital-events", nextQuery, {
       latestKey: "hospital-events:list",
@@ -306,6 +384,19 @@ export default function HospitalEventsTableClient() {
     setIsAllowStatusDropdownOpen(false);
   };
 
+  const applySummaryFilter = React.useCallback((key: HospitalEventSummaryCardKey) => {
+    const nextState = buildSummaryFilterState(key);
+
+    setDraftFilters(nextState.filters);
+    setAppliedFilters(nextState.filters);
+    setDraftDateRange(nextState.draftDateRange);
+    setSearchInput("");
+    setSearchKeyword("");
+    setPage(1);
+    setIsDatePickerOpen(false);
+    setIsAllowStatusDropdownOpen(false);
+  }, []);
+
   const toggleDateType = (value: HospitalEventDateType) => {
     setDraftFilters((prev) => ({
       ...prev,
@@ -454,7 +545,7 @@ export default function HospitalEventsTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalEventsSummaryCards summary={summary} />
+      <HospitalEventsSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
 
       <HospitalEventsFilterPanel
         searchInput={searchInput}
