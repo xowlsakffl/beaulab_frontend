@@ -24,6 +24,20 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/notice-manage/notices": ["beaulab.notice.show"],
   "/user-manage/users": ["beaulab.user.show"],
   "/category-hashtag-manage/hashtags": ["beaulab.hashtag.manage"],
+  "/beauty-dashboard/dashboard": ["beaulab.beauty.show"],
+  "/beauty-shop-manage/beauties": ["beaulab.beauty.show"],
+  "/beauty-shop-manage/experts": ["beaulab.expert.show"],
+  "/beauty-customer-db-manage/real-models": ["beaulab.beauty.show"],
+  "/beauty-ads-manage/events": ["beaulab.beauty.show"],
+  "/beauty-ads-manage/products": ["beaulab.beauty.show"],
+  "/beauty-ads-manage/calendar": ["beaulab.beauty.show"],
+  "/beauty-wallet-manage/beauties": ["beaulab.beauty.show"],
+  "/beauty-wallet-manage/usages": ["beaulab.beauty.show"],
+  "/beauty-post-manage/beauty-reviews": ["beaulab.beauty.show"],
+  "/beauty-post-manage/beauty-posts": ["beaulab.beauty.show"],
+  "/beauty-post-manage/talks": ["beaulab.beauty.show"],
+  "/beauty-reported-content-manage/posts": ["beaulab.beauty.show"],
+  "/beauty-reported-content-manage/comments": ["beaulab.beauty.show"],
 } as const;
 
 export type StaticAdminRoutePath = keyof typeof STATIC_ADMIN_ROUTE_PERMISSIONS;

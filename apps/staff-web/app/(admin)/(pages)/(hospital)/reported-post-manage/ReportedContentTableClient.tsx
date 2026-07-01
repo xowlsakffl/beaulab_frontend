@@ -8,6 +8,8 @@ import { Button, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { ReportedContentDataTable } from "@/components/reported-content/list/ReportedContentDataTable";
 import { ReportedContentFilterPanel } from "@/components/reported-content/list/ReportedContentFilterPanel";
+import { ReportedContentProcessModal } from "@/components/reported-content/list/ReportedContentProcessModal";
+import { ReportedContentReportsModal } from "@/components/reported-content/list/ReportedContentReportsModal";
 import { ReportedContentSummaryCards } from "@/components/reported-content/list/ReportedContentSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
@@ -63,10 +65,13 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const [sortState, setSortState] = React.useState<ReportedContentSortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
   const [summary, setSummary] = React.useState<ReportedContentSummary | null>(null);
+  const [reportsModalRow, setReportsModalRow] = React.useState<ReportedContentRow | null>(null);
+  const [processModalRow, setProcessModalRow] = React.useState<ReportedContentRow | null>(null);
   const activeKind = activeBoard === "comments" ? (config.commentKind ?? config.kind) : config.kind;
   const activeApiPath = activeBoard === "comments" ? (config.commentApiPath ?? config.apiPath) : config.apiPath;
   const showSummaryCards = config.showSummaryCards !== false;
   const activeSummaryKey = appliedFilters.summaryFilter || null;
+  const isCommentKind = activeKind === "review-comment" || activeKind === "talk-comment";
 
   const query = React.useMemo(
     () =>
@@ -296,6 +301,10 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     [config.listPath, queryString, router],
   );
 
+  const refreshAfterProcess = React.useCallback(() => {
+    void Promise.all([fetchRows(true), fetchSummary()]);
+  }, [fetchRows, fetchSummary]);
+
   return (
     <div className="min-w-0 space-y-4">
       {supportsComments ? (
@@ -364,7 +373,15 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         onToggleSort={toggleSort}
         onGoPage={setPage}
         onRefresh={() => void Promise.all([fetchRows(true), fetchSummary()])}
-        onOpenDetail={openDetail}
+        onOpenDetail={isCommentKind ? undefined : openDetail}
+        onOpenReports={isCommentKind ? setReportsModalRow : undefined}
+        onOpenProcess={isCommentKind ? setProcessModalRow : undefined}
+      />
+      <ReportedContentReportsModal row={reportsModalRow} onClose={() => setReportsModalRow(null)} />
+      <ReportedContentProcessModal
+        row={processModalRow}
+        onClose={() => setProcessModalRow(null)}
+        onProcessed={refreshAfterProcess}
       />
     </div>
   );

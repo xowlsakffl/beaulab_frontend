@@ -127,6 +127,14 @@ export type ReportedContentWarningStatusUpdatePayload = {
   warning_status: "WARNED" | "IGNORED";
 };
 
+export type ReportedContentProcessPayload = {
+  target_type: ReportedContentTargetType;
+  target_id: number;
+  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
+  process_reason?: string;
+  warning_status?: "WARNED" | "IGNORED";
+};
+
 export function formatReportedContentDetailDate(value?: string | null) {
   if (!value) return "-";
 

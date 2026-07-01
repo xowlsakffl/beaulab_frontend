@@ -126,14 +126,14 @@ export default function ReportedChatDetailPageClient() {
         const response = await api.patch("/reported-contents/status", payload);
 
         if (!isApiSuccess(response)) {
-          setModalError(response.error.message || "신고여부 변경에 실패했습니다.");
+          setModalError(response.error.message || "조치유형 변경에 실패했습니다.");
           return;
         }
 
         setPendingStatus(null);
         await fetchDetail();
       } catch {
-        setModalError("신고여부 변경 중 오류가 발생했습니다.");
+        setModalError("조치유형 변경 중 오류가 발생했습니다.");
       } finally {
         setUpdatingStatus(null);
       }
@@ -298,7 +298,7 @@ export default function ReportedChatDetailPageClient() {
       >
         <ModalPanel>
           <ModalHeader className="pr-0">
-            <ModalTitle>신고여부</ModalTitle>
+            <ModalTitle>조치유형</ModalTitle>
           </ModalHeader>
 
           <ModalBody className="mt-5 space-y-4">
@@ -597,7 +597,7 @@ function ChatReportActionCard({
     <Card>
       <CardContent className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-gray-900">신고여부</h3>
+          <h3 className="text-sm font-semibold text-gray-900">조치유형</h3>
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"

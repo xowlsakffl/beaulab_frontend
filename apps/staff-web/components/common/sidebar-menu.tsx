@@ -11,6 +11,9 @@ import {
   Bell,
   Users,
   Tags,
+  LayoutDashboard,
+  Store,
+  Wallet,
 } from "@beaulab/ui-admin";
 
 type VisibilityRule = { requiredPermissions?: string[] };
@@ -103,7 +106,60 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
 };
 
 const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
-  main: [],
+  main: [
+    {
+      icon: <LayoutDashboard className={iconClass} />,
+      name: "뷰티 대시보드",
+      subItems: [routeSubItem({ name: "대시보드", path: "/beauty-dashboard/dashboard" })],
+    },
+    {
+      icon: <Store className={iconClass} />,
+      name: "뷰티 관리",
+      subItems: [
+        routeSubItem({ name: "뷰티", path: "/beauty-shop-manage/beauties" }),
+        routeSubItem({ name: "전문가", path: "/beauty-shop-manage/experts" }),
+      ],
+    },
+    {
+      icon: <Database className={iconClass} />,
+      name: "고객 DB 관리",
+      subItems: [routeSubItem({ name: "리얼모델 DB", path: "/beauty-customer-db-manage/real-models" })],
+    },
+    {
+      icon: <Megaphone className={iconClass} />,
+      name: "광고 관리",
+      subItems: [
+        routeSubItem({ name: "이벤트 관리", path: "/beauty-ads-manage/events" }),
+        routeSubItem({ name: "상품 관리", path: "/beauty-ads-manage/products" }),
+        routeSubItem({ name: "광고 캘린더", path: "/beauty-ads-manage/calendar" }),
+      ],
+    },
+    {
+      icon: <Wallet className={iconClass} />,
+      name: "지갑 관리",
+      subItems: [
+        routeSubItem({ name: "뷰티 포인트", path: "/beauty-wallet-manage/beauties" }),
+        routeSubItem({ name: "사용 내역", path: "/beauty-wallet-manage/usages" }),
+      ],
+    },
+    {
+      icon: <MessageSquareText className={iconClass} />,
+      name: "게시물 관리",
+      subItems: [
+        routeSubItem({ name: "뷰티 후기", path: "/beauty-post-manage/beauty-reviews" }),
+        routeSubItem({ name: "뷰티 게시글", path: "/beauty-post-manage/beauty-posts" }),
+        routeSubItem({ name: "토크", path: "/beauty-post-manage/talks" }),
+      ],
+    },
+    {
+      icon: <ShieldAlert className={iconClass} />,
+      name: "신고게시물 관리",
+      subItems: [
+        routeSubItem({ name: "신고 게시글", path: "/beauty-reported-content-manage/posts" }),
+        routeSubItem({ name: "신고 댓글", path: "/beauty-reported-content-manage/comments" }),
+      ],
+    },
+  ],
   others: [],
 };
 
@@ -196,6 +252,18 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
     pathname.startsWith("/reported-post-manage")
   ) {
     return "hospital";
+  }
+
+  if (
+    pathname.startsWith("/beauty-dashboard") ||
+    pathname.startsWith("/beauty-shop-manage") ||
+    pathname.startsWith("/beauty-customer-db-manage") ||
+    pathname.startsWith("/beauty-ads-manage") ||
+    pathname.startsWith("/beauty-wallet-manage") ||
+    pathname.startsWith("/beauty-post-manage") ||
+    pathname.startsWith("/beauty-reported-content-manage")
+  ) {
+    return "beauty";
   }
 
   return null;

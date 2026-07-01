@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useEffect } from "react";
+import { twMerge } from "tailwind-merge";
 
 interface ModalProps {
   isOpen: boolean;
@@ -91,7 +92,7 @@ export const ModalPanel: React.FC<ModalSectionProps> = ({ children, className = 
 };
 
 export const ModalHeader: React.FC<ModalSectionProps> = ({ children, className = "" }) => {
-  return <div className={`pr-10 ${className}`}>{children}</div>;
+  return <div className={twMerge("pr-10", className)}>{children}</div>;
 };
 
 export const ModalTitle: React.FC<ModalSectionProps> = ({ children, className = "" }) => {

@@ -106,6 +106,76 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     title: "내 프로필",
     group: "관리자 설정",
   },
+  {
+    slug: ["beauty-dashboard", "dashboard"],
+    title: "대시보드",
+    group: "뷰티 대시보드",
+  },
+  {
+    slug: ["beauty-shop-manage", "beauties"],
+    title: "뷰티",
+    group: "뷰티 관리",
+  },
+  {
+    slug: ["beauty-shop-manage", "experts"],
+    title: "전문가",
+    group: "뷰티 관리",
+  },
+  {
+    slug: ["beauty-customer-db-manage", "real-models"],
+    title: "리얼모델 DB",
+    group: "고객 DB 관리",
+  },
+  {
+    slug: ["beauty-ads-manage", "events"],
+    title: "이벤트 관리",
+    group: "광고 관리",
+  },
+  {
+    slug: ["beauty-ads-manage", "products"],
+    title: "상품 관리",
+    group: "광고 관리",
+  },
+  {
+    slug: ["beauty-ads-manage", "calendar"],
+    title: "광고 캘린더",
+    group: "광고 관리",
+  },
+  {
+    slug: ["beauty-wallet-manage", "beauties"],
+    title: "뷰티 포인트",
+    group: "지갑 관리",
+  },
+  {
+    slug: ["beauty-wallet-manage", "usages"],
+    title: "사용 내역",
+    group: "지갑 관리",
+  },
+  {
+    slug: ["beauty-post-manage", "beauty-reviews"],
+    title: "뷰티 후기",
+    group: "게시물 관리",
+  },
+  {
+    slug: ["beauty-post-manage", "beauty-posts"],
+    title: "뷰티 게시글",
+    group: "게시물 관리",
+  },
+  {
+    slug: ["beauty-post-manage", "talks"],
+    title: "토크",
+    group: "게시물 관리",
+  },
+  {
+    slug: ["beauty-reported-content-manage", "posts"],
+    title: "신고 게시글",
+    group: "신고게시물 관리",
+  },
+  {
+    slug: ["beauty-reported-content-manage", "comments"],
+    title: "신고 댓글",
+    group: "신고게시물 관리",
+  },
 ];
 
 const adminPageDefinitionMap = new Map(ADMIN_PAGE_DEFINITIONS.map((page) => [page.slug.join("/"), page]));

@@ -421,16 +421,14 @@ export function ReportedContentDetailPanel({
                   </div>
                 )}
 
-                {reportsLastPage > 1 ? (
-                  <div className="flex justify-center pt-2">
-                    <Pagination
-                      currentPage={reportsCurrentPage}
-                      totalPages={reportsLastPage}
-                      onPageChange={setReportsPage}
-                      disabled={reportsLoading || updatingStatus !== null}
-                    />
-                  </div>
-                ) : null}
+                <div className="flex justify-center pt-2">
+                  <Pagination
+                    currentPage={reportsCurrentPage}
+                    totalPages={reportsLastPage}
+                    onPageChange={setReportsPage}
+                    disabled={reportsLoading || updatingStatus !== null}
+                  />
+                </div>
               </section>
 
               <section className="grid gap-6 sm:grid-cols-2">

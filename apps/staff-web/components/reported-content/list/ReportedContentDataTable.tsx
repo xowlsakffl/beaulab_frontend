@@ -34,6 +34,8 @@ type ReportedContentDataTableProps = {
   onGoPage: (page: number) => void;
   onRefresh: () => void;
   onOpenDetail?: (row: ReportedContentRow) => void;
+  onOpenReports?: (row: ReportedContentRow) => void;
+  onOpenProcess?: (row: ReportedContentRow) => void;
 };
 
 function renderSortMark(field: ReportedContentSortField, sortState: ReportedContentSortState) {
@@ -110,14 +112,58 @@ function buildColumns({
   kind,
   sortState,
   onToggleSort,
+  onOpenReports,
+  onOpenProcess,
 }: {
   kind: ReportedContentKind;
   sortState: ReportedContentSortState;
   onToggleSort: (field: ReportedContentSortField) => void;
+  onOpenReports?: (row: ReportedContentRow) => void;
+  onOpenProcess?: (row: ReportedContentRow) => void;
 }): DataTableColumn<ReportedContentRow>[] {
   const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
   const cellBaseClass = "px-2 py-4 text-start align-top text-sm ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
+  const renderReportReason = (row: ReportedContentRow) => {
+    const content = (
+      <span className="line-clamp-2 block break-words" title={row.reportReason}>
+        {row.reportReason}
+      </span>
+    );
+
+    if (!onOpenReports) return content;
+
+    return (
+      <button
+        type="button"
+        className="block w-full text-left text-gray-800 underline underline-offset-2 hover:text-brand-500"
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpenReports(row);
+        }}
+      >
+        {content}
+      </button>
+    );
+  };
+  const renderReportStatus = (row: ReportedContentRow) => {
+    const badge = <ReportStatusBadge label={row.statusLabel} status={row.status} />;
+
+    if (!onOpenProcess) return badge;
+
+    return (
+      <button
+        type="button"
+        className="inline-flex cursor-pointer rounded-full p-0.5 ring-1 ring-transparent transition-[background-color,box-shadow,border-color] hover:bg-brand-500/10 hover:shadow-sm hover:shadow-brand-500/20 hover:ring-brand-500 focus-visible:bg-brand-500/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:outline-none"
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpenProcess(row);
+        }}
+      >
+        {badge}
+      </button>
+    );
+  };
   const warningColumn: DataTableColumn<ReportedContentRow> = {
     key: "warning",
     headerClassName: `${headerBaseClass} w-[70px]`,
@@ -146,11 +192,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[120px]`,
       cellClassName: `${cellBaseClass} w-[120px]`,
       header: "신고사유",
-      render: (row) => (
-        <span className="line-clamp-2 block break-words" title={row.reportReason}>
-          {row.reportReason}
-        </span>
-      ),
+      render: renderReportReason,
     },
     {
       key: "reportCount",
@@ -184,7 +226,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[96px]`,
       cellClassName: `${nowrapCellClass} w-[96px]`,
       header: <SortHeader field="report_status" label="신고상태" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => <ReportStatusBadge label={row.statusLabel} status={row.status} />,
+      render: renderReportStatus,
     },
     warningColumn,
   ];
@@ -235,11 +277,7 @@ function buildColumns({
         headerClassName: `${headerBaseClass} w-[130px]`,
         cellClassName: `${cellBaseClass} w-[130px]`,
         header: "신고사유",
-        render: (row) => (
-          <span className="line-clamp-2 block break-words" title={row.reportReason}>
-            {row.reportReason}
-          </span>
-        ),
+        render: renderReportReason,
       },
       {
         key: "firstReportedAt",
@@ -484,15 +522,15 @@ function buildColumns({
     },
     {
       key: "nickname",
-      headerClassName: `${headerBaseClass} w-[116px]`,
-      cellClassName: `${cellBaseClass} w-[116px]`,
+      headerClassName: `${headerBaseClass} w-[128px]`,
+      cellClassName: `${cellBaseClass} w-[128px]`,
       header: "닉네임",
       render: (row) => row.nickname,
     },
     {
       key: "hospital",
-      headerClassName: `${headerBaseClass} min-w-[150px]`,
-      cellClassName: `${cellBaseClass} min-w-[150px]`,
+      headerClassName: `${headerBaseClass} min-w-[180px] pl-5`,
+      cellClassName: `${cellBaseClass} min-w-[180px] pl-5`,
       header: "병의원명",
       render: (row) => row.hospitalName,
     },
@@ -512,8 +550,13 @@ export function ReportedContentDataTable({
   onGoPage,
   onRefresh,
   onOpenDetail,
+  onOpenReports,
+  onOpenProcess,
 }: ReportedContentDataTableProps) {
-  const columns = React.useMemo(() => buildColumns({ kind, sortState, onToggleSort }), [kind, onToggleSort, sortState]);
+  const columns = React.useMemo(
+    () => buildColumns({ kind, sortState, onToggleSort, onOpenReports, onOpenProcess }),
+    [kind, onOpenProcess, onOpenReports, onToggleSort, sortState],
+  );
 
   return (
     <DataTable

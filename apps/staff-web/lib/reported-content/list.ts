@@ -1,5 +1,6 @@
 import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
+import type { ReportedContentTargetType } from "@/lib/reported-content/detail";
 
 import {
   formatHospitalReviewCategories,
@@ -51,7 +52,6 @@ export type ReportedContentBoardConfig = {
   apiPath: string;
   commentApiPath?: string;
   detailPath: (id: number) => string;
-  commentDetailPath?: (id: number) => string;
   dateTypeOptions?: ReportedContentOption<ReportedContentDateType>[];
   statusOptions?: ReportedContentOption[];
   defaultDateType?: ReportedContentDateType;
@@ -144,6 +144,7 @@ export type ReportedContentSummary = {
 
 export type ReportedContentRow = {
   id: number;
+  targetType: ReportedContentTargetType;
   chatRoomId: number | null;
   createdAt: string;
   categoryLabel: string;
@@ -161,6 +162,8 @@ export type ReportedContentRow = {
   firstReportedAt: string;
   status: string;
   statusLabel: string;
+  warningStatus: string;
+  warningLabel: string;
   isVisible: boolean;
   visibilityLabel: string;
   hasWarning: boolean;
@@ -232,7 +235,6 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     apiPath: "/reported-contents/hospital-reviews/surgery",
     commentApiPath: "/reported-contents/hospital-review-comments/surgery",
     detailPath: (id) => `/reported-post-manage/surgery-reviews/${id}`,
-    commentDetailPath: (id) => `/reported-post-manage/surgery-reviews/comments/${id}`,
   },
   "treatment-reviews": {
     type: "treatment-reviews",
@@ -243,7 +245,6 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     apiPath: "/reported-contents/hospital-reviews/treatment",
     commentApiPath: "/reported-contents/hospital-review-comments/treatment",
     detailPath: (id) => `/reported-post-manage/treatment-reviews/${id}`,
-    commentDetailPath: (id) => `/reported-post-manage/treatment-reviews/comments/${id}`,
   },
   "hospital-evaluations": {
     type: "hospital-evaluations",
@@ -262,7 +263,6 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     apiPath: "/reported-contents/talks",
     commentApiPath: "/reported-contents/talk-comments",
     detailPath: (id) => `/reported-post-manage/talks/${id}`,
-    commentDetailPath: (id) => `/reported-post-manage/talks/comments/${id}`,
   },
   chats: {
     type: "chats",
@@ -618,6 +618,7 @@ function normalizeReportedReview(
 
   return {
     id,
+    targetType: "hospital_review",
     chatRoomId: null,
     createdAt: formatHospitalReviewDate(target?.created_at),
     categoryLabel: formatHospitalReviewCategories(target?.categories),
@@ -635,6 +636,8 @@ function normalizeReportedReview(
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
     status: report?.status?.trim() || "REPORTED",
     statusLabel: report?.label?.trim() || labelReportStatus(report?.status),
+    warningStatus: report?.warning_status?.trim() || "NONE",
+    warningLabel: report?.warning_label?.trim() || labelWarningStatus(report?.warning_status),
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
@@ -660,6 +663,7 @@ function normalizeReportedReviewComment(
 
   return {
     id,
+    targetType: "hospital_review_comment",
     chatRoomId: null,
     createdAt: formatHospitalReviewDate(target?.created_at),
     categoryLabel: formatHospitalReviewCategories(categories, 3),
@@ -677,11 +681,13 @@ function normalizeReportedReviewComment(
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
     status: report?.status?.trim() || "REPORTED",
     statusLabel: report?.label?.trim() || labelReportStatus(report?.status),
+    warningStatus: report?.warning_status?.trim() || "NONE",
+    warningLabel: report?.warning_label?.trim() || labelWarningStatus(report?.warning_status),
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
     hasIgnoredWarning: Boolean(report?.warning_ignored),
-    detailPath: config.commentDetailPath?.(id) ?? "",
+    detailPath: "",
   };
 }
 
@@ -695,6 +701,7 @@ function normalizeReportedEvaluation(
 
   return {
     id,
+    targetType: "hospital_evaluation",
     chatRoomId: null,
     createdAt: formatHospitalEvaluationDate(target?.created_at),
     categoryLabel: labelHospitalEvaluationCategory(target?.categories),
@@ -712,6 +719,8 @@ function normalizeReportedEvaluation(
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
     status: report?.status?.trim() || "REPORTED",
     statusLabel: report?.label?.trim() || labelReportStatus(report?.status),
+    warningStatus: report?.warning_status?.trim() || "NONE",
+    warningLabel: report?.warning_label?.trim() || labelWarningStatus(report?.warning_status),
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
@@ -736,6 +745,7 @@ function normalizeReportedTalk(
 
   return {
     id,
+    targetType: "talk",
     chatRoomId: null,
     createdAt: formatTalkDate(target?.created_at ?? target?.createdAt),
     categoryLabel:
@@ -754,6 +764,8 @@ function normalizeReportedTalk(
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
     status: report?.status?.trim() || "REPORTED",
     statusLabel: report?.label?.trim() || labelReportStatus(report?.status),
+    warningStatus: report?.warning_status?.trim() || "NONE",
+    warningLabel: report?.warning_label?.trim() || labelWarningStatus(report?.warning_status),
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
@@ -772,6 +784,7 @@ function normalizeReportedTalkComment(
 
   return {
     id,
+    targetType: "talk_comment",
     chatRoomId: null,
     createdAt: formatTalkDate(target?.created_at ?? target?.createdAt),
     categoryLabel: target?.category?.name?.trim() || target?.category?.full_path?.trim() || "-",
@@ -789,11 +802,13 @@ function normalizeReportedTalkComment(
     firstReportedAt: formatReportedDate(report?.first_reported_at ?? report?.last_reported_at),
     status: report?.status?.trim() || "REPORTED",
     statusLabel: report?.label?.trim() || labelReportStatus(report?.status),
+    warningStatus: report?.warning_status?.trim() || "NONE",
+    warningLabel: report?.warning_label?.trim() || labelWarningStatus(report?.warning_status),
     isVisible: status === "ACTIVE",
     visibilityLabel: labelVisibility(status),
     hasWarning: Boolean(report?.warning),
     hasIgnoredWarning: Boolean(report?.warning_ignored),
-    detailPath: config.commentDetailPath?.(id) ?? "",
+    detailPath: "",
   };
 }
 
@@ -807,6 +822,7 @@ function normalizeReportedChatMessage(
 
   return {
     id,
+    targetType: "chat_message",
     chatRoomId,
     createdAt: formatReportedDate(target?.last_message_at ?? target?.created_at),
     categoryLabel: "-",
@@ -826,6 +842,8 @@ function normalizeReportedChatMessage(
     ),
     status: report?.status?.trim() || "REPORTED",
     statusLabel: labelChatReportStatus(),
+    warningStatus: report?.warning_status?.trim() || "NONE",
+    warningLabel: report?.warning_label?.trim() || labelWarningStatus(report?.warning_status),
     isVisible: false,
     visibilityLabel: "-",
     hasWarning: Boolean(report?.warning),
@@ -855,6 +873,10 @@ function labelChatReportStatus() {
 
 function labelReportStatus(status?: string | null) {
   return REPORTED_CONTENT_STATUS_OPTIONS.find((option) => option.value === status)?.label || "신고접수";
+}
+
+function labelWarningStatus(status?: string | null) {
+  return REPORTED_CONTENT_WARNING_OPTIONS.find((option) => option.value === status)?.label || "미경고";
 }
 
 function labelVisibility(status?: string | null) {
