@@ -7,6 +7,7 @@ import { AddCircleButton } from "@/components/common/AddCircleButton";
 import {
   OperationHistoryActionBadge,
   OperationHistoryReason,
+  normalizeOperationHistoryFieldLabel,
   type OperationHistoryChangeLike,
   type OperationHistoryLike,
 } from "@/components/common/OperationHistoryDisplay";
@@ -103,7 +104,7 @@ export function OperationHistoryCard({
                           className="ml-auto size-7 rounded-full border border-gray-300 bg-white p-0 text-brand-600 shadow-none hover:border-gray-300 hover:bg-white hover:text-brand-600"
                           onClick={() => toggleExpandedHistory(history.id)}
                         >
-                          <span className="text-sm leading-none">-</span>
+                          <span className="text-xs leading-none">-</span>
                         </Button>
                       ) : (
                         <AddCircleButton
@@ -124,7 +125,7 @@ export function OperationHistoryCard({
                           className="space-y-1 text-xs text-gray-600"
                         >
                           <p className="font-semibold text-gray-900">
-                            {change.field_label || change.field_key || "변경 항목"}
+                            {normalizeOperationHistoryFieldLabel(change.field_label, change.field_key) || "변경 항목"}
                           </p>
                           <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2">
                             <span className="font-semibold text-gray-500">변경 전</span>

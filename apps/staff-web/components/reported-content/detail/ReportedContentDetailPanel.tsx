@@ -25,6 +25,7 @@ import {
   formatReportedContentReason,
   formatReportedContentReporterName,
   type ReportedContentDetailReportItem,
+  type ReportedContentDetailReportState,
   type ReportedContentDetailResponse,
   type ReportedContentReportsMeta,
   type ReportedContentStatusUpdatePayload,
@@ -35,15 +36,83 @@ import {
 type ReportedContentDetailPanelProps = {
   targetType: ReportedContentTargetType;
   targetId: number;
+  initialDetail?: ReportedContentDetailResponse | null;
+  initialReports?: ReportedContentReportsBlock | null;
   onStatusUpdated?: () => void;
+};
+
+export type ReportedContentReportsBlock = {
+  items: ReportedContentDetailReportItem[];
+  meta: ReportedContentReportsMeta | null;
+  page: number;
 };
 
 type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
 type WarningActionStatus = "WARNED" | "IGNORED";
 
-export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdated }: ReportedContentDetailPanelProps) {
-  const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(null);
-  const [loading, setLoading] = React.useState(true);
+function isMatchingInitialDetail(
+  detail: ReportedContentDetailResponse | null | undefined,
+  targetType: ReportedContentTargetType,
+  targetId: number,
+) {
+  return detail?.target_type === targetType && Number(detail.target_id) === targetId;
+}
+
+function mergeReportState(
+  detail: ReportedContentDetailResponse | null,
+  report: ReportedContentDetailReportState,
+): ReportedContentDetailResponse | null {
+  if (!detail) return detail;
+
+  return {
+    ...detail,
+    report: {
+      ...(detail.report ?? {}),
+      ...report,
+    },
+  };
+}
+
+function resolveWarningCount(currentCount: number, beforeStatus: string, afterStatus: string) {
+  if (afterStatus === "WARNED" && beforeStatus !== "WARNED") return currentCount + 1;
+  if (beforeStatus === "WARNED" && afterStatus !== "WARNED") return Math.max(0, currentCount - 1);
+
+  return currentCount;
+}
+
+function mergeWarningState(
+  detail: ReportedContentDetailResponse | null,
+  report: ReportedContentDetailReportState,
+  beforeStatus: string,
+  afterStatus: string,
+): ReportedContentDetailResponse | null {
+  const nextDetail = mergeReportState(detail, report);
+  if (!nextDetail?.author) return nextDetail;
+
+  const currentWarningCount = Number(nextDetail.author.warning_count ?? 0);
+
+  return {
+    ...nextDetail,
+    author: {
+      ...nextDetail.author,
+      warning_count: resolveWarningCount(currentWarningCount, beforeStatus, afterStatus),
+    },
+  };
+}
+
+export function ReportedContentDetailPanel({
+  targetType,
+  targetId,
+  initialDetail = null,
+  initialReports = null,
+  onStatusUpdated,
+}: ReportedContentDetailPanelProps) {
+  const hasInitialDetail = isMatchingInitialDetail(initialDetail, targetType, targetId);
+  const hasInitialReports = initialReports?.page === 1;
+  const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(
+    hasInitialDetail ? initialDetail : null,
+  );
+  const [loading, setLoading] = React.useState(!hasInitialDetail);
   const [updatingStatus, setUpdatingStatus] = React.useState<ReportActionStatus | null>(null);
   const [pendingStatus, setPendingStatus] = React.useState<ReportActionStatus | null>(null);
   const [updatingWarningStatus, setUpdatingWarningStatus] = React.useState<WarningActionStatus | null>(null);
@@ -53,9 +122,13 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
   const [modalError, setModalError] = React.useState<string | null>(null);
   const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>([]);
-  const [reportsMeta, setReportsMeta] = React.useState<ReportedContentReportsMeta | null>(null);
-  const [reportsLoading, setReportsLoading] = React.useState(true);
+  const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>(
+    hasInitialReports ? initialReports.items : [],
+  );
+  const [reportsMeta, setReportsMeta] = React.useState<ReportedContentReportsMeta | null>(
+    hasInitialReports ? initialReports.meta : null,
+  );
+  const [reportsLoading, setReportsLoading] = React.useState(!hasInitialReports);
   const [reportsError, setReportsError] = React.useState<string | null>(null);
   const [reportsPage, setReportsPage] = React.useState(1);
 
@@ -68,6 +141,7 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
     try {
       const response = await api.get<ReportedContentDetailResponse>(
         `/reported-contents/detail/${targetType}/${targetId}`,
+        { include_target: 0 },
       );
 
       if (!isApiSuccess(response)) {
@@ -82,6 +156,14 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
       setLoading(false);
     }
   }, [targetId, targetType]);
+
+  React.useEffect(() => {
+    if (!hasInitialDetail) return;
+
+    setDetail(initialDetail);
+    setLoading(false);
+    setError(null);
+  }, [hasInitialDetail, initialDetail]);
 
   const fetchReports = React.useCallback(async () => {
     if (!Number.isFinite(targetId) || targetId <= 0) return;
@@ -115,17 +197,30 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
 
   React.useEffect(() => {
     setReportsPage(1);
+    if (hasInitialReports) {
+      setReports(initialReports.items);
+      setReportsMeta(initialReports.meta);
+      setReportsLoading(false);
+      setReportsError(null);
+      return;
+    }
+
     setReports([]);
     setReportsMeta(null);
-  }, [targetId, targetType]);
+    setReportsLoading(true);
+  }, [hasInitialReports, initialReports, targetId, targetType]);
 
   React.useEffect(() => {
+    if (hasInitialDetail) return;
+
     void fetchDetail();
-  }, [fetchDetail]);
+  }, [fetchDetail, hasInitialDetail]);
 
   React.useEffect(() => {
+    if (hasInitialReports && reportsPage === 1) return;
+
     void fetchReports();
-  }, [fetchReports]);
+  }, [fetchReports, hasInitialReports, reportsPage]);
 
   const reportState = detail?.report ?? null;
   const reportsTotal = Number(reportsMeta?.total ?? reports.length);
@@ -134,6 +229,8 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
   const reportStatus = reportState?.status?.trim() || "";
   const warningStatus = reportState?.warning_status?.trim() || "NONE";
   const warningCount = Number(detail?.author?.warning_count ?? 0);
+  const isAdminHiddenButtonDisabled = reportStatus === "ADMIN_HIDDEN" || updatingStatus !== null;
+  const isNormalVisibleButtonDisabled = reportStatus === "NORMAL_VISIBLE" || updatingStatus !== null;
   const isWarningButtonDisabled = warningStatus === "WARNED" || updatingWarningStatus !== null;
   const isIgnoreButtonDisabled = warningStatus === "IGNORED" || updatingWarningStatus !== null;
 
@@ -151,14 +248,14 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
       if (normalizedReason) payload.process_reason = normalizedReason;
 
       try {
-        const response = await api.patch("/reported-contents/status", payload);
+        const response = await api.patch<ReportedContentDetailReportState>("/reported-contents/status", payload);
 
         if (!isApiSuccess(response)) {
           setModalError(response.error.message || "신고 처리 상태 변경에 실패했습니다.");
           return;
         }
 
-        await fetchDetail();
+        setDetail((current) => mergeReportState(current, response.data));
         onStatusUpdated?.();
         setPendingStatus(null);
         setProcessReason("");
@@ -168,7 +265,7 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
         setUpdatingStatus(null);
       }
     },
-    [fetchDetail, onStatusUpdated, targetId, targetType],
+    [onStatusUpdated, targetId, targetType],
   );
 
   const updateWarningStatus = React.useCallback(
@@ -183,14 +280,18 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
       };
 
       try {
-        const response = await api.patch("/reported-contents/warning-status", payload);
+        const previousWarningStatus = warningStatus;
+        const response = await api.patch<ReportedContentDetailReportState>(
+          "/reported-contents/warning-status",
+          payload,
+        );
 
         if (!isApiSuccess(response)) {
           setWarningModalError(response.error.message || "경고 처리 상태 변경에 실패했습니다.");
           return;
         }
 
-        await fetchDetail();
+        setDetail((current) => mergeWarningState(current, response.data, previousWarningStatus, warningStatus));
         onStatusUpdated?.();
         setPendingWarningStatus(null);
       } catch {
@@ -199,14 +300,19 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
         setUpdatingWarningStatus(null);
       }
     },
-    [fetchDetail, onStatusUpdated, targetId, targetType],
+    [onStatusUpdated, targetId, targetType, warningStatus],
   );
 
-  const openStatusModal = React.useCallback((reportStatus: ReportActionStatus) => {
-    setPendingStatus(reportStatus);
-    setProcessReason("");
-    setModalError(null);
-  }, []);
+  const openStatusModal = React.useCallback(
+    (nextReportStatus: ReportActionStatus) => {
+      if (reportStatus === nextReportStatus) return;
+
+      setPendingStatus(nextReportStatus);
+      setProcessReason("");
+      setModalError(null);
+    },
+    [reportStatus],
+  );
 
   const closeStatusModal = React.useCallback(() => {
     if (updatingStatus !== null) return;
@@ -334,7 +440,7 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
                     <Button
                       type="button"
                       variant={reportStatus === "ADMIN_HIDDEN" ? "brand" : "outline"}
-                      disabled={updatingStatus !== null}
+                      disabled={isAdminHiddenButtonDisabled}
                       onClick={() => openStatusModal("ADMIN_HIDDEN")}
                       className={[
                         "h-12 px-5 text-base font-semibold",
@@ -346,7 +452,7 @@ export function ReportedContentDetailPanel({ targetType, targetId, onStatusUpdat
                     <Button
                       type="button"
                       variant={reportStatus === "NORMAL_VISIBLE" ? "brand" : "outline"}
-                      disabled={updatingStatus !== null}
+                      disabled={isNormalVisibleButtonDisabled}
                       onClick={() => openStatusModal("NORMAL_VISIBLE")}
                       className={[
                         "h-12 px-5 text-base font-semibold",

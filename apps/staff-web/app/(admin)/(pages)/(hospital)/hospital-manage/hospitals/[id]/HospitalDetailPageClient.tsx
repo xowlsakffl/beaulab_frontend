@@ -871,7 +871,6 @@ function OperationHistoryCard({
       onPageChange={onPageChange}
       cardClassName={cardClassName}
       formatDateTime={formatDateTime}
-      actionLabelOverride={hospitalHistoryActionLabel}
       statusLabel={labelApprovalStatus}
       statusBadgeColor={hospitalStatusBadgeColor}
       allowStatusLabel={labelReviewStatus}
@@ -1158,27 +1157,6 @@ function historyRawValueLabel(field: string | null, value: unknown) {
   }
 
   return stringifyHistoryValue(value);
-}
-
-function hospitalHistoryActionLabel(
-  history: {
-    action?: string | null;
-    field?: string | null;
-    changes?: Array<{ field_key?: string | null }> | null;
-  },
-  defaultLabel: string,
-) {
-  const field = history.changes?.[0]?.field_key ?? history.field ?? null;
-
-  if (history.action === "STATUS_UPDATED" && field === "allow_status") {
-    return "검수 상태 변경";
-  }
-
-  if (history.action === "STATUS_UPDATED" && field === "status") {
-    return "상태 변경";
-  }
-
-  return defaultLabel;
 }
 
 function categoryHistoryValueLabel(value: unknown) {

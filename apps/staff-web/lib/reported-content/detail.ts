@@ -52,6 +52,22 @@ export type ReportedContentDetailReportSubItem = {
   created_at?: string | null;
 };
 
+export type ReportedChatMessageAttachment = {
+  id?: number | null;
+  collection?: string | null;
+  disk?: string | null;
+  path?: string | null;
+  url?: string | null;
+  mime_type?: string | null;
+  size?: number | null;
+  width?: number | null;
+  height?: number | null;
+  sort_order?: number | null;
+  metadata?: unknown;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
 export type ReportedContentOperationHistory = {
   id?: number | null;
   actor_label?: string | null;
@@ -79,6 +95,7 @@ export type ReportedChatMessageDetailTarget = {
   body?: string | null;
   body_preview?: string | null;
   message_type?: string | null;
+  attachments?: ReportedChatMessageAttachment[] | null;
 };
 
 export type ReportedContentDetailResponse = {

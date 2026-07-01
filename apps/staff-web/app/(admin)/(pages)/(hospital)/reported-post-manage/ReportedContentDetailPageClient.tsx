@@ -9,6 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CircleCheck,
   FormCheckbox,
   InputField,
   Modal,
@@ -17,14 +18,23 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
+  Select,
   SpinnerBlock,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
-import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
+import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
+import {
+  ReportedContentDetailPanel,
+  type ReportedContentReportsBlock,
+} from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { ReportedOriginalHistoryCard } from "@/components/reported-content/detail/ReportedOriginalHistoryCard";
 import { VisibilityActionButtons, VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
@@ -72,7 +82,12 @@ import {
   type TalkOperationHistory,
   type TalkPollOption,
 } from "@/lib/talk/detail";
-import type { ReportedContentTargetType } from "@/lib/reported-content/detail";
+import type {
+  ReportedContentDetailReportItem,
+  ReportedContentDetailResponse,
+  ReportedContentReportsMeta,
+  ReportedContentTargetType,
+} from "@/lib/reported-content/detail";
 import type { ReportedContentBoardType } from "@/lib/reported-content/list";
 
 type ReportedContentDetailKind = "talk" | "review" | "evaluation";
@@ -115,6 +130,34 @@ type ReceiptRejectPayload = {
   reason: string;
   reason_text?: string;
 };
+
+const RECEIPT_STATUS_VERIFIED = "VERIFIED";
+const RECEIPT_STATUS_REJECTED = "REJECTED";
+
+function getHospitalEvaluationReceiptStatus(detail: HospitalEvaluationDetailResponse | null): string {
+  return detail?.receipt?.status?.trim() || "NONE";
+}
+
+function getHospitalEvaluationReceiptDecision(status: string): HospitalEvaluationReceiptDecision {
+  return status === RECEIPT_STATUS_REJECTED ? "reject" : "verify";
+}
+
+function getHospitalEvaluationReceiptButtonLabel(status: string): string {
+  if (status === RECEIPT_STATUS_VERIFIED) return "영수증 인증";
+  if (status === RECEIPT_STATUS_REJECTED) return "영수증 부적합";
+
+  return "영수증 등록";
+}
+
+function isCurrentHospitalEvaluationReceiptDecision(
+  decision: HospitalEvaluationReceiptDecision,
+  status: string,
+): boolean {
+  return (
+    (decision === "verify" && status === RECEIPT_STATUS_VERIFIED) ||
+    (decision === "reject" && status === RECEIPT_STATUS_REJECTED)
+  );
+}
 type VisibilityUpdateResponse = {
   updated_count: number;
   status: string;
@@ -189,6 +232,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
   const [detail, setDetail] = React.useState<DetailResponse | null>(null);
+  const [reportedDetail, setReportedDetail] = React.useState<ReportedContentDetailResponse | null>(null);
+  const [reportedReports, setReportedReports] = React.useState<ReportedContentReportsBlock | null>(null);
   const [historyBlock, setHistoryBlock] = React.useState<DetailHistoryBlock | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -206,6 +251,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const [receiptRejectReasonText, setReceiptRejectReasonText] = React.useState("");
   const [receiptUpdating, setReceiptUpdating] = React.useState(false);
   const [receiptModalError, setReceiptModalError] = React.useState<string | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const hasLoadedRef = React.useRef(false);
 
   const syncDetailQuery = React.useCallback(
@@ -234,9 +280,23 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       }
 
       setError(null);
+      setReportedDetail(null);
+      setReportedReports(null);
 
       try {
-        const response = await api.get<DetailResponse>(config.sourceApiPath(targetId));
+        const [response, reportedDetailResponse, reportedReportsResponse] = await Promise.all([
+          api.get<DetailResponse>(config.sourceApiPath(targetId)),
+          api
+            .get<ReportedContentDetailResponse>(`/reported-contents/detail/${config.targetType}/${targetId}`, {
+              include_target: 0,
+            })
+            .catch(() => null),
+          api
+            .get<ReportedContentDetailReportItem[]>(`/reported-contents/${config.targetType}/${targetId}/reports`, {
+              reports_page: 1,
+            })
+            .catch(() => null),
+        ]);
 
         if (!isApiSuccess(response)) {
           setError(response.error.message || "신고게시물 상세 정보를 불러오지 못했습니다.");
@@ -244,6 +304,18 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         }
 
         setDetail(response.data);
+        setReportedDetail(
+          reportedDetailResponse && isApiSuccess(reportedDetailResponse) ? reportedDetailResponse.data : null,
+        );
+        setReportedReports(
+          reportedReportsResponse && isApiSuccess(reportedReportsResponse)
+            ? {
+                items: reportedReportsResponse.data ?? [],
+                meta: (reportedReportsResponse.meta as ReportedContentReportsMeta | null) ?? null,
+                page: 1,
+              }
+            : null,
+        );
         hasLoadedRef.current = true;
       } catch {
         setError("신고게시물 상세 정보를 불러오는 중 오류가 발생했습니다.");
@@ -383,12 +455,18 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   }, [pendingReviewVisibilityChange, refreshDetail]);
 
   const openReceiptModal = React.useCallback(() => {
-    setReceiptDecision("verify");
-    setReceiptRejectReason("");
-    setReceiptRejectReasonText("");
+    const evaluation = config.kind === "evaluation" ? (detail as HospitalEvaluationDetailResponse | null) : null;
+    const receiptStatus = getHospitalEvaluationReceiptStatus(evaluation);
+    const nextDecision = getHospitalEvaluationReceiptDecision(receiptStatus);
+
+    setReceiptDecision(nextDecision);
+    setReceiptRejectReason(nextDecision === "reject" ? evaluation?.receipt?.rejection_reason?.trim() || "" : "");
+    setReceiptRejectReasonText(
+      nextDecision === "reject" ? evaluation?.receipt?.rejection_reason_text?.trim() || "" : "",
+    );
     setReceiptModalError(null);
     setIsReceiptModalOpen(true);
-  }, []);
+  }, [config.kind, detail]);
 
   const closeReceiptModal = React.useCallback(() => {
     if (receiptUpdating) return;
@@ -401,6 +479,15 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     const evaluation = detail as HospitalEvaluationDetailResponse;
 
     setReceiptModalError(null);
+
+    const receiptStatus = getHospitalEvaluationReceiptStatus(evaluation);
+
+    if (isCurrentHospitalEvaluationReceiptDecision(receiptDecision, receiptStatus)) {
+      setReceiptModalError(
+        receiptDecision === "verify" ? "이미 인증 적합 처리된 영수증입니다." : "이미 인증 부적합 처리된 영수증입니다.",
+      );
+      return;
+    }
 
     if (receiptDecision === "reject" && !receiptRejectReason) {
       setReceiptModalError("인증 부적합 사유를 선택해주세요.");
@@ -480,6 +567,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
               detail={talk}
               visibilityUpdating={reviewVisibilityUpdating}
               onChangeVisibility={requestTalkVisibility}
+              onPreviewMedia={setPreviewMedia}
             />
             <ReportedOriginalHistoryCard
               histories={histories}
@@ -494,7 +582,9 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedContentDetailPanel
               targetType={config.targetType}
               targetId={targetId}
-              onStatusUpdated={() => void refreshDetail(true)}
+              initialDetail={reportedDetail}
+              initialReports={reportedReports}
+              onStatusUpdated={() => void fetchHistories(true)}
             />
           </div>
         </div>
@@ -509,6 +599,12 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           onHiddenReasonChange={updatePendingReviewHiddenReason}
           onClose={closeReviewVisibilityModal}
           onConfirm={() => void confirmReviewVisibilityChange()}
+        />
+
+        <HospitalMediaPreviewModal
+          preview={previewMedia}
+          onChange={setPreviewMedia}
+          onClose={() => setPreviewMedia(null)}
         />
       </div>
     );
@@ -540,6 +636,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
               detail={review}
               visibilityUpdating={reviewVisibilityUpdating}
               onChangeVisibility={requestReviewVisibility}
+              onPreviewMedia={setPreviewMedia}
             />
             <ReportedOriginalHistoryCard
               histories={histories}
@@ -555,7 +652,9 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedContentDetailPanel
               targetType={config.targetType}
               targetId={targetId}
-              onStatusUpdated={() => void refreshDetail(true)}
+              initialDetail={reportedDetail}
+              initialReports={reportedReports}
+              onStatusUpdated={() => void fetchHistories(true)}
             />
           </div>
         </div>
@@ -571,6 +670,12 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           onClose={closeReviewVisibilityModal}
           onConfirm={() => void confirmReviewVisibilityChange()}
         />
+
+        <HospitalMediaPreviewModal
+          preview={previewMedia}
+          onChange={setPreviewMedia}
+          onClose={() => setPreviewMedia(null)}
+        />
       </div>
     );
   }
@@ -579,8 +684,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     const evaluation = detail as HospitalEvaluationDetailResponse;
     const receiptImages = evaluation.receipt_images ?? [];
     const receiptImage = receiptImages[0] ?? null;
-    const receiptStatus = evaluation.receipt?.status?.trim() || "NONE";
-    const receiptButtonLabel = receiptStatus === "VERIFIED" ? "영수증 인증" : "영수증 등록";
+    const receiptStatus = getHospitalEvaluationReceiptStatus(evaluation);
+    const receiptButtonLabel = getHospitalEvaluationReceiptButtonLabel(receiptStatus);
 
     return (
       <div className="space-y-6">
@@ -600,9 +705,11 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedEvaluationContentCard
               detail={evaluation}
               receiptButtonLabel={receiptButtonLabel}
+              receiptButtonVerified={receiptStatus === RECEIPT_STATUS_VERIFIED}
               hasReceiptImages={receiptImages.length > 0}
               receiptButtonDisabled={receiptUpdating}
               onOpenReceiptModal={openReceiptModal}
+              onPreviewMedia={setPreviewMedia}
             />
             <ReportedOriginalHistoryCard
               histories={histories}
@@ -621,7 +728,9 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
             <ReportedContentDetailPanel
               targetType={config.targetType}
               targetId={targetId}
-              onStatusUpdated={() => void refreshDetail(true)}
+              initialDetail={reportedDetail}
+              initialReports={reportedReports}
+              onStatusUpdated={() => void fetchHistories(true)}
             />
           </div>
         </div>
@@ -629,6 +738,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         <ReportedEvaluationReceiptVerificationModal
           isOpen={isReceiptModalOpen}
           image={receiptImage}
+          currentStatus={receiptStatus}
           decision={receiptDecision}
           rejectReason={receiptRejectReason}
           rejectReasonText={receiptRejectReasonText}
@@ -642,6 +752,13 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           }}
           onRejectReasonTextChange={setReceiptRejectReasonText}
           onSubmit={() => void submitReceiptDecision()}
+          onPreviewMedia={setPreviewMedia}
+        />
+
+        <HospitalMediaPreviewModal
+          preview={previewMedia}
+          onChange={setPreviewMedia}
+          onClose={() => setPreviewMedia(null)}
         />
       </div>
     );
@@ -652,7 +769,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
         <div className="space-y-6">
           {renderOriginalSummary(config, detail)}
-          {renderOriginalContent(config, detail)}
+          {renderOriginalContent(config, detail, setPreviewMedia)}
           <ReportedOriginalHistoryCard
             histories={histories}
             meta={historiesMeta}
@@ -665,9 +782,17 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         <ReportedContentDetailPanel
           targetType={config.targetType}
           targetId={targetId}
-          onStatusUpdated={() => void refreshDetail(true)}
+          initialDetail={reportedDetail}
+          initialReports={reportedReports}
+          onStatusUpdated={() => void fetchHistories(true)}
         />
       </div>
+
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
     </div>
   );
 }
@@ -693,10 +818,12 @@ function ReportedTalkContentCard({
   detail,
   visibilityUpdating,
   onChangeVisibility,
+  onPreviewMedia,
 }: {
   detail: TalkDetailResponse;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   const pollOptions = detail.poll?.options ?? [];
   const totalPollVotes = pollOptions.reduce((sum, option) => sum + Number(option.vote_count ?? 0), 0);
@@ -730,7 +857,7 @@ function ReportedTalkContentCard({
           </div>
         </section>
 
-        <ReportedTalkImageGrid images={detail.images ?? []} />
+        <ReportedTalkImageGrid images={detail.images ?? []} onPreviewMedia={onPreviewMedia} />
 
         <section className="space-y-3">
           <div className="space-y-1">
@@ -756,41 +883,27 @@ function ReportedTalkContentCard({
   );
 }
 
-function ReportedTalkImageGrid({ images }: { images: TalkMediaAsset[] }) {
-  return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500">이미지</p>
-      {images.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {images.map((image) => {
-            const imageUrl = resolveMediaUrl(image as MediaAsset);
+function ReportedTalkImageGrid({
+  images,
+  onPreviewMedia,
+}: {
+  images: TalkMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+}) {
+  const items: DetailImageGalleryItem[] = images.map((image, index) => ({
+    id: image.id ?? `reported-talk-image-${index}`,
+    url: resolveMediaUrl(image as MediaAsset),
+    title: `이미지 ${index + 1}`,
+  }));
 
-            return (
-              <a
-                key={image.id}
-                href={imageUrl ?? undefined}
-                target={imageUrl ? "_blank" : undefined}
-                rel={imageUrl ? "noreferrer" : undefined}
-                className="group flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50"
-              >
-                {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-                  <img
-                    src={imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <span className="px-3 text-center text-xs text-gray-500">미리보기 없음</span>
-                )}
-              </a>
-            );
-          })}
-        </div>
-      ) : (
-        <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
-      )}
-    </section>
+  return (
+    <DetailImageGallery
+      title="이미지"
+      items={items}
+      layout="grid"
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      onPreview={onPreviewMedia}
+    />
   );
 }
 
@@ -856,11 +969,13 @@ function ReportedReviewContentCard({
   detail,
   visibilityUpdating,
   onChangeVisibility,
+  onPreviewMedia,
 }: {
   boardTitle: string;
   detail: HospitalReviewDetailResponse;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -883,7 +998,11 @@ function ReportedReviewContentCard({
           <DetailField label="제목" value={detail.title?.trim() || "-"} />
         </div>
 
-        <ReportedReviewImageGallery beforeImages={detail.before_images ?? []} afterImages={detail.after_images ?? []} />
+        <ReportedReviewImageGallery
+          beforeImages={detail.before_images ?? []}
+          afterImages={detail.after_images ?? []}
+          onPreviewMedia={onPreviewMedia}
+        />
 
         <section className="space-y-2">
           <p className="text-xs font-semibold text-gray-500">내용</p>
@@ -903,55 +1022,34 @@ function ReportedReviewCategoryBadges({ detail }: { detail: HospitalReviewDetail
 function ReportedReviewImageGallery({
   beforeImages,
   afterImages,
+  onPreviewMedia,
 }: {
   beforeImages: HospitalReviewMediaAsset[];
   afterImages: HospitalReviewMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
-  const images = [
-    ...beforeImages.map((image) => ({ image, label: "전" })),
-    ...afterImages.map((image) => ({ image, label: "후" })),
+  const items: DetailImageGalleryItem[] = [
+    ...beforeImages.map((image, index) => ({
+      id: `before-${image.id ?? index}`,
+      url: resolveHospitalReviewMediaUrl(image),
+      title: `전 이미지 ${index + 1}`,
+      badge: "전",
+    })),
+    ...afterImages.map((image, index) => ({
+      id: `after-${image.id ?? index}`,
+      url: resolveHospitalReviewMediaUrl(image),
+      title: `후 이미지 ${index + 1}`,
+      badge: "후",
+    })),
   ];
 
   return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500">이미지</p>
-      {images.length > 0 ? (
-        <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="flex min-w-full gap-3">
-            {images.map(({ image, label }) => {
-              const imageUrl = resolveHospitalReviewMediaUrl(image);
-
-              return (
-                <a
-                  key={`${label}-${image.id}`}
-                  href={imageUrl ?? undefined}
-                  target={imageUrl ? "_blank" : undefined}
-                  rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50"
-                  style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-                >
-                  <span className="absolute top-2 left-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
-                    {label}
-                  </span>
-                  {imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-                    <img
-                      src={imageUrl}
-                      alt=""
-                      className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <span className="px-3 text-center text-xs text-gray-500">미리보기 없음</span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
-      )}
-    </section>
+    <DetailImageGallery
+      title="이미지"
+      items={items}
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      onPreview={onPreviewMedia}
+    />
   );
 }
 
@@ -1004,15 +1102,19 @@ function ReportedEvaluationHospitalSummaryCard({ detail }: { detail: HospitalEva
 function ReportedEvaluationContentCard({
   detail,
   receiptButtonLabel,
+  receiptButtonVerified,
   hasReceiptImages,
   receiptButtonDisabled,
   onOpenReceiptModal,
+  onPreviewMedia,
 }: {
   detail: HospitalEvaluationDetailResponse;
   receiptButtonLabel: string;
+  receiptButtonVerified: boolean;
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -1030,6 +1132,7 @@ function ReportedEvaluationContentCard({
               onClick={onOpenReceiptModal}
               className="min-w-[7.5rem]"
             >
+              {receiptButtonVerified ? <CircleCheck className="size-4" aria-hidden="true" /> : null}
               {receiptButtonLabel}
             </Button>
           ) : null}
@@ -1044,7 +1147,11 @@ function ReportedEvaluationContentCard({
           </div>
         </section>
 
-        <ReportedEvaluationImageGallery title="평가 이미지" images={detail.images ?? []} />
+        <ReportedEvaluationImageGallery
+          title="평가 이미지"
+          images={detail.images ?? []}
+          onPreviewMedia={onPreviewMedia}
+        />
       </CardContent>
     </Card>
   );
@@ -1155,6 +1262,7 @@ function ReportedEvaluationAssessmentCard({ assessment }: { assessment?: Hospita
 function ReportedEvaluationReceiptVerificationModal({
   isOpen,
   image,
+  currentStatus,
   decision,
   rejectReason,
   rejectReasonText,
@@ -1165,9 +1273,11 @@ function ReportedEvaluationReceiptVerificationModal({
   onRejectReasonChange,
   onRejectReasonTextChange,
   onSubmit,
+  onPreviewMedia,
 }: {
   isOpen: boolean;
   image: HospitalEvaluationMediaAsset | null;
+  currentStatus: string;
   decision: HospitalEvaluationReceiptDecision;
   rejectReason: string;
   rejectReasonText: string;
@@ -1178,8 +1288,13 @@ function ReportedEvaluationReceiptVerificationModal({
   onRejectReasonChange: (value: string) => void;
   onRejectReasonTextChange: (value: string) => void;
   onSubmit: () => void;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   const imageUrl = resolveHospitalEvaluationMediaUrl(image);
+  const isVerifyCurrent = currentStatus === RECEIPT_STATUS_VERIFIED;
+  const isRejectCurrent = currentStatus === RECEIPT_STATUS_REJECTED;
+  const isCurrentDecision = isCurrentHospitalEvaluationReceiptDecision(decision, currentStatus);
+  const rejectInputsDisabled = updating || isRejectCurrent;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-lg">
@@ -1191,10 +1306,22 @@ function ReportedEvaluationReceiptVerificationModal({
         <ModalBody className="mt-6 space-y-6">
           <div className="mx-auto flex aspect-square w-full max-w-[15rem] items-center justify-center overflow-hidden rounded-2xl bg-gray-100 text-sm font-medium text-gray-500">
             {imageUrl ? (
-              <a href={imageUrl} target="_blank" rel="noreferrer" className="block h-full w-full">
+              <button
+                type="button"
+                className="block h-full w-full"
+                onClick={() =>
+                  onPreviewMedia({
+                    url: imageUrl,
+                    title: "영수증 사진",
+                    isImage: true,
+                    items: [{ url: imageUrl, title: "영수증 사진", isImage: true }],
+                    index: 0,
+                  })
+                }
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
                 <img src={imageUrl} alt="영수증 사진" className="h-full w-full object-cover" />
-              </a>
+              </button>
             ) : (
               "영수증 사진"
             )}
@@ -1202,65 +1329,62 @@ function ReportedEvaluationReceiptVerificationModal({
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             <ReportedReceiptDecisionOption
-              label="인증적합"
+              label="인증 적합"
               checked={decision === "verify"}
-              disabled={updating}
+              disabled={updating || (decision === "verify" && isVerifyCurrent)}
               onClick={() => onDecisionChange("verify")}
             />
             <ReportedReceiptDecisionOption
               label="인증 부적합"
               checked={decision === "reject"}
-              disabled={updating}
+              disabled={updating || (decision === "reject" && isRejectCurrent)}
               onClick={() => onDecisionChange("reject")}
             />
           </div>
 
           {decision === "reject" ? (
-            <div className="space-y-3">
+            <div>
               <label
                 htmlFor="reported-hospital-evaluation-receipt-reject-reason"
-                className="block text-sm font-semibold text-gray-800"
+                className="mb-1.5 block text-sm font-semibold text-gray-800"
               >
                 인증 부적합 사유
               </label>
-              <select
+              <Select
                 id="reported-hospital-evaluation-receipt-reject-reason"
                 value={rejectReason}
-                onChange={(event) => onRejectReasonChange(event.target.value)}
-                disabled={updating}
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 transition outline-none focus:border-brand-400"
-              >
-                <option value="">없음</option>
-                {HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                placeholder="없음"
+                options={[...HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS]}
+                onChange={onRejectReasonChange}
+                disabled={rejectInputsDisabled}
+                className="h-11 pl-3"
+              />
 
               {rejectReason === "OTHER" ? (
-                <InputField
-                  id="reported-hospital-evaluation-receipt-reject-reason-text"
-                  name="receipt_rejection_reason_text"
-                  placeholder="기타 사유를 입력해주세요"
-                  value={rejectReasonText}
-                  onChange={(event) => onRejectReasonTextChange(event.target.value)}
-                  disabled={updating}
-                />
+                <div className="mt-3">
+                  <InputField
+                    id="reported-hospital-evaluation-receipt-reject-reason-text"
+                    name="receipt_rejection_reason_text"
+                    placeholder="기타 사유를 입력해주세요"
+                    value={rejectReasonText}
+                    onChange={(event) => onRejectReasonTextChange(event.target.value)}
+                    disabled={rejectInputsDisabled}
+                  />
+                </div>
               ) : null}
+
+              {error ? <p className="mt-1.5 text-sm font-medium text-error-500">{error}</p> : null}
             </div>
           ) : null}
 
-          {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
-          ) : null}
+          {decision !== "reject" && error ? <p className="text-sm font-medium text-error-500">{error}</p> : null}
         </ModalBody>
 
         <ModalFooter className="justify-center">
           <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
             취소
           </Button>
-          <Button type="button" variant="brand" onClick={onSubmit} disabled={updating}>
+          <Button type="button" variant="brand" onClick={onSubmit} disabled={updating || isCurrentDecision}>
             {updating ? "처리 중..." : "등록"}
           </Button>
         </ModalFooter>
@@ -1283,44 +1407,28 @@ function ReportedReceiptDecisionOption({
   return <FormCheckbox disabled={disabled} checked={checked} label={label} onChange={onClick} />;
 }
 
-function ReportedEvaluationImageGallery({ title, images }: { title: string; images: HospitalEvaluationMediaAsset[] }) {
-  return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500">{title}</p>
-      {images.length > 0 ? (
-        <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="flex min-w-full gap-3">
-            {images.map((image) => {
-              const imageUrl = resolveHospitalEvaluationMediaUrl(image);
+function ReportedEvaluationImageGallery({
+  title,
+  images,
+  onPreviewMedia,
+}: {
+  title: string;
+  images: HospitalEvaluationMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+}) {
+  const items: DetailImageGalleryItem[] = images.map((image, index) => ({
+    id: image.id ?? `reported-hospital-evaluation-image-${index}`,
+    url: resolveHospitalEvaluationMediaUrl(image),
+    title: `${title} ${index + 1}`,
+  }));
 
-              return (
-                <a
-                  key={image.id}
-                  href={imageUrl ?? undefined}
-                  target={imageUrl ? "_blank" : undefined}
-                  rel={imageUrl ? "noreferrer" : undefined}
-                  className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50"
-                  style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-                >
-                  {imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
-                    <img
-                      src={imageUrl}
-                      alt=""
-                      className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <span className="px-3 text-center text-xs text-gray-500">미리보기 없음</span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>
-      )}
-    </section>
+  return (
+    <DetailImageGallery
+      title={title}
+      items={items}
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      onPreview={onPreviewMedia}
+    />
   );
 }
 
@@ -1425,7 +1533,11 @@ function renderOriginalSummary(config: ReportedContentDetailConfig, detail: Deta
   );
 }
 
-function renderOriginalContent(config: ReportedContentDetailConfig, detail: DetailResponse) {
+function renderOriginalContent(
+  config: ReportedContentDetailConfig,
+  detail: DetailResponse,
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void,
+) {
   if (config.kind === "talk") {
     const talk = detail as TalkDetailResponse;
 
@@ -1438,7 +1550,11 @@ function renderOriginalContent(config: ReportedContentDetailConfig, detail: Deta
           <DetailField label="토크유형" value={formatTalkDetailCategory(talk.category)} />
           <DetailField label="토크제목" value={talk.title?.trim() || "-"} />
           <ContentBox content={talk.content} />
-          <ImageStrip images={talk.images ?? []} resolveUrl={(image) => resolveMediaUrl(image)} />
+          <ImageStrip
+            images={talk.images ?? []}
+            resolveUrl={(image) => resolveMediaUrl(image)}
+            onPreviewMedia={onPreviewMedia}
+          />
           {talk.poll ? (
             <TalkPollSummary options={talk.poll.options ?? []} allowMultiple={Boolean(talk.poll.allow_multiple)} />
           ) : null}
@@ -1457,7 +1573,11 @@ function renderOriginalContent(config: ReportedContentDetailConfig, detail: Deta
         </CardHeader>
         <CardContent className="space-y-6">
           <ContentBox content={evaluation.content} />
-          <ImageStrip images={evaluation.images ?? []} resolveUrl={resolveHospitalEvaluationMediaUrl} />
+          <ImageStrip
+            images={evaluation.images ?? []}
+            resolveUrl={resolveHospitalEvaluationMediaUrl}
+            onPreviewMedia={onPreviewMedia}
+          />
           <div className="grid gap-4 md:grid-cols-2">
             <EvaluationRatingsCard detail={evaluation} />
             <EvaluationAssessmentCard assessment={evaluation.assessment} />
@@ -1486,7 +1606,7 @@ function renderOriginalContent(config: ReportedContentDetailConfig, detail: Deta
         <DetailField label="시/수술비용" value={formatHospitalReviewDetailCost(review.cost)} />
         <DetailField label="평점" value={formatHospitalReviewDetailRating(review.rating)} />
         <ContentBox content={review.content} />
-        <ImageStrip images={imageGroups} resolveUrl={resolveHospitalReviewMediaUrl} />
+        <ImageStrip images={imageGroups} resolveUrl={resolveHospitalReviewMediaUrl} onPreviewMedia={onPreviewMedia} />
       </CardContent>
     </Card>
   );
@@ -1515,10 +1635,18 @@ function ContentBox({ content }: { content?: string | null }) {
 function ImageStrip<TImage>({
   images,
   resolveUrl,
+  onPreviewMedia,
 }: {
   images: TImage[];
   resolveUrl: (image: TImage) => string | null;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
+  const items: DetailImageGalleryItem[] = images.map((image, index) => ({
+    id: getImageKey(image, index),
+    url: resolveUrl(image),
+    title: `신고게시물 이미지 ${index + 1}`,
+  }));
+
   if (images.length === 0) {
     return (
       <section className="space-y-2">
@@ -1529,28 +1657,12 @@ function ImageStrip<TImage>({
   }
 
   return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500">이미지</p>
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {images.map((image, index) => {
-          const imageUrl = resolveUrl(image);
-
-          return (
-            <div
-              key={getImageKey(image, index)}
-              className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100"
-            >
-              {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- backend returns storage URLs
-                <img src={imageUrl} alt={`신고게시물 이미지 ${index + 1}`} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">이미지</div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </section>
+    <DetailImageGallery
+      title="이미지"
+      items={items}
+      empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      onPreview={onPreviewMedia}
+    />
   );
 }
 

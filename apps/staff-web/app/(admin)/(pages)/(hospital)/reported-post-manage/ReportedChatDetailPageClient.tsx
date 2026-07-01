@@ -18,6 +18,10 @@ import {
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { api } from "@/lib/common/api";
 import {
@@ -25,6 +29,7 @@ import {
   formatReportedContentDetailDate,
   formatReportedContentDetailDateTime,
   formatReportedContentReason,
+  type ReportedChatMessageAttachment,
   type ReportedChatMessageDetailTarget,
   type ReportedContentDetailAuthor,
   type ReportedContentOperationHistory,
@@ -49,13 +54,16 @@ type ReportedChatDetailResponse = ReportedContentDetailResponse & {
 
 type ReportedChatMessageDisplay = {
   key: string;
-  body: string;
+  body: string | null;
+  messageType: string | null;
+  attachments: ReportedChatMessageAttachment[];
 };
 type ChatReportMember = ReportedContentDetailAuthor | NonNullable<ReportedContentDetailReportItem["reporter"]>;
 
 const targetType = "chat_message";
 const labelClassName = "text-xs font-semibold text-gray-500 ";
 const valueClassName = "text-sm font-medium text-gray-800 ";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export default function ReportedChatDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -71,6 +79,7 @@ export default function ReportedChatDetailPageClient() {
   const [isWarningUnavailableModalOpen, setIsWarningUnavailableModalOpen] = React.useState(false);
   const [modalError, setModalError] = React.useState<string | null>(null);
   const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
 
   const fetchDetail = React.useCallback(async () => {
     if (!Number.isFinite(targetId) || targetId <= 0) {
@@ -264,7 +273,11 @@ export default function ReportedChatDetailPageClient() {
         </div>
 
         <div className="space-y-6">
-          <ReportedChatMessagesCard messages={messages} reportReason={latestReportReason} />
+          <ReportedChatMessagesCard
+            messages={messages}
+            reportReason={latestReportReason}
+            onPreviewMedia={setPreviewMedia}
+          />
           <ChatReportActionCard
             isReported={isReported}
             isIgnoredReport={isIgnoredReport}
@@ -372,6 +385,12 @@ export default function ReportedChatDetailPageClient() {
           </ModalFooter>
         </ModalPanel>
       </Modal>
+
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
     </div>
   );
 }
@@ -424,9 +443,11 @@ function InfoValue({ label, value }: { label: string; value: React.ReactNode }) 
 function ReportedChatMessagesCard({
   messages,
   reportReason,
+  onPreviewMedia,
 }: {
   messages: ReportedChatMessageDisplay[];
   reportReason: string;
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   return (
     <Card>
@@ -445,8 +466,14 @@ function ReportedChatMessagesCard({
                 <span className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-700 ring-1 ring-gray-200">
                   {index + 1}
                 </span>
-                <div className="min-w-0 rounded-lg bg-[#FA6FA9] px-4 py-2.5 text-sm leading-6 font-semibold text-white">
-                  {message.body}
+                <div className="inline-flex max-w-full min-w-0 flex-col space-y-2 rounded-lg bg-[#FA6FA9] px-4 py-2.5 text-sm leading-6 font-semibold text-white">
+                  {message.body ? <p className="break-words whitespace-pre-wrap">{message.body}</p> : null}
+                  <ChatMessageAttachmentGrid
+                    messageKey={message.key}
+                    attachments={message.attachments}
+                    onPreviewMedia={onPreviewMedia}
+                  />
+                  {!message.body && message.attachments.length === 0 ? <p>{message.messageType ?? "-"}</p> : null}
                 </div>
               </div>
             ))}
@@ -458,6 +485,57 @@ function ReportedChatMessagesCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function ChatMessageAttachmentGrid({
+  messageKey,
+  attachments,
+  onPreviewMedia,
+}: {
+  messageKey: string;
+  attachments: ReportedChatMessageAttachment[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+}) {
+  const imageItems = attachments
+    .map((attachment, index) => ({
+      attachment,
+      url: resolveReportedChatAttachmentUrl(attachment),
+      title: `채팅 이미지 ${index + 1}`,
+    }))
+    .filter((item): item is { attachment: ReportedChatMessageAttachment; url: string; title: string } =>
+      Boolean(item.url && isImageAttachment(item.attachment)),
+    );
+
+  if (imageItems.length === 0) return null;
+
+  const previewItems = imageItems.map((item) => ({
+    url: item.url,
+    title: item.title,
+    isImage: true,
+  }));
+
+  return (
+    <div className="flex max-w-full flex-wrap gap-2">
+      {imageItems.map((item, index) => (
+        <button
+          key={`${messageKey}-${item.attachment.id ?? item.url}`}
+          type="button"
+          className="size-32 shrink-0 overflow-hidden rounded-lg bg-white/15 ring-1 ring-white/30"
+          onClick={() =>
+            onPreviewMedia({
+              ...previewItems[index],
+              items: previewItems,
+              index,
+            })
+          }
+          aria-label={`${item.title} 보기`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- backend storage URL */}
+          <img src={item.url} alt="" className="h-full w-full object-cover" />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -473,7 +551,7 @@ function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOpe
             {histories.map((history, index) => (
               <div
                 key={history.id ?? `${history.created_at ?? "history"}-${index}`}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
+                className="grid gap-2 py-3 text-xs text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
                 <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatReportedContentDetailDateTime(history.created_at)}
@@ -482,7 +560,7 @@ function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOpe
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 text-sm break-words text-gray-600">
+                <span className="min-w-0 text-xs break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -579,11 +657,10 @@ function buildReportedMessages(
   fallbackTarget?: ReportedChatMessageDetailTarget | null,
 ): ReportedChatMessageDisplay[] {
   const messages = (items ?? [])
-    .map((item, index) => ({
-      key: String(item.id ?? item.target_id ?? `item-${index}`),
-      body: messageBody(item.target, item.content_snapshot),
-    }))
-    .filter((message) => message.body !== "-");
+    .map((item, index) =>
+      messageDisplay(String(item.id ?? item.target_id ?? `item-${index}`), item.target, item.content_snapshot),
+    )
+    .filter(hasReportedChatMessageContent);
 
   if (messages.length > 0) {
     return messages.slice(0, 5);
@@ -593,15 +670,27 @@ function buildReportedMessages(
     return [];
   }
 
-  return [
-    {
-      key: String(fallbackTarget.id ?? "target"),
-      body: messageBody(fallbackTarget, null),
-    },
-  ];
+  return [messageDisplay(String(fallbackTarget.id ?? "target"), fallbackTarget, null)];
 }
 
-function messageBody(target?: ReportedChatMessageDetailTarget | null, snapshot?: string | null) {
+function messageDisplay(
+  key: string,
+  target?: ReportedChatMessageDetailTarget | null,
+  snapshot?: string | null,
+): ReportedChatMessageDisplay {
+  return {
+    key,
+    body: messageBody(target, snapshot),
+    messageType: target?.message_type?.trim() || null,
+    attachments: target?.attachments ?? [],
+  };
+}
+
+function hasReportedChatMessageContent(message: ReportedChatMessageDisplay) {
+  return Boolean(message.body || message.messageType || message.attachments.length > 0);
+}
+
+function messageBody(target?: ReportedChatMessageDetailTarget | null, snapshot?: string | null): string | null {
   const body = target?.body_preview?.trim() || target?.body?.trim();
 
   if (body) {
@@ -615,7 +704,35 @@ function messageBody(target?: ReportedChatMessageDetailTarget | null, snapshot?:
     return separatorIndex >= 0 ? snapshotBody.slice(separatorIndex + 2) : snapshotBody;
   }
 
+  if ((target?.attachments ?? []).length > 0) {
+    return null;
+  }
+
   const messageType = target?.message_type?.trim();
 
-  return messageType ? `[${messageType}]` : "-";
+  return messageType ? `[${messageType}]` : null;
+}
+
+function resolveReportedChatAttachmentUrl(attachment?: ReportedChatMessageAttachment | null) {
+  const rawUrl = attachment?.url?.trim();
+  if (rawUrl) return rawUrl;
+
+  const rawPath = attachment?.path?.trim();
+  if (!rawPath) return null;
+  if (/^https?:\/\//i.test(rawPath)) return rawPath;
+  if (!API_BASE_URL) return rawPath;
+  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
+  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
+  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
+
+  return `${API_BASE_URL}/storage/${rawPath}`;
+}
+
+function isImageAttachment(attachment: ReportedChatMessageAttachment) {
+  const mimeType = attachment.mime_type?.trim().toLowerCase() || "";
+  if (mimeType) return mimeType.startsWith("image/");
+
+  const path = attachment.path?.trim().toLowerCase() || attachment.url?.trim().toLowerCase() || "";
+
+  return /\.(avif|gif|jpe?g|png|webp)$/i.test(path);
 }

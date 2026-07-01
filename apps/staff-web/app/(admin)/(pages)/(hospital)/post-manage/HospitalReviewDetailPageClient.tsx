@@ -635,7 +635,7 @@ function HospitalReviewHistoryCard({
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
+                className="grid gap-2 py-3 text-xs text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
                 <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatHospitalReviewDetailDateTime(history.created_at)}
@@ -644,7 +644,7 @@ function HospitalReviewHistoryCard({
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 text-sm break-words text-gray-600">
+                <span className="min-w-0 text-xs break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -836,7 +836,7 @@ function CommentItem({
 function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory }) {
   const historyForDisplay = {
     ...history,
-    action: history.action ?? "STATUS_UPDATED",
+    action: history.action ?? "STATE_UPDATED",
     field: history.field ?? "status",
     after_value: history.after_value ?? history.status,
   };

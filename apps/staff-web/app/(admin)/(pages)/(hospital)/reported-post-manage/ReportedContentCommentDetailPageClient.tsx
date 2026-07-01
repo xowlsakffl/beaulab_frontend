@@ -14,8 +14,16 @@ import {
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
+import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
-import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import {
+  ReportedContentDetailPanel,
+  type ReportedContentReportsBlock,
+} from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { api } from "@/lib/common/api";
 import {
   buildHospitalReviewCommentContentPreview,
@@ -33,7 +41,9 @@ import {
 } from "@/lib/hospital-review/detail";
 import {
   formatReportedContentDetailDateTime,
+  type ReportedContentDetailReportItem,
   type ReportedContentDetailResponse,
+  type ReportedContentReportsMeta,
   type ReportedContentTargetType,
 } from "@/lib/reported-content/detail";
 import { formatTalkCategoryName } from "@/lib/talk/list";
@@ -100,12 +110,14 @@ export default function ReportedContentCommentDetailPageClient({ type }: Reporte
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
   const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(null);
+  const [reportedReports, setReportedReports] = React.useState<ReportedContentReportsBlock | null>(null);
   const [historyBlock, setHistoryBlock] = React.useState<CommentHistoryBlock | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
   const [historiesPage, setHistoriesPage] = React.useState(1);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
 
   const fetchDetail = React.useCallback(async () => {
     if (!Number.isFinite(targetId) || targetId <= 0) {
@@ -116,11 +128,17 @@ export default function ReportedContentCommentDetailPageClient({ type }: Reporte
 
     setLoading(true);
     setError(null);
+    setReportedReports(null);
 
     try {
-      const response = await api.get<ReportedContentDetailResponse>(
-        `/reported-contents/detail/${config.targetType}/${targetId}`,
-      );
+      const [response, reportedReportsResponse] = await Promise.all([
+        api.get<ReportedContentDetailResponse>(`/reported-contents/detail/${config.targetType}/${targetId}`),
+        api
+          .get<ReportedContentDetailReportItem[]>(`/reported-contents/${config.targetType}/${targetId}/reports`, {
+            reports_page: 1,
+          })
+          .catch(() => null),
+      ]);
 
       if (!isApiSuccess(response)) {
         setError(response.error.message || "신고 댓글 상세 정보를 불러오지 못했습니다.");
@@ -128,6 +146,15 @@ export default function ReportedContentCommentDetailPageClient({ type }: Reporte
       }
 
       setDetail(response.data);
+      setReportedReports(
+        reportedReportsResponse && isApiSuccess(reportedReportsResponse)
+          ? {
+              items: reportedReportsResponse.data ?? [],
+              meta: (reportedReportsResponse.meta as ReportedContentReportsMeta | null) ?? null,
+              page: 1,
+            }
+          : null,
+      );
     } catch {
       setError("신고 댓글 상세 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -165,10 +192,6 @@ export default function ReportedContentCommentDetailPageClient({ type }: Reporte
     }
   }, [config, historiesPage, targetId]);
 
-  const refreshDetail = React.useCallback(async () => {
-    await Promise.all([fetchDetail(), fetchHistories()]);
-  }, [fetchDetail, fetchHistories]);
-
   React.useEffect(() => {
     void fetchDetail();
   }, [fetchDetail]);
@@ -202,7 +225,7 @@ export default function ReportedContentCommentDetailPageClient({ type }: Reporte
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
         <div className="space-y-6">
           {renderCommentSummary(config, target)}
-          {renderCommentContent(config, target)}
+          {renderCommentContent(config, target, setPreviewMedia)}
           <CommentHistoryCard
             histories={histories}
             meta={historiesMeta}
@@ -216,10 +239,18 @@ export default function ReportedContentCommentDetailPageClient({ type }: Reporte
           <ReportedContentDetailPanel
             targetType={config.targetType}
             targetId={targetId}
-            onStatusUpdated={() => void refreshDetail()}
+            initialDetail={detail}
+            initialReports={reportedReports}
+            onStatusUpdated={() => void fetchHistories()}
           />
         </div>
       </div>
+
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
     </div>
   );
 }
@@ -242,7 +273,11 @@ function renderCommentSummary(config: ReportedContentCommentDetailConfig, target
   );
 }
 
-function renderCommentContent(config: ReportedContentCommentDetailConfig, target?: CommentTarget | null) {
+function renderCommentContent(
+  config: ReportedContentCommentDetailConfig,
+  target: CommentTarget | null | undefined,
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void,
+) {
   if (config.kind === "talk-comment") {
     const comment = target as TalkCommentApiItem | null | undefined;
 
@@ -288,7 +323,7 @@ function renderCommentContent(config: ReportedContentCommentDetailConfig, target
         <DetailField label="후기제목" value={comment?.parent?.title?.trim() || "-"} />
         <DetailField label="좋아요 수" value={Number(comment?.like_count ?? 0).toLocaleString()} />
         <ContentBox content={comment?.content || buildHospitalReviewCommentContentPreview(comment?.content)} />
-        <ReviewImageGallery beforeImages={beforeImages} afterImages={afterImages} />
+        <ReviewImageGallery beforeImages={beforeImages} afterImages={afterImages} onPreviewMedia={onPreviewMedia} />
       </CardContent>
     </Card>
   );
@@ -320,7 +355,7 @@ function CommentHistoryCard({
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
+                className="grid gap-2 py-3 text-xs text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
                 <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatReportedContentDetailDateTime(history.created_at)}
@@ -329,7 +364,7 @@ function CommentHistoryCard({
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 text-sm break-words text-gray-600">
+                <span className="min-w-0 text-xs break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -383,62 +418,38 @@ function CategoryBadges({ categories }: { categories: HospitalReviewCategory[] }
 function ReviewImageGallery({
   beforeImages,
   afterImages,
+  onPreviewMedia,
 }: {
   beforeImages: HospitalReviewMediaAsset[];
   afterImages: HospitalReviewMediaAsset[];
+  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
-  const images = [
-    ...beforeImages.map((image) => ({ image, label: "전" })),
-    ...afterImages.map((image) => ({ image, label: "후" })),
+  const items: DetailImageGalleryItem[] = [
+    ...beforeImages.map((image, index) => ({
+      id: `before-${image.id ?? image.path ?? index}`,
+      url: resolveHospitalReviewMediaUrl(image),
+      title: `전 이미지 ${index + 1}`,
+      badge: "전",
+    })),
+    ...afterImages.map((image, index) => ({
+      id: `after-${image.id ?? image.path ?? index}`,
+      url: resolveHospitalReviewMediaUrl(image),
+      title: `후 이미지 ${index + 1}`,
+      badge: "후",
+    })),
   ];
 
-  if (images.length === 0) {
-    return (
-      <section className="space-y-2">
-        <p className="text-xs font-semibold text-gray-500">게시글 이미지</p>
+  return (
+    <DetailImageGallery
+      title="게시글 이미지"
+      items={items}
+      empty={
         <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
           등록된 이미지가 없습니다.
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500">게시글 이미지</p>
-      <div className="max-w-full overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="flex min-w-full gap-3">
-          {images.map(({ image, label }, index) => {
-            const imageUrl = resolveHospitalReviewMediaUrl(image);
-
-            return (
-              <a
-                key={`${label}-${image.id ?? image.path ?? index}`}
-                href={imageUrl ?? undefined}
-                target={imageUrl ? "_blank" : undefined}
-                rel={imageUrl ? "noreferrer" : undefined}
-                className="group relative flex aspect-square items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50"
-                style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-              >
-                <span className="absolute top-2 left-2 z-10 rounded-full bg-white/90 px-2 py-0.5 text-xs font-semibold text-gray-700 shadow-sm">
-                  {label}
-                </span>
-                {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- backend returns storage URLs
-                  <img
-                    src={imageUrl}
-                    alt={`신고 댓글 부모 게시글 이미지 ${index + 1}`}
-                    className="h-full w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <span className="px-3 text-center text-xs text-gray-500">미리보기 없음</span>
-                )}
-              </a>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+      }
+      onPreview={onPreviewMedia}
+    />
   );
 }
 

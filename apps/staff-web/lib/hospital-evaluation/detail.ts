@@ -4,7 +4,6 @@ import type { ContentReportSummary } from "@/lib/common/content-report";
 import {
   formatHospitalEvaluationAuthorName,
   formatHospitalEvaluationCost,
-  formatHospitalEvaluationRating,
   labelHospitalEvaluationVisibilityStatus,
   type HospitalEvaluationAuthor,
   type HospitalEvaluationCategory,
@@ -168,7 +167,9 @@ export function formatHospitalEvaluationDetailCost(value?: number | null) {
 }
 
 export function formatHospitalEvaluationDetailRating(value?: number | null) {
-  return formatHospitalEvaluationRating(Number(value ?? 0));
+  const rating = Number(value ?? 0);
+
+  return Number.isFinite(rating) ? String(Math.round(rating)) : "0";
 }
 
 export function formatHospitalEvaluationAverageRating(value?: number | null) {

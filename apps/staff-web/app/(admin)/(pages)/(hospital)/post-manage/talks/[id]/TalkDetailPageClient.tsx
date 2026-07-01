@@ -620,7 +620,7 @@ function TalkHistoryCard({
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
+                className="grid gap-2 py-3 text-xs text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
                 <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatTalkDetailDateTime(history.created_at)}
@@ -629,7 +629,7 @@ function TalkHistoryCard({
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 text-sm break-words text-gray-600">
+                <span className="min-w-0 text-xs break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -819,7 +819,7 @@ function CommentItem({
 function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   const historyForDisplay = {
     ...history,
-    action: history.action ?? "STATUS_UPDATED",
+    action: history.action ?? "STATE_UPDATED",
     field: history.field ?? "status",
     after_value: history.after_value ?? history.status,
   };
@@ -848,7 +848,7 @@ function TalkImageGrid({
   const galleryItems: DetailImageGalleryItem[] = images.map((image, index) => ({
     id: image.id ?? `talk-image-${index}`,
     url: resolveMediaUrl(image as MediaAsset),
-    title: `토크 이미지 ${index + 1}`,
+    title: `이미지 ${index + 1}`,
   }));
 
   return (

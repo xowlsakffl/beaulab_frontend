@@ -9,6 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CircleCheck,
   FormCheckbox,
   InputField,
   Modal,
@@ -18,6 +19,7 @@ import {
   ModalPanel,
   ModalTitle,
   Pagination,
+  Select,
   SpinnerBlock,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -69,6 +71,34 @@ type ReceiptRejectPayload = {
   reason: string;
   reason_text?: string;
 };
+
+const RECEIPT_STATUS_VERIFIED = "VERIFIED";
+const RECEIPT_STATUS_REJECTED = "REJECTED";
+
+function getHospitalEvaluationReceiptStatus(detail: HospitalEvaluationDetailResponse | null): string {
+  return detail?.receipt?.status?.trim() || "NONE";
+}
+
+function getHospitalEvaluationReceiptDecision(status: string): HospitalEvaluationReceiptDecision {
+  return status === RECEIPT_STATUS_REJECTED ? "reject" : "verify";
+}
+
+function getHospitalEvaluationReceiptButtonLabel(status: string): string {
+  if (status === RECEIPT_STATUS_VERIFIED) return "영수증 인증";
+  if (status === RECEIPT_STATUS_REJECTED) return "영수증 부적합";
+
+  return "영수증 등록";
+}
+
+function isCurrentHospitalEvaluationReceiptDecision(
+  decision: HospitalEvaluationReceiptDecision,
+  status: string,
+): boolean {
+  return (
+    (decision === "verify" && status === RECEIPT_STATUS_VERIFIED) ||
+    (decision === "reject" && status === RECEIPT_STATUS_REJECTED)
+  );
+}
 
 type VisibilityUpdateResponse = {
   updated_count: number;
@@ -291,12 +321,15 @@ export default function HospitalEvaluationDetailPageClient() {
   usePageHeaderExtra(headerActions);
 
   const openReceiptModal = React.useCallback(() => {
-    setReceiptDecision("verify");
-    setReceiptRejectReason("");
-    setReceiptRejectReasonText("");
+    const receiptStatus = getHospitalEvaluationReceiptStatus(detail);
+    const nextDecision = getHospitalEvaluationReceiptDecision(receiptStatus);
+
+    setReceiptDecision(nextDecision);
+    setReceiptRejectReason(nextDecision === "reject" ? detail?.receipt?.rejection_reason?.trim() || "" : "");
+    setReceiptRejectReasonText(nextDecision === "reject" ? detail?.receipt?.rejection_reason_text?.trim() || "" : "");
     setReceiptModalError(null);
     setIsReceiptModalOpen(true);
-  }, []);
+  }, [detail]);
 
   const closeReceiptModal = React.useCallback(() => {
     if (receiptUpdating) return;
@@ -307,6 +340,15 @@ export default function HospitalEvaluationDetailPageClient() {
     if (!detail) return;
 
     setReceiptModalError(null);
+
+    const receiptStatus = getHospitalEvaluationReceiptStatus(detail);
+
+    if (isCurrentHospitalEvaluationReceiptDecision(receiptDecision, receiptStatus)) {
+      setReceiptModalError(
+        receiptDecision === "verify" ? "이미 인증 적합 처리된 영수증입니다." : "이미 인증 부적합 처리된 영수증입니다.",
+      );
+      return;
+    }
 
     if (receiptDecision === "reject" && !receiptRejectReason) {
       setReceiptModalError("인증 부적합 사유를 선택해주세요.");
@@ -370,8 +412,8 @@ export default function HospitalEvaluationDetailPageClient() {
   const operationHistoriesMeta = operationHistoriesBlock?.meta ?? null;
   const receiptImages = detail.receipt_images ?? [];
   const receiptImage = receiptImages[0] ?? null;
-  const receiptStatus = detail.receipt?.status?.trim() || "NONE";
-  const receiptButtonLabel = receiptStatus === "VERIFIED" ? "영수증 인증" : "영수증 등록";
+  const receiptStatus = getHospitalEvaluationReceiptStatus(detail);
+  const receiptButtonLabel = getHospitalEvaluationReceiptButtonLabel(receiptStatus);
   const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   const pendingVisibilityMessage = pendingVisibilityChange ? `해당 평가를 ${pendingVisibilityLabel} 하시겠습니까?` : "";
 
@@ -393,6 +435,7 @@ export default function HospitalEvaluationDetailPageClient() {
           <HospitalEvaluationContentCard
             detail={detail}
             receiptButtonLabel={receiptButtonLabel}
+            receiptButtonVerified={receiptStatus === RECEIPT_STATUS_VERIFIED}
             hasReceiptImages={receiptImages.length > 0}
             receiptButtonDisabled={receiptUpdating}
             onOpenReceiptModal={openReceiptModal}
@@ -417,6 +460,7 @@ export default function HospitalEvaluationDetailPageClient() {
       <ReceiptVerificationModal
         isOpen={isReceiptModalOpen}
         image={receiptImage}
+        currentStatus={receiptStatus}
         decision={receiptDecision}
         rejectReason={receiptRejectReason}
         rejectReasonText={receiptRejectReasonText}
@@ -491,6 +535,7 @@ function HospitalSummaryCard({ detail }: { detail: HospitalEvaluationDetailRespo
 function HospitalEvaluationContentCard({
   detail,
   receiptButtonLabel,
+  receiptButtonVerified,
   hasReceiptImages,
   receiptButtonDisabled,
   onOpenReceiptModal,
@@ -498,6 +543,7 @@ function HospitalEvaluationContentCard({
 }: {
   detail: HospitalEvaluationDetailResponse;
   receiptButtonLabel: string;
+  receiptButtonVerified: boolean;
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
@@ -519,6 +565,7 @@ function HospitalEvaluationContentCard({
               onClick={onOpenReceiptModal}
               className="min-w-[7.5rem]"
             >
+              {receiptButtonVerified ? <CircleCheck className="size-4" aria-hidden="true" /> : null}
               {receiptButtonLabel}
             </Button>
           ) : null}
@@ -663,7 +710,7 @@ function HospitalEvaluationHistoryCard({
             {histories.map((history) => (
               <div
                 key={history.id}
-                className="grid gap-2 py-3 text-sm text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
+                className="grid gap-2 py-3 text-xs text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
               >
                 <span className="text-xs whitespace-nowrap text-gray-500">
                   {formatHospitalEvaluationDetailDateTime(history.created_at)}
@@ -672,7 +719,7 @@ function HospitalEvaluationHistoryCard({
                 <span>
                   <OperationHistoryActionBadge history={history} />
                 </span>
-                <span className="min-w-0 text-sm break-words text-gray-600">
+                <span className="min-w-0 text-xs break-words text-gray-600">
                   <OperationHistoryReason history={history} />
                 </span>
               </div>
@@ -700,6 +747,7 @@ function HospitalEvaluationHistoryCard({
 function ReceiptVerificationModal({
   isOpen,
   image,
+  currentStatus,
   decision,
   rejectReason,
   rejectReasonText,
@@ -714,6 +762,7 @@ function ReceiptVerificationModal({
 }: {
   isOpen: boolean;
   image: HospitalEvaluationMediaAsset | null;
+  currentStatus: string;
   decision: HospitalEvaluationReceiptDecision;
   rejectReason: string;
   rejectReasonText: string;
@@ -727,6 +776,10 @@ function ReceiptVerificationModal({
   onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
 }) {
   const imageUrl = resolveHospitalEvaluationMediaUrl(image);
+  const isVerifyCurrent = currentStatus === RECEIPT_STATUS_VERIFIED;
+  const isRejectCurrent = currentStatus === RECEIPT_STATUS_REJECTED;
+  const isCurrentDecision = isCurrentHospitalEvaluationReceiptDecision(decision, currentStatus);
+  const rejectInputsDisabled = updating || isRejectCurrent;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-lg">
@@ -761,65 +814,62 @@ function ReceiptVerificationModal({
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             <ReceiptDecisionOption
-              label="인증적합"
+              label="인증 적합"
               checked={decision === "verify"}
-              disabled={updating}
+              disabled={updating || (decision === "verify" && isVerifyCurrent)}
               onClick={() => onDecisionChange("verify")}
             />
             <ReceiptDecisionOption
               label="인증 부적합"
               checked={decision === "reject"}
-              disabled={updating}
+              disabled={updating || (decision === "reject" && isRejectCurrent)}
               onClick={() => onDecisionChange("reject")}
             />
           </div>
 
           {decision === "reject" ? (
-            <div className="space-y-3">
+            <div>
               <label
                 htmlFor="hospital-evaluation-receipt-reject-reason"
-                className="block text-sm font-semibold text-gray-800"
+                className="mb-1.5 block text-sm font-semibold text-gray-800"
               >
                 인증 부적합 사유
               </label>
-              <select
+              <Select
                 id="hospital-evaluation-receipt-reject-reason"
                 value={rejectReason}
-                onChange={(event) => onRejectReasonChange(event.target.value)}
-                disabled={updating}
-                className="h-11 w-full rounded-lg border border-gray-200 bg-gray-100 px-3 text-sm text-gray-800 transition outline-none focus:border-brand-400"
-              >
-                <option value="">없음</option>
-                {HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                placeholder="없음"
+                options={[...HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS]}
+                onChange={onRejectReasonChange}
+                disabled={rejectInputsDisabled}
+                className="h-11 pl-3"
+              />
 
               {rejectReason === "OTHER" ? (
-                <InputField
-                  id="hospital-evaluation-receipt-reject-reason-text"
-                  name="receipt_rejection_reason_text"
-                  placeholder="기타 사유를 입력해주세요"
-                  value={rejectReasonText}
-                  onChange={(event) => onRejectReasonTextChange(event.target.value)}
-                  disabled={updating}
-                />
+                <div className="mt-3">
+                  <InputField
+                    id="hospital-evaluation-receipt-reject-reason-text"
+                    name="receipt_rejection_reason_text"
+                    placeholder="기타 사유를 입력해주세요"
+                    value={rejectReasonText}
+                    onChange={(event) => onRejectReasonTextChange(event.target.value)}
+                    disabled={rejectInputsDisabled}
+                  />
+                </div>
               ) : null}
+
+              {error ? <p className="mt-1.5 text-xs font-medium text-error-500">{error}</p> : null}
             </div>
           ) : null}
 
-          {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
-          ) : null}
+          {decision !== "reject" && error ? <p className="text-xs font-medium text-error-500">{error}</p> : null}
         </ModalBody>
 
         <ModalFooter className="justify-center">
           <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
             취소
           </Button>
-          <Button type="button" variant="brand" onClick={onSubmit} disabled={updating}>
+          <Button type="button" variant="brand" onClick={onSubmit} disabled={updating || isCurrentDecision}>
             {updating ? "처리 중..." : "등록"}
           </Button>
         </ModalFooter>

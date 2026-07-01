@@ -5,7 +5,7 @@ import { ArrowRight, StatusBadge } from "@beaulab/ui-admin";
 import type { BadgeColor } from "@beaulab/ui-admin";
 
 import { reportStatusBadgeColor } from "@/components/common/ReportStatusBadge";
-import { hospitalEventAllowStatusColor, labelHospitalEventAllowStatus } from "@/lib/hospital-event/list";
+import { hospitalEventAllowStatusColor } from "@/lib/hospital-event/list";
 
 export type OperationHistoryChangeLike = {
   field_key?: string | null;
@@ -60,31 +60,22 @@ export function OperationHistoryReason({
   statusBadgeColor,
   allowStatusLabel,
 }: OperationHistoryReasonProps) {
-  const transition = resolveTransition(history);
+  const action = normalizeAction(history.action);
+  const transitions = resolveTransitions(history);
   const reason = normalizeDisplayReason(history.reason?.trim() || fallbackReason?.trim() || "");
 
-  if (transition && isStatusField(transition.field)) {
+  if (isStateAction(action) && transitions.length > 0) {
     return (
       <span className="inline-flex min-w-0 flex-col gap-1">
-        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <HistoryStatusValueBadge
+        {transitions.map((transition, index) => (
+          <HistoryTransitionLine
+            key={`${transition.field ?? "field"}-${index}`}
             transition={transition}
-            side="before"
             statusLabel={statusLabel}
             statusBadgeColor={statusBadgeColor}
             allowStatusLabel={allowStatusLabel}
           />
-          {transition.beforeLabel !== "-" && transition.afterLabel !== "-" ? (
-            <ArrowRight className="size-3 text-brand-500" strokeWidth={2.4} />
-          ) : null}
-          <HistoryStatusValueBadge
-            transition={transition}
-            side="after"
-            statusLabel={statusLabel}
-            statusBadgeColor={statusBadgeColor}
-            allowStatusLabel={allowStatusLabel}
-          />
-        </span>
+        ))}
         {reason ? <HistoryReasonNote reason={reason} /> : null}
       </span>
     );
@@ -92,16 +83,8 @@ export function OperationHistoryReason({
 
   if (reason) return <HistoryReasonNote reason={reason} />;
 
-  if (normalizeAction(history.action) === "UPDATED") {
-    const labels = (history.changes ?? [])
-      .map((change) => (change.field_label || change.field_key || "").trim())
-      .filter(Boolean);
-
-    if (labels.length > 0) {
-      return `${Array.from(new Set(labels)).join(", ")} 수정`;
-    }
-
-    return "수정";
+  if (action === "UPDATED") {
+    return summarizeUpdatedChanges(history.changes);
   }
 
   return "-";
@@ -153,7 +136,7 @@ function labelHistoryAction(action?: string | null) {
       return "생성";
     case "UPDATED":
       return "수정";
-    case "STATUS_UPDATED":
+    case "STATE_UPDATED":
       return "상태 변경";
     case "DELETED":
       return "삭제";
@@ -162,35 +145,70 @@ function labelHistoryAction(action?: string | null) {
   }
 }
 
-function resolveTransition(history: OperationHistoryLike) {
-  const reportStatusTransition = resolveReportStatusTransition(history);
-  if (reportStatusTransition) {
-    return reportStatusTransition;
+function summarizeUpdatedChanges(changes?: OperationHistoryChangeLike[] | null) {
+  const labels = Array.from(
+    new Set(
+      (changes ?? [])
+        .map((change) => normalizeOperationHistoryFieldLabel(change.field_label, change.field_key))
+        .filter(Boolean),
+    ),
+  );
+
+  if (labels.length === 0) {
+    return "수정";
   }
 
-  const firstChange = history.changes?.[0] ?? null;
-  if (firstChange) {
-    const field = firstChange.field_key ?? history.field ?? null;
+  if (labels.length === 1) {
+    return `${labels[0]} 변경`;
+  }
 
-    return {
-      field,
-      beforeRaw: firstChange.before_value,
-      afterRaw: firstChange.after_value,
-      beforeLabel: stringifyHistoryValue(firstChange.before_display ?? firstChange.before_value),
-      afterLabel: stringifyHistoryValue(firstChange.after_display ?? firstChange.after_value),
-    };
+  return `${labels[0]} 외 ${labels.length - 1}개 변경`;
+}
+
+type HistoryTransition = {
+  field: string | null;
+  fieldLabel: string;
+  beforeRaw: unknown;
+  afterRaw: unknown;
+  beforeLabel: string;
+  afterLabel: string;
+};
+
+function resolveTransitions(history: OperationHistoryLike): HistoryTransition[] {
+  const changes = history.changes ?? [];
+  if (changes.length > 0) {
+    return changes.map((change) => {
+      const field = change.field_key ?? history.field ?? null;
+
+      return {
+        field,
+        fieldLabel: normalizeOperationHistoryFieldLabel(change.field_label, defaultFieldLabel(field)),
+        beforeRaw: change.before_value,
+        afterRaw: change.after_value,
+        beforeLabel: stringifyHistoryValue(change.before_display ?? change.before_value),
+        afterLabel: stringifyHistoryValue(change.after_display ?? change.after_value),
+      };
+    });
+  }
+
+  const reportStatusTransition = resolveReportStatusTransition(history);
+  if (reportStatusTransition) {
+    return [reportStatusTransition];
   }
 
   const field = history.field ?? null;
-  if (!field) return null;
+  if (!field) return [];
 
-  return {
-    field,
-    beforeRaw: history.before_value,
-    afterRaw: history.after_value,
-    beforeLabel: statusDisplayLabel(field, history.before_value),
-    afterLabel: statusDisplayLabel(field, history.after_value),
-  };
+  return [
+    {
+      field,
+      fieldLabel: defaultFieldLabel(field),
+      beforeRaw: history.before_value,
+      afterRaw: history.after_value,
+      beforeLabel: statusDisplayLabel(field, history.before_value),
+      afterLabel: statusDisplayLabel(field, history.after_value),
+    },
+  ];
 }
 
 function resolveReportStatusTransition(history: OperationHistoryLike) {
@@ -208,6 +226,7 @@ function resolveReportStatusTransition(history: OperationHistoryLike) {
 
   return {
     field: "report_status",
+    fieldLabel: defaultFieldLabel("report_status"),
     beforeRaw,
     afterRaw,
     beforeLabel,
@@ -215,13 +234,38 @@ function resolveReportStatusTransition(history: OperationHistoryLike) {
   };
 }
 
-function isStatusField(field?: string | null) {
+function HistoryTransitionLine({
+  transition,
+  statusLabel,
+  statusBadgeColor,
+  allowStatusLabel,
+}: {
+  transition: HistoryTransition;
+  statusLabel?: (status: string, fallbackLabel?: string) => string;
+  statusBadgeColor?: (status: string) => BadgeColor;
+  allowStatusLabel?: (status: string, fallbackLabel?: string) => string;
+}) {
   return (
-    field === "status" ||
-    field === "allow_status" ||
-    field === "receipt_status" ||
-    field === "warning_status" ||
-    field === "report_status"
+    <span className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap">
+      <span className="shrink-0 font-medium text-gray-700">{transition.fieldLabel}:</span>
+      <HistoryStatusValueBadge
+        transition={transition}
+        side="before"
+        statusLabel={statusLabel}
+        statusBadgeColor={statusBadgeColor}
+        allowStatusLabel={allowStatusLabel}
+      />
+      {transition.beforeLabel !== "-" && transition.afterLabel !== "-" ? (
+        <ArrowRight className="size-3 text-brand-500" strokeWidth={2.4} />
+      ) : null}
+      <HistoryStatusValueBadge
+        transition={transition}
+        side="after"
+        statusLabel={statusLabel}
+        statusBadgeColor={statusBadgeColor}
+        allowStatusLabel={allowStatusLabel}
+      />
+    </span>
   );
 }
 
@@ -232,7 +276,7 @@ function HistoryStatusValueBadge({
   statusBadgeColor,
   allowStatusLabel,
 }: {
-  transition: NonNullable<ReturnType<typeof resolveTransition>>;
+  transition: HistoryTransition;
   side: "before" | "after";
   statusLabel?: (status: string, fallbackLabel?: string) => string;
   statusBadgeColor?: (status: string) => BadgeColor;
@@ -250,7 +294,7 @@ function HistoryStatusValueBadge({
       <StatusBadge
         size="sm"
         color={reportStatusBadgeColor(stringifyHistoryValue(rawValue))}
-        className="h-5 px-2 text-[11px] leading-none"
+        className="h-5 px-2 text-xs leading-none"
       >
         {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
       </StatusBadge>
@@ -261,7 +305,7 @@ function HistoryStatusValueBadge({
     <StatusBadge
       size="sm"
       color={statusColor(transition.field, rawValue, statusBadgeColor)}
-      className="h-5 px-2 text-[11px] leading-none"
+      className="h-5 px-2 text-xs leading-none"
     >
       {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
     </StatusBadge>
@@ -276,6 +320,12 @@ function statusDisplayLabel(
   allowStatusLabel?: (status: string, fallbackLabel?: string) => string,
 ) {
   const normalized = stringifyHistoryValue(value);
+  const displayLabel = fallbackLabel?.trim();
+
+  if (displayLabel && displayLabel !== "-" && displayLabel !== normalized) {
+    return displayLabel;
+  }
+
   if (field === "status") {
     if (statusLabel) {
       return statusLabel(normalized, fallbackLabel) || fallbackLabel || normalized || "-";
@@ -289,20 +339,7 @@ function statusDisplayLabel(
       return allowStatusLabel(normalized, fallbackLabel) || fallbackLabel || normalized || "-";
     }
 
-    const label = labelHospitalEventAllowStatus(normalized);
-    return label === "-" ? fallbackLabel || normalized || "-" : label;
-  }
-
-  if (field === "receipt_status") {
-    return labelReceiptStatus(normalized, fallbackLabel);
-  }
-
-  if (field === "warning_status") {
-    return labelWarningStatus(normalized, fallbackLabel);
-  }
-
-  if (field === "report_status") {
-    return labelReportStatus(normalized, fallbackLabel);
+    return fallbackLabel || normalized || "-";
   }
 
   return fallbackLabel || normalized || "-";
@@ -349,55 +386,31 @@ function statusColor(
   return "light";
 }
 
-function labelReceiptStatus(value: string, fallbackLabel?: string) {
-  switch (value) {
-    case "UPLOADED":
-      return "영수증";
-    case "VERIFIED":
-      return "영수증 인증";
-    case "REJECTED":
-      return "영수증 부적합";
-    case "NONE":
-      return "없음";
-    default:
-      return fallbackLabel || value || "-";
-  }
+function isStateAction(action?: string | null) {
+  return action === "STATE_UPDATED";
 }
 
-function labelWarningStatus(value: string, fallbackLabel?: string) {
-  switch (value) {
-    case "WARNED":
-      return "경고";
-    case "IGNORED":
-      return "무시";
-    case "NONE":
-      return "미처리";
-    default:
-      return fallbackLabel || value || "-";
-  }
+export function normalizeOperationHistoryFieldLabel(fieldLabel?: string | null, fallback?: string | null) {
+  const label = (fieldLabel || fallback || "").trim();
+  if (!label) return "";
+
+  return label.endsWith(" 변경") ? label.slice(0, -" 변경".length).trim() : label;
 }
 
-function labelReportStatus(value: string, fallbackLabel?: string) {
-  switch (value) {
-    case "NONE":
-      return "미처리";
-    case "REPORTED":
-    case "RECEIVED":
-      return "신고접수";
-    case "AUTO_BLOCKED":
-      return "자동차단";
-    case "ADMIN_HIDDEN":
-      return "노출중지";
-    case "NORMAL_VISIBLE":
-      return "정상노출";
-    case "REEXPOSED":
-      return "재노출";
-    case "VALID":
-      return "신고";
-    case "INVALID":
-      return "무시";
+function defaultFieldLabel(field?: string | null) {
+  switch (field) {
+    case "status":
+      return "노출여부";
+    case "allow_status":
+      return "검수상태";
+    case "receipt_status":
+      return "영수증 상태";
+    case "warning_status":
+      return "경고여부";
+    case "report_status":
+      return "조치유형";
     default:
-      return fallbackLabel || value || "-";
+      return field?.trim() || "변경 항목";
   }
 }
 

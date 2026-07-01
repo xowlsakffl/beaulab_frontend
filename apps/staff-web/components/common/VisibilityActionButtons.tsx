@@ -34,6 +34,8 @@ export function VisibilityActionButtons({
   const visible = status !== "INACTIVE";
   const activeButtonVariant = mode === "current" ? (visible ? "brand" : "outline") : visible ? "outline" : "brand";
   const inactiveButtonVariant = mode === "current" ? (visible ? "outline" : "brand") : visible ? "brand" : "outline";
+  const activeButtonDisabled = disabled || visible;
+  const inactiveButtonDisabled = disabled || !visible;
 
   return (
     <div className={["flex items-center gap-2", className].filter(Boolean).join(" ")}>
@@ -41,7 +43,7 @@ export function VisibilityActionButtons({
         type="button"
         size="sm"
         variant={activeButtonVariant}
-        disabled={disabled || (mode === "action" && visible)}
+        disabled={activeButtonDisabled}
         onClick={() => onChange("ACTIVE")}
         className={buttonClassName}
       >
@@ -51,7 +53,7 @@ export function VisibilityActionButtons({
         type="button"
         size="sm"
         variant={inactiveButtonVariant}
-        disabled={disabled || (mode === "action" && !visible)}
+        disabled={inactiveButtonDisabled}
         onClick={() => onChange("INACTIVE")}
         className={buttonClassName}
       >

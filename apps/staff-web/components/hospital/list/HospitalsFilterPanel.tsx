@@ -120,9 +120,9 @@ export function HospitalsFilterPanel({
           />
         </div>
         <div className="flex min-w-0 items-center gap-2 py-1.5">
-          <span className={inlineLabelClass}>회원상태</span>
+          <span className={inlineLabelClass}>병의원상태</span>
           <CheckboxFilterDropdown
-            label="회원상태"
+            label="병의원상태"
             hideLabel
             containerRef={statusDropdownRef}
             selectedValues={draftFilters.hospitalStatuses}

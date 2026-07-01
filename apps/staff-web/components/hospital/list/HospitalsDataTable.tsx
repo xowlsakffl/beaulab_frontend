@@ -186,7 +186,7 @@ function buildHospitalColumns({
           onClick={() => onToggleSort("status")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          회원상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
+          병의원상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
