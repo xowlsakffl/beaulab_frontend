@@ -3,6 +3,7 @@ import type { DateRange } from "react-day-picker";
 
 export type AccountUserDateType = "created_at" | "last_accessed_at";
 export type AccountUserSortDirection = "asc" | "desc";
+export type AccountUserSummaryCardKey = "withdrawn" | "blocked" | "warned";
 export type AccountUserSortField =
   | "id"
   | "email"
@@ -20,6 +21,7 @@ export type AccountUserOption<T extends string = string> = {
 };
 
 export type AccountUserFilters = {
+  summaryFilter: AccountUserSummaryCardKey | "";
   dateType: AccountUserDateType;
   dateRange: string;
   startDate: string;
@@ -38,6 +40,7 @@ export type AccountUserSortState = {
 
 export type AccountUserQuery = {
   q?: string;
+  summary_filter?: AccountUserSummaryCardKey;
   date_type?: AccountUserDateType;
   start_date?: string;
   end_date?: string;
@@ -123,6 +126,7 @@ export const ACCOUNT_USER_STATUS_OPTIONS: AccountUserOption[] = [
 ];
 
 export const DEFAULT_ACCOUNT_USER_FILTERS: AccountUserFilters = {
+  summaryFilter: "",
   dateType: "created_at",
   dateRange: "전체",
   startDate: "",
@@ -141,6 +145,7 @@ export const DEFAULT_ACCOUNT_USER_SORT: AccountUserSortState = {
 
 export function parseAccountUsersTableState(searchParams: URLSearchParams) {
   const filters: AccountUserFilters = {
+    summaryFilter: normalizeAccountUserSummaryFilter(searchParams.get("summary_filter")),
     dateType: normalizeDateType(searchParams.get("date_type")),
     dateRange: formatDateRangeLabel(searchParams.get("start_date") ?? "", searchParams.get("end_date") ?? ""),
     startDate: searchParams.get("start_date") ?? "",
@@ -177,6 +182,7 @@ export function buildAccountUsersQuery({
 }): AccountUserQuery {
   return {
     ...(searchKeyword.trim() ? { q: searchKeyword.trim() } : {}),
+    ...(appliedFilters.summaryFilter ? { summary_filter: appliedFilters.summaryFilter } : {}),
     date_type: appliedFilters.dateType,
     ...(appliedFilters.startDate ? { start_date: appliedFilters.startDate } : {}),
     ...(appliedFilters.endDate ? { end_date: appliedFilters.endDate } : {}),
@@ -291,6 +297,14 @@ export function formatLocalDate(date: Date) {
 
 function normalizeDateType(value: string | null): AccountUserDateType {
   return value === "last_accessed_at" ? "last_accessed_at" : "created_at";
+}
+
+function normalizeAccountUserSummaryFilter(value: string | null): AccountUserSummaryCardKey | "" {
+  if (value === "withdrawn" || value === "blocked" || value === "warned") {
+    return value;
+  }
+
+  return "";
 }
 
 function normalizeSortField(value: string | null): AccountUserSortField {

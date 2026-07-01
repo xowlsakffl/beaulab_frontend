@@ -8,7 +8,7 @@ import { Button, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { ReportedContentDataTable } from "@/components/reported-content/list/ReportedContentDataTable";
 import { ReportedContentFilterPanel } from "@/components/reported-content/list/ReportedContentFilterPanel";
-import { ReportedContentStatsCards } from "@/components/reported-content/list/ReportedContentStatsCards";
+import { ReportedContentSummaryCards } from "@/components/reported-content/list/ReportedContentSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
@@ -32,6 +32,7 @@ import {
   type ReportedContentSortField,
   type ReportedContentSortState,
   type ReportedContentSummary,
+  type ReportedContentSummaryCardKey,
 } from "@/lib/reported-content/list";
 
 type ReportedContentTableClientProps = {
@@ -65,6 +66,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const activeKind = activeBoard === "comments" ? (config.commentKind ?? config.kind) : config.kind;
   const activeApiPath = activeBoard === "comments" ? (config.commentApiPath ?? config.apiPath) : config.apiPath;
   const showSummaryCards = config.showSummaryCards !== false;
+  const activeSummaryKey = appliedFilters.summaryFilter || null;
 
   const query = React.useMemo(
     () =>
@@ -235,6 +237,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
       dateRange: mapped.label,
       startDate: mapped.startDate,
       endDate: mapped.endDate,
+      summaryFilter: "",
     }));
   }, []);
 
@@ -250,9 +253,30 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
       setDraftFilters((prev) => ({
         ...prev,
         [key]: value,
+        summaryFilter: "",
       }));
     },
     [],
+  );
+
+  const applySummaryFilter = React.useCallback(
+    (key: ReportedContentSummaryCardKey) => {
+      const defaultFilters = {
+        ...defaultReportedContentFilters(config),
+        targetAuthorId: appliedFilters.targetAuthorId,
+        summaryFilter: key,
+      };
+
+      setSearchInput("");
+      setSearchKeyword("");
+      setDraftDateRange(undefined);
+      setDraftFilters(defaultFilters);
+      setAppliedFilters(defaultFilters);
+      setSortState(DEFAULT_REPORTED_CONTENT_SORT);
+      setIsDatePickerOpen(false);
+      setPage(1);
+    },
+    [appliedFilters.targetAuthorId, config],
   );
 
   const toggleSort = React.useCallback((field: ReportedContentSortField) => {
@@ -296,7 +320,9 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
           </Button>
         </div>
       ) : null}
-      {showSummaryCards ? <ReportedContentStatsCards summary={summary} /> : null}
+      {showSummaryCards ? (
+        <ReportedContentSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
+      ) : null}
       <ReportedContentFilterPanel
         searchInput={searchInput}
         draftFilters={draftFilters}

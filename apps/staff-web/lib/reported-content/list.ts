@@ -35,6 +35,8 @@ export type ReportedContentKind = "review" | "review-comment" | "evaluation" | "
 export type ReportedContentBoardMode = "posts" | "comments";
 export type ReportedContentDateType = "created_at" | "first_reported_at" | "last_message_at";
 export type ReportedContentSearchType = "id" | "nickname" | "hospital_name" | "content";
+export type ReportedContentSummaryCardKey =
+  "reported_or_auto_blocked" | "today_report" | "recent_30_days_admin_hidden" | "recent_30_days_normal_visible";
 export type ReportedContentOption<T extends string = string> = {
   value: T;
   label: string;
@@ -179,6 +181,7 @@ export type ReportedContentFilters = {
   visibilityStatus: string;
   reportStatus: string;
   warningStatus: string;
+  summaryFilter: ReportedContentSummaryCardKey | "";
 };
 
 export type ReportedContentQuery = {
@@ -194,6 +197,7 @@ export type ReportedContentQuery = {
   target_status?: string;
   report_status?: string;
   warning_status?: string;
+  summary_filter?: ReportedContentSummaryCardKey;
   sort: ReportedContentSortField;
   direction: ReportedContentSortDirection;
   per_page: number;
@@ -296,6 +300,7 @@ export const DEFAULT_REPORTED_CONTENT_FILTERS: ReportedContentFilters = {
   visibilityStatus: "",
   reportStatus: "",
   warningStatus: "",
+  summaryFilter: "",
 };
 
 export const DEFAULT_REPORTED_CONTENT_SORT: ReportedContentSortState = {
@@ -368,6 +373,12 @@ const REPORTED_CONTENT_SORT_FIELDS = new Set<ReportedContentSortField>([
 const REPORTED_CONTENT_REASON_SET = new Set(REPORTED_CONTENT_REASON_OPTIONS.map((option) => option.value));
 const REPORTED_CONTENT_VISIBILITY_SET = new Set(REPORTED_CONTENT_VISIBILITY_OPTIONS.map((option) => option.value));
 const REPORTED_CONTENT_WARNING_SET = new Set(REPORTED_CONTENT_WARNING_OPTIONS.map((option) => option.value));
+const REPORTED_CONTENT_SUMMARY_FILTER_SET = new Set<ReportedContentSummaryCardKey>([
+  "reported_or_auto_blocked",
+  "today_report",
+  "recent_30_days_admin_hidden",
+  "recent_30_days_normal_visible",
+]);
 
 export function defaultReportedContentFilters(config?: ReportedContentBoardConfig): ReportedContentFilters {
   return {
@@ -429,6 +440,12 @@ export function parseReportedContentTableState(searchParams: URLSearchParams, co
     config?.showWarningFilter === false
       ? ""
       : (searchParams.get("warning_status") ?? searchParams.get("warning") ?? "");
+  const summaryFilter = searchParams.get("summary_filter") ?? "";
+  const parsedSummaryFilter: ReportedContentSummaryCardKey | "" = REPORTED_CONTENT_SUMMARY_FILTER_SET.has(
+    summaryFilter as ReportedContentSummaryCardKey,
+  )
+    ? (summaryFilter as ReportedContentSummaryCardKey)
+    : "";
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const sortField =
@@ -461,6 +478,7 @@ export function parseReportedContentTableState(searchParams: URLSearchParams, co
             : "",
       reportStatus: statusSet.has(reportStatus) ? reportStatus : "",
       warningStatus: REPORTED_CONTENT_WARNING_SET.has(warningStatus) ? warningStatus : "",
+      summaryFilter: parsedSummaryFilter,
     },
     draftDateRange: dateRange.range,
     sortState: {
@@ -504,6 +522,7 @@ export function buildReportedContentQuery({
   if (appliedFilters.visibilityStatus) query.target_status = appliedFilters.visibilityStatus;
   if (appliedFilters.reportStatus) query.report_status = appliedFilters.reportStatus;
   if (appliedFilters.warningStatus) query.warning_status = appliedFilters.warningStatus;
+  if (appliedFilters.summaryFilter) query.summary_filter = appliedFilters.summaryFilter;
 
   return query;
 }
@@ -523,6 +542,7 @@ export function buildReportedContentQueryString(query: ReportedContentQuery) {
   if (query.target_status) params.set("target_status", query.target_status);
   if (query.report_status) params.set("report_status", query.report_status);
   if (query.warning_status) params.set("warning_status", query.warning_status);
+  if (query.summary_filter) params.set("summary_filter", query.summary_filter);
   if (query.sort !== DEFAULT_REPORTED_CONTENT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_REPORTED_CONTENT_SORT.direction) params.set("direction", query.direction);
   if (query.page !== 1) params.set("page", String(query.page));

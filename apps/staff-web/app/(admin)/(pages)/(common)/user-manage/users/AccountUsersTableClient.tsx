@@ -28,7 +28,34 @@ import {
   type AccountUserSortField,
   type AccountUserSortState,
   type AccountUserSummary,
+  type AccountUserSummaryCardKey,
 } from "@/lib/account-user/list";
+
+function buildSummaryFilters(key: AccountUserSummaryCardKey): AccountUserFilters {
+  const filters = {
+    ...DEFAULT_ACCOUNT_USER_FILTERS,
+    summaryFilter: key,
+  };
+
+  if (key === "withdrawn") {
+    return {
+      ...filters,
+      status: "WITHDRAWN",
+    };
+  }
+
+  if (key === "blocked") {
+    return {
+      ...filters,
+      status: "BLOCKED",
+    };
+  }
+
+  return {
+    ...filters,
+    warningCountMin: "1",
+  };
+}
 
 export default function AccountUsersTableClient() {
   const router = useRouter();
@@ -61,6 +88,7 @@ export default function AccountUsersTableClient() {
   );
 
   const queryString = React.useMemo(() => buildAccountUsersQueryString(query), [query]);
+  const activeSummaryKey = appliedFilters.summaryFilter || null;
 
   const fetchAccountUserRows = React.useCallback(async (nextQuery: typeof query) => {
     const response = await api.get<AccountUserApiItem[]>("/users", nextQuery, {
@@ -147,6 +175,19 @@ export default function AccountUsersTableClient() {
     setPage(1);
   }, []);
 
+  const applySummaryFilter = React.useCallback((key: AccountUserSummaryCardKey) => {
+    const nextFilters = buildSummaryFilters(key);
+
+    setSearchInput("");
+    setSearchKeyword("");
+    setDraftDateRange(undefined);
+    setDraftFilters(nextFilters);
+    setAppliedFilters(nextFilters);
+    setSortState(DEFAULT_ACCOUNT_USER_SORT);
+    setIsDatePickerOpen(false);
+    setPage(1);
+  }, []);
+
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToAccountUserFilter(nextRange);
 
@@ -156,6 +197,7 @@ export default function AccountUsersTableClient() {
       dateRange: mapped.label,
       startDate: mapped.startDate,
       endDate: mapped.endDate,
+      summaryFilter: "",
     }));
   }, []);
 
@@ -171,6 +213,7 @@ export default function AccountUsersTableClient() {
       setDraftFilters((prev) => ({
         ...prev,
         [key]: value,
+        summaryFilter: "",
       }));
     },
     [],
@@ -211,7 +254,7 @@ export default function AccountUsersTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <AccountUsersSummaryCards summary={summary} />
+      <AccountUsersSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
 
       <AccountUsersFilterPanel
         searchInput={searchInput}
