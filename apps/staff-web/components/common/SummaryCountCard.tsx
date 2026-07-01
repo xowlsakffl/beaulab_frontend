@@ -12,6 +12,7 @@ type SummaryCountCardProps = {
   unit?: string;
   layout?: SummaryCountCardLayout;
   className?: string;
+  labelClassName?: string;
   pressed?: boolean;
   onClick?: () => void;
 };
@@ -28,10 +29,12 @@ export function SummaryCountCard({
   unit,
   layout = "horizontal",
   className,
+  labelClassName,
   pressed,
   onClick,
 }: SummaryCountCardProps) {
   const displayValue = formatSummaryValue(value, unit);
+  const summaryLabelClassName = labelClassName ?? "text-sm font-medium text-gray-700";
 
   if (layout === "center") {
     const centerClassName = onClick
@@ -43,7 +46,7 @@ export function SummaryCountCard({
     if (onClick) {
       return (
         <button type="button" onClick={onClick} aria-pressed={pressed} className={centerClassName}>
-          <p className="text-sm font-medium text-gray-700">{label}</p>
+          <p className={summaryLabelClassName}>{label}</p>
           <p className="mt-1 text-base font-semibold text-gray-900">{displayValue}</p>
         </button>
       );
@@ -51,7 +54,7 @@ export function SummaryCountCard({
 
     return (
       <div className={centerClassName}>
-        <p className="text-sm font-medium text-gray-700">{label}</p>
+        <p className={summaryLabelClassName}>{label}</p>
         <p className="mt-1 text-base font-semibold text-gray-900">{displayValue}</p>
       </div>
     );
@@ -70,7 +73,7 @@ export function SummaryCountCard({
         } ${horizontalClassName}`}
       >
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+          <span className={summaryLabelClassName}>{label}</span>
           <span className="text-base font-semibold text-gray-900">{displayValue}</span>
         </div>
       </button>
@@ -80,7 +83,7 @@ export function SummaryCountCard({
   return (
     <Card className={horizontalClassName}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className={summaryLabelClassName}>{label}</span>
         <span className="text-base font-semibold text-gray-900">{displayValue}</span>
       </div>
     </Card>

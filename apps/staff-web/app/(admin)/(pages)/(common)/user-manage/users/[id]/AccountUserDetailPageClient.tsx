@@ -49,6 +49,7 @@ type AccountUserUpdateResponse = AccountUserDetail;
 const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm text-gray-800";
 const cardHeaderClassName = "mb-5";
+const summaryCardLabelClassName = "text-xs font-medium text-gray-700";
 
 function labelAccountUserStatus(status: string) {
   if (status === "BLOCKED") return "차단";
@@ -278,7 +279,7 @@ export default function AccountUserDetailPageClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(380px,0.9fr)]">
+      <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-2">
         <div className="min-w-0 space-y-5">
           <MemberInfoCard
             user={user}
@@ -541,22 +542,32 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="space-y-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryCountCard
               layout="center"
               label="성형후기/댓글"
+              labelClassName={summaryCardLabelClassName}
               value={compactPostCommentCount(activity?.hospital_reviews)}
               onClick={() => router.push(`/post-manage/surgery-reviews${authorQuery}`)}
             />
             <SummaryCountCard
               layout="center"
+              label="시술후기/댓글"
+              labelClassName={summaryCardLabelClassName}
+              value={compactPostCommentCount(activity?.treatment_reviews)}
+              onClick={() => router.push(`/post-manage/treatment-reviews${authorQuery}`)}
+            />
+            <SummaryCountCard
+              layout="center"
               label="토크/댓글"
+              labelClassName={summaryCardLabelClassName}
               value={compactPostCommentCount(activity?.talks)}
               onClick={() => router.push(`/post-manage/talks${authorQuery}`)}
             />
             <SummaryCountCard
               layout="center"
               label="병의원평가"
+              labelClassName={summaryCardLabelClassName}
               value={totalCount(activity?.hospital_evaluations)}
               onClick={() => router.push(`/post-manage/hospital-evaluations${authorQuery}`)}
             />
@@ -566,28 +577,39 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
         <div className="grid grid-cols-[minmax(0,1fr)_8.5rem] gap-5">
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">신고게시물</h3>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
               <SummaryCountCard
                 layout="center"
                 label="성형후기/댓글"
+                labelClassName={summaryCardLabelClassName}
                 value={compactPostCommentCount(reported?.hospital_reviews)}
                 onClick={() => router.push(`/reported-post-manage/surgery-reviews${reportedAuthorQuery}`)}
               />
               <SummaryCountCard
                 layout="center"
+                label="시술후기/댓글"
+                labelClassName={summaryCardLabelClassName}
+                value={compactPostCommentCount(reported?.treatment_reviews)}
+                onClick={() => router.push(`/reported-post-manage/treatment-reviews${reportedAuthorQuery}`)}
+              />
+              <SummaryCountCard
+                layout="center"
                 label="토크/댓글"
+                labelClassName={summaryCardLabelClassName}
                 value={compactPostCommentCount(reported?.talks)}
                 onClick={() => router.push(`/reported-post-manage/talks${reportedAuthorQuery}`)}
               />
               <SummaryCountCard
                 layout="center"
                 label="병의원평가"
+                labelClassName={summaryCardLabelClassName}
                 value={totalCount(reported?.hospital_evaluations)}
                 onClick={() => router.push(`/reported-post-manage/hospital-evaluations${reportedAuthorQuery}`)}
               />
               <SummaryCountCard
                 layout="center"
                 label="채팅"
+                labelClassName={summaryCardLabelClassName}
                 value={totalCount(reported?.chats)}
                 onClick={() => router.push(`/reported-post-manage/chats${reportedAuthorQuery}`)}
               />
@@ -596,7 +618,12 @@ function ActivityInfoCard({ user }: { user: AccountUserDetail }) {
 
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">경고횟수</h3>
-            <SummaryCountCard layout="center" label="경고" value={warningCount} />
+            <SummaryCountCard
+              layout="center"
+              label="경고"
+              labelClassName={summaryCardLabelClassName}
+              value={warningCount}
+            />
           </div>
         </div>
       </CardContent>

@@ -62,11 +62,13 @@ export type AccountUserDetail = {
   consultation_info?: AccountUserConsultationInfo | null;
   activity_info?: {
     hospital_reviews?: AccountUserActivityBlock | null;
+    treatment_reviews?: AccountUserActivityBlock | null;
     talks?: AccountUserActivityBlock | null;
     hospital_evaluations?: AccountUserActivityBlock | null;
   } | null;
   reported_info?: {
     hospital_reviews?: AccountUserActivityBlock | null;
+    treatment_reviews?: AccountUserActivityBlock | null;
     talks?: AccountUserActivityBlock | null;
     hospital_evaluations?: AccountUserActivityBlock | null;
     chats?: AccountUserReportedChatBlock | null;
