@@ -82,7 +82,8 @@ export type HospitalEventApiItem = {
     sort_order?: number | null;
   }> | null;
   event_page_image?: HospitalEventMedia | null;
-  status?: string | null;
+  hospital_status?: string | null;
+  admin_status?: string | null;
   allow_status?: string | null;
   view_count?: number | null;
   created_at?: string | null;
@@ -108,7 +109,8 @@ export type HospitalEventRow = {
   consultationCount: number;
   confirmedConsultationCount: number;
   totalSpentPoint: number;
-  status: string;
+  hospitalStatus: string;
+  adminStatus: string;
   allowStatus: string;
   viewCount: number;
   managerName: string;
@@ -137,7 +139,7 @@ export type HospitalEventSortField =
   | "event_price"
   | "discount_rate"
   | "view_count"
-  | "status"
+  | "admin_status"
   | "allow_status"
   | "created_at"
   | "updated_at"
@@ -157,7 +159,7 @@ export type HospitalEventFilters = {
   dateRange: string;
   startDate: string;
   endDate: string;
-  visibilityStatus: string;
+  adminStatus: string;
   majorCategoryId: string;
   middleCategoryId: string;
   quantityMetric: HospitalEventQuantityMetric;
@@ -175,7 +177,7 @@ export type HospitalEventsQuery = {
   date_types?: string;
   start_date?: string;
   end_date?: string;
-  status?: string;
+  admin_status?: string;
   category_ids?: string;
   quantity_metric?: HospitalEventQuantityMetric;
   quantity_min?: string;
@@ -204,7 +206,7 @@ export const DEFAULT_HOSPITAL_EVENT_FILTERS: HospitalEventFilters = {
   dateRange: "",
   startDate: "",
   endDate: "",
-  visibilityStatus: "",
+  adminStatus: "",
   majorCategoryId: "",
   middleCategoryId: "",
   quantityMetric: "all",
@@ -221,10 +223,10 @@ export const HOSPITAL_EVENT_CATEGORY_USAGES = [
   CATEGORY_USAGES.HOSPITAL_EVENT_TREATMENT,
 ] as const;
 
-export const HOSPITAL_EVENT_VISIBILITY_OPTIONS = [
+export const HOSPITAL_EVENT_ADMIN_STATUS_OPTIONS = [
   { value: "", label: "전체" },
-  { value: "ACTIVE", label: "노출" },
-  { value: "INACTIVE", label: "미노출" },
+  { value: "NORMAL", label: "정상" },
+  { value: "FORCED_STOPPED", label: "강제중지" },
 ];
 
 export const HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({ ...option }));
@@ -261,14 +263,16 @@ const HOSPITAL_EVENT_SORT_FIELDS = new Set<HospitalEventSortField>([
   "event_price",
   "discount_rate",
   "view_count",
-  "status",
+  "admin_status",
   "allow_status",
   "created_at",
   "updated_at",
   "event_start_at",
   "event_end_at",
 ]);
-const HOSPITAL_EVENT_VISIBILITY_VALUE_SET = new Set(HOSPITAL_EVENT_VISIBILITY_OPTIONS.map((option) => option.value));
+const HOSPITAL_EVENT_ADMIN_STATUS_VALUE_SET = new Set(
+  HOSPITAL_EVENT_ADMIN_STATUS_OPTIONS.map((option) => option.value),
+);
 const HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET = new Set<string>(
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS.map((option) => option.value),
 );
@@ -296,12 +300,26 @@ export function resolveHospitalEventMediaUrl(
   return resolveMediaAssetUrl(media, preferredVariant);
 }
 
-export function labelHospitalEventVisibilityStatus(status?: string | null) {
-  return status === "INACTIVE" ? "미노출" : "노출";
+export function labelHospitalEventHospitalStatus(status?: string | null) {
+  if (status === "PRIVATE" || status === "비공개") return "비공개";
+  if (status === "PUBLIC" || status === "공개") return "공개";
+
+  return status?.trim() || "-";
 }
 
-export function hospitalEventVisibilityStatusColor(status?: string | null): BadgeColor {
-  return status === "ACTIVE" ? "success" : "error";
+export function hospitalEventHospitalStatusColor(status?: string | null): BadgeColor {
+  return status === "PRIVATE" || status === "비공개" ? "error" : "success";
+}
+
+export function labelHospitalEventAdminStatus(status?: string | null) {
+  if (status === "FORCED_STOPPED" || status === "강제중지") return "강제중지";
+  if (status === "NORMAL" || status === "정상") return "정상";
+
+  return status?.trim() || "-";
+}
+
+export function hospitalEventAdminStatusColor(status?: string | null): BadgeColor {
+  return status === "FORCED_STOPPED" || status === "강제중지" ? "error" : "success";
 }
 
 export function labelHospitalEventAllowStatus(status?: string | null) {
@@ -383,7 +401,8 @@ export function formatHospitalEventCategoryBadges(categories?: HospitalEventCate
 }
 
 export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEventRow {
-  const status = item.status?.trim() || "INACTIVE";
+  const hospitalStatus = item.hospital_status?.trim() || "PUBLIC";
+  const adminStatus = item.admin_status?.trim() || "NORMAL";
   const allowStatus = item.allow_status?.trim() || "";
   const categoryBadges = formatHospitalEventCategoryBadges(item.categories);
 
@@ -406,7 +425,8 @@ export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEven
     consultationCount: Number(item.consultation_count ?? 0),
     confirmedConsultationCount: Number(item.confirmed_consultation_count ?? 0),
     totalSpentPoint: Number(item.total_spent_point ?? 0),
-    status,
+    hospitalStatus,
+    adminStatus,
     allowStatus,
     viewCount: Number(item.view_count ?? 0),
     managerName: item.hospital?.manager?.name?.trim() || item.hospital?.manager?.nickname?.trim() || "-",
@@ -545,7 +565,7 @@ export function parseHospitalEventsTableState(searchParams: URLSearchParams) {
   const dateTypes = normalizeListParam(searchParams.get("date_types")).filter((value): value is HospitalEventDateType =>
     HOSPITAL_EVENT_DATE_TYPE_VALUE_SET.has(value as HospitalEventDateType),
   );
-  const visibilityStatus = searchParams.get("status") ?? "";
+  const adminStatus = searchParams.get("admin_status") ?? "";
   const allowStatuses = normalizeListParam(searchParams.get("allow_status")).filter((value) =>
     HOSPITAL_EVENT_ALLOW_STATUS_VALUE_SET.has(value),
   );
@@ -571,7 +591,7 @@ export function parseHospitalEventsTableState(searchParams: URLSearchParams) {
       dateRange: dateState.label,
       startDate,
       endDate,
-      visibilityStatus: HOSPITAL_EVENT_VISIBILITY_VALUE_SET.has(visibilityStatus) ? visibilityStatus : "",
+      adminStatus: HOSPITAL_EVENT_ADMIN_STATUS_VALUE_SET.has(adminStatus) ? adminStatus : "",
       majorCategoryId: normalizePositiveId(searchParams.get("major_category_id")),
       middleCategoryId: normalizePositiveId(searchParams.get("middle_category_id") ?? searchParams.get("category_ids")),
       quantityMetric:
@@ -623,7 +643,7 @@ export function buildHospitalEventsQuery({
   if (appliedFilters.dateTypes.length > 0) query.date_types = appliedFilters.dateTypes.join(",");
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
-  if (appliedFilters.visibilityStatus) query.status = appliedFilters.visibilityStatus;
+  if (appliedFilters.adminStatus) query.admin_status = appliedFilters.adminStatus;
 
   const categoryId = appliedFilters.middleCategoryId || appliedFilters.majorCategoryId;
   if (/^[1-9]\d*$/.test(categoryId)) query.category_ids = categoryId;
@@ -657,7 +677,7 @@ export function buildHospitalEventsQueryString(query: HospitalEventsQuery) {
   if (query.date_types) params.set("date_types", query.date_types);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.status) params.set("status", query.status);
+  if (query.admin_status) params.set("admin_status", query.admin_status);
   if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.quantity_metric) params.set("quantity_metric", query.quantity_metric);
   if (query.quantity_min) params.set("quantity_min", query.quantity_min);

@@ -17,12 +17,12 @@ import {
 
 import { Can } from "@/components/common/guard";
 import {
+  HOSPITAL_EVENT_ADMIN_STATUS_OPTIONS,
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS,
   HOSPITAL_EVENT_AMOUNT_METRIC_OPTIONS,
   HOSPITAL_EVENT_DATE_PRESET_OPTIONS,
   HOSPITAL_EVENT_DATE_TYPE_OPTIONS,
   HOSPITAL_EVENT_QUANTITY_METRIC_OPTIONS,
-  HOSPITAL_EVENT_VISIBILITY_OPTIONS,
   type HospitalEventAmountMetric,
   type HospitalEventDatePresetKey,
   type HospitalEventDateType,
@@ -53,7 +53,7 @@ type HospitalEventsFilterPanelProps = {
   onToggleAllAllowStatus: () => void;
   onApplyDateRange: (nextRange?: DateRange) => void;
   onApplyDatePreset: (preset: HospitalEventDatePresetKey) => void;
-  onVisibilityChange: (value: string) => void;
+  onAdminStatusChange: (value: string) => void;
   onMajorCategoryChange: (value: string) => void;
   onMiddleCategoryChange: (value: string) => void;
   onQuantityMetricChange: (value: HospitalEventQuantityMetric) => void;
@@ -84,7 +84,7 @@ export function HospitalEventsFilterPanel({
   onToggleAllAllowStatus,
   onApplyDateRange,
   onApplyDatePreset,
-  onVisibilityChange,
+  onAdminStatusChange,
   onMajorCategoryChange,
   onMiddleCategoryChange,
   onQuantityMetricChange,
@@ -108,7 +108,7 @@ export function HospitalEventsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,0.7fr)_minmax(0,1.55fr)_minmax(0,1.8fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.55fr)_minmax(0,1.15fr)]">
+        <div className="grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,1.55fr)_minmax(0,0.85fr)_minmax(0,1.65fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.55fr)_minmax(0,1.15fr)]">
           <div className={filterRowClass}>
             <span className={inlineLabelClass}>기간</span>
             <div className="flex min-w-0 flex-1 flex-row items-center gap-2">
@@ -144,19 +144,6 @@ export function HospitalEventsFilterPanel({
           </div>
 
           <div className={filterRowClass}>
-            <span className={inlineLabelClass}>노출여부</span>
-            <div className="min-w-0 flex-1">
-              <SingleCheckboxFilterDropdown
-                label="노출여부"
-                hideLabel
-                value={draftFilters.visibilityStatus}
-                options={HOSPITAL_EVENT_VISIBILITY_OPTIONS}
-                onChange={onVisibilityChange}
-              />
-            </div>
-          </div>
-
-          <div className={filterRowClass}>
             <span className={inlineLabelClass}>카테고리</span>
             <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
               <Select
@@ -173,6 +160,19 @@ export function HospitalEventsFilterPanel({
                 disabled={!draftFilters.majorCategoryId}
                 onChange={onMiddleCategoryChange}
                 className="h-11 px-3"
+              />
+            </div>
+          </div>
+
+          <div className={filterRowClass}>
+            <span className={inlineLabelClass}>강제중지</span>
+            <div className="min-w-0 flex-1">
+              <SingleCheckboxFilterDropdown
+                label="강제중지"
+                hideLabel
+                value={draftFilters.adminStatus}
+                options={HOSPITAL_EVENT_ADMIN_STATUS_OPTIONS}
+                onChange={onAdminStatusChange}
               />
             </div>
           </div>

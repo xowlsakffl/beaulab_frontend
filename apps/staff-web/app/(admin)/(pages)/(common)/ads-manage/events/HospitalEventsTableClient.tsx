@@ -78,7 +78,6 @@ function buildSummaryFilterState(key: HospitalEventSummaryCardKey): {
       filters: {
         ...filters,
         summaryFilter: key,
-        visibilityStatus: "ACTIVE",
       },
     };
   }
@@ -565,7 +564,7 @@ export default function HospitalEventsTableClient() {
         onToggleAllAllowStatus={toggleAllAllowStatus}
         onApplyDateRange={applyDateRange}
         onApplyDatePreset={applyDatePreset}
-        onVisibilityChange={(value) => setDraftFilters((prev) => ({ ...prev, visibilityStatus: value }))}
+        onAdminStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, adminStatus: value }))}
         onMajorCategoryChange={(value) => {
           setDraftFilters((prev) => ({ ...prev, majorCategoryId: value, middleCategoryId: "" }));
           void loadMiddleCategories(value);

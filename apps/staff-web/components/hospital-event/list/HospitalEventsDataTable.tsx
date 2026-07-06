@@ -16,10 +16,10 @@ import {
 import {
   formatHospitalEventPoint,
   formatHospitalEventPrice,
+  hospitalEventAdminStatusColor,
   hospitalEventAllowStatusColor,
-  hospitalEventVisibilityStatusColor,
+  labelHospitalEventAdminStatus,
   labelHospitalEventAllowStatus,
-  labelHospitalEventVisibilityStatus,
   type HospitalEventRow,
   type HospitalEventSortField,
   type HospitalEventSortState,
@@ -219,7 +219,7 @@ function buildHospitalEventColumns({
       render: (row) => formatHospitalEventPoint(row.totalSpentPoint),
     },
     {
-      key: "status",
+      key: "adminStatus",
       headerClassName: `${headerBaseClass} lg:w-[72px]`,
       cellClassName: `${nowrapCellClass} lg:w-[72px]`,
       header: (
@@ -227,15 +227,15 @@ function buildHospitalEventColumns({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => onToggleSort("status")}
+          onClick={() => onToggleSort("admin_status")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          노출여부 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
+          강제중지 <span className="text-xs text-gray-400">{renderSortMark("admin_status", sortState)}</span>
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventVisibilityStatusColor(row.status)}>
-          {labelHospitalEventVisibilityStatus(row.status)}
+        <StatusBadge size="sm" color={hospitalEventAdminStatusColor(row.adminStatus)}>
+          {labelHospitalEventAdminStatus(row.adminStatus)}
         </StatusBadge>
       ),
     },

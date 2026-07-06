@@ -501,7 +501,7 @@ function ChatMessageAttachmentGrid({
     .map((attachment, index) => ({
       attachment,
       url: resolveReportedChatAttachmentUrl(attachment),
-      title: `채팅 이미지 ${index + 1}`,
+      title: `신고 이미지 ${index + 1}`,
     }))
     .filter((item): item is { attachment: ReportedChatMessageAttachment; url: string; title: string } =>
       Boolean(item.url && isImageAttachment(item.attachment)),

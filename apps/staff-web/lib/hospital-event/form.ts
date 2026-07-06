@@ -445,7 +445,8 @@ function appendHospitalEventFormData(
   formData.append("consultation_price", String(consultationPrice));
   if (options.includeDefaultStatuses ?? true) {
     formData.append("allow_status", "PENDING");
-    formData.append("status", "INACTIVE");
+    formData.append("hospital_status", "PUBLIC");
+    formData.append("admin_status", "NORMAL");
   }
   formData.append("side_effect_notice", form.side_effect_notice.trim());
 

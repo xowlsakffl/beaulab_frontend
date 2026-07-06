@@ -5,12 +5,16 @@ import React from "react";
 import { AddCircleButton } from "@/components/common/AddCircleButton";
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
-import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
 import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import {
   formatHospitalEventPoint,
   formatHospitalEventPrice,
+  hospitalEventAdminStatusColor,
+  hospitalEventAllowStatusColor,
+  hospitalEventHospitalStatusColor,
+  labelHospitalEventAdminStatus,
   labelHospitalEventAllowStatus,
+  labelHospitalEventHospitalStatus,
   resolveHospitalEventMediaUrl,
   type HospitalEventApiItem,
   type HospitalEventCategory,
@@ -27,6 +31,7 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
+  StatusBadge,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
@@ -68,15 +73,16 @@ const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 export function EventMainCard({
   detail,
   updating,
-  onVisibilityChange,
+  onAdminStatusChange,
 }: {
   detail: HospitalEventApiItem;
   updating: boolean;
-  onVisibilityChange: (status: "ACTIVE" | "INACTIVE") => void;
+  onAdminStatusChange: (status: "NORMAL" | "FORCED_STOPPED") => void;
 }) {
   const categoryBadges = eventCategoryBadges(detail.categories);
   const primaryCategory = detail.categories?.find((category) => category.is_primary) ?? detail.categories?.[0] ?? null;
   const eventTypeLabel = inferEventSectionLabel(detail.categories);
+  const isForcedStopped = detail.admin_status === "FORCED_STOPPED";
 
   return (
     <Card className={cardClassName}>
@@ -84,13 +90,17 @@ export function EventMainCard({
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-sm font-bold text-gray-900">{eventTypeLabel} 이벤트</h2>
         </div>
-        <VisibilityActionButtons
-          status={detail.status}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           disabled={updating}
-          mode="action"
-          className="shrink-0"
-          onChange={onVisibilityChange}
-        />
+          className="h-9 min-w-24 shrink-0 px-4 text-sm"
+          onClick={() => onAdminStatusChange(isForcedStopped ? "NORMAL" : "FORCED_STOPPED")}
+        >
+          {isForcedStopped ? "정상노출" : "강제중지"}
+        </Button>
+        <span className="sr-only">현재 강제중지 상태: {labelHospitalEventAdminStatus(detail.admin_status)}</span>
       </div>
 
       <div className="space-y-4">
@@ -122,6 +132,7 @@ export function EventInfoSummaryCard({ detail }: { detail: HospitalEventApiItem 
       <div className="grid gap-4 sm:grid-cols-2">
         <ReadonlyMini label="등록일자" value={formatDate(detail.created_at)} />
         <ReadonlyMini label="최근수정일" value={formatDate(detail.updated_at)} />
+        <ReadonlyMini label="공개여부" value={labelHospitalEventHospitalStatus(detail.hospital_status)} />
       </div>
     </Card>
   );
@@ -469,6 +480,10 @@ function historyChangeDisplay(change: OperationHistoryChangeItem, side: "before"
   const value = side === "after" ? change.after_value : change.before_value;
   const field = change.field_key ?? null;
 
+  if (isStatusHistoryField(field)) {
+    return historyStatusBadge(field, value, display);
+  }
+
   if (typeof display === "string" && display.trim() !== "") {
     return historyRawValueLabel(field, display);
   }
@@ -476,9 +491,49 @@ function historyChangeDisplay(change: OperationHistoryChangeItem, side: "before"
   return historyRawValueLabel(field, value);
 }
 
+function isStatusHistoryField(field: string | null) {
+  return field === "admin_status" || field === "hospital_status" || field === "allow_status";
+}
+
+function historyStatusBadge(field: string | null, value: unknown, display?: string | null) {
+  const normalizedValue = String(value ?? "").trim();
+  const displayValue = display?.trim() || normalizedValue;
+  const label = historyRawValueLabel(field, displayValue);
+
+  if (label === "-") {
+    return "-";
+  }
+
+  return (
+    <StatusBadge
+      size="sm"
+      color={historyStatusBadgeColor(field, normalizedValue || displayValue)}
+      className="h-5 px-2 text-xs leading-none"
+    >
+      {label}
+    </StatusBadge>
+  );
+}
+
+function historyStatusBadgeColor(field: string | null, value: string) {
+  if (field === "admin_status") {
+    return hospitalEventAdminStatusColor(value);
+  }
+
+  if (field === "hospital_status") {
+    return hospitalEventHospitalStatusColor(value);
+  }
+
+  return hospitalEventAllowStatusColor(value);
+}
+
 function historyRawValueLabel(field: string | null, value: unknown) {
-  if (field === "status") {
-    return value === "ACTIVE" ? "노출" : value === "INACTIVE" ? "미노출" : stringifyHistoryValue(value);
+  if (field === "hospital_status") {
+    return labelHospitalEventHospitalStatus(String(value ?? ""));
+  }
+
+  if (field === "admin_status") {
+    return labelHospitalEventAdminStatus(String(value ?? ""));
   }
 
   if (field === "allow_status") {

@@ -136,13 +136,17 @@ function buildColumns({
     return (
       <button
         type="button"
-        className="block w-full text-left text-gray-800 underline underline-offset-2 hover:text-brand-500"
+        className="group block w-full text-left text-gray-800 transition hover:text-brand-500"
         onClick={(event) => {
           event.stopPropagation();
           onOpenReports(row);
         }}
       >
-        {content}
+        <span className="block max-h-[42px] overflow-hidden leading-[21px] break-words" title={row.reportReason}>
+          <span className="underline decoration-gray-300 underline-offset-4 transition group-hover:decoration-brand-500">
+            {row.reportReason}
+          </span>
+        </span>
       </button>
     );
   };

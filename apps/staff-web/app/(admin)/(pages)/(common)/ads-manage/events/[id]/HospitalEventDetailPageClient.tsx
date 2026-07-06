@@ -8,7 +8,6 @@ import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaul
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import {
   HospitalMediaPreviewModal,
   type HospitalMediaPreviewState,
@@ -25,12 +24,11 @@ import {
   type OperationHistoryItem,
 } from "@/components/hospital-event/detail/HospitalEventDetailSections";
 import { api } from "@/lib/common/api";
-import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { labelHospitalEventAllowStatus, type HospitalEventApiItem } from "@/lib/hospital-event/list";
 
-type PendingVisibilityChange = {
-  status: "ACTIVE" | "INACTIVE";
+type PendingAdminStatusChange = {
+  allowStatus: "NORMAL" | "FORCED_STOPPED";
   reason: string;
 };
 
@@ -65,20 +63,10 @@ export default function HospitalEventDetailPageClient() {
   const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
   const [historyPage, setHistoryPage] = React.useState(1);
   const [historiesLoading, setHistoriesLoading] = React.useState(false);
-  const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
+  const [pendingAdminStatusChange, setPendingAdminStatusChange] = React.useState<PendingAdminStatusChange | null>(null);
+  const [pendingAdminStatusError, setPendingAdminStatusError] = React.useState<string | null>(null);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
   const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
-
-  const getReturnToPath = React.useCallback(
-    (highlightId?: number) =>
-      buildReturnToPath({
-        searchParams,
-        fallbackPath: "/ads-manage/events",
-        allowedPrefix: "/ads-manage/events",
-        highlightId,
-      }),
-    [searchParams],
-  );
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -181,33 +169,34 @@ export default function HospitalEventDetailPageClient() {
     void fetchHistories();
   }, [fetchHistories]);
 
-  const requestVisibilityStatus = React.useCallback(
-    (status: "ACTIVE" | "INACTIVE") => {
-      if (!detail || updatingStatus || detail.status === status) return;
+  const requestAdminStatusChange = React.useCallback(
+    (adminStatus: "NORMAL" | "FORCED_STOPPED") => {
+      if (!detail || updatingStatus || detail.admin_status === adminStatus) return;
 
-      setPendingVisibilityChange({ status, reason: "" });
+      setPendingAdminStatusChange({ allowStatus: adminStatus, reason: "" });
+      setPendingAdminStatusError(null);
     },
     [detail, updatingStatus],
   );
 
-  const updateVisibilityStatus = React.useCallback(
-    async (status: "ACTIVE" | "INACTIVE", reason?: string) => {
+  const updateAdminStatus = React.useCallback(
+    async (adminStatus: "NORMAL" | "FORCED_STOPPED", reason?: string) => {
       if (!detail || updatingStatus) return false;
 
       setUpdatingStatus(true);
 
       try {
-        const response = await api.patch<{ updated_count?: number }>("/hospital-events/status", {
+        const response = await api.patch<{ updated_count?: number }>("/hospital-events/admin-status", {
           ids: [detail.id],
-          status,
+          admin_status: adminStatus,
           ...(reason?.trim() ? { reason: reason.trim() } : {}),
         });
 
         if (!isApiSuccess(response)) {
           showAlert({
             variant: "error",
-            title: "노출상태 변경 실패",
-            message: response.error.message || "노출상태를 변경하지 못했습니다.",
+            title: adminStatus === "FORCED_STOPPED" ? "강제중지 실패" : "정상 전환 실패",
+            message: response.error.message || "강제중지 상태를 변경하지 못했습니다.",
           });
           return false;
         }
@@ -262,29 +251,32 @@ export default function HospitalEventDetailPageClient() {
     [detail, fetchEvent, fetchHistories, showAlert, updatingStatus],
   );
 
-  const closeVisibilityConfirmModal = React.useCallback(() => {
+  const closeAdminStatusConfirmModal = React.useCallback(() => {
     if (updatingStatus) return;
-    setPendingVisibilityChange(null);
+    setPendingAdminStatusChange(null);
+    setPendingAdminStatusError(null);
   }, [updatingStatus]);
 
-  const updatePendingVisibilityReason = React.useCallback((reason: string) => {
-    setPendingVisibilityChange((prev) => (prev ? { ...prev, reason } : prev));
+  const updatePendingAdminStatusReason = React.useCallback((reason: string) => {
+    setPendingAdminStatusChange((prev) => (prev ? { ...prev, reason } : prev));
+    setPendingAdminStatusError(null);
   }, []);
 
-  const confirmVisibilityChange = React.useCallback(async () => {
-    if (!pendingVisibilityChange) return;
+  const confirmAdminStatusChange = React.useCallback(async () => {
+    if (!pendingAdminStatusChange) return;
 
-    const reason = pendingVisibilityChange.reason.trim();
-    if (pendingVisibilityChange.status === "INACTIVE" && !reason) {
-      showAlert({ variant: "error", title: "미노출 사유 확인", message: "미노출 사유를 입력해주세요." });
+    const reason = pendingAdminStatusChange.reason.trim();
+    if (pendingAdminStatusChange.allowStatus === "FORCED_STOPPED" && !reason) {
+      setPendingAdminStatusError("강제중지 사유를 입력해주세요.");
       return;
     }
 
-    const succeeded = await updateVisibilityStatus(pendingVisibilityChange.status, reason);
+    const succeeded = await updateAdminStatus(pendingAdminStatusChange.allowStatus, reason);
     if (succeeded) {
-      setPendingVisibilityChange(null);
+      setPendingAdminStatusChange(null);
+      setPendingAdminStatusError(null);
     }
-  }, [pendingVisibilityChange, showAlert, updateVisibilityStatus]);
+  }, [pendingAdminStatusChange, updateAdminStatus]);
 
   const closeAllowStatusConfirmModal = React.useCallback(() => {
     if (updatingStatus) return;
@@ -349,9 +341,6 @@ export default function HospitalEventDetailPageClient() {
 
     return (
       <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => router.push(getReturnToPath())}>
-          취소
-        </Button>
         <Can permission="beaulab.hospital_event.update">
           <Button type="button" variant="brand" size="sm" onClick={() => router.push(editPath)}>
             수정하기
@@ -359,7 +348,7 @@ export default function HospitalEventDetailPageClient() {
         </Can>
       </div>
     );
-  }, [editPath, eventId, getReturnToPath, router]);
+  }, [editPath, eventId, router]);
 
   usePageHeaderExtra(isLoading || loadError ? null : headerActions);
 
@@ -377,11 +366,10 @@ export default function HospitalEventDetailPageClient() {
     );
   }
 
-  const pendingVisibilityLabel = pendingVisibilityChange?.status === "ACTIVE" ? "노출" : "미노출";
   return (
     <div className="min-w-0 space-y-4">
       <section className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(420px,1fr)_minmax(360px,0.85fr)_minmax(280px,0.55fr)]">
-        <EventMainCard detail={detail} updating={updatingStatus} onVisibilityChange={requestVisibilityStatus} />
+        <EventMainCard detail={detail} updating={updatingStatus} onAdminStatusChange={requestAdminStatusChange} />
 
         <div className="min-w-0 space-y-4">
           <EventInfoSummaryCard detail={detail} />
@@ -403,17 +391,21 @@ export default function HospitalEventDetailPageClient() {
         onChange={setPreviewMedia}
         onClose={() => setPreviewMedia(null)}
       />
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={<>해당 이벤트를 {pendingVisibilityLabel} 하시겠습니까?</>}
-        hiddenReasonValue={pendingVisibilityChange?.reason ?? ""}
+      <AllowStatusConfirmModal
+        pending={pendingAdminStatusChange}
+        title={pendingAdminStatusChange?.allowStatus === "NORMAL" ? "정상 전환" : "강제중지"}
+        subjectLabel="해당 이벤트를"
+        labelStatus={(status) => (status === "NORMAL" ? "정상" : "강제중지")}
+        messageAction="처리"
         updating={updatingStatus}
-        reasonInputId="hospital-event-hidden-reason"
-        reasonPlaceholder="미노출 사유를 입력해주세요."
-        onHiddenReasonChange={updatePendingVisibilityReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
+        error={pendingAdminStatusError}
+        rejectStatus="FORCED_STOPPED"
+        reasonInputId="hospital-event-force-stop-reason"
+        reasonLabel="강제중지 사유"
+        reasonPlaceholder="강제중지 사유를 입력해주세요."
+        onReasonChange={updatePendingAdminStatusReason}
+        onClose={closeAdminStatusConfirmModal}
+        onConfirm={() => void confirmAdminStatusChange()}
       />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
