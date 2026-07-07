@@ -99,10 +99,10 @@ export function HospitalEventRealModelDBsFilterPanel({
           </div>
 
           <div className={filterRowClass}>
-            <span className={inlineLabelClass}>승인여부</span>
+            <span className={inlineLabelClass}>승인상태</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
-                label="승인여부"
+                label="승인상태"
                 hideLabel
                 value={draftFilters.status}
                 options={HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_OPTIONS}

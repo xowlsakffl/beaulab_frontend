@@ -120,7 +120,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
         );
 
         if (!isApiSuccess(response)) {
-          setStatusError(response.error.message || "승인여부 변경에 실패했습니다.");
+          setStatusError(response.error.message || "승인상태 변경에 실패했습니다.");
           return false;
         }
 
@@ -135,7 +135,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
         );
         return true;
       } catch {
-        setStatusError("승인여부 변경 중 오류가 발생했습니다.");
+        setStatusError("승인상태 변경 중 오류가 발생했습니다.");
         return false;
       } finally {
         setUpdatingStatus(null);
@@ -251,7 +251,7 @@ function MemberInfoCard({
             onStatusChange={onStatusChange}
           />
           <StatusButton
-            label="미승인"
+            label="불가"
             value="REJECTED"
             currentStatus={detail.status}
             updatingStatus={updatingStatus}
@@ -336,7 +336,7 @@ function StatusConfirmModal({
     <Modal isOpen={status !== null} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">
       <ModalPanel>
         <ModalHeader className="pr-0">
-          <ModalTitle>승인여부 변경</ModalTitle>
+          <ModalTitle>승인상태 변경</ModalTitle>
         </ModalHeader>
 
         <ModalBody className="mt-5">

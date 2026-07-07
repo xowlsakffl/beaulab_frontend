@@ -181,9 +181,9 @@ export const HOSPITAL_EVENT_REAL_MODEL_DB_GENDER_OPTIONS: HospitalEventRealModel
 
 export const HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_OPTIONS: HospitalEventRealModelDBOption[] = [
   { value: "", label: "전체" },
-  { value: "RECEIVED", label: "접수" },
+  { value: "RECEIVED", label: "신청" },
   { value: "APPROVED", label: "승인" },
-  { value: "REJECTED", label: "미승인" },
+  { value: "REJECTED", label: "불가" },
 ];
 
 const HOSPITAL_EVENT_REAL_MODEL_DB_SORT_FIELDS = new Set<HospitalEventRealModelDBSortField>([
@@ -200,11 +200,11 @@ const STATUS_VALUES = new Set(HOSPITAL_EVENT_REAL_MODEL_DB_STATUS_OPTIONS.map((o
 export function labelHospitalEventRealModelDBStatus(status?: string | null) {
   switch (status) {
     case "RECEIVED":
-      return "접수";
+      return "신청";
     case "APPROVED":
       return "승인";
     case "REJECTED":
-      return "미승인";
+      return "불가";
     default:
       return "-";
   }

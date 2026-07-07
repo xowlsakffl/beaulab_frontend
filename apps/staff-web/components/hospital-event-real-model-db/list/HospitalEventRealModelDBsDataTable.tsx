@@ -234,7 +234,7 @@ function buildColumns({
       key: "status",
       headerClassName: `${headerBaseClass} w-[100px]`,
       cellClassName: `${nowrapCellClass} w-[100px]`,
-      header: <SortHeader label="승인여부" field="status" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader label="승인상태" field="status" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <StatusBadge size="sm" color={hospitalEventRealModelDBStatusColor(row.status)}>
           {row.statusLabel}
