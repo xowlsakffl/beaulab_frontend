@@ -39,8 +39,9 @@ import type { DataTableMeta } from "@beaulab/ui-admin";
 function buildSummaryFilters(key: HospitalEntrySummaryCardKey): Filters {
   const status = {
     pending: "PENDING",
-    rejected: "REJECTED",
+    reviewing: "REVIEWING",
     approved: "APPROVED",
+    rejected: "REJECTED",
   }[key];
 
   return {
@@ -54,8 +55,9 @@ function resolveActiveSummaryKey(filters: Filters): HospitalEntrySummaryCardKey 
   if (filters.allowStatuses.length !== 1) return null;
 
   if (filters.allowStatuses[0] === "PENDING") return "pending";
-  if (filters.allowStatuses[0] === "REJECTED") return "rejected";
+  if (filters.allowStatuses[0] === "REVIEWING") return "reviewing";
   if (filters.allowStatuses[0] === "APPROVED") return "approved";
+  if (filters.allowStatuses[0] === "REJECTED") return "rejected";
 
   return null;
 }

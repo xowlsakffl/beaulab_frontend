@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, Card, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
@@ -11,6 +11,7 @@ import {
   resolveAllowStatusValue,
   type AllowStatusActionOption,
 } from "@/components/common/AllowStatusControls";
+import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import {
   HospitalMediaPreviewModal,
@@ -33,8 +34,9 @@ const cardTitleClassName = "text-sm font-semibold text-gray-800";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 const hospitalEntryAllowStatusActions = [
-  { value: "REJECTED", label: "입점반려" },
-  { value: "APPROVED", label: "입점승인" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ] as const satisfies readonly AllowStatusActionOption[];
 
 type PendingAllowStatusChange = {
@@ -44,6 +46,8 @@ type PendingAllowStatusChange = {
 
 export default function HospitalEntryDetailPageClient() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
 
   const rawEntryId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -56,6 +60,29 @@ export default function HospitalEntryDetailPageClient() {
   const [updatingStatus, setUpdatingStatus] = React.useState(false);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
   const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
+
+  const editPath = React.useMemo(() => {
+    const rawReturnTo = searchParams.get("returnTo");
+    if (!Number.isFinite(entryId) || entryId <= 0) {
+      return "/hospital-manage/hospital-entries";
+    }
+
+    return rawReturnTo
+      ? `/hospital-manage/hospital-entries/${entryId}/edit?returnTo=${encodeURIComponent(rawReturnTo)}`
+      : `/hospital-manage/hospital-entries/${entryId}/edit`;
+  }, [entryId, searchParams]);
+
+  const headerAction = React.useMemo(() => {
+    if (!Number.isFinite(entryId) || entryId <= 0) return null;
+
+    return (
+      <Can permission="beaulab.hospital_entry.update">
+        <Button type="button" variant="brand" size="sm" onClick={() => router.push(editPath)}>
+          수정하기
+        </Button>
+      </Can>
+    );
+  }, [editPath, entryId, router]);
 
   const fetchEntry = React.useCallback(
     async (options: { silent?: boolean } = {}) => {
@@ -120,8 +147,8 @@ export default function HospitalEntryDetailPageClient() {
         if (!isApiSuccess(response)) {
           showAlert({
             variant: "error",
-            title: "승인상태 변경 실패",
-            message: response.error.message || "승인상태를 변경하지 못했습니다.",
+            title: "검수상태 변경 실패",
+            message: response.error.message || "검수상태를 변경하지 못했습니다.",
           });
           return false;
         }
@@ -151,7 +178,7 @@ export default function HospitalEntryDetailPageClient() {
 
     const reason = pendingAllowStatusChange.reason.trim();
     if (pendingAllowStatusChange.allowStatus === "REJECTED" && !reason) {
-      setPendingAllowStatusError("입점반려 사유를 입력해주세요.");
+      setPendingAllowStatusError("반려 사유를 입력해주세요.");
       return;
     }
 
@@ -162,7 +189,7 @@ export default function HospitalEntryDetailPageClient() {
     }
   }, [pendingAllowStatusChange, updateAllowStatus]);
 
-  usePageHeaderExtra(null);
+  usePageHeaderExtra(isLoading || loadError ? null : headerAction);
 
   if (isLoading) {
     return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="입점신청 정보를 불러오는 중" />;
@@ -194,14 +221,14 @@ export default function HospitalEntryDetailPageClient() {
       />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
-        title="승인상태 변경"
+        title="검수상태 변경"
         subjectLabel="해당 입점신청을"
         labelStatus={labelHospitalEntryAllowStatus}
         updating={updatingStatus}
         error={pendingAllowStatusError}
         reasonInputId="hospital-entry-rejected-reason"
-        reasonLabel="입점반려 사유"
-        reasonPlaceholder="입점반려 사유를 입력해주세요."
+        reasonLabel="반려 사유"
+        reasonPlaceholder="반려 사유를 입력해주세요."
         onReasonChange={updatePendingAllowStatusReason}
         onClose={closeAllowStatusConfirmModal}
         onConfirm={() => void confirmAllowStatusChange()}
@@ -265,7 +292,7 @@ function HospitalEntryAllowStatusCard({
   return (
     <Card className={infoCardClassName}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
-        <h2 className="text-sm font-bold text-gray-900">승인상태</h2>
+        <h2 className="text-sm font-bold text-gray-900">검수상태</h2>
         <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
       </div>
     </Card>

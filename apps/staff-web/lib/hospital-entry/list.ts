@@ -1,7 +1,7 @@
 import type { BadgeColor, CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-export type HospitalEntryAllowStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type HospitalEntryAllowStatus = "PENDING" | "REVIEWING" | "APPROVED" | "REJECTED";
 
 export type HospitalEntryAllowStatusValue =
   | string
@@ -33,12 +33,14 @@ export type HospitalEntryRow = {
 
 export type HospitalEntrySummary = {
   pending: number;
+  reviewing: number;
   rejected: number;
   approved: number;
 };
 
 export type HospitalEntrySummaryApiResponse = {
   pending_entries?: number | null;
+  reviewing_entries?: number | null;
   rejected_entries?: number | null;
   approved_entries?: number | null;
 };
@@ -88,9 +90,10 @@ export const DEFAULT_FILTERS: Filters = {
 };
 
 export const HOSPITAL_ENTRY_ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "PENDING", label: "입점신청" },
-  { value: "REJECTED", label: "입점반려" },
-  { value: "APPROVED", label: "입점승인" },
+  { value: "PENDING", label: "신청" },
+  { value: "REVIEWING", label: "검수" },
+  { value: "APPROVED", label: "승인" },
+  { value: "REJECTED", label: "반려" },
 ];
 
 export const DATE_PRESET_OPTIONS = [
@@ -200,15 +203,16 @@ function formatDateValue(value?: string | null) {
 }
 
 export function labelHospitalEntryAllowStatus(status?: string | null) {
-  if (status === "PENDING") return "입점신청";
-  if (status === "APPROVED") return "입점승인";
-  if (status === "REJECTED") return "입점반려";
+  if (status === "PENDING") return "신청";
+  if (status === "REVIEWING") return "검수";
+  if (status === "APPROVED") return "승인";
+  if (status === "REJECTED") return "반려";
   return status || "-";
 }
 
 export function hospitalEntryAllowStatusColor(status?: string | null): BadgeColor {
   if (status === "APPROVED") return "success";
-  if (status === "PENDING") return "warning";
+  if (status === "PENDING" || status === "REVIEWING") return "warning";
   if (status === "REJECTED") return "error";
   return "light";
 }
@@ -238,6 +242,7 @@ export function normalizeHospitalEntry(item: HospitalEntryApiItem): HospitalEntr
 export function normalizeHospitalEntrySummary(summary: HospitalEntrySummaryApiResponse): HospitalEntrySummary {
   return {
     pending: Number(summary.pending_entries ?? 0),
+    reviewing: Number(summary.reviewing_entries ?? 0),
     rejected: Number(summary.rejected_entries ?? 0),
     approved: Number(summary.approved_entries ?? 0),
   };

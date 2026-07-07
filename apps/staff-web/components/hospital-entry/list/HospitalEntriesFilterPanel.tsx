@@ -79,9 +79,9 @@ export function HospitalEntriesFilterPanel({
         </div>
 
         <div className={filterRowClass}>
-          <span className={inlineLabelClass}>승인상태</span>
+          <span className={inlineLabelClass}>검수상태</span>
           <CheckboxFilterDropdown
-            label="승인상태"
+            label="검수상태"
             hideLabel
             containerRef={allowStatusDropdownRef}
             selectedValues={draftFilters.allowStatuses}

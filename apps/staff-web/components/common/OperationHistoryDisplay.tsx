@@ -5,7 +5,13 @@ import { ArrowRight, StatusBadge } from "@beaulab/ui-admin";
 import type { BadgeColor } from "@beaulab/ui-admin";
 
 import { reportStatusBadgeColor } from "@/components/common/ReportStatusBadge";
-import { hospitalEventAllowStatusColor } from "@/lib/hospital-event/list";
+import {
+  hospitalEventAdminStatusColor,
+  hospitalEventAllowStatusColor,
+  hospitalEventHospitalStatusColor,
+  labelHospitalEventAdminStatus,
+  labelHospitalEventHospitalStatus,
+} from "@/lib/hospital-event/list";
 
 export type OperationHistoryChangeLike = {
   field_key?: string | null;
@@ -342,6 +348,14 @@ function statusDisplayLabel(
     return fallbackLabel || normalized || "-";
   }
 
+  if (field === "admin_status") {
+    return labelHospitalEventAdminStatus(displayLabel || normalized);
+  }
+
+  if (field === "hospital_status") {
+    return labelHospitalEventHospitalStatus(displayLabel || normalized);
+  }
+
   return fallbackLabel || normalized || "-";
 }
 
@@ -361,6 +375,14 @@ function statusColor(
 
   if (field === "allow_status") {
     return hospitalEventAllowStatusColor(normalized);
+  }
+
+  if (field === "admin_status") {
+    return hospitalEventAdminStatusColor(normalized);
+  }
+
+  if (field === "hospital_status") {
+    return hospitalEventHospitalStatusColor(normalized);
   }
 
   if (field === "receipt_status") {
@@ -403,6 +425,10 @@ function defaultFieldLabel(field?: string | null) {
       return "노출여부";
     case "allow_status":
       return "검수상태";
+    case "admin_status":
+      return "강제중지";
+    case "hospital_status":
+      return "공개여부";
     case "receipt_status":
       return "영수증 상태";
     case "warning_status":

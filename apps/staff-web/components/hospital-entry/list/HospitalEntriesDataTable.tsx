@@ -164,7 +164,7 @@ function buildHospitalEntryColumns({
           onClick={() => onToggleSort("allow_status")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          승인상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
+          검수상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
         </Button>
       ),
       render: (row) => (

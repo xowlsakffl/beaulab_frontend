@@ -60,6 +60,8 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/hospital-manage/doctors/[id]", requiredPermissions: ["beaulab.doctor.show"] },
   { path: "/hospital-manage/doctors/[id]/edit", requiredPermissions: ["beaulab.doctor.update"] },
   { path: "/hospital-manage/doctors/new", requiredPermissions: ["beaulab.doctor.create"] },
+  { path: "/hospital-manage/hospital-entries/[id]", requiredPermissions: ["beaulab.hospital_entry.show"] },
+  { path: "/hospital-manage/hospital-entries/[id]/edit", requiredPermissions: ["beaulab.hospital_entry.update"] },
   { path: "/video-manage/videos/[id]", requiredPermissions: ["beaulab.video.show"] },
   { path: "/video-manage/videos/[id]/edit", requiredPermissions: ["beaulab.video.update"] },
   { path: "/video-manage/videos/new", requiredPermissions: ["beaulab.video.create"] },
