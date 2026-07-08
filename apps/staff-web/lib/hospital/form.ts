@@ -19,7 +19,6 @@ export type HospitalFormValues = {
   ad_reception_phone_1: string;
   ad_reception_phone_2: string;
   ad_reception_phone_3: string;
-  email: string;
   allow_status: string;
   status: string;
   address: string;
@@ -82,7 +81,6 @@ export const FIELD_NAMES: readonly HospitalFieldName[] = [
   "ad_reception_phone_1",
   "ad_reception_phone_2",
   "ad_reception_phone_3",
-  "email",
   "allow_status",
   "status",
   "address",
@@ -131,9 +129,8 @@ export const INITIAL_HOSPITAL_FORM: HospitalFormValues = {
   ad_reception_phone_1: "",
   ad_reception_phone_2: "",
   ad_reception_phone_3: "",
-  email: "",
   allow_status: "PENDING",
-  status: "SUSPENDED",
+  status: "ACTIVE",
   address: "",
   address_detail: "",
   latitude: "",
@@ -233,7 +230,6 @@ export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "allow_status",
   "tel",
   "ad_reception_phone_1",
-  "email",
   "category_ids",
   "feature_ids",
   "address",
@@ -339,7 +335,6 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     ad_reception_phone_1: data.ad_reception_phones?.phone_1 ?? "",
     ad_reception_phone_2: data.ad_reception_phones?.phone_2 ?? "",
     ad_reception_phone_3: data.ad_reception_phones?.phone_3 ?? "",
-    email: data.email ?? "",
     allow_status: data.allow_status ?? INITIAL_HOSPITAL_FORM.allow_status,
     status: data.status ?? INITIAL_HOSPITAL_FORM.status,
     address: data.address ?? "",
@@ -451,7 +446,6 @@ export function buildCreateHospitalFormData({
   formData.append("ad_reception_phone_1", form.ad_reception_phone_1.trim());
   formData.append("ad_reception_phone_2", form.ad_reception_phone_2.trim());
   formData.append("ad_reception_phone_3", form.ad_reception_phone_3.trim());
-  formData.append("email", form.email.trim());
   formData.append("allow_status", form.allow_status);
   formData.append("status", form.status);
   formData.append("business_number", form.business_number.trim());
@@ -549,7 +543,6 @@ export function buildUpdateHospitalFormData({
     form.ad_reception_phone_3.trim(),
     baseForm.ad_reception_phone_3.trim(),
   );
-  appendChangedField(formData, "email", form.email.trim(), baseForm.email.trim());
   appendChangedField(formData, "allow_status", form.allow_status, baseForm.allow_status);
   appendChangedField(formData, "status", form.status, baseForm.status);
   appendChangedField(
@@ -653,10 +646,6 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (form.ad_reception_phone_3 && !/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_3)) {
     nextErrors.ad_reception_phone_3 = "담당자3 전화번호 형식이 올바르지 않습니다.";
-  }
-
-  if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    nextErrors.email = "올바른 이메일 형식이 아닙니다.";
   }
 
   if (form.youtube_link.trim() && !isValidYoutubeLink(form.youtube_link.trim())) {

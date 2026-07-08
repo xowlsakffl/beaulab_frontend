@@ -96,7 +96,6 @@ export type HospitalDetailResponse = {
     phone_2?: string | null;
     phone_3?: string | null;
   } | null;
-  email?: string | null;
   consulting_hours?: string | null;
   operation_hours?: HospitalOperationHours | null;
   direction?: string | null;

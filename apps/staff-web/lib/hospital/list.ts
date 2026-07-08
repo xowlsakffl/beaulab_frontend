@@ -10,7 +10,6 @@ export type HospitalApiItem = {
   department?: string;
   department_label?: string;
   departmentLabel?: string;
-  email?: string | null;
   tel: string;
   view_count?: number;
   viewCount?: number;
@@ -380,7 +379,7 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
     departmentLabel:
       item.departmentLabel ?? item.department_label ?? labelHospitalDepartment(item.department ?? "UNKNOWN"),
     loginId: item.account?.nickname || "-",
-    accountEmail: item.account?.email || item.email || "-",
+    accountEmail: item.account?.email || "-",
     tel: item.tel,
     viewCount: item.viewCount ?? item.view_count ?? 0,
     eventCount: item.eventCount ?? item.event_count ?? 0,

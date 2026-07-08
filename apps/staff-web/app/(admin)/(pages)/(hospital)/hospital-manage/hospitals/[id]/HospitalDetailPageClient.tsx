@@ -109,9 +109,10 @@ export default function HospitalDetailPageClient() {
   const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
   const [isActionMenuOpen, setIsActionMenuOpen] = React.useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = React.useState(false);
+  const [isActivateModalOpen, setIsActivateModalOpen] = React.useState(false);
   const [suspendReason, setSuspendReason] = React.useState("");
-  const [suspendError, setSuspendError] = React.useState<string | null>(null);
-  const [suspending, setSuspending] = React.useState(false);
+  const [hospitalStatusError, setHospitalStatusError] = React.useState<string | null>(null);
+  const [updatingHospitalStatus, setUpdatingHospitalStatus] = React.useState(false);
   const [updatingAllowStatus, setUpdatingAllowStatus] = React.useState(false);
   const [allowStatusError, setAllowStatusError] = React.useState<string | null>(null);
   const [notes, setNotes] = React.useState<AdminNoteItem[]>([]);
@@ -251,26 +252,41 @@ export default function HospitalDetailPageClient() {
 
   const openSuspendModal = React.useCallback(() => {
     setIsActionMenuOpen(false);
-    setSuspendError(null);
+    setHospitalStatusError(null);
     setSuspendReason("");
     setIsSuspendModalOpen(true);
   }, []);
 
+  const openActivateModal = React.useCallback(() => {
+    setIsActionMenuOpen(false);
+    setHospitalStatusError(null);
+    setSuspendReason("");
+    setIsActivateModalOpen(true);
+  }, []);
+
   const closeSuspendModal = React.useCallback(() => {
-    if (suspending) return;
+    if (updatingHospitalStatus) return;
 
     setIsSuspendModalOpen(false);
-    setSuspendError(null);
+    setHospitalStatusError(null);
     setSuspendReason("");
-  }, [suspending]);
+  }, [updatingHospitalStatus]);
+
+  const closeActivateModal = React.useCallback(() => {
+    if (updatingHospitalStatus) return;
+
+    setIsActivateModalOpen(false);
+    setHospitalStatusError(null);
+    setSuspendReason("");
+  }, [updatingHospitalStatus]);
 
   const submitSuspend = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
 
     const reason = suspendReason.trim();
 
-    setSuspending(true);
-    setSuspendError(null);
+    setUpdatingHospitalStatus(true);
+    setHospitalStatusError(null);
 
     try {
       const response = await api.patch<HospitalDetailResponse>(`/hospitals/${hospitalId}/status`, {
@@ -279,7 +295,7 @@ export default function HospitalDetailPageClient() {
       });
 
       if (!isApiSuccess(response)) {
-        setSuspendError(response.error.message || "운영중지 등록에 실패했습니다.");
+        setHospitalStatusError(response.error.message || "운영중지 등록에 실패했습니다.");
         return;
       }
 
@@ -288,11 +304,37 @@ export default function HospitalDetailPageClient() {
       setSuspendReason("");
       await refreshHistoriesFromFirstPage();
     } catch {
-      setSuspendError("운영중지 등록 중 오류가 발생했습니다.");
+      setHospitalStatusError("운영중지 등록 중 오류가 발생했습니다.");
     } finally {
-      setSuspending(false);
+      setUpdatingHospitalStatus(false);
     }
   }, [hospitalId, refreshHistoriesFromFirstPage, suspendReason]);
+
+  const submitActivate = React.useCallback(async () => {
+    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
+
+    setUpdatingHospitalStatus(true);
+    setHospitalStatusError(null);
+
+    try {
+      const response = await api.patch<HospitalDetailResponse>(`/hospitals/${hospitalId}/status`, {
+        status: "ACTIVE",
+      });
+
+      if (!isApiSuccess(response)) {
+        setHospitalStatusError(response.error.message || "정상노출 처리에 실패했습니다.");
+        return;
+      }
+
+      setDetail(response.data);
+      setIsActivateModalOpen(false);
+      await refreshHistoriesFromFirstPage();
+    } catch {
+      setHospitalStatusError("정상노출 처리 중 오류가 발생했습니다.");
+    } finally {
+      setUpdatingHospitalStatus(false);
+    }
+  }, [hospitalId, refreshHistoriesFromFirstPage]);
 
   const requestAllowStatusChange = React.useCallback(
     (allowStatus: string) => {
@@ -417,6 +459,8 @@ export default function HospitalDetailPageClient() {
           onToggleActionMenu={() => setIsActionMenuOpen((prev) => !prev)}
           onCloseActionMenu={() => setIsActionMenuOpen(false)}
           onOpenSuspendModal={openSuspendModal}
+          onOpenActivateModal={openActivateModal}
+          statusUpdating={updatingHospitalStatus}
           onPreview={setPreviewMedia}
         />
 
@@ -484,8 +528,8 @@ export default function HospitalDetailPageClient() {
         subjectLabel="해당 병의원을"
         messageAction="등록"
         labelStatus={labelApprovalStatus}
-        updating={suspending}
-        error={suspendError}
+        updating={updatingHospitalStatus}
+        error={hospitalStatusError}
         rejectStatus="SUSPENDED"
         reasonInputId="hospital-suspend-reason"
         reasonLabel="운영중지 사유"
@@ -495,6 +539,22 @@ export default function HospitalDetailPageClient() {
         onReasonChange={setSuspendReason}
         onClose={closeSuspendModal}
         onConfirm={() => void submitSuspend()}
+      />
+      <AllowStatusConfirmModal
+        pending={isActivateModalOpen ? { allowStatus: "ACTIVE", reason: "" } : null}
+        title="정상노출 처리"
+        subjectLabel="해당 병의원을"
+        messageAction="처리"
+        labelStatus={(status) => (status === "ACTIVE" ? "정상노출" : labelApprovalStatus(status))}
+        updating={updatingHospitalStatus}
+        error={hospitalStatusError}
+        rejectStatus="SUSPENDED"
+        reasonInputId="hospital-activate-reason"
+        processingText="처리 중"
+        confirmText="확인"
+        onReasonChange={() => undefined}
+        onClose={closeActivateModal}
+        onConfirm={() => void submitActivate()}
       />
     </div>
   );
@@ -554,6 +614,8 @@ function HospitalInfoCard({
   onToggleActionMenu,
   onCloseActionMenu,
   onOpenSuspendModal,
+  onOpenActivateModal,
+  statusUpdating,
   onPreview,
 }: {
   detail: HospitalDetailResponse;
@@ -562,10 +624,15 @@ function HospitalInfoCard({
   onToggleActionMenu: () => void;
   onCloseActionMenu: () => void;
   onOpenSuspendModal: () => void;
+  onOpenActivateModal: () => void;
+  statusUpdating: boolean;
   onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
   const statusHistoryText = buildStatusHistoryText(detail);
-  const cannotSuspend = detail.status === "SUSPENDED" || detail.status === "WITHDRAWN";
+  const isSuspended = detail.status === "SUSPENDED";
+  const cannotChangeStatus = detail.status === "WITHDRAWN" || statusUpdating;
+  const statusActionLabel = isSuspended ? "정상노출" : "운영중지";
+  const handleStatusAction = isSuspended ? onOpenActivateModal : onOpenSuspendModal;
 
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
@@ -597,16 +664,16 @@ function HospitalInfoCard({
             </button>
             <Dropdown isOpen={isActionMenuOpen} onClose={onCloseActionMenu} className="w-36 overflow-hidden py-1">
               <DropdownItem
-                disabled={cannotSuspend}
+                disabled={cannotChangeStatus}
                 onItemClick={onCloseActionMenu}
-                onClick={onOpenSuspendModal}
+                onClick={handleStatusAction}
                 baseClassName={
-                  cannotSuspend
+                  cannotChangeStatus
                     ? "block w-full cursor-not-allowed px-4 py-2 text-left text-sm font-semibold text-gray-300"
                     : "block w-full px-4 py-2 text-left text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                 }
               >
-                운영중지
+                {statusUpdating ? "처리중" : statusActionLabel}
               </DropdownItem>
             </Dropdown>
           </div>
