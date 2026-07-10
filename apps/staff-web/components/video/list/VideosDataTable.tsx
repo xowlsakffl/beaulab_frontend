@@ -1,32 +1,85 @@
 import React from "react";
-
+import Link from "next/link";
 import {
   Button,
+  CategoryBadgeList,
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
   DataTable,
-  SingleCheckboxFilterDropdown,
+  Pagination,
   StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import {
-  PER_PAGE_OPTIONS,
-  labelVideoApprovalStatus,
-  labelVideoOperatingStatus,
+  labelVideoAdminStatus,
+  labelVideoHospitalStatus,
+  labelVideoReportStatus,
+  videoAdminStatusColor,
+  videoHospitalStatusColor,
+  videoReportStatusColor,
   type SortField,
   type SortState,
   type VideoRow,
 } from "@/lib/video/list";
 
 function renderSortMark(field: SortField, sortState: SortState) {
-  if (!sortState.enabled || sortState.field !== field) {
-    return <ChevronsUpDown className="size-4" />;
-  }
+  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
 
   return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
+}
+
+function categoryBadges(row: VideoRow) {
+  return (
+    <CategoryBadgeList
+      values={
+        row.categoryBadges.length > 0 ? row.categoryBadges.map((category) => category.label) : [row.categoryLabel]
+      }
+      title={row.categoryLabel}
+    />
+  );
+}
+
+function DetailLink({
+  href,
+  title,
+  children,
+  className,
+}: {
+  href?: string | null;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const composedClassName = [
+    "inline text-gray-800 underline decoration-gray-300 underline-offset-4 transition hover:text-brand-500 hover:decoration-brand-500",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (!href) {
+    return (
+      <span className={className} title={title}>
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className={composedClassName}
+      title={title}
+      onClick={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      {children}
+    </Link>
+  );
 }
 
 function buildVideoColumns({
@@ -36,15 +89,15 @@ function buildVideoColumns({
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<VideoRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
-  const cellBaseClass = "px-3 py-4 text-start align-top ";
-  const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-2 py-4 text-start align-top ";
+  const nowrapCellClass = `${cellBaseClass} overflow-hidden text-ellipsis whitespace-nowrap`;
 
   return [
     {
       key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[72px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[72px]`,
+      headerClassName: `${headerBaseClass} lg:w-[56px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[56px]`,
       header: (
         <Button
           type="button"
@@ -53,37 +106,65 @@ function buildVideoColumns({
           onClick={() => onToggleSort("id")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
+          VID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
         </Button>
       ),
       render: (row) => row.id,
     },
     {
+      key: "uploadedAt",
+      headerClassName: `${headerBaseClass} lg:w-[126px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[126px]`,
+      header: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("created_at")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
+          업로드일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => row.uploadedAt,
+    },
+    {
       key: "hospitalName",
-      headerClassName: `${headerBaseClass} lg:w-[160px]`,
-      cellClassName: `${cellBaseClass} lg:w-[160px]`,
-      header: "병의원명",
+      headerClassName: `${headerBaseClass} lg:w-[128px]`,
+      cellClassName: `${cellBaseClass} lg:w-[128px]`,
+      header: "병의원",
       render: (row) => (
-        <span className="block truncate font-medium text-gray-800" title={row.hospitalName}>
+        <DetailLink
+          href={row.hospitalId ? `/hospital-manage/hospitals/${row.hospitalId}` : null}
+          title={row.hospitalName}
+          className="line-clamp-2 font-medium break-words"
+        >
           {row.hospitalName}
-        </span>
+        </DetailLink>
       ),
     },
     {
+      key: "categories",
+      headerClassName: `${headerBaseClass} lg:w-[154px]`,
+      cellClassName: `${cellBaseClass} lg:w-[154px]`,
+      header: "카테고리",
+      render: (row) => categoryBadges(row),
+    },
+    {
       key: "doctorName",
-      headerClassName: `${headerBaseClass} lg:w-[128px]`,
-      cellClassName: `${cellBaseClass} lg:w-[128px]`,
-      header: "의료진이름",
+      headerClassName: `${headerBaseClass} lg:w-[92px]`,
+      cellClassName: `${cellBaseClass} lg:w-[92px]`,
+      header: "의료진",
       render: (row) => (
-        <span className="block truncate" title={row.doctorName}>
+        <span className="line-clamp-2 break-words text-gray-700" title={row.doctorName}>
           {row.doctorName}
         </span>
       ),
     },
     {
       key: "title",
-      headerClassName: `${headerBaseClass} lg:w-[290px]`,
-      cellClassName: `${cellBaseClass} lg:w-[290px]`,
+      headerClassName: `${headerBaseClass} lg:w-[210px]`,
+      cellClassName: `${cellBaseClass} lg:w-[210px]`,
       header: (
         <Button
           type="button"
@@ -96,48 +177,94 @@ function buildVideoColumns({
         </Button>
       ),
       render: (row) => (
-        <div className="flex items-start gap-2">
-          {row.thumbnailUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- image domains come from runtime API/storage configuration
-            <img
-              src={row.thumbnailUrl}
-              alt={row.title}
-              loading="lazy"
-              decoding="async"
-              className="h-[100px] w-[100px] shrink-0 rounded-lg border border-gray-200 object-cover"
-            />
-          ) : (
-            <div className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400">
-              없음
-            </div>
-          )}
-          <span className="block min-w-0 truncate font-medium text-gray-800" title={row.title}>
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 text-[11px] font-semibold text-gray-400">
+            {row.thumbnailUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- runtime storage URL
+              <img
+                src={row.thumbnailUrl}
+                alt={`${row.title} 썸네일`}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              "썸네일"
+            )}
+          </div>
+          <span className="line-clamp-2 min-w-0 font-medium break-words text-gray-800" title={row.title}>
             {row.title}
           </span>
         </div>
       ),
     },
     {
-      key: "distributionChannel",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
+      key: "hospitalStatus",
+      headerClassName: `${headerBaseClass} lg:w-[82px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px]`,
       header: (
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => onToggleSort("distribution_channel")}
+          onClick={() => onToggleSort("hospital_status")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          배포채널 <span className="text-xs text-gray-400">{renderSortMark("distribution_channel", sortState)}</span>
+          공개여부 <span className="text-xs text-gray-400">{renderSortMark("hospital_status", sortState)}</span>
         </Button>
       ),
-      render: (row) => row.distributionChannelLabel,
+      render: (row) => (
+        <StatusBadge size="sm" color={videoHospitalStatusColor(row.hospitalStatus)}>
+          {row.hospitalStatusLabel || labelVideoHospitalStatus(row.hospitalStatus)}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: "reportCount",
+      headerClassName: `${headerBaseClass} lg:w-[72px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[72px]`,
+      header: "신고횟수",
+      render: (row) => row.reportCount.toLocaleString(),
+    },
+    {
+      key: "reportStatus",
+      headerClassName: `${headerBaseClass} lg:w-[86px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[86px]`,
+      header: "신고상태",
+      render: (row) =>
+        row.reportStatus === "NONE" ? (
+          <span className="text-gray-500">-</span>
+        ) : (
+          <StatusBadge size="sm" color={videoReportStatusColor(row.reportStatus)}>
+            {row.reportStatusLabel || labelVideoReportStatus(row.reportStatus)}
+          </StatusBadge>
+        ),
+    },
+    {
+      key: "adminStatus",
+      headerClassName: `${headerBaseClass} lg:w-[82px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[82px]`,
+      header: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("admin_status")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
+          강제중지 <span className="text-xs text-gray-400">{renderSortMark("admin_status", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => (
+        <StatusBadge size="sm" color={videoAdminStatusColor(row.adminStatus)}>
+          {row.adminStatusLabel || labelVideoAdminStatus(row.adminStatus)}
+        </StatusBadge>
+      ),
     },
     {
       key: "viewCount",
-      headerClassName: `${headerBaseClass} lg:w-[90px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[90px]`,
+      headerClassName: `${headerBaseClass} lg:w-[70px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[70px]`,
       header: (
         <Button
           type="button"
@@ -153,8 +280,8 @@ function buildVideoColumns({
     },
     {
       key: "likeCount",
-      headerClassName: `${headerBaseClass} lg:w-[100px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[100px]`,
+      headerClassName: `${headerBaseClass} lg:w-[78px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[78px]`,
       header: (
         <Button
           type="button"
@@ -163,95 +290,21 @@ function buildVideoColumns({
           onClick={() => onToggleSort("like_count")}
           className="inline-flex items-center gap-1 px-0 text-xs"
         >
-          좋아요 수 <span className="text-xs text-gray-400">{renderSortMark("like_count", sortState)}</span>
+          좋아요수 <span className="text-xs text-gray-400">{renderSortMark("like_count", sortState)}</span>
         </Button>
       ),
       render: (row) => row.likeCount.toLocaleString(),
     },
     {
-      key: "operatingStatus",
-      headerClassName: `${headerBaseClass} lg:w-[100px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[100px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          운영 상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
-        </Button>
-      ),
+      key: "manager",
+      headerClassName: `${headerBaseClass} lg:w-[88px]`,
+      cellClassName: `${cellBaseClass} lg:w-[88px]`,
+      header: "담당자",
       render: (row) => (
-        <StatusBadge size="sm" color={row.operatingStatus === "ACTIVE" ? "success" : "error"}>
-          {labelVideoOperatingStatus(row.operatingStatus)}
-        </StatusBadge>
+        <span className="line-clamp-2 break-words text-gray-700" title={row.managerName}>
+          {row.managerName}
+        </span>
       ),
-    },
-    {
-      key: "approvalStatus",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("allow_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          검수 상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
-        </Button>
-      ),
-      render: (row) => (
-        <StatusBadge
-          size="sm"
-          color={
-            row.approvalStatus === "APPROVED"
-              ? "success"
-              : row.approvalStatus === "IN_REVIEW" || row.approvalStatus === "SUBMITTED"
-                ? "warning"
-                : "error"
-          }
-        >
-          {labelVideoApprovalStatus(row.approvalStatus)}
-        </StatusBadge>
-      ),
-    },
-    {
-      key: "requestedAt",
-      headerClassName: `${headerBaseClass} lg:w-[136px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[136px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("created_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          등록신청일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
-        </Button>
-      ),
-      render: (row) => row.requestedAt,
-    },
-    {
-      key: "completedAt",
-      headerClassName: `${headerBaseClass} lg:w-[136px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[136px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("allowed_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          등록완료일 <span className="text-xs text-gray-400">{renderSortMark("allowed_at", sortState)}</span>
-        </Button>
-      ),
-      render: (row) => row.completedAt,
     },
   ];
 }
@@ -264,11 +317,9 @@ type VideosDataTableProps = {
   error: string | null;
   highlightedRowId: number | null;
   sortState: SortState;
-  perPage: number;
   onToggleSort: (field: SortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
-  onPerPageChange: (value: number) => void;
   onRowClick: (row: VideoRow) => void;
 };
 
@@ -280,20 +331,17 @@ export function VideosDataTable({
   error,
   highlightedRowId,
   sortState,
-  perPage,
   onToggleSort,
   onRefresh,
   onGoPage,
-  onPerPageChange,
   onRowClick,
 }: VideosDataTableProps) {
   const columns = React.useMemo(() => buildVideoColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable
-      title="동영상 목록"
-      description="병의원 파트너가 신청한 동영상의 검수 상태와 배포 정보를 확인할 수 있습니다."
-      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
+      refreshPlacement="left"
+      tableClassName="w-[1540px] min-w-[1540px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
@@ -309,19 +357,15 @@ export function VideosDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={
-        <div className="flex items-center gap-2">
-          <SingleCheckboxFilterDropdown
-            label="개수"
-            hideLabel
-            value={String(perPage)}
-            options={PER_PAGE_OPTIONS}
-            onChange={(value) => onPerPageChange(Number(value))}
-            emptyLabel="개수 선택"
-            className="w-[86px]"
-            triggerClassName="h-9 px-2 text-xs"
+      footerCenter={
+        meta ? (
+          <Pagination
+            currentPage={meta.current_page}
+            totalPages={Math.max(1, meta.last_page)}
+            onPageChange={onGoPage}
+            disabled={refreshing || !onGoPage}
           />
-        </div>
+        ) : null
       }
       emptyText="조건에 맞는 동영상이 없습니다."
     />

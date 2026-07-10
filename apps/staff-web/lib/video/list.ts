@@ -1,6 +1,7 @@
-import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
+import type { BadgeColor, CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
 
 type MediaAsset = {
@@ -10,139 +11,180 @@ type MediaAsset = {
 };
 
 type VideoHospitalRef = {
-  id: number;
+  id?: number | null;
   name?: string | null;
   business_number?: string | null;
 };
 
 type VideoDoctorRef = {
-  id: number;
+  id?: number | null;
   name?: string | null;
   position?: string | null;
+};
+
+type VideoManagerStaffRef = {
+  id?: number | null;
+  name?: string | null;
+  email?: string | null;
+};
+
+type VideoReportState = {
+  status?: string | null;
+  label?: string | null;
+  report_count?: number | null;
+};
+
+export type VideoCategory = {
+  id?: number | null;
+  code?: string | null;
+  domain?: string | null;
+  name?: string | null;
+  full_path?: string | null;
 };
 
 export type VideoApiItem = {
   id: number;
   hospital?: VideoHospitalRef | null;
-  hospital_id?: number | null;
-  hospital_name?: string | null;
   doctor?: VideoDoctorRef | null;
-  doctor_id?: number | null;
-  doctor_name?: string | null;
-  title: string;
+  manager_staff?: VideoManagerStaffRef | null;
+  title?: string | null;
   thumbnail_file?: MediaAsset | null;
-  distribution_channel?: string | null;
+  external_video_url?: string | null;
+  hospital_status?: string | null;
+  hospital_status_label?: string | null;
+  admin_status?: string | null;
+  admin_status_label?: string | null;
   view_count?: number | null;
   like_count?: number | null;
-  allowed_at?: string | null;
+  report_state?: VideoReportState | null;
+  categories?: VideoCategory[] | null;
   created_at?: string | null;
   updated_at?: string | null;
-  status?: string | null;
-  allow_status?: string | null;
 };
 
 export type VideoRow = {
   id: number;
-  requestedAt: string;
+  uploadedAt: string;
+  hospitalId: number | null;
   hospitalName: string;
   doctorName: string;
   title: string;
   thumbnailUrl: string | null;
-  distributionChannelLabel: string;
+  externalVideoUrl: string;
+  categoryLabel: string;
+  categoryBadges: Array<{
+    label: string;
+  }>;
+  hospitalStatus: string;
+  hospitalStatusLabel: string;
+  adminStatus: string;
+  adminStatusLabel: string;
+  reportStatus: string;
+  reportStatusLabel: string;
+  reportCount: number;
   viewCount: number;
   likeCount: number;
-  completedAt: string;
-  operatingStatus: string;
-  approvalStatus: string;
+  managerName: string;
 };
 
-export type SortField =
-  | "id"
-  | "title"
-  | "distribution_channel"
-  | "view_count"
-  | "like_count"
-  | "status"
-  | "allow_status"
-  | "created_at"
-  | "allowed_at";
+export type VideoSortField =
+  "id" | "title" | "hospital_status" | "admin_status" | "view_count" | "like_count" | "created_at" | "updated_at";
 
-export type SortDirection = "asc" | "desc";
+export type SortField = VideoSortField;
+export type VideoSortDirection = "asc" | "desc";
+export type SortDirection = VideoSortDirection;
+export type VideoMetric = "all" | "report_count" | "view_count" | "like_count";
 
-export type SortState = {
-  field: SortField;
-  direction: SortDirection;
+export type VideoSortState = {
+  field: VideoSortField;
+  direction: VideoSortDirection;
   enabled: boolean;
 };
 
+export type SortState = VideoSortState;
+
 export type VideosQuery = {
   q?: string;
-  status?: string;
-  allow_status?: string;
-  distribution_channel?: string;
+  category_id?: string;
+  hospital_status?: string;
+  admin_status?: string;
+  report_status?: string;
+  report_count_min?: string;
+  report_count_max?: string;
+  view_count_min?: string;
+  view_count_max?: string;
+  like_count_min?: string;
+  like_count_max?: string;
   start_date?: string;
   end_date?: string;
-  allowed_start_date?: string;
-  allowed_end_date?: string;
-  sort: SortField;
-  direction: SortDirection;
+  sort: VideoSortField;
+  direction: VideoSortDirection;
   per_page: number;
   page: number;
 };
 
 export type Filters = {
-  operatingStatuses: string[];
-  approvalStatuses: string[];
-  distributionChannels: string[];
   dateRange: string;
   startDate: string;
   endDate: string;
-  allowedDateRange: string;
-  allowedStartDate: string;
-  allowedEndDate: string;
+  categoryId: string;
+  hospitalStatus: string;
+  reportStatuses: string[];
+  metric: VideoMetric;
+  metricMin: string;
+  metricMax: string;
+  adminStatus: string;
 };
 
-export const DEFAULT_SORT: SortState = {
+export const VIDEO_LIST_PER_PAGE = 15;
+
+export const DEFAULT_SORT: VideoSortState = {
   field: "id",
   direction: "desc",
   enabled: true,
 };
 
 export const DEFAULT_FILTERS: Filters = {
-  operatingStatuses: [],
-  approvalStatuses: [],
-  distributionChannels: [],
   dateRange: "",
   startDate: "",
   endDate: "",
-  allowedDateRange: "",
-  allowedStartDate: "",
-  allowedEndDate: "",
+  categoryId: "",
+  hospitalStatus: "",
+  reportStatuses: [],
+  metric: "all",
+  metricMin: "",
+  metricMax: "",
+  adminStatus: "",
 };
 
-export const VIDEO_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "ACTIVE", label: "정상" },
-  { value: "INACTIVE", label: "비활성" },
+export const VIDEO_CATEGORY_USAGES = [CATEGORY_USAGES.HOSPITAL_VIDEO_CATEGORY] as const;
+
+export const VIDEO_HOSPITAL_STATUS_OPTIONS = [
+  { value: "", label: "전체" },
+  { value: "PUBLIC", label: "공개" },
+  { value: "PRIVATE", label: "미공개" },
 ];
 
-export const VIDEO_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "SUBMITTED", label: "검수신청" },
-  { value: "IN_REVIEW", label: "검수중" },
-  { value: "APPROVED", label: "검수완료" },
-  { value: "REJECTED", label: "검수반려" },
-  { value: "EXCLUDED", label: "검수제외" },
-  { value: "PARTNER_CANCELED", label: "신청취소" },
+export const VIDEO_ADMIN_STATUS_OPTIONS = [
+  { value: "", label: "전체" },
+  { value: "NORMAL", label: "정상" },
+  { value: "FORCED_STOPPED", label: "강제중지" },
 ];
 
-export const VIDEO_DISTRIBUTION_CHANNEL_OPTIONS: CheckboxFilterOption[] = [
-  { value: "YOUTUBE_APP", label: "유튜브/앱" },
-  { value: "APP", label: "앱" },
+export const VIDEO_REPORT_STATUS_OPTIONS: CheckboxFilterOption[] = [
+  { value: "NONE", label: "없음" },
+  { value: "REPORTED", label: "신고접수" },
+  { value: "AUTO_BLOCKED", label: "자동차단" },
+  { value: "ADMIN_HIDDEN", label: "노출중지" },
+  { value: "NORMAL_VISIBLE", label: "정상노출" },
+  { value: "REEXPOSED", label: "재노출" },
 ];
 
-export const PER_PAGE_OPTIONS = [
-  { value: "15", label: "15개" },
-  { value: "30", label: "30개" },
-  { value: "50", label: "50개" },
+export const VIDEO_METRIC_OPTIONS: { value: VideoMetric; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "report_count", label: "신고횟수" },
+  { value: "view_count", label: "조회수" },
+  { value: "like_count", label: "좋아요수" },
 ];
 
 export const DATE_PRESET_OPTIONS = [
@@ -153,7 +195,21 @@ export const DATE_PRESET_OPTIONS = [
 ] as const satisfies readonly DatePresetOption[];
 
 export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
-export type DateFilterKey = "created" | "allowed";
+
+const VIDEO_SORT_FIELDS = new Set<VideoSortField>([
+  "id",
+  "title",
+  "hospital_status",
+  "admin_status",
+  "view_count",
+  "like_count",
+  "created_at",
+  "updated_at",
+]);
+const VIDEO_HOSPITAL_STATUS_VALUE_SET = new Set(VIDEO_HOSPITAL_STATUS_OPTIONS.map((option) => option.value));
+const VIDEO_ADMIN_STATUS_VALUE_SET = new Set(VIDEO_ADMIN_STATUS_OPTIONS.map((option) => option.value));
+const VIDEO_REPORT_STATUS_VALUE_SET = new Set(VIDEO_REPORT_STATUS_OPTIONS.map((option) => option.value));
+const VIDEO_METRIC_VALUE_SET = new Set(VIDEO_METRIC_OPTIONS.map((option) => option.value));
 
 export function formatLocalDate(date: Date) {
   const year = date.getFullYear();
@@ -199,13 +255,12 @@ export function normalizeRangeDate(date: Date) {
 export function buildPresetDateRange(preset: DatePresetKey): DateRange {
   const today = normalizeRangeDate(new Date());
 
-  if (preset === "today") {
-    return { from: today, to: today };
-  }
+  if (preset === "today") return { from: today, to: today };
 
   if (preset === "yesterday") {
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
+
     return { from: yesterday, to: yesterday };
   }
 
@@ -256,26 +311,78 @@ export function buildFilterDateState(startDate: string, endDate: string) {
   };
 }
 
+export function normalizeNumberBound(value: string | null | undefined) {
+  const trimmedValue = (value ?? "").trim();
+  if (!/^\d+$/.test(trimmedValue)) return "";
+
+  return trimmedValue.replace(/^0+(?=\d)/, "");
+}
+
+export function labelVideoHospitalStatus(status?: string | null, fallbackLabel = "-") {
+  if (status === "PUBLIC" || status === "공개") return "공개";
+  if (status === "PRIVATE" || status === "미공개" || status === "비공개") return "미공개";
+
+  return status?.trim() || fallbackLabel;
+}
+
+export function videoHospitalStatusColor(status?: string | null): BadgeColor {
+  return status === "PRIVATE" || status === "미공개" || status === "비공개" ? "error" : "success";
+}
+
+export function labelVideoAdminStatus(status?: string | null, fallbackLabel = "-") {
+  if (status === "NORMAL" || status === "정상") return "정상";
+  if (status === "FORCED_STOPPED" || status === "강제중지") return "강제중지";
+
+  return status?.trim() || fallbackLabel;
+}
+
+export function videoAdminStatusColor(status?: string | null): BadgeColor {
+  return status === "FORCED_STOPPED" || status === "강제중지" ? "error" : "success";
+}
+
+export function labelVideoReportStatus(status?: string | null, fallbackLabel = "-") {
+  if (status === "NONE") return "없음";
+  if (status === "REPORTED") return "신고접수";
+  if (status === "AUTO_BLOCKED") return "자동차단";
+  if (status === "ADMIN_HIDDEN") return "노출중지";
+  if (status === "NORMAL_VISIBLE") return "정상노출";
+  if (status === "REEXPOSED") return "재노출";
+
+  return status?.trim() || fallbackLabel;
+}
+
+export function videoReportStatusColor(status?: string | null): BadgeColor {
+  if (status === "NONE") return "light";
+  if (status === "NORMAL_VISIBLE" || status === "REEXPOSED") return "success";
+  if (status === "REPORTED") return "warning";
+  if (status === "AUTO_BLOCKED" || status === "ADMIN_HIDDEN") return "error";
+
+  return "light";
+}
+
 export function labelVideoOperatingStatus(status?: string | null) {
   if (status === "ACTIVE") return "정상";
   if (status === "INACTIVE") return "비활성";
-  return status || "-";
+
+  return labelVideoAdminStatus(status);
 }
 
 export function labelVideoApprovalStatus(status?: string | null) {
-  if (status === "SUBMITTED") return "검수신청";
-  if (status === "IN_REVIEW") return "검수중";
-  if (status === "APPROVED") return "검수완료";
-  if (status === "REJECTED") return "검수반려";
+  if (status === "PENDING" || status === "SUBMITTED") return "신청";
+  if (status === "REVIEWING" || status === "IN_REVIEW") return "검수";
+  if (status === "APPROVED") return "승인";
+  if (status === "REJECTED") return "반려";
   if (status === "EXCLUDED") return "검수제외";
   if (status === "PARTNER_CANCELED") return "신청취소";
-  return status || "-";
+
+  return status?.trim() || "-";
 }
 
 export function labelVideoDistributionChannel(channel?: string | null) {
   if (!channel) return "-";
   if (channel === "YOUTUBE_APP" || channel === "YOUTUBE") return "유튜브/앱";
   if (channel === "APP") return "앱";
+
   return channel;
 }
 
@@ -283,107 +390,126 @@ function resolveMediaUrl(media?: MediaAsset | null): string | null {
   return resolveMediaAssetUrl(media, "thumb");
 }
 
+function formatVideoCategory(category?: VideoCategory | null, maxDepth = 1) {
+  const rawPath = category?.full_path?.trim() || category?.name?.trim() || "";
+
+  return rawPath
+    .split(">")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, maxDepth)
+    .join(" > ");
+}
+
+function formatVideoCategories(categories?: VideoCategory[] | null) {
+  const values = Array.from(
+    new Set((categories ?? []).map((category) => formatVideoCategory(category, 1)).filter(Boolean)),
+  );
+
+  return values.length > 0 ? values.join("\n") : "-";
+}
+
+function formatVideoCategoryBadges(categories?: VideoCategory[] | null) {
+  const seenLabels = new Set<string>();
+
+  return (categories ?? []).flatMap((category) => {
+    const label = formatVideoCategory(category, 1);
+    if (!label || seenLabels.has(label)) return [];
+
+    seenLabels.add(label);
+
+    return [
+      {
+        label,
+      },
+    ];
+  });
+}
+
 export function normalizeVideo(item: VideoApiItem): VideoRow {
-  const hospitalName = item.hospital_name ?? item.hospital?.name ?? "";
-  const doctorName = item.doctor_name ?? item.doctor?.name ?? "";
+  const hospitalStatus = item.hospital_status?.trim() || "PUBLIC";
+  const adminStatus = item.admin_status?.trim() || "NORMAL";
+  const reportStatus = item.report_state?.status?.trim() || "NONE";
+  const categoryBadges = formatVideoCategoryBadges(item.categories);
+  const managerName = item.manager_staff?.name?.trim() || "-";
 
   return {
     id: item.id,
-    requestedAt: formatLocalDateTime(item.created_at),
-    hospitalName: hospitalName.trim() || "-",
-    doctorName: doctorName.trim() || "-",
+    uploadedAt: formatLocalDateTime(item.created_at),
+    hospitalId: item.hospital?.id ? Number(item.hospital.id) : null,
+    hospitalName: item.hospital?.name?.trim() || "-",
+    doctorName: item.doctor?.name?.trim() || "-",
     title: item.title?.trim() || "-",
     thumbnailUrl: resolveMediaUrl(item.thumbnail_file),
-    distributionChannelLabel: labelVideoDistributionChannel(item.distribution_channel),
+    externalVideoUrl: item.external_video_url?.trim() || "",
+    categoryLabel:
+      categoryBadges.length > 0
+        ? categoryBadges.map((category) => category.label).join("\n")
+        : formatVideoCategories(item.categories),
+    categoryBadges,
+    hospitalStatus,
+    hospitalStatusLabel: item.hospital_status_label?.trim() || labelVideoHospitalStatus(hospitalStatus),
+    adminStatus,
+    adminStatusLabel: item.admin_status_label?.trim() || labelVideoAdminStatus(adminStatus),
+    reportStatus,
+    reportStatusLabel:
+      reportStatus === "NONE" ? "-" : item.report_state?.label?.trim() || labelVideoReportStatus(reportStatus),
+    reportCount: Number(item.report_state?.report_count ?? 0),
     viewCount: Number(item.view_count ?? 0),
     likeCount: Number(item.like_count ?? 0),
-    completedAt: formatLocalDateTime(item.allowed_at),
-    operatingStatus: item.status || "",
-    approvalStatus: item.allow_status || "",
+    managerName,
   };
 }
 
-export function nextSortState(prev: SortState, field: SortField): SortState {
+export function nextSortState(prev: VideoSortState, field: VideoSortField): VideoSortState {
   if (prev.field !== field) return { field, direction: "desc", enabled: true };
   if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
-  if (prev.enabled && prev.direction === "asc") {
-    return {
-      field: DEFAULT_SORT.field,
-      direction: DEFAULT_SORT.direction,
-      enabled: false,
-    };
-  }
+  if (prev.enabled && prev.direction === "asc") return { ...DEFAULT_SORT, enabled: false };
 
   return { field, direction: "desc", enabled: true };
 }
 
 export function parseVideosTableState(searchParams: URLSearchParams) {
-  const operatingStatuses = (searchParams.get("status") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const approvalStatuses = (searchParams.get("allow_status") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const distributionChannels = (searchParams.get("distribution_channel") ?? "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
-  const allowedStartDate = searchParams.get("allowed_start_date") ?? "";
-  const allowedEndDate = searchParams.get("allowed_end_date") ?? "";
-  const createdDateState = buildFilterDateState(startDate, endDate);
-  const allowedDateState = buildFilterDateState(allowedStartDate, allowedEndDate);
-  const parsedPerPage = Number(searchParams.get("per_page"));
-  const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage) ? parsedPerPage : 15;
-
+  const dateState = buildFilterDateState(startDate, endDate);
+  const hospitalStatus = searchParams.get("hospital_status") ?? "";
+  const adminStatus = searchParams.get("admin_status") ?? "";
+  const reportStatuses = normalizeListParam(searchParams.get("report_status")).filter((value) =>
+    VIDEO_REPORT_STATUS_VALUE_SET.has(value),
+  );
+  const metric = resolveMetricFromParams(searchParams);
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-
-  const allowedSortFields = new Set<SortField>([
-    "id",
-    "title",
-    "distribution_channel",
-    "view_count",
-    "like_count",
-    "status",
-    "allow_status",
-    "created_at",
-    "allowed_at",
-  ]);
-
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const sortField =
-    sortFieldParam && allowedSortFields.has(sortFieldParam as SortField)
-      ? (sortFieldParam as SortField)
+    sortFieldParam && VIDEO_SORT_FIELDS.has(sortFieldParam as VideoSortField)
+      ? (sortFieldParam as VideoSortField)
       : DEFAULT_SORT.field;
-  const sortDirection: SortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
+  const sortDirection: VideoSortDirection = sortDirectionParam === "asc" ? "asc" : "desc";
 
   return {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
-      operatingStatuses,
-      approvalStatuses,
-      distributionChannels,
-      dateRange: createdDateState.label,
+      ...DEFAULT_FILTERS,
+      dateRange: dateState.label,
       startDate,
       endDate,
-      allowedDateRange: allowedDateState.label,
-      allowedStartDate,
-      allowedEndDate,
+      categoryId: normalizePositiveId(searchParams.get("category_id")),
+      hospitalStatus: VIDEO_HOSPITAL_STATUS_VALUE_SET.has(hospitalStatus) ? hospitalStatus : "",
+      reportStatuses,
+      metric,
+      metricMin: metric === "all" ? "" : normalizeNumberBound(searchParams.get(`${metric}_min`)),
+      metricMax: metric === "all" ? "" : normalizeNumberBound(searchParams.get(`${metric}_max`)),
+      adminStatus: VIDEO_ADMIN_STATUS_VALUE_SET.has(adminStatus) ? adminStatus : "",
     },
-    draftDateRange: createdDateState.range,
-    draftAllowedDateRange: allowedDateState.range,
+    draftDateRange: dateState.range,
     sortState: {
       field: sortField,
       direction: sortDirection,
       enabled: Boolean(sortFieldParam || sortDirectionParam),
     },
-    perPage,
     page,
   };
 }
@@ -392,57 +518,89 @@ export function buildVideosQuery({
   searchKeyword,
   appliedFilters,
   sortState,
-  perPage,
   page,
 }: {
   searchKeyword: string;
   appliedFilters: Filters;
-  sortState: SortState;
-  perPage: number;
+  sortState: VideoSortState;
   page: number;
 }): VideosQuery {
   const query: VideosQuery = {
     sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
     direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
-    per_page: perPage,
+    per_page: VIDEO_LIST_PER_PAGE,
     page,
   };
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
-  if (appliedFilters.operatingStatuses.length > 0) query.status = appliedFilters.operatingStatuses.join(",");
-  if (appliedFilters.approvalStatuses.length > 0) query.allow_status = appliedFilters.approvalStatuses.join(",");
-  if (appliedFilters.distributionChannels.length > 0) {
-    query.distribution_channel = appliedFilters.distributionChannels.join(",");
-  }
+  if (appliedFilters.categoryId) query.category_id = appliedFilters.categoryId;
+  if (appliedFilters.hospitalStatus) query.hospital_status = appliedFilters.hospitalStatus;
+  if (appliedFilters.adminStatus) query.admin_status = appliedFilters.adminStatus;
+  if (appliedFilters.reportStatuses.length > 0) query.report_status = appliedFilters.reportStatuses.join(",");
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
-  if (appliedFilters.allowedStartDate) query.allowed_start_date = appliedFilters.allowedStartDate;
-  if (appliedFilters.allowedEndDate) query.allowed_end_date = appliedFilters.allowedEndDate;
+
+  const metricMin = normalizeNumberBound(appliedFilters.metricMin);
+  const metricMax = normalizeNumberBound(appliedFilters.metricMax);
+  if (appliedFilters.metric !== "all" && (metricMin || metricMax)) {
+    query[`${appliedFilters.metric}_min`] = metricMin || undefined;
+    query[`${appliedFilters.metric}_max`] = metricMax || undefined;
+  }
 
   return query;
-}
-
-export function buildVideosReturnToPath(pathname: string, query: VideosQuery) {
-  const returnQuery = buildVideosQueryString(query);
-  return returnQuery ? `${pathname}?${returnQuery}` : pathname;
 }
 
 export function buildVideosQueryString(query: VideosQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
-  if (query.status) params.set("status", query.status);
-  if (query.allow_status) params.set("allow_status", query.allow_status);
-  if (query.distribution_channel) params.set("distribution_channel", query.distribution_channel);
+  if (query.category_id) params.set("category_id", query.category_id);
+  if (query.hospital_status) params.set("hospital_status", query.hospital_status);
+  if (query.admin_status) params.set("admin_status", query.admin_status);
+  if (query.report_status) params.set("report_status", query.report_status);
+  if (query.report_count_min) params.set("report_count_min", query.report_count_min);
+  if (query.report_count_max) params.set("report_count_max", query.report_count_max);
+  if (query.view_count_min) params.set("view_count_min", query.view_count_min);
+  if (query.view_count_max) params.set("view_count_max", query.view_count_max);
+  if (query.like_count_min) params.set("like_count_min", query.like_count_min);
+  if (query.like_count_max) params.set("like_count_max", query.like_count_max);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.allowed_start_date) params.set("allowed_start_date", query.allowed_start_date);
-  if (query.allowed_end_date) params.set("allowed_end_date", query.allowed_end_date);
-  if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
+  if (query.sort !== DEFAULT_SORT.field || !DEFAULT_SORT.enabled) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
-  if (query.page !== 1) params.set("page", String(query.page));
+  if (query.page > 1) params.set("page", String(query.page));
 
   return params.toString();
+}
+
+export function buildVideosReturnToPath(pathname: string, query: VideosQuery) {
+  const queryString = buildVideosQueryString(query);
+
+  return queryString ? `${pathname}?${queryString}` : pathname;
+}
+
+function normalizeListParam(value: string | null | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizePositiveId(value: string | null | undefined) {
+  const trimmedValue = (value ?? "").trim();
+
+  return /^[1-9]\d*$/.test(trimmedValue) ? trimmedValue : "";
+}
+
+function resolveMetricFromParams(searchParams: URLSearchParams): VideoMetric {
+  const metricParam = searchParams.get("metric");
+  if (metricParam && VIDEO_METRIC_VALUE_SET.has(metricParam as VideoMetric)) {
+    return metricParam as VideoMetric;
+  }
+
+  if (searchParams.has("view_count_min") || searchParams.has("view_count_max")) return "view_count";
+  if (searchParams.has("like_count_min") || searchParams.has("like_count_max")) return "like_count";
+
+  return "all";
 }
