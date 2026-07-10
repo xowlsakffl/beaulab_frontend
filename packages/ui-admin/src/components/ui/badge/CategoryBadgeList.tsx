@@ -36,12 +36,12 @@ export function CategoryBadgeList({
   }
 
   return (
-    <div className={cn("flex min-w-0 flex-wrap gap-1.5", className)} title={title}>
+    <div className={cn("flex max-w-full min-w-0 flex-wrap items-center gap-1.5", className)} title={title}>
       {normalizedValues.map((value) => (
         <span
           key={value}
           className={cn(
-            "inline-flex max-w-full rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600",
+            "inline-flex h-6 max-w-full min-w-0 items-center overflow-hidden rounded-full bg-brand-50 px-2.5 text-xs leading-none font-semibold whitespace-nowrap text-brand-600",
             normalizedPrimaryValues.has(value) && "border border-brand-600",
           )}
           title={value}

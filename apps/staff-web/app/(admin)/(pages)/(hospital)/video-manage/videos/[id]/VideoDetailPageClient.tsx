@@ -467,7 +467,7 @@ function VideoThumbnailPreview({
   const title = getVideoMediaFilename(detail.thumbnail_file) || "동영상 썸네일";
 
   return (
-    <div className="flex min-h-[14rem] items-center justify-center rounded-xl border border-gray-200 bg-gray-50 p-4">
+    <div className="w-full">
       {thumbnailUrl ? (
         <button
           type="button"
@@ -478,14 +478,14 @@ function VideoThumbnailPreview({
               isImage,
             })
           }
-          className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white"
+          className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-gray-200"
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
           <img src={thumbnailUrl} alt={title} className="h-full w-full object-cover" />
         </button>
       ) : (
-        <div className="flex size-24 items-center justify-center rounded-full border-2 border-gray-700 bg-white text-xl font-bold text-gray-800">
-          VID
+        <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-dashed border-gray-300 text-xl font-bold text-gray-800">
+          썸네일 없음
         </div>
       )}
     </div>
@@ -502,7 +502,7 @@ function VideoInfoCard({
   return (
     <Card className={cardClassName}>
       <h2 className="mb-5 text-sm font-bold text-gray-900">동영상 정보</h2>
-      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[30rem_minmax(0,1fr)]">
         <VideoThumbnailPreview detail={detail} onPreview={onPreview} />
         <div className="grid min-w-0 gap-x-8 gap-y-3 md:grid-cols-2">
           <InfoField label="병의원" value={detail.hospital?.name ?? detail.hospital_name} />

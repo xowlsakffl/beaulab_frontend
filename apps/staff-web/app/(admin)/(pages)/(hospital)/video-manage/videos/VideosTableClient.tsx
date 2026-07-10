@@ -8,8 +8,9 @@ import { type DataTableMeta } from "@beaulab/ui-admin";
 
 import { VideosDataTable } from "@/components/video/list/VideosDataTable";
 import { VideosFilterPanel } from "@/components/video/list/VideosFilterPanel";
+import { VideosSummaryCards } from "@/components/video/list/VideosSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_FILTERS,
@@ -31,6 +32,8 @@ import {
   type SortState,
   type VideoApiItem,
   type VideoMetric,
+  type VideoSummary,
+  type VideoSummaryFilter,
 } from "@/lib/video/list";
 
 type SelectOption = {
@@ -62,6 +65,17 @@ function cloneFilters(filters: Filters): Filters {
   };
 }
 
+function buildSummaryFilterState(key: VideoSummaryFilter): Filters {
+  return {
+    ...cloneDefaultFilters(),
+    summaryFilter: key,
+  };
+}
+
+function resolveActiveSummaryKey(filters: Filters): VideoSummaryFilter | null {
+  return filters.summaryFilter || null;
+}
+
 export default function VideosTableClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -77,6 +91,7 @@ export default function VideosTableClient() {
   const [isReportStatusDropdownOpen, setIsReportStatusDropdownOpen] = React.useState(false);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
+  const [summary, setSummary] = React.useState<VideoSummary | null>(null);
   const [categoryItems, setCategoryItems] = React.useState<CategoryApiItem[]>([]);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
@@ -94,6 +109,7 @@ export default function VideosTableClient() {
   );
 
   const queryString = React.useMemo(() => buildVideosQueryString(query), [query]);
+  const activeSummaryKey = React.useMemo(() => resolveActiveSummaryKey(appliedFilters), [appliedFilters]);
   const buildReturnToPath = React.useCallback(() => buildVideosReturnToPath(pathname, query), [pathname, query]);
 
   const categoryOptions = React.useMemo<SelectOption[]>(
@@ -133,6 +149,24 @@ export default function VideosTableClient() {
     fetchRows: fetchVideoRows,
     errorMessage: "동영상 목록 조회 중 오류가 발생했습니다.",
   });
+
+  const fetchSummary = React.useCallback(async () => {
+    try {
+      const response = await api.get<VideoSummary>("/videos/summary", undefined, {
+        latestKey: "videos:summary",
+      });
+
+      if (!isApiSuccess(response)) {
+        return;
+      }
+
+      setSummary(response.data);
+    } catch (error) {
+      if (isApiRequestCanceledError(error)) return;
+
+      setSummary(null);
+    }
+  }, []);
 
   const fetchCategoryItems = React.useCallback(
     async (params: Record<string, string | number>): Promise<CategoryApiItem[]> => {
@@ -208,6 +242,10 @@ export default function VideosTableClient() {
   }, [loadCategories]);
 
   React.useEffect(() => {
+    void fetchSummary();
+  }, [fetchSummary]);
+
+  React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
       if (!datePickerRef.current?.contains(event.target as Node)) {
         setIsDatePickerOpen(false);
@@ -239,6 +277,19 @@ export default function VideosTableClient() {
     setSearchKeyword("");
     setDraftFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
+    setDraftDateRange(undefined);
+    setIsDatePickerOpen(false);
+    setIsReportStatusDropdownOpen(false);
+  }, []);
+
+  const applySummaryFilter = React.useCallback((key: VideoSummaryFilter) => {
+    const nextFilters = buildSummaryFilterState(key);
+
+    setPage(1);
+    setSearchInput("");
+    setSearchKeyword("");
+    setDraftFilters(nextFilters);
+    setAppliedFilters(nextFilters);
     setDraftDateRange(undefined);
     setIsDatePickerOpen(false);
     setIsReportStatusDropdownOpen(false);
@@ -307,6 +358,8 @@ export default function VideosTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
+      <VideosSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
+
       <VideosFilterPanel
         searchInput={searchInput}
         draftFilters={draftFilters}

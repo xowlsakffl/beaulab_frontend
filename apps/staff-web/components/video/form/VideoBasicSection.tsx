@@ -26,7 +26,10 @@ import { normalizeHashtagName, sanitizeHashtagName, validateHashtagName } from "
 import type { VideoCategoryItem, VideoHashtagItem } from "@/lib/video/detail";
 import {
   VIDEO_CATEGORY_SECTIONS,
+  VIDEO_THUMBNAIL_ACCEPT,
+  VIDEO_THUMBNAIL_HELPER_TEXT,
   formatVideoDurationTypingInput,
+  validateVideoThumbnailFile,
   type VideoDoctorOption,
   type VideoFormErrors,
   type VideoFormValues,
@@ -46,6 +49,7 @@ type VideoBasicSectionProps = {
   selectedCategoryItems?: VideoCategoryItem[];
   selectedHashtagItems?: VideoHashtagItem[];
   showMetrics?: boolean;
+  wideThumbnail?: boolean;
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
   onFieldChange: (key: keyof VideoFormValues, value: VideoFormValues[keyof VideoFormValues]) => void;
   onSelectHospital: (hospital: VideoHospitalOption) => void;
@@ -56,6 +60,7 @@ type VideoBasicSectionProps = {
   onAddHashtagName: (name: string) => void;
   onRemoveHashtagName: (name: string) => void;
   onThumbnailChange: (file: File | null) => void;
+  onThumbnailValidationError?: (message: string) => void;
   onThumbnailPreview?: (preview: HospitalMediaPreviewState) => void;
 };
 
@@ -67,6 +72,7 @@ export function VideoBasicSection({
   selectedCategoryItems,
   selectedHashtagItems,
   showMetrics = true,
+  wideThumbnail = true,
   loadCategories,
   onFieldChange,
   onSelectHospital,
@@ -77,6 +83,7 @@ export function VideoBasicSection({
   onAddHashtagName,
   onRemoveHashtagName,
   onThumbnailChange,
+  onThumbnailValidationError,
   onThumbnailPreview,
 }: VideoBasicSectionProps) {
   const doctorOptionsResult = useVideoDoctorOptions(form.hospital_id);
@@ -122,16 +129,21 @@ export function VideoBasicSection({
     return baseOptions;
   }, [doctorOptionsResult.options, selectedDoctorOption]);
 
+  const thumbnailGridClassName = wideThumbnail
+    ? "xl:grid-cols-[30rem_minmax(0,1fr)]"
+    : "xl:grid-cols-[20rem_minmax(0,1fr)]";
+
   return (
     <Card as="section" className={cardClassName}>
       <h2 className="mb-5 text-sm font-bold text-gray-900">동영상 정보</h2>
 
-      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+      <div className={["grid min-w-0 grid-cols-1 gap-6", thumbnailGridClassName].join(" ")}>
         <VideoThumbnailPicker
           file={thumbnailFile}
           existingThumbnail={existingThumbnail}
           error={errors.thumbnail_file}
           onChange={onThumbnailChange}
+          onValidationError={onThumbnailValidationError}
           onPreview={onThumbnailPreview}
         />
 
@@ -285,12 +297,14 @@ function VideoThumbnailPicker({
   existingThumbnail,
   error,
   onChange,
+  onValidationError,
   onPreview,
 }: {
   file: File | null;
   existingThumbnail: ExistingMediaItem | null;
   error?: string;
   onChange: (file: File | null) => void;
+  onValidationError?: (message: string) => void;
   onPreview?: (preview: HospitalMediaPreviewState) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -299,26 +313,43 @@ function VideoThumbnailPicker({
   const previewTitle = file?.name || existingThumbnail?.name || "동영상 썸네일";
   const isPreviewImage = file ? file.type.startsWith("image/") : (existingThumbnail?.isImage ?? true);
 
+  const handleFileChange = React.useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextFile = event.target.files?.[0] ?? null;
+      event.currentTarget.value = "";
+
+      if (!nextFile) {
+        onChange(null);
+        return;
+      }
+
+      const validationError = await validateVideoThumbnailFile(nextFile);
+      if (validationError) {
+        onValidationError?.(validationError);
+        return;
+      }
+
+      onChange(nextFile);
+    },
+    [onChange, onValidationError],
+  );
+
   return (
     <Card
       data-media-collection="thumbnail_file"
       tabIndex={-1}
-      className="flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white p-4"
+      className="flex min-w-0 flex-col gap-3 border-0 bg-transparent p-0 shadow-none"
     >
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept={VIDEO_THUMBNAIL_ACCEPT}
         className="hidden"
-        onChange={(event) => {
-          const nextFile = event.target.files?.[0] ?? null;
-          event.currentTarget.value = "";
-          onChange(nextFile);
-        }}
+        onChange={(event) => void handleFileChange(event)}
       />
 
       {previewUrl ? (
-        <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-gray-200">
           {onPreview ? (
             <button
               type="button"
@@ -344,7 +375,7 @@ function VideoThumbnailPicker({
       ) : (
         <button
           type="button"
-          className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-6 text-center transition-colors hover:border-brand-200 hover:bg-brand-50/30"
+          className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 px-6 text-center transition-colors hover:border-brand-200 hover:bg-brand-50/30"
           onClick={() => inputRef.current?.click()}
         >
           <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
@@ -352,7 +383,7 @@ function VideoThumbnailPicker({
           </div>
           <div className="space-y-1">
             <p className="text-sm font-semibold text-gray-800">썸네일 이미지를 등록해 주세요.</p>
-            <p className="text-xs text-gray-500">jpg, png, webp 파일을 업로드할 수 있습니다.</p>
+            <p className="text-xs text-gray-500">{VIDEO_THUMBNAIL_HELPER_TEXT}</p>
           </div>
         </button>
       )}

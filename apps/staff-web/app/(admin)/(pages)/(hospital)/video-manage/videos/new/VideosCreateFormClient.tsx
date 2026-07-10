@@ -141,6 +141,10 @@ export default function VideosCreateFormClient() {
     [clearError],
   );
 
+  const setThumbnailValidationError = React.useCallback((message: string) => {
+    setErrors((prev) => ({ ...prev, thumbnail_file: message }));
+  }, []);
+
   const validate = React.useCallback(() => {
     const nextErrors = validateCreateVideoForm(form);
     setErrors(nextErrors);
@@ -229,6 +233,7 @@ export default function VideosCreateFormClient() {
           setThumbnailFile(file);
           clearError("thumbnail_file");
         }}
+        onThumbnailValidationError={setThumbnailValidationError}
       />
     </form>
   );

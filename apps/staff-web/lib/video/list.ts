@@ -94,6 +94,13 @@ export type SortField = VideoSortField;
 export type VideoSortDirection = "asc" | "desc";
 export type SortDirection = VideoSortDirection;
 export type VideoMetric = "all" | "report_count" | "view_count" | "like_count";
+export type VideoSummaryFilter = "normal" | "limited" | "reported";
+
+export type VideoSummary = {
+  normal_videos?: number | null;
+  limited_videos?: number | null;
+  reported_videos?: number | null;
+};
 
 export type VideoSortState = {
   field: VideoSortField;
@@ -105,6 +112,7 @@ export type SortState = VideoSortState;
 
 export type VideosQuery = {
   q?: string;
+  summary_filter?: VideoSummaryFilter;
   category_id?: string;
   hospital_status?: string;
   admin_status?: string;
@@ -124,6 +132,7 @@ export type VideosQuery = {
 };
 
 export type Filters = {
+  summaryFilter: VideoSummaryFilter | "";
   dateRange: string;
   startDate: string;
   endDate: string;
@@ -145,6 +154,7 @@ export const DEFAULT_SORT: VideoSortState = {
 };
 
 export const DEFAULT_FILTERS: Filters = {
+  summaryFilter: "",
   dateRange: "",
   startDate: "",
   endDate: "",
@@ -207,6 +217,7 @@ const VIDEO_HOSPITAL_STATUS_VALUE_SET = new Set(VIDEO_HOSPITAL_STATUS_OPTIONS.ma
 const VIDEO_ADMIN_STATUS_VALUE_SET = new Set(VIDEO_ADMIN_STATUS_OPTIONS.map((option) => option.value));
 const VIDEO_REPORT_STATUS_VALUE_SET = new Set(VIDEO_REPORT_STATUS_OPTIONS.map((option) => option.value));
 const VIDEO_METRIC_VALUE_SET = new Set(VIDEO_METRIC_OPTIONS.map((option) => option.value));
+const VIDEO_SUMMARY_FILTER_VALUE_SET = new Set<VideoSummaryFilter>(["normal", "limited", "reported"]);
 
 export function formatLocalDate(date: Date) {
   const year = date.getFullYear();
@@ -363,12 +374,13 @@ export function labelVideoReportStatus(status?: string | null, fallbackLabel = "
 }
 
 export function videoReportStatusColor(status?: string | null): BadgeColor {
-  if (status === "NONE") return "light";
-  if (status === "NORMAL_VISIBLE" || status === "REEXPOSED") return "success";
-  if (status === "REPORTED") return "warning";
-  if (status === "AUTO_BLOCKED" || status === "ADMIN_HIDDEN") return "error";
+  if (status === "REPORTED") return "yellow";
+  if (status === "AUTO_BLOCKED") return "red";
+  if (status === "ADMIN_HIDDEN") return "orange";
+  if (status === "NORMAL_VISIBLE") return "green";
+  if (status === "REEXPOSED") return "blue";
 
-  return "light";
+  return "gray";
 }
 
 export function labelVideoOperatingStatus(status?: string | null) {
@@ -491,6 +503,7 @@ export function parseVideosTableState(searchParams: URLSearchParams) {
   const reportStatuses = normalizeListParam(searchParams.get("report_status")).filter((value) =>
     VIDEO_REPORT_STATUS_VALUE_SET.has(value),
   );
+  const summaryFilter = normalizeVideoSummaryFilter(searchParams.get("summary_filter"));
   const metric = resolveMetricFromParams(searchParams);
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
@@ -506,6 +519,7 @@ export function parseVideosTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       ...DEFAULT_FILTERS,
+      summaryFilter,
       dateRange: dateState.label,
       startDate,
       endDate,
@@ -547,6 +561,7 @@ export function buildVideosQuery({
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
+  if (appliedFilters.summaryFilter) query.summary_filter = appliedFilters.summaryFilter;
   if (appliedFilters.categoryId) query.category_id = appliedFilters.categoryId;
   if (appliedFilters.hospitalStatus) query.hospital_status = appliedFilters.hospitalStatus;
   if (appliedFilters.adminStatus) query.admin_status = appliedFilters.adminStatus;
@@ -570,6 +585,7 @@ export function buildVideosQueryString(query: VideosQuery) {
   const params = new URLSearchParams();
 
   if (query.q) params.set("q", query.q);
+  if (query.summary_filter) params.set("summary_filter", query.summary_filter);
   if (query.category_id) params.set("category_id", query.category_id);
   if (query.hospital_status) params.set("hospital_status", query.hospital_status);
   if (query.admin_status) params.set("admin_status", query.admin_status);
@@ -606,6 +622,12 @@ function normalizePositiveId(value: string | null | undefined) {
   const trimmedValue = (value ?? "").trim();
 
   return /^[1-9]\d*$/.test(trimmedValue) ? trimmedValue : "";
+}
+
+function normalizeVideoSummaryFilter(value: string | null | undefined): VideoSummaryFilter | "" {
+  const normalized = (value ?? "").trim();
+
+  return VIDEO_SUMMARY_FILTER_VALUE_SET.has(normalized as VideoSummaryFilter) ? (normalized as VideoSummaryFilter) : "";
 }
 
 function resolveMetricFromParams(searchParams: URLSearchParams): VideoMetric {

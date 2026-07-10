@@ -169,6 +169,10 @@ export default function VideoEditFormClient() {
     [clearError],
   );
 
+  const setThumbnailValidationError = React.useCallback((message: string) => {
+    setErrors((prev) => ({ ...prev, thumbnail_file: message }));
+  }, []);
+
   const fetchVideo = React.useCallback(async () => {
     if (!Number.isFinite(videoId) || videoId <= 0) {
       setLoadError("잘못된 동영상 경로입니다.");
@@ -312,6 +316,7 @@ export default function VideoEditFormClient() {
             setThumbnailFile(file);
             clearError("thumbnail_file");
           }}
+          onThumbnailValidationError={setThumbnailValidationError}
           onThumbnailPreview={setPreviewMedia}
         />
       </form>
