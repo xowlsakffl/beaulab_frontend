@@ -571,11 +571,7 @@ export function normalizeReportedContent(
   }
 
   if (kind === "review-comment") {
-    return normalizeReportedReviewComment(
-      item.target as HospitalReviewCommentApiItem | null | undefined,
-      item.report,
-      config,
-    );
+    return normalizeReportedReviewComment(item.target as HospitalReviewCommentApiItem | null | undefined, item.report);
   }
 
   if (kind === "evaluation") {
@@ -587,7 +583,7 @@ export function normalizeReportedContent(
   }
 
   if (kind === "talk-comment") {
-    return normalizeReportedTalkComment(item.target as TalkCommentApiItem | null | undefined, item.report, config);
+    return normalizeReportedTalkComment(item.target as TalkCommentApiItem | null | undefined, item.report);
   }
 
   if (kind === "chat") {
@@ -649,7 +645,6 @@ function normalizeReportedReview(
 function normalizeReportedReviewComment(
   target: HospitalReviewCommentApiItem | null | undefined,
   report: ReportedContentReport | null | undefined,
-  config: ReportedContentBoardConfig,
 ): ReportedContentRow {
   const status = target?.status?.trim() || "ACTIVE";
   const id = Number(target?.id ?? 0);
@@ -777,7 +772,6 @@ function normalizeReportedTalk(
 function normalizeReportedTalkComment(
   target: TalkCommentApiItem | null | undefined,
   report: ReportedContentReport | null | undefined,
-  config: ReportedContentBoardConfig,
 ): ReportedContentRow {
   const status = target?.status?.trim() || "ACTIVE";
   const id = Number(target?.id ?? 0);

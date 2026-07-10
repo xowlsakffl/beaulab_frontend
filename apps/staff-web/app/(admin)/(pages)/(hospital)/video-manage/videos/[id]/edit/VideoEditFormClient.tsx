@@ -6,6 +6,10 @@ import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import {
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { VideoBasicSection } from "@/components/video/form/VideoBasicSection";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
@@ -48,6 +52,7 @@ export default function VideoEditFormClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
 
   const detailPath = React.useMemo(() => {
     if (!Number.isFinite(videoId) || videoId <= 0) return "/video-manage/videos";
@@ -285,28 +290,36 @@ export default function VideoEditFormClient() {
   }
 
   return (
-    <form id={VIDEO_EDIT_FORM_ID} onSubmit={handleSubmit} autoComplete="off" className="min-w-0 space-y-6">
-      <VideoBasicSection
-        form={form}
-        errors={errors}
-        thumbnailFile={thumbnailFile}
-        existingThumbnail={thumbnailFile ? null : existingThumbnail}
-        selectedCategoryItems={selectedCategoryItems}
-        selectedHashtagItems={selectedHashtagItems}
-        loadCategories={loadCategories}
-        onFieldChange={setField}
-        onSelectHospital={handleSelectHospital}
-        onClearHospital={handleClearHospital}
-        onSelectDoctorOption={handleSelectDoctorOption}
-        onToggleCategory={toggleCategory}
-        onToggleHashtag={toggleHashtag}
-        onAddHashtagName={addHashtagName}
-        onRemoveHashtagName={removeHashtagName}
-        onThumbnailChange={(file) => {
-          setThumbnailFile(file);
-          clearError("thumbnail_file");
-        }}
+    <>
+      <form id={VIDEO_EDIT_FORM_ID} onSubmit={handleSubmit} autoComplete="off" className="min-w-0 space-y-6">
+        <VideoBasicSection
+          form={form}
+          errors={errors}
+          thumbnailFile={thumbnailFile}
+          existingThumbnail={thumbnailFile ? null : existingThumbnail}
+          selectedCategoryItems={selectedCategoryItems}
+          selectedHashtagItems={selectedHashtagItems}
+          loadCategories={loadCategories}
+          onFieldChange={setField}
+          onSelectHospital={handleSelectHospital}
+          onClearHospital={handleClearHospital}
+          onSelectDoctorOption={handleSelectDoctorOption}
+          onToggleCategory={toggleCategory}
+          onToggleHashtag={toggleHashtag}
+          onAddHashtagName={addHashtagName}
+          onRemoveHashtagName={removeHashtagName}
+          onThumbnailChange={(file) => {
+            setThumbnailFile(file);
+            clearError("thumbnail_file");
+          }}
+          onThumbnailPreview={setPreviewMedia}
+        />
+      </form>
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
       />
-    </form>
+    </>
   );
 }

@@ -20,6 +20,7 @@ import {
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { useVideoDoctorOptions } from "@/hooks/video/useVideoDoctorOptions";
 import { useVideoHospitalOptions } from "@/hooks/video/useVideoHospitalOptions";
+import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { normalizeHashtagName, sanitizeHashtagName, validateHashtagName } from "@/lib/hashtag/list";
 import type { VideoCategoryItem, VideoHashtagItem } from "@/lib/video/detail";
@@ -55,6 +56,7 @@ type VideoBasicSectionProps = {
   onAddHashtagName: (name: string) => void;
   onRemoveHashtagName: (name: string) => void;
   onThumbnailChange: (file: File | null) => void;
+  onThumbnailPreview?: (preview: HospitalMediaPreviewState) => void;
 };
 
 export function VideoBasicSection({
@@ -75,6 +77,7 @@ export function VideoBasicSection({
   onAddHashtagName,
   onRemoveHashtagName,
   onThumbnailChange,
+  onThumbnailPreview,
 }: VideoBasicSectionProps) {
   const doctorOptionsResult = useVideoDoctorOptions(form.hospital_id);
   const selectedHospital = form.hospital_id
@@ -129,6 +132,7 @@ export function VideoBasicSection({
           existingThumbnail={existingThumbnail}
           error={errors.thumbnail_file}
           onChange={onThumbnailChange}
+          onPreview={onThumbnailPreview}
         />
 
         <div className="grid min-w-0 gap-x-8 gap-y-3 md:grid-cols-2">
@@ -281,15 +285,19 @@ function VideoThumbnailPicker({
   existingThumbnail,
   error,
   onChange,
+  onPreview,
 }: {
   file: File | null;
   existingThumbnail: ExistingMediaItem | null;
   error?: string;
   onChange: (file: File | null) => void;
+  onPreview?: (preview: HospitalMediaPreviewState) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(file);
   const previewUrl = fileUrl ?? existingThumbnail?.url ?? null;
+  const previewTitle = file?.name || existingThumbnail?.name || "동영상 썸네일";
+  const isPreviewImage = file ? file.type.startsWith("image/") : (existingThumbnail?.isImage ?? true);
 
   return (
     <Card
@@ -311,8 +319,27 @@ function VideoThumbnailPicker({
 
       {previewUrl ? (
         <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
-          {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
-          <img src={previewUrl} alt="동영상 썸네일" className="h-full w-full object-cover" />
+          {onPreview ? (
+            <button
+              type="button"
+              className="flex h-full w-full cursor-zoom-in items-center justify-center"
+              onClick={() =>
+                onPreview({
+                  url: previewUrl,
+                  title: previewTitle,
+                  isImage: isPreviewImage,
+                })
+              }
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
+              <img src={previewUrl} alt={previewTitle} className="h-full w-full object-cover" />
+            </button>
+          ) : (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
+              <img src={previewUrl} alt={previewTitle} className="h-full w-full object-cover" />
+            </>
+          )}
         </div>
       ) : (
         <button
@@ -501,33 +528,35 @@ function VideoCategorySelect({
         items={selectedLabels}
         onRemove={(id) => onToggleCategory(Number(id), false)}
       />
-      <DropdownTrigger label="전체" onClick={() => setIsOpen((prev) => !prev)} />
+      <div className="relative">
+        <DropdownTrigger label="전체" onClick={() => setIsOpen((prev) => !prev)} />
 
-      {isOpen ? (
-        <OptionsPanel
-          loading={isLoading}
-          loadingText="카테고리 불러오는 중"
-          loadError={loadError}
-          emptyText="선택 가능한 카테고리가 없습니다."
-        >
-          {options.map((option) => {
-            const categoryId = Number(option.value);
-            const isSelected = selectedIds.includes(categoryId);
+        {isOpen ? (
+          <OptionsPanel
+            loading={isLoading}
+            loadingText="카테고리 불러오는 중"
+            loadError={loadError}
+            emptyText="선택 가능한 카테고리가 없습니다."
+          >
+            {options.map((option) => {
+              const categoryId = Number(option.value);
+              const isSelected = selectedIds.includes(categoryId);
 
-            return (
-              <OptionButton
-                key={option.value}
-                label={option.label}
-                selected={isSelected}
-                onClick={() => {
-                  if (!Number.isFinite(categoryId)) return;
-                  onToggleCategory(categoryId, !isSelected);
-                }}
-              />
-            );
-          })}
-        </OptionsPanel>
-      ) : null}
+              return (
+                <OptionButton
+                  key={option.value}
+                  label={option.label}
+                  selected={isSelected}
+                  onClick={() => {
+                    if (!Number.isFinite(categoryId)) return;
+                    onToggleCategory(categoryId, !isSelected);
+                  }}
+                />
+              );
+            })}
+          </OptionsPanel>
+        ) : null}
+      </div>
 
       {error ? <p className="text-xs text-error-500">{error}</p> : null}
     </div>

@@ -148,15 +148,15 @@ export function HospitalGalleryEditCard({
   const galleryCollection = MEDIA_COLLECTIONS.find((collection) => collection.key === "gallery");
   const uploaderRef = React.useRef<HTMLDivElement | null>(null);
 
-  if (!galleryCollection) return null;
-
-  const maxGalleryCount = galleryCollection.maxFiles ?? 5;
+  const maxGalleryCount = galleryCollection?.maxFiles ?? 5;
   const currentGalleryCount = gallery.length + (existingMediaByCollection?.gallery.length ?? 0);
   const isGalleryFull = currentGalleryCount >= maxGalleryCount;
   const galleryPreviewItems = React.useMemo(
     () => buildGalleryPreviewItems(existingMediaByCollection?.gallery ?? [], gallery, galleryOrder),
     [existingMediaByCollection?.gallery, gallery, galleryOrder],
   );
+
+  if (!galleryCollection) return null;
 
   const openFilePicker = () => {
     if (isGalleryFull) return;

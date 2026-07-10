@@ -182,17 +182,25 @@ type HistoryTransition = {
 
 function resolveTransitions(history: OperationHistoryLike): HistoryTransition[] {
   const changes = history.changes ?? [];
+
   if (changes.length > 0) {
     return changes.map((change) => {
       const field = change.field_key ?? history.field ?? null;
+      const contentReportAdminStatus = isContentReportHistory(history) && field === "admin_status";
 
       return {
         field,
-        fieldLabel: normalizeOperationHistoryFieldLabel(change.field_label, defaultFieldLabel(field)),
+        fieldLabel: contentReportAdminStatus
+          ? "강제중지"
+          : normalizeOperationHistoryFieldLabel(change.field_label, defaultFieldLabel(field)),
         beforeRaw: change.before_value,
         afterRaw: change.after_value,
-        beforeLabel: stringifyHistoryValue(change.before_display ?? change.before_value),
-        afterLabel: stringifyHistoryValue(change.after_display ?? change.after_value),
+        beforeLabel: contentReportAdminStatus
+          ? contentReportTargetStatusLabel(change.before_value, change.before_display)
+          : stringifyHistoryValue(change.before_display ?? change.before_value),
+        afterLabel: contentReportAdminStatus
+          ? contentReportTargetStatusLabel(change.after_value, change.after_display)
+          : stringifyHistoryValue(change.after_display ?? change.after_value),
       };
     });
   }
@@ -215,6 +223,27 @@ function resolveTransitions(history: OperationHistoryLike): HistoryTransition[] 
       afterLabel: statusDisplayLabel(field, history.after_value),
     },
   ];
+}
+
+function isContentReportHistory(history: OperationHistoryLike) {
+  const source = history.metadata?.source;
+
+  return typeof source === "string" && source.includes("content_report");
+}
+
+function contentReportTargetStatusLabel(value: unknown, display?: string | null) {
+  const normalized = stringifyHistoryValue(value);
+  const displayLabel = display?.trim();
+
+  if (normalized === "NORMAL" || displayLabel === "정상") {
+    return "정상";
+  }
+
+  if (normalized === "FORCED_STOPPED" || displayLabel === "강제중지") {
+    return "강제중지";
+  }
+
+  return displayLabel || normalized || "-";
 }
 
 function resolveReportStatusTransition(history: OperationHistoryLike) {
@@ -327,6 +356,10 @@ function statusDisplayLabel(
 ) {
   const normalized = stringifyHistoryValue(value);
   const displayLabel = fallbackLabel?.trim();
+
+  if (field === "report_status" && statusLabel) {
+    return statusLabel(normalized, displayLabel || fallbackLabel) || displayLabel || normalized || "-";
+  }
 
   if (displayLabel && displayLabel !== "-" && displayLabel !== normalized) {
     return displayLabel;

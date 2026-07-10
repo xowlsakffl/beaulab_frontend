@@ -300,7 +300,7 @@ export function ReportedContentDetailPanel({
         setUpdatingWarningStatus(null);
       }
     },
-    [onStatusUpdated, targetId, targetType, warningStatus],
+    [onStatusUpdated, targetId, targetType],
   );
 
   const openStatusModal = React.useCallback(

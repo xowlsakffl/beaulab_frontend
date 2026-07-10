@@ -239,6 +239,10 @@ export default function VideoDetailPageClient() {
       if (!detail || updatingAdminStatus) return;
 
       const reason = adminStatusReason.trim();
+      if (adminStatus === "FORCED_STOPPED" && !reason) {
+        setAdminStatusError("강제중지 사유를 입력해주세요.");
+        return;
+      }
 
       setUpdatingAdminStatus(true);
       setAdminStatusError(null);
@@ -389,6 +393,8 @@ export default function VideoDetailPageClient() {
           onPageChange={setHistoryPage}
           cardClassName={cardClassName}
           formatDateTime={formatLocalDateTime}
+          statusLabel={labelVideoReportStatus}
+          statusBadgeColor={videoReportStatusColor}
         />
       </section>
 
@@ -565,7 +571,6 @@ function VideoOperationInfoCard({
         />
         <ReportStatusActionField
           status={detail.report_state?.status ?? "NONE"}
-          fallbackLabel={detail.report_state?.label}
           updating={updatingReportStatus}
           onChange={onReportStatusChange}
         />
@@ -641,12 +646,10 @@ function StatusInfoField({
 
 function ReportStatusActionField({
   status,
-  fallbackLabel,
   updating,
   onChange,
 }: {
   status?: string | null;
-  fallbackLabel?: string | null;
   updating: ReportActionStatus | null;
   onChange: (status: ReportActionStatus) => void;
 }) {
@@ -659,11 +662,6 @@ function ReportStatusActionField({
     <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3">
       <p className={labelClassName}>신고상태</p>
       <div className="flex min-h-[1.5rem] flex-wrap items-center gap-2">
-        {hasReportState ? (
-          <StatusBadge size="sm" color={videoReportStatusColor(currentStatus)}>
-            {labelVideoReportStatus(currentStatus, fallbackLabel ?? undefined)}
-          </StatusBadge>
-        ) : null}
         <Can permission="beaulab.reported_video.update">
           <Button
             type="button"
@@ -713,7 +711,9 @@ function ReportStatusConfirmModal({
   onConfirm: () => void;
 }) {
   const isAdminHidden = pendingStatus === "ADMIN_HIDDEN";
-  const statusLabel = isAdminHidden ? "삭제처리" : "신고오류";
+  const confirmMessage = isAdminHidden
+    ? "해당 영상을 삭제처리(미노출) 하시겠습니까?"
+    : "해당 신고 건을 오류(허위신고)로 처리하시겠습니까?";
 
   return (
     <Modal isOpen={pendingStatus !== null} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">
@@ -723,7 +723,14 @@ function ReportStatusConfirmModal({
         </ModalHeader>
 
         <ModalBody className="mt-6 space-y-5">
-          <p className="text-sm font-medium text-gray-800">해당 동영상을 {statusLabel} 처리하시겠습니까?</p>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-800">{confirmMessage}</p>
+            {!isAdminHidden ? (
+              <p className="text-xs leading-5 text-gray-500">
+                확인 시 72시간 동안 동일 영상에 대한 신규 신고 접수가 제한됩니다.
+              </p>
+            ) : null}
+          </div>
 
           {isAdminHidden ? (
             <div>
