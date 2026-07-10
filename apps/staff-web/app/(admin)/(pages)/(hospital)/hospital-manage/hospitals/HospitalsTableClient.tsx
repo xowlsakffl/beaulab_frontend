@@ -248,20 +248,23 @@ export default function HospitalsTableClient() {
     setAppliedFilters(DEFAULT_FILTERS);
   };
 
-  const applySummaryFilter = React.useCallback((key: HospitalSummaryCardKey) => {
-    const nextFilters = buildSummaryFilters(key);
+  const applySummaryFilter = React.useCallback(
+    (key: HospitalSummaryCardKey) => {
+      const nextFilters = activeSummaryKey === key ? DEFAULT_FILTERS : buildSummaryFilters(key);
 
-    setDraftFilters(nextFilters);
-    setAppliedFilters(nextFilters);
-    setDraftDateRange(undefined);
-    setSearchInput("");
-    setSearchKeyword("");
-    setIsStatusDropdownOpen(false);
-    setIsReviewDropdownOpen(false);
-    setIsDepartmentDropdownOpen(false);
-    setIsDatePickerOpen(false);
-    setPage(1);
-  }, []);
+      setDraftFilters(nextFilters);
+      setAppliedFilters(nextFilters);
+      setDraftDateRange(undefined);
+      setSearchInput("");
+      setSearchKeyword("");
+      setIsStatusDropdownOpen(false);
+      setIsReviewDropdownOpen(false);
+      setIsDepartmentDropdownOpen(false);
+      setIsDatePickerOpen(false);
+      setPage(1);
+    },
+    [activeSummaryKey],
+  );
 
   const toggleReviewStatus = (value: string) => {
     setDraftFilters((prev) => {

@@ -383,18 +383,24 @@ export default function HospitalEventsTableClient() {
     setIsAllowStatusDropdownOpen(false);
   };
 
-  const applySummaryFilter = React.useCallback((key: HospitalEventSummaryCardKey) => {
-    const nextState = buildSummaryFilterState(key);
+  const applySummaryFilter = React.useCallback(
+    (key: HospitalEventSummaryCardKey) => {
+      const nextState =
+        activeSummaryKey === key
+          ? { filters: DEFAULT_HOSPITAL_EVENT_FILTERS, draftDateRange: undefined }
+          : buildSummaryFilterState(key);
 
-    setDraftFilters(nextState.filters);
-    setAppliedFilters(nextState.filters);
-    setDraftDateRange(nextState.draftDateRange);
-    setSearchInput("");
-    setSearchKeyword("");
-    setPage(1);
-    setIsDatePickerOpen(false);
-    setIsAllowStatusDropdownOpen(false);
-  }, []);
+      setDraftFilters(nextState.filters);
+      setAppliedFilters(nextState.filters);
+      setDraftDateRange(nextState.draftDateRange);
+      setSearchInput("");
+      setSearchKeyword("");
+      setPage(1);
+      setIsDatePickerOpen(false);
+      setIsAllowStatusDropdownOpen(false);
+    },
+    [activeSummaryKey],
+  );
 
   const toggleDateType = (value: HospitalEventDateType) => {
     setDraftFilters((prev) => ({

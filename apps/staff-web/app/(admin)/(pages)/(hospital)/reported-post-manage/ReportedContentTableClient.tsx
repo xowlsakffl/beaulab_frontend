@@ -266,10 +266,10 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
 
   const applySummaryFilter = React.useCallback(
     (key: ReportedContentSummaryCardKey) => {
-      const defaultFilters = {
+      const defaultFilters: ReportedContentFilters = {
         ...defaultReportedContentFilters(config),
         targetAuthorId: appliedFilters.targetAuthorId,
-        summaryFilter: key,
+        summaryFilter: activeSummaryKey === key ? "" : key,
       };
 
       setSearchInput("");
@@ -281,7 +281,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
       setIsDatePickerOpen(false);
       setPage(1);
     },
-    [appliedFilters.targetAuthorId, config],
+    [activeSummaryKey, appliedFilters.targetAuthorId, config],
   );
 
   const toggleSort = React.useCallback((field: ReportedContentSortField) => {

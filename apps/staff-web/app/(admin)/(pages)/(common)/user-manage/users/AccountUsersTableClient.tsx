@@ -175,18 +175,21 @@ export default function AccountUsersTableClient() {
     setPage(1);
   }, []);
 
-  const applySummaryFilter = React.useCallback((key: AccountUserSummaryCardKey) => {
-    const nextFilters = buildSummaryFilters(key);
+  const applySummaryFilter = React.useCallback(
+    (key: AccountUserSummaryCardKey) => {
+      const nextFilters = activeSummaryKey === key ? DEFAULT_ACCOUNT_USER_FILTERS : buildSummaryFilters(key);
 
-    setSearchInput("");
-    setSearchKeyword("");
-    setDraftDateRange(undefined);
-    setDraftFilters(nextFilters);
-    setAppliedFilters(nextFilters);
-    setSortState(DEFAULT_ACCOUNT_USER_SORT);
-    setIsDatePickerOpen(false);
-    setPage(1);
-  }, []);
+      setSearchInput("");
+      setSearchKeyword("");
+      setDraftDateRange(undefined);
+      setDraftFilters(nextFilters);
+      setAppliedFilters(nextFilters);
+      setSortState(DEFAULT_ACCOUNT_USER_SORT);
+      setIsDatePickerOpen(false);
+      setPage(1);
+    },
+    [activeSummaryKey],
+  );
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToAccountUserFilter(nextRange);

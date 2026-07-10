@@ -207,18 +207,21 @@ export default function HospitalEntriesTableClient() {
     setAppliedFilters(DEFAULT_FILTERS);
   };
 
-  const applySummaryFilter = React.useCallback((key: HospitalEntrySummaryCardKey) => {
-    const nextFilters = buildSummaryFilters(key);
+  const applySummaryFilter = React.useCallback(
+    (key: HospitalEntrySummaryCardKey) => {
+      const nextFilters = activeSummaryKey === key ? DEFAULT_FILTERS : buildSummaryFilters(key);
 
-    setDraftFilters(nextFilters);
-    setAppliedFilters(nextFilters);
-    setDraftDateRange(undefined);
-    setSearchInput("");
-    setSearchKeyword("");
-    setIsAllowStatusDropdownOpen(false);
-    setIsDatePickerOpen(false);
-    setPage(1);
-  }, []);
+      setDraftFilters(nextFilters);
+      setAppliedFilters(nextFilters);
+      setDraftDateRange(undefined);
+      setSearchInput("");
+      setSearchKeyword("");
+      setIsAllowStatusDropdownOpen(false);
+      setIsDatePickerOpen(false);
+      setPage(1);
+    },
+    [activeSummaryKey],
+  );
 
   const toggleAllowStatus = (value: string) => {
     setDraftFilters((prev) => {
