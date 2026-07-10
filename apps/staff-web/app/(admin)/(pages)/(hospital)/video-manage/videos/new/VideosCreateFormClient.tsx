@@ -3,12 +3,10 @@
 import React from "react";
 
 import { VideoBasicSection } from "@/components/video/form/VideoBasicSection";
-import { VideoCategorySection } from "@/components/video/form/VideoCategorySection";
-import { VideoMediaPanel } from "@/components/video/form/VideoMediaPanel";
-import { VideoPublishSection } from "@/components/video/form/VideoPublishSection";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
 import { api } from "@/lib/common/api";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   buildCreateVideoFormData,
   extractVideoFieldErrors,
@@ -23,6 +21,8 @@ import {
 import { isApiSuccess } from "@beaulab/types";
 import { Button, useGlobalAlert } from "@beaulab/ui-admin";
 import { useRouter } from "next/navigation";
+
+const VIDEO_CREATE_FORM_ID = "video-create-form";
 
 export default function VideosCreateFormClient() {
   const router = useRouter();
@@ -68,6 +68,39 @@ export default function VideosCreateFormClient() {
     [clearError],
   );
 
+  const toggleHashtag = React.useCallback(
+    (hashtagId: number, checked: boolean) => {
+      setForm((prev) => ({
+        ...prev,
+        hashtag_ids: checked
+          ? prev.hashtag_ids.includes(hashtagId)
+            ? prev.hashtag_ids
+            : [...prev.hashtag_ids, hashtagId]
+          : prev.hashtag_ids.filter((item) => item !== hashtagId),
+      }));
+      clearError("hashtag_ids");
+    },
+    [clearError],
+  );
+
+  const addHashtagName = React.useCallback(
+    (name: string) => {
+      setForm((prev) => ({
+        ...prev,
+        hashtag_names: prev.hashtag_names.includes(name) ? prev.hashtag_names : [...prev.hashtag_names, name],
+      }));
+      clearError("hashtag_ids");
+    },
+    [clearError],
+  );
+
+  const removeHashtagName = React.useCallback((name: string) => {
+    setForm((prev) => ({
+      ...prev,
+      hashtag_names: prev.hashtag_names.filter((item) => item !== name),
+    }));
+  }, []);
+
   const handleSelectHospital = React.useCallback(
     (hospital: VideoHospitalOption) => {
       setForm((prev) => ({
@@ -83,6 +116,18 @@ export default function VideosCreateFormClient() {
     },
     [clearError],
   );
+
+  const handleClearHospital = React.useCallback(() => {
+    setForm((prev) => ({
+      ...prev,
+      hospital_id: null,
+      hospital_name: "",
+      hospital_business_number: "",
+      doctor_id: null,
+      doctor_name: "",
+    }));
+    clearError("doctor_id");
+  }, [clearError]);
 
   const handleSelectDoctorOption = React.useCallback(
     (doctor: VideoDoctorOption | null) => {
@@ -153,46 +198,38 @@ export default function VideosCreateFormClient() {
     }
   };
 
+  const headerAction = React.useMemo(
+    () => (
+      <Button type="submit" form={VIDEO_CREATE_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
+        {isSubmitting ? "저장 중..." : "저장하기"}
+      </Button>
+    ),
+    [isSubmitting],
+  );
+
+  usePageHeaderExtra(headerAction);
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
-    >
-      <div className="min-w-0 space-y-6">
-        <VideoBasicSection
-          form={form}
-          errors={errors}
-          onFieldChange={setField}
-          onSelectHospital={handleSelectHospital}
-          onSelectDoctorOption={handleSelectDoctorOption}
-        />
-
-        <VideoCategorySection
-          selectedIds={form.category_ids}
-          errors={errors}
-          loadCategories={loadCategories}
-          onToggleCategory={toggleCategory}
-        />
-      </div>
-
-      <div className="min-w-0 space-y-6">
-        <VideoPublishSection form={form} errors={errors} onFieldChange={setField} />
-
-        <VideoMediaPanel
-          thumbnailFile={thumbnailFile}
-          errors={errors}
-          onThumbnailChange={(file) => {
-            setThumbnailFile(file);
-            clearError("thumbnail_file");
-          }}
-        />
-
-        <div className="flex flex-col gap-3">
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "등록 중..." : "동영상 등록"}
-          </Button>
-        </div>
-      </div>
+    <form id={VIDEO_CREATE_FORM_ID} onSubmit={handleSubmit} autoComplete="off" className="min-w-0 space-y-6">
+      <VideoBasicSection
+        form={form}
+        errors={errors}
+        thumbnailFile={thumbnailFile}
+        showMetrics={false}
+        loadCategories={loadCategories}
+        onFieldChange={setField}
+        onSelectHospital={handleSelectHospital}
+        onClearHospital={handleClearHospital}
+        onSelectDoctorOption={handleSelectDoctorOption}
+        onToggleCategory={toggleCategory}
+        onToggleHashtag={toggleHashtag}
+        onAddHashtagName={addHashtagName}
+        onRemoveHashtagName={removeHashtagName}
+        onThumbnailChange={(file) => {
+          setThumbnailFile(file);
+          clearError("thumbnail_file");
+        }}
+      />
     </form>
   );
 }

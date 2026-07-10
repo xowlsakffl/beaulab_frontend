@@ -34,6 +34,9 @@ type OperationHistoryCardProps = {
   changeValueDisplay?: (change: OperationHistoryChangeLike, side: "before" | "after") => ReactNode;
 };
 
+const stateBoxClassName =
+  "flex min-h-24 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500";
+
 export function OperationHistoryCard({
   histories,
   meta,
@@ -72,7 +75,7 @@ export function OperationHistoryCard({
           className={["space-y-3", loading ? "pointer-events-none opacity-60" : ""].filter(Boolean).join(" ")}
           aria-busy={loading}
         >
-          <div className="max-h-56 space-y-3 overflow-y-auto pr-1">
+          <div className="max-h-56 min-h-24 space-y-3 overflow-y-auto pr-1">
             {histories.map((history) => {
               const changes = history.changes ?? [];
               const canExpand = history.action === "UPDATED" && changes.length > 0;
@@ -158,13 +161,9 @@ export function OperationHistoryCard({
           ) : null}
         </div>
       ) : loading ? (
-        <div className="flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          히스토리를 불러오는 중입니다.
-        </div>
+        <div className={stateBoxClassName}>히스토리를 불러오는 중입니다.</div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          등록된 히스토리가 없습니다.
-        </div>
+        <div className={stateBoxClassName}>등록된 히스토리가 없습니다.</div>
       )}
     </Card>
   );

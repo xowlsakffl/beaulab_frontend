@@ -172,12 +172,9 @@ export const VIDEO_ADMIN_STATUS_OPTIONS = [
 ];
 
 export const VIDEO_REPORT_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "NONE", label: "없음" },
   { value: "REPORTED", label: "신고접수" },
-  { value: "AUTO_BLOCKED", label: "자동차단" },
-  { value: "ADMIN_HIDDEN", label: "노출중지" },
-  { value: "NORMAL_VISIBLE", label: "정상노출" },
-  { value: "REEXPOSED", label: "재노출" },
+  { value: "ADMIN_HIDDEN", label: "삭제처리" },
+  { value: "NORMAL_VISIBLE", label: "신고오류" },
 ];
 
 export const VIDEO_METRIC_OPTIONS: { value: VideoMetric; label: string }[] = [
@@ -318,6 +315,20 @@ export function normalizeNumberBound(value: string | null | undefined) {
   return trimmedValue.replace(/^0+(?=\d)/, "");
 }
 
+function expandVideoReportStatuses(statuses: string[]) {
+  const result = new Set(statuses);
+
+  if (result.has("REPORTED")) {
+    result.add("AUTO_BLOCKED");
+  }
+
+  if (result.has("NORMAL_VISIBLE")) {
+    result.add("REEXPOSED");
+  }
+
+  return Array.from(result);
+}
+
 export function labelVideoHospitalStatus(status?: string | null, fallbackLabel = "-") {
   if (status === "PUBLIC" || status === "공개") return "공개";
   if (status === "PRIVATE" || status === "미공개" || status === "비공개") return "미공개";
@@ -341,12 +352,12 @@ export function videoAdminStatusColor(status?: string | null): BadgeColor {
 }
 
 export function labelVideoReportStatus(status?: string | null, fallbackLabel = "-") {
-  if (status === "NONE") return "없음";
+  if (status === "NONE") return "-";
   if (status === "REPORTED") return "신고접수";
-  if (status === "AUTO_BLOCKED") return "자동차단";
-  if (status === "ADMIN_HIDDEN") return "노출중지";
-  if (status === "NORMAL_VISIBLE") return "정상노출";
-  if (status === "REEXPOSED") return "재노출";
+  if (status === "AUTO_BLOCKED") return "신고접수";
+  if (status === "ADMIN_HIDDEN") return "삭제처리";
+  if (status === "NORMAL_VISIBLE") return "신고오류";
+  if (status === "REEXPOSED") return "신고오류";
 
   return status?.trim() || fallbackLabel;
 }
@@ -453,7 +464,9 @@ export function normalizeVideo(item: VideoApiItem): VideoRow {
     adminStatusLabel: item.admin_status_label?.trim() || labelVideoAdminStatus(adminStatus),
     reportStatus,
     reportStatusLabel:
-      reportStatus === "NONE" ? "-" : item.report_state?.label?.trim() || labelVideoReportStatus(reportStatus),
+      reportStatus === "NONE"
+        ? "-"
+        : labelVideoReportStatus(reportStatus, item.report_state?.label?.trim() || undefined),
     reportCount: Number(item.report_state?.report_count ?? 0),
     viewCount: Number(item.view_count ?? 0),
     likeCount: Number(item.like_count ?? 0),
@@ -537,7 +550,9 @@ export function buildVideosQuery({
   if (appliedFilters.categoryId) query.category_id = appliedFilters.categoryId;
   if (appliedFilters.hospitalStatus) query.hospital_status = appliedFilters.hospitalStatus;
   if (appliedFilters.adminStatus) query.admin_status = appliedFilters.adminStatus;
-  if (appliedFilters.reportStatuses.length > 0) query.report_status = appliedFilters.reportStatuses.join(",");
+  if (appliedFilters.reportStatuses.length > 0) {
+    query.report_status = expandVideoReportStatuses(appliedFilters.reportStatuses).join(",");
+  }
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
 

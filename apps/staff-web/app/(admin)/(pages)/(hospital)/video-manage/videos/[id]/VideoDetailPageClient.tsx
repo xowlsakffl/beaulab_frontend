@@ -6,37 +6,79 @@ import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CategoryBadgeList,
+  InputField,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalPanel,
+  ModalTitle,
   SpinnerBlock,
   StatusBadge,
+  type BadgeColor,
+  type DataTableMeta,
 } from "@beaulab/ui-admin";
 
+import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { DetailCompactMediaCard, DetailEmptyState, DetailImageMediaCard } from "@/components/common/DetailMediaCard";
-import { CategoryBadgeList } from "@beaulab/ui-admin";
-import { api } from "@/lib/common/api";
+import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import {
-  formatBytes,
-  getVideoMediaFilename,
-  resolveVideoMediaUrl,
-  type VideoDetailResponse,
-  type VideoMediaAsset,
-} from "@/lib/video/detail";
+  HospitalMediaPreviewModal,
+  type HospitalMediaPreviewState,
+} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { api } from "@/lib/common/api";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
+import { getVideoMediaFilename, resolveVideoMediaUrl, type VideoDetailResponse } from "@/lib/video/detail";
 import {
   formatLocalDateTime,
-  labelVideoApprovalStatus,
-  labelVideoDistributionChannel,
-  labelVideoOperatingStatus,
+  labelVideoAdminStatus,
+  labelVideoHospitalStatus,
+  labelVideoReportStatus,
+  videoHospitalStatusColor,
+  videoReportStatusColor,
 } from "@/lib/video/list";
 
-type VideoViewResponse = Omit<VideoDetailResponse, "hospital_business_number">;
-const detailItemClass = "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "whitespace-nowrap pt-1 text-left text-xs font-medium text-gray-500 ";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
+const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
+const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
+const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
+const HISTORY_PER_PAGE = 10;
+
+type OperationHistoryChangeItem = {
+  id?: number;
+  field_key?: string | null;
+  field_label?: string | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  before_display?: string | null;
+  after_display?: string | null;
+  sort_order?: number | null;
+};
+
+type OperationHistoryItem = {
+  id: number;
+  actor_label?: string | null;
+  field?: string | null;
+  action?: string | null;
+  action_label?: string | null;
+  changes?: OperationHistoryChangeItem[] | null;
+  before_value?: unknown;
+  after_value?: unknown;
+  reason?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+};
+
+type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
+
+type ReportStatusResponse = {
+  status?: string | null;
+  label?: string | null;
+  report_count?: number | null;
+  process_reason?: string | null;
+  updated_at?: string | null;
+};
 
 export default function VideoDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -46,9 +88,24 @@ export default function VideoDetailPageClient() {
   const rawVideoId = Array.isArray(params.id) ? params.id[0] : params.id;
   const videoId = Number(rawVideoId);
 
-  const [detail, setDetail] = React.useState<VideoViewResponse | null>(null);
+  const [detail, setDetail] = React.useState<VideoDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [isForcedStopModalOpen, setIsForcedStopModalOpen] = React.useState(false);
+  const [isNormalizeModalOpen, setIsNormalizeModalOpen] = React.useState(false);
+  const [adminStatusReason, setAdminStatusReason] = React.useState("");
+  const [adminStatusError, setAdminStatusError] = React.useState<string | null>(null);
+  const [updatingAdminStatus, setUpdatingAdminStatus] = React.useState(false);
+  const [pendingReportStatus, setPendingReportStatus] = React.useState<ReportActionStatus | null>(null);
+  const [reportStatusReason, setReportStatusReason] = React.useState("");
+  const [reportStatusReasonError, setReportStatusReasonError] = React.useState<string | null>(null);
+  const [reportStatusError, setReportStatusError] = React.useState<string | null>(null);
+  const [updatingReportStatus, setUpdatingReportStatus] = React.useState<ReportActionStatus | null>(null);
+  const [histories, setHistories] = React.useState<OperationHistoryItem[]>([]);
+  const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
+  const [historyPage, setHistoryPage] = React.useState(1);
+  const [historiesLoading, setHistoriesLoading] = React.useState(false);
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -61,6 +118,18 @@ export default function VideoDetailPageClient() {
       : `/video-manage/videos/${videoId}/edit`;
   }, [videoId, searchParams]);
 
+  const headerAction = React.useMemo(() => {
+    if (!Number.isFinite(videoId) || videoId <= 0) return null;
+
+    return (
+      <Can permission="beaulab.video.update">
+        <Button type="button" variant="brand" size="sm" onClick={() => router.push(editPath)}>
+          수정하기
+        </Button>
+      </Can>
+    );
+  }, [editPath, router, videoId]);
+
   const fetchVideo = React.useCallback(async () => {
     if (!Number.isFinite(videoId) || videoId <= 0) {
       setLoadError("잘못된 동영상 경로입니다.");
@@ -72,7 +141,7 @@ export default function VideoDetailPageClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<VideoViewResponse>(`/videos/${videoId}`);
+      const response = await api.get<VideoDetailResponse>(`/videos/${videoId}`);
       if (!isApiSuccess(response)) {
         setLoadError(response.error.message || "동영상 정보를 불러오지 못했습니다.");
         return;
@@ -86,12 +155,209 @@ export default function VideoDetailPageClient() {
     }
   }, [videoId]);
 
+  const fetchHistories = React.useCallback(async () => {
+    if (!Number.isFinite(videoId) || videoId <= 0) return;
+
+    setHistoriesLoading(true);
+
+    try {
+      const response = await api.get<OperationHistoryItem[]>(`/videos/${videoId}/operation-histories`, {
+        operation_histories_page: historyPage,
+        operation_histories_per_page: HISTORY_PER_PAGE,
+      });
+
+      if (isApiSuccess(response)) {
+        setHistories(response.data);
+        setHistoryMeta((response.meta as DataTableMeta | null) ?? null);
+      }
+    } finally {
+      setHistoriesLoading(false);
+    }
+  }, [historyPage, videoId]);
+
+  const refreshHistoriesFromFirstPage = React.useCallback(async () => {
+    if (historyPage !== 1) {
+      setHistoryPage(1);
+      return;
+    }
+
+    await fetchHistories();
+  }, [fetchHistories, historyPage]);
+
   React.useEffect(() => {
     void fetchVideo();
   }, [fetchVideo]);
 
+  React.useEffect(() => {
+    void fetchHistories();
+  }, [fetchHistories]);
+
+  usePageHeaderExtra(headerAction);
+
+  const openForcedStopModal = React.useCallback(() => {
+    setAdminStatusError(null);
+    setAdminStatusReason("");
+    setIsForcedStopModalOpen(true);
+  }, []);
+
+  const openNormalizeModal = React.useCallback(() => {
+    setAdminStatusError(null);
+    setAdminStatusReason("");
+    setIsNormalizeModalOpen(true);
+  }, []);
+
+  const requestAdminStatusChange = React.useCallback(
+    (adminStatus: "NORMAL" | "FORCED_STOPPED") => {
+      if (adminStatus === "FORCED_STOPPED") {
+        openForcedStopModal();
+        return;
+      }
+
+      openNormalizeModal();
+    },
+    [openForcedStopModal, openNormalizeModal],
+  );
+
+  const closeForcedStopModal = React.useCallback(() => {
+    if (updatingAdminStatus) return;
+
+    setIsForcedStopModalOpen(false);
+    setAdminStatusError(null);
+    setAdminStatusReason("");
+  }, [updatingAdminStatus]);
+
+  const closeNormalizeModal = React.useCallback(() => {
+    if (updatingAdminStatus) return;
+
+    setIsNormalizeModalOpen(false);
+    setAdminStatusError(null);
+    setAdminStatusReason("");
+  }, [updatingAdminStatus]);
+
+  const submitAdminStatus = React.useCallback(
+    async (adminStatus: string) => {
+      if (!detail || updatingAdminStatus) return;
+
+      const reason = adminStatusReason.trim();
+
+      setUpdatingAdminStatus(true);
+      setAdminStatusError(null);
+
+      try {
+        const response = await api.patch<{ updated_count?: number; admin_status?: string; ids?: number[] }>(
+          "/videos/admin-status",
+          {
+            ids: [detail.id],
+            admin_status: adminStatus,
+            ...(reason ? { reason } : {}),
+          },
+        );
+
+        if (!isApiSuccess(response)) {
+          setAdminStatusError(response.error.message || "강제중지 상태 변경에 실패했습니다.");
+          return;
+        }
+
+        setDetail((prev) =>
+          prev
+            ? {
+                ...prev,
+                admin_status: adminStatus,
+                admin_status_label: labelVideoAdminStatus(adminStatus),
+              }
+            : prev,
+        );
+        setIsForcedStopModalOpen(false);
+        setIsNormalizeModalOpen(false);
+        setAdminStatusReason("");
+        await refreshHistoriesFromFirstPage();
+      } catch {
+        setAdminStatusError("강제중지 상태 변경 중 오류가 발생했습니다.");
+      } finally {
+        setUpdatingAdminStatus(false);
+      }
+    },
+    [adminStatusReason, detail, refreshHistoriesFromFirstPage, updatingAdminStatus],
+  );
+
+  const openReportStatusModal = React.useCallback(
+    (reportStatus: ReportActionStatus) => {
+      if (detail?.report_state?.status === reportStatus || updatingReportStatus !== null) return;
+
+      setPendingReportStatus(reportStatus);
+      setReportStatusReason("");
+      setReportStatusReasonError(null);
+      setReportStatusError(null);
+    },
+    [detail?.report_state?.status, updatingReportStatus],
+  );
+
+  const closeReportStatusModal = React.useCallback(() => {
+    if (updatingReportStatus !== null) return;
+
+    setPendingReportStatus(null);
+    setReportStatusReason("");
+    setReportStatusReasonError(null);
+    setReportStatusError(null);
+  }, [updatingReportStatus]);
+
+  const submitReportStatus = React.useCallback(async () => {
+    if (!detail || !pendingReportStatus || updatingReportStatus !== null) return;
+
+    const normalizedReason = reportStatusReason.trim();
+    if (pendingReportStatus === "ADMIN_HIDDEN" && !normalizedReason) {
+      setReportStatusReasonError("삭제처리 사유를 입력해주세요.");
+      return;
+    }
+
+    setUpdatingReportStatus(pendingReportStatus);
+    setReportStatusReasonError(null);
+    setReportStatusError(null);
+
+    try {
+      const response = await api.patch<ReportStatusResponse>("/reported-contents/status", {
+        target_type: "hospital_video",
+        target_id: detail.id,
+        report_status: pendingReportStatus,
+        ...(normalizedReason ? { process_reason: normalizedReason } : {}),
+      });
+
+      if (!isApiSuccess(response)) {
+        setReportStatusError(response.error.message || "신고상태 변경에 실패했습니다.");
+        return;
+      }
+
+      const nextAdminStatus = pendingReportStatus === "ADMIN_HIDDEN" ? "FORCED_STOPPED" : "NORMAL";
+
+      setDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              admin_status: nextAdminStatus,
+              admin_status_label: labelVideoAdminStatus(nextAdminStatus),
+              report_state: {
+                ...prev.report_state,
+                status: response.data.status ?? pendingReportStatus,
+                label: response.data.label ?? labelVideoReportStatus(response.data.status ?? pendingReportStatus),
+                report_count: response.data.report_count ?? prev.report_state?.report_count ?? 0,
+                process_reason: response.data.process_reason ?? normalizedReason,
+                updated_at: response.data.updated_at ?? new Date().toISOString(),
+              },
+            }
+          : prev,
+      );
+      setPendingReportStatus(null);
+      setReportStatusReason("");
+      await refreshHistoriesFromFirstPage();
+    } catch {
+      setReportStatusError("신고상태 변경 중 오류가 발생했습니다.");
+    } finally {
+      setUpdatingReportStatus(null);
+    }
+  }, [detail, pendingReportStatus, refreshHistoriesFromFirstPage, reportStatusReason, updatingReportStatus]);
+
   if (isLoading) {
-    return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" />;
+    return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="동영상 정보를 불러오는 중" />;
   }
 
   if (loadError || !detail) {
@@ -105,251 +371,447 @@ export default function VideoDetailPageClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start">
-      <Card as="section" className="min-w-0">
-        <CardHeader className="pb-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="space-y-1">
-              <CardTitle>{detail.title} 상세 정보</CardTitle>
-            </div>
+    <div className="min-w-0 space-y-4">
+      <VideoInfoCard detail={detail} onPreview={setPreviewMedia} />
 
-            <div className="flex w-full flex-row gap-2 sm:w-auto">
-              <Can permission="beaulab.video.update">
-                <Button
-                  type="button"
-                  variant="brand"
-                  className="flex-1 sm:flex-none"
-                  onClick={() => router.push(editPath)}
-                >
-                  수정하기
-                </Button>
-              </Can>
-            </div>
-          </div>
-        </CardHeader>
+      <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+        <VideoOperationInfoCard
+          detail={detail}
+          updatingAdminStatus={updatingAdminStatus}
+          updatingReportStatus={updatingReportStatus}
+          onAdminStatusChange={requestAdminStatusChange}
+          onReportStatusChange={openReportStatusModal}
+        />
+        <CommonOperationHistoryCard
+          histories={histories}
+          meta={historyMeta}
+          loading={historiesLoading}
+          onPageChange={setHistoryPage}
+          cardClassName={cardClassName}
+          formatDateTime={formatLocalDateTime}
+        />
+      </section>
 
-        <div className="space-y-10 divide-y divide-gray-200">
-          <section className="space-y-6 pb-6">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800">기본 정보</h3>
-              <p className="text-xs text-gray-500">동영상의 병의원, 의료진, 상태 정보를 확인합니다.</p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <DetailField label="병의원명" value={detail.hospital?.name ?? detail.hospital_name} />
-              <DetailField label="의료진명" value={detail.doctor?.name ?? detail.doctor_name} />
-              <DetailField label="제목" value={detail.title} className="md:col-span-2" />
-              <DetailField label="설명" value={detail.description} className="md:col-span-2" />
-              <DetailField label="조회수" value={formatCount(detail.view_count)} />
-              <DetailField label="좋아요 수" value={formatCount(detail.like_count)} />
-              <StatusField
-                label="운영 상태"
-                tone="success"
-                value={detail.status}
-                formatter={labelVideoOperatingStatus}
-              />
-              <StatusField
-                label="검수 상태"
-                tone="warning"
-                value={detail.allow_status}
-                formatter={labelVideoApprovalStatus}
-              />
-              <TagField
-                label="카테고리"
-                values={detail.categories?.map((item) => item.full_path || item.name) ?? []}
-                className="md:col-span-2"
-              />
-              <DetailField label="등록신청일" value={formatLocalDateTime(detail.created_at)} />
-              <DetailField label="등록완료일" value={formatLocalDateTime(detail.allowed_at)} />
-            </div>
-          </section>
-
-          <section className="space-y-6">
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-gray-800">배포 정보</h3>
-              <p className="text-xs text-gray-500">외부 영상 연동과 게시 기간 정보를 확인합니다.</p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <DetailField label="배포 채널" value={labelVideoDistributionChannel(detail.distribution_channel)} />
-              <DetailField label="재생 시간" value={formatDuration(detail.duration_seconds)} />
-              <LinkField label="외부 영상 URL" href={detail.external_video_url} className="md:col-span-2" />
-              <DetailField label="외부 영상 ID" value={detail.external_video_id} className="md:col-span-2" />
-              <BooleanField label="무기한 게시" value={Boolean(detail.is_publish_period_unlimited)} />
-              <DetailField label="게시 기간" value={formatPublishPeriod(detail)} />
-              <DetailField label="등록일" value={formatLocalDateTime(detail.created_at)} />
-              <DetailField label="수정일" value={formatLocalDateTime(detail.updated_at)} />
-            </div>
-          </section>
-        </div>
-      </Card>
-
-      <Card as="aside" className="min-w-0">
-        <CardHeader className="pb-6">
-          <CardTitle>파일 정보</CardTitle>
-          <CardDescription>썸네일과 원본 동영상 파일을 확인합니다.</CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          <ThumbnailSection media={detail.thumbnail_file} />
-          <FileSummaryField label="원본 동영상 파일" media={detail.video_file} detailId={detail.id} />
-        </CardContent>
-      </Card>
+      <HospitalMediaPreviewModal
+        preview={previewMedia}
+        onChange={setPreviewMedia}
+        onClose={() => setPreviewMedia(null)}
+      />
+      <AllowStatusConfirmModal
+        pending={isForcedStopModalOpen ? { allowStatus: "FORCED_STOPPED", reason: adminStatusReason } : null}
+        title="강제중지 처리"
+        subjectLabel="해당 동영상을"
+        messageAction="처리"
+        labelStatus={labelVideoAdminStatus}
+        updating={updatingAdminStatus}
+        error={adminStatusError}
+        rejectStatus="FORCED_STOPPED"
+        reasonInputId="video-forced-stop-reason"
+        reasonLabel="강제중지 사유"
+        reasonPlaceholder="강제중지 사유를 입력해주세요."
+        processingText="처리 중"
+        confirmText="등록"
+        onReasonChange={setAdminStatusReason}
+        onClose={closeForcedStopModal}
+        onConfirm={() => void submitAdminStatus("FORCED_STOPPED")}
+      />
+      <AllowStatusConfirmModal
+        pending={isNormalizeModalOpen ? { allowStatus: "NORMAL", reason: "" } : null}
+        title="정상 처리"
+        subjectLabel="해당 동영상을"
+        messageAction="처리"
+        labelStatus={labelVideoAdminStatus}
+        updating={updatingAdminStatus}
+        error={adminStatusError}
+        rejectStatus="FORCED_STOPPED"
+        reasonInputId="video-normal-reason"
+        processingText="처리 중"
+        confirmText="확인"
+        onReasonChange={() => undefined}
+        onClose={closeNormalizeModal}
+        onConfirm={() => void submitAdminStatus("NORMAL")}
+      />
+      <ReportStatusConfirmModal
+        pendingStatus={pendingReportStatus}
+        reason={reportStatusReason}
+        reasonError={reportStatusReasonError}
+        error={reportStatusError}
+        updating={updatingReportStatus !== null}
+        onReasonChange={(value) => {
+          setReportStatusReason(value);
+          if (reportStatusReasonError) setReportStatusReasonError(null);
+          if (reportStatusError) setReportStatusError(null);
+        }}
+        onClose={closeReportStatusModal}
+        onConfirm={() => void submitReportStatus()}
+      />
     </div>
   );
 }
 
-function DetailField({
-  label,
-  value,
-  className,
+function VideoThumbnailPreview({
+  detail,
+  onPreview,
 }: {
-  label: string;
-  value?: string | number | null;
-  className?: string;
+  detail: VideoDetailResponse;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
 }) {
-  const displayValue = typeof value === "number" ? String(value) : value?.toString().trim() || "-";
+  const thumbnailUrl = resolveVideoMediaUrl(detail.thumbnail_file);
+  const isImage = Boolean(detail.thumbnail_file?.mime_type?.startsWith("image/") || thumbnailUrl);
+  const title = getVideoMediaFilename(detail.thumbnail_file) || "동영상 썸네일";
 
   return (
-    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
-      <p className={detailLabelClass}>{label}</p>
-      <div className={detailValueClass}>{displayValue}</div>
-    </div>
-  );
-}
-
-function LinkField({ label, href, className }: { label: string; href?: string | null; className?: string }) {
-  const trimmedHref = href?.trim();
-
-  return (
-    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
-      <p className={detailLabelClass}>{label}</p>
-      {trimmedHref ? (
-        <a
-          href={trimmedHref}
-          target="_blank"
-          rel="noreferrer"
-          className="text-sm leading-6 break-all text-brand-600 underline underline-offset-2"
+    <div className="flex min-h-[14rem] items-center justify-center rounded-xl border border-gray-200 bg-gray-50 p-4">
+      {thumbnailUrl ? (
+        <button
+          type="button"
+          onClick={() =>
+            onPreview({
+              url: thumbnailUrl,
+              title: "동영상 썸네일",
+              isImage,
+            })
+          }
+          className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white"
         >
-          {trimmedHref}
-        </a>
+          {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL */}
+          <img src={thumbnailUrl} alt={title} className="h-full w-full object-cover" />
+        </button>
       ) : (
-        <div className={detailValueClass}>-</div>
+        <div className="flex size-24 items-center justify-center rounded-full border-2 border-gray-700 bg-white text-xl font-bold text-gray-800">
+          VID
+        </div>
       )}
     </div>
   );
 }
 
-function StatusField({
+function VideoInfoCard({
+  detail,
+  onPreview,
+}: {
+  detail: VideoDetailResponse;
+  onPreview: (preview: HospitalMediaPreviewState) => void;
+}) {
+  return (
+    <Card className={cardClassName}>
+      <h2 className="mb-5 text-sm font-bold text-gray-900">동영상 정보</h2>
+      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
+        <VideoThumbnailPreview detail={detail} onPreview={onPreview} />
+        <div className="grid min-w-0 gap-x-8 gap-y-3 md:grid-cols-2">
+          <InfoField label="병의원" value={detail.hospital?.name ?? detail.hospital_name} />
+          <InfoField label="의료진" value={detail.doctor?.name ?? detail.doctor_name} />
+          <BadgeInfoField label="카테고리" items={categoryLabels(detail)} />
+          <BadgeInfoField label="해시태그" items={hashtagLabels(detail)} />
+          <InfoField label="조회수" value={formatCount(detail.view_count)} />
+          <InfoField label="좋아요수" value={formatCount(detail.like_count)} />
+          <InfoField label="재생시간" value={formatDuration(detail.duration_seconds)} />
+          <LinkInfoField label="유튜브 링크" href={detail.external_video_url} className="md:col-span-2" />
+          <InfoField label="동영상 제목" value={detail.title} className="md:col-span-2" />
+          <InfoField label="영상설명" value={detail.description} multiline className="md:col-span-2" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function VideoOperationInfoCard({
+  detail,
+  updatingAdminStatus,
+  updatingReportStatus,
+  onAdminStatusChange,
+  onReportStatusChange,
+}: {
+  detail: VideoDetailResponse;
+  updatingAdminStatus: boolean;
+  updatingReportStatus: ReportActionStatus | null;
+  onAdminStatusChange: (status: "NORMAL" | "FORCED_STOPPED") => void;
+  onReportStatusChange: (status: ReportActionStatus) => void;
+}) {
+  const isForcedStopped = detail.admin_status === "FORCED_STOPPED";
+
+  return (
+    <Card className={cardClassName}>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <h3 className="text-sm font-bold text-gray-900">운영정보</h3>
+        <Can permission="beaulab.video.update">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={updatingAdminStatus}
+            className="h-9 min-w-24 shrink-0 px-4 text-sm"
+            onClick={() => onAdminStatusChange(isForcedStopped ? "NORMAL" : "FORCED_STOPPED")}
+          >
+            {isForcedStopped ? "정상노출" : "강제중지"}
+          </Button>
+        </Can>
+        <span className="sr-only">현재 강제중지 상태: {labelVideoAdminStatus(detail.admin_status)}</span>
+      </div>
+      <div className="space-y-3">
+        <InfoField label="업로드일" value={formatLocalDateTime(detail.created_at)} compact />
+        <StatusInfoField
+          label="공개여부"
+          value={detail.hospital_status}
+          fallbackLabel={detail.hospital_status_label}
+          formatter={labelVideoHospitalStatus}
+          color={videoHospitalStatusColor}
+          compact
+        />
+        <InfoField
+          label="신고횟수"
+          value={`${Number(detail.report_state?.report_count ?? 0).toLocaleString()}회`}
+          compact
+        />
+        <ReportStatusActionField
+          status={detail.report_state?.status ?? "NONE"}
+          fallbackLabel={detail.report_state?.label}
+          updating={updatingReportStatus}
+          onChange={onReportStatusChange}
+        />
+      </div>
+    </Card>
+  );
+}
+
+function InfoField({
   label,
   value,
+  multiline = false,
+  compact = false,
+  className,
+}: {
+  label: string;
+  value?: string | number | null;
+  multiline?: boolean;
+  compact?: boolean;
+  className?: string;
+}) {
+  const displayValue = typeof value === "number" ? String(value) : value?.trim() || "-";
+
+  return (
+    <div
+      className={[
+        compact ? "grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3" : "grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <p className={labelClassName}>{label}</p>
+      <p className={[valueClassName, multiline ? "whitespace-pre-line" : ""].filter(Boolean).join(" ")}>
+        {displayValue}
+      </p>
+    </div>
+  );
+}
+
+function StatusInfoField({
+  label,
+  value,
+  fallbackLabel,
   formatter,
-  tone,
+  color,
+  compact = false,
 }: {
   label: string;
   value?: string | null;
-  formatter: (value?: string | null) => string;
-  tone: "success" | "warning" | "error";
+  fallbackLabel?: string | null;
+  formatter: (status?: string | null, fallbackLabel?: string) => string;
+  color: (status?: string | null) => BadgeColor;
+  compact?: boolean;
 }) {
   const status = value?.trim() || "";
-  const badgeColor = status ? tone : "light";
 
   return (
-    <div className={detailItemClass}>
-      <p className={detailLabelClass}>{label}</p>
-      <div className="flex min-h-[28px] min-w-0 items-center">
-        <StatusBadge size="sm" color={badgeColor}>
-          {formatter(status)}
+    <div
+      className={[
+        compact ? "grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3" : "grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4",
+      ].join(" ")}
+    >
+      <p className={labelClassName}>{label}</p>
+      <div className="flex min-h-[1.5rem] items-center">
+        <StatusBadge size="sm" color={status ? color(status) : "light"}>
+          {formatter(status, fallbackLabel ?? undefined)}
         </StatusBadge>
       </div>
     </div>
   );
 }
 
-function TagField({ label, values, className }: { label: string; values: string[]; className?: string }) {
+function ReportStatusActionField({
+  status,
+  fallbackLabel,
+  updating,
+  onChange,
+}: {
+  status?: string | null;
+  fallbackLabel?: string | null;
+  updating: ReportActionStatus | null;
+  onChange: (status: ReportActionStatus) => void;
+}) {
+  const currentStatus = status?.trim() || "NONE";
+  const hasReportState = currentStatus !== "NONE";
+  const isAdminHidden = currentStatus === "ADMIN_HIDDEN";
+  const isNormalVisible = isNormalVisibleReportStatus(currentStatus);
+
   return (
-    <div className={[detailItemClass, className].filter(Boolean).join(" ")}>
-      <p className={detailLabelClass}>{label}</p>
-      <CategoryBadgeList values={values} empty={<div className={detailValueClass}>-</div>} />
+    <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3">
+      <p className={labelClassName}>신고상태</p>
+      <div className="flex min-h-[1.5rem] flex-wrap items-center gap-2">
+        {hasReportState ? (
+          <StatusBadge size="sm" color={videoReportStatusColor(currentStatus)}>
+            {labelVideoReportStatus(currentStatus, fallbackLabel ?? undefined)}
+          </StatusBadge>
+        ) : null}
+        <Can permission="beaulab.reported_video.update">
+          <Button
+            type="button"
+            variant={isAdminHidden ? "brand" : "outline"}
+            size="sm"
+            disabled={!hasReportState || isAdminHidden || updating !== null}
+            title={!hasReportState ? "신고 접수 내역이 있어야 변경할 수 있습니다." : undefined}
+            className={reportActionButtonClassName(isAdminHidden)}
+            onClick={() => onChange("ADMIN_HIDDEN")}
+          >
+            {updating === "ADMIN_HIDDEN" ? "처리 중" : "삭제처리"}
+          </Button>
+          <Button
+            type="button"
+            variant={isNormalVisible ? "brand" : "outline"}
+            size="sm"
+            disabled={!hasReportState || isNormalVisible || updating !== null}
+            title={!hasReportState ? "신고 접수 내역이 있어야 변경할 수 있습니다." : undefined}
+            className={reportActionButtonClassName(isNormalVisible)}
+            onClick={() => onChange("NORMAL_VISIBLE")}
+          >
+            {updating === "NORMAL_VISIBLE" ? "처리 중" : "신고오류"}
+          </Button>
+        </Can>
+      </div>
     </div>
   );
 }
 
-function BooleanField({ label, value, className }: { label: string; value: boolean; className?: string }) {
-  return <DetailField label={label} value={value ? "예" : "아니오"} className={className} />;
-}
-
-function ThumbnailSection({ media }: { media?: VideoMediaAsset | null }) {
-  const fileUrl = resolveVideoMediaUrl(media);
-  const fileName = getVideoMediaFilename(media);
-
-  return (
-    <section className="space-y-3">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800">썸네일</h3>
-      </div>
-
-      {fileUrl && fileName ? (
-        <DetailImageMediaCard
-          fileName={fileName}
-          fileUrl={fileUrl}
-          imageUrl={fileUrl}
-          sizeText={formatBytes(media?.size) ?? undefined}
-          previewAlt={fileName}
-        />
-      ) : (
-        <DetailEmptyState>등록된 썸네일이 없습니다.</DetailEmptyState>
-      )}
-    </section>
-  );
-}
-
-function FileSummaryField({
-  label,
-  media,
-  detailId,
+function ReportStatusConfirmModal({
+  pendingStatus,
+  reason,
+  reasonError,
+  error,
+  updating,
+  onReasonChange,
+  onClose,
+  onConfirm,
 }: {
-  label: string;
-  media?: VideoMediaAsset | null;
-  detailId: number;
+  pendingStatus: ReportActionStatus | null;
+  reason: string;
+  reasonError: string | null;
+  error: string | null;
+  updating: boolean;
+  onReasonChange: (value: string) => void;
+  onClose: () => void;
+  onConfirm: () => void;
 }) {
-  const fileUrl = resolveVideoMediaUrl(media);
-  const fileName = getVideoMediaFilename(media);
+  const isAdminHidden = pendingStatus === "ADMIN_HIDDEN";
+  const statusLabel = isAdminHidden ? "삭제처리" : "신고오류";
 
   return (
-    <section className="space-y-3">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-gray-800">{label}</h3>
-      </div>
+    <Modal isOpen={pendingStatus !== null} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">
+      <ModalPanel>
+        <ModalHeader className="pr-0">
+          <ModalTitle>신고상태 변경</ModalTitle>
+        </ModalHeader>
 
-      {fileUrl && fileName ? (
-        <DetailCompactMediaCard
-          fileName={fileName}
-          fileUrl={fileUrl}
-          downloadUrl={`/videos/${detailId}/download-video-file`}
-          sizeText={formatBytes(media?.size) ?? undefined}
-          previewFallbackText="파일"
-          previewSizeClassName="h-[72px] w-[72px]"
-          showDownload
-        />
-      ) : (
-        <DetailEmptyState>등록된 원본 동영상 파일이 없습니다.</DetailEmptyState>
-      )}
-    </section>
+        <ModalBody className="mt-6 space-y-5">
+          <p className="text-sm font-medium text-gray-800">해당 동영상을 {statusLabel} 처리하시겠습니까?</p>
+
+          {isAdminHidden ? (
+            <div>
+              <label htmlFor="video-report-status-reason" className="mb-1.5 block text-sm font-semibold text-gray-800">
+                삭제처리 사유
+              </label>
+              <InputField
+                id="video-report-status-reason"
+                value={reason}
+                onChange={(event) => onReasonChange(event.target.value)}
+                disabled={updating}
+                error={Boolean(reasonError)}
+                hint={reasonError ?? undefined}
+              />
+            </div>
+          ) : null}
+
+          {error ? <p className="text-sm font-medium text-rose-600">{error}</p> : null}
+        </ModalBody>
+
+        <ModalFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={updating}>
+            취소
+          </Button>
+          <Button type="button" variant="brand" onClick={onConfirm} disabled={updating}>
+            {updating ? "처리 중..." : "등록"}
+          </Button>
+        </ModalFooter>
+      </ModalPanel>
+    </Modal>
   );
+}
+
+function LinkInfoField({ label, href, className }: { label: string; href?: string | null; className?: string }) {
+  const trimmedHref = href?.trim();
+
+  return (
+    <div className={["grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4", className].filter(Boolean).join(" ")}>
+      <p className={labelClassName}>{label}</p>
+      {trimmedHref ? (
+        <a
+          href={trimmedHref}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm leading-6 break-all text-brand-600 underline underline-offset-2 hover:text-brand-500"
+        >
+          {trimmedHref}
+        </a>
+      ) : (
+        <p className={valueClassName}>-</p>
+      )}
+    </div>
+  );
+}
+
+function BadgeInfoField({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-4">
+      <p className={labelClassName}>{label}</p>
+      <CategoryBadgeList values={items} empty={<span className={valueClassName}>-</span>} />
+    </div>
+  );
+}
+
+function categoryLabels(detail: VideoDetailResponse) {
+  return (detail.categories ?? [])
+    .map(
+      (item) =>
+        (item.full_path || item.name)
+          .split(">")
+          .map((part) => part.trim())
+          .filter(Boolean)[0] ?? item.name,
+    )
+    .filter(Boolean);
+}
+
+function hashtagLabels(detail: VideoDetailResponse) {
+  return (detail.hashtags ?? []).map((item) => `#${item.name}`).filter(Boolean);
 }
 
 function formatCount(value?: number | null) {
-  if (typeof value !== "number" || Number.isNaN(value)) return "0";
-  return value.toLocaleString();
+  return Number(value ?? 0).toLocaleString();
 }
 
 function formatDuration(value?: number | null) {
-  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
-    return "-";
-  }
+  if (!Number.isFinite(value) || Number(value) < 0) return "-";
 
-  const totalSeconds = Math.floor(value);
+  const totalSeconds = Math.floor(Number(value));
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
@@ -361,17 +823,10 @@ function formatDuration(value?: number | null) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function formatPublishPeriod(detail: VideoViewResponse) {
-  if (detail.is_publish_period_unlimited) {
-    return "무기한 게시";
-  }
+function isNormalVisibleReportStatus(status?: string | null) {
+  return status === "NORMAL_VISIBLE" || status === "REEXPOSED";
+}
 
-  const start = formatLocalDateTime(detail.publish_start_at);
-  const end = formatLocalDateTime(detail.publish_end_at);
-
-  if (start === "-" && end === "-") return "-";
-  if (start === "-") return `~ ${end}`;
-  if (end === "-") return `${start} ~`;
-
-  return `${start} ~ ${end}`;
+function reportActionButtonClassName(active: boolean) {
+  return ["h-11 min-w-24 px-6 text-sm font-semibold", active ? "" : "text-gray-500"].join(" ");
 }

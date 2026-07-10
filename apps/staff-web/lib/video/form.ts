@@ -15,6 +15,12 @@ export type VideoDoctorOption = {
   position?: string | null;
 };
 
+export type VideoHashtagOption = {
+  id: number;
+  name: string;
+  status?: string | null;
+};
+
 export type VideoFormValues = {
   hospital_id: number | null;
   hospital_name: string;
@@ -23,16 +29,13 @@ export type VideoFormValues = {
   doctor_name: string;
   title: string;
   description: string;
-  distribution_channel: string;
-  external_video_id: string;
   external_video_url: string;
   duration_seconds: string;
-  status: string;
-  allow_status: string;
+  view_count: string;
+  like_count: string;
   category_ids: number[];
-  publish_start_at: string;
-  publish_end_at: string;
-  is_publish_period_unlimited: boolean;
+  hashtag_ids: number[];
+  hashtag_names: string[];
 };
 
 export type VideoFieldName = keyof VideoFormValues | "thumbnail_file";
@@ -46,52 +49,24 @@ export const INITIAL_VIDEO_FORM: VideoFormValues = {
   doctor_name: "",
   title: "",
   description: "",
-  distribution_channel: "YOUTUBE_APP",
-  external_video_id: "",
   external_video_url: "",
   duration_seconds: "",
-  status: "ACTIVE",
-  allow_status: "SUBMITTED",
+  view_count: "0",
+  like_count: "0",
   category_ids: [],
-  publish_start_at: "",
-  publish_end_at: "",
-  is_publish_period_unlimited: false,
+  hashtag_ids: [],
+  hashtag_names: [],
 };
 
 export const VIDEO_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   {
-    key: "surgery",
-    label: "성형",
+    key: "video",
+    label: "카테고리",
     domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
-    usage: CATEGORY_USAGES.HOSPITAL_REVIEW_SURGERY,
+    usage: CATEGORY_USAGES.HOSPITAL_VIDEO_CATEGORY,
     searchPlaceholder: "카테고리명을 입력해주세요. (ex. 눈, 코)",
   },
-  {
-    key: "treatment",
-    label: "쁘띠/피부",
-    domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
-    usage: CATEGORY_USAGES.HOSPITAL_REVIEW_TREATMENT,
-    searchPlaceholder: "카테고리명을 입력해주세요. (ex. 인모드)",
-  },
 ];
-
-export const VIDEO_STATUS_OPTIONS = [
-  { value: "ACTIVE", label: "정상" },
-  { value: "INACTIVE", label: "비활성" },
-] as const;
-
-export const VIDEO_ALLOW_STATUS_OPTIONS = [
-  { value: "SUBMITTED", label: "검수신청" },
-  { value: "IN_REVIEW", label: "검수중" },
-  { value: "APPROVED", label: "검수완료" },
-  { value: "REJECTED", label: "검수반려" },
-  { value: "EXCLUDED", label: "검수제외" },
-] as const;
-
-export const VIDEO_DISTRIBUTION_OPTIONS = [
-  { value: "YOUTUBE_APP", label: "유튜브/앱" },
-  { value: "APP", label: "앱" },
-] as const;
 
 export const VIDEO_THUMBNAIL_COLLECTIONS: readonly MediaCollectionConfig<"thumbnail_file">[] = [
   {
@@ -108,16 +83,14 @@ export const VIDEO_THUMBNAIL_COLLECTIONS: readonly MediaCollectionConfig<"thumbn
 export const FIELD_FOCUS_ORDER: readonly VideoFieldName[] = [
   "hospital_id",
   "doctor_id",
-  "title",
-  "distribution_channel",
-  "status",
-  "allow_status",
   "category_ids",
-  "external_video_url",
-  "external_video_id",
+  "hashtag_ids",
+  "view_count",
+  "like_count",
   "duration_seconds",
-  "publish_start_at",
-  "publish_end_at",
+  "external_video_url",
+  "title",
+  "description",
   "thumbnail_file",
 ] as const;
 
@@ -129,16 +102,13 @@ const FIELD_NAMES: readonly VideoFieldName[] = [
   "doctor_name",
   "title",
   "description",
-  "distribution_channel",
-  "external_video_id",
   "external_video_url",
   "duration_seconds",
-  "status",
-  "allow_status",
+  "view_count",
+  "like_count",
   "category_ids",
-  "publish_start_at",
-  "publish_end_at",
-  "is_publish_period_unlimited",
+  "hashtag_ids",
+  "hashtag_names",
   "thumbnail_file",
 ] as const;
 
@@ -148,6 +118,7 @@ export function isVideoFieldName(value: string): value is VideoFieldName {
 
 export function normalizeVideoErrorField(key: string): VideoFieldName | null {
   if (key.startsWith("category_ids")) return "category_ids";
+  if (key.startsWith("hashtag_names")) return "hashtag_ids";
   if (key.startsWith("thumbnail_file")) return "thumbnail_file";
   if (isVideoFieldName(key)) return key;
   return null;
@@ -211,10 +182,6 @@ export function buildCreateVideoFormData({ form, thumbnailFile }: BuildCreateVid
   formData.append("hospital_id", String(form.hospital_id));
   formData.append("title", form.title.trim());
   formData.append("description", form.description.trim());
-  formData.append("distribution_channel", form.distribution_channel);
-  formData.append("status", form.status);
-  formData.append("allow_status", form.allow_status);
-  formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
 
   if (form.doctor_id) {
     formData.append("doctor_id", String(form.doctor_id));
@@ -224,27 +191,21 @@ export function buildCreateVideoFormData({ form, thumbnailFile }: BuildCreateVid
     formData.append("external_video_url", form.external_video_url.trim());
   }
 
-  if (form.external_video_id.trim()) {
-    formData.append("external_video_id", form.external_video_id.trim());
-  }
-
   const durationSeconds = parseVideoDurationInput(form.duration_seconds);
   if (durationSeconds !== null) {
     formData.append("duration_seconds", String(durationSeconds));
   }
 
-  if (!form.is_publish_period_unlimited) {
-    if (form.publish_start_at) {
-      formData.append("publish_start_at", form.publish_start_at);
-    }
-
-    if (form.publish_end_at) {
-      formData.append("publish_end_at", form.publish_end_at);
-    }
-  }
-
   form.category_ids.forEach((categoryId) => {
     formData.append("category_ids[]", String(categoryId));
+  });
+
+  form.hashtag_ids.forEach((hashtagId) => {
+    formData.append("hashtag_ids[]", String(hashtagId));
+  });
+
+  form.hashtag_names.forEach((hashtagName) => {
+    formData.append("hashtag_names[]", hashtagName.trim());
   });
 
   if (thumbnailFile) {
@@ -258,16 +219,12 @@ export type BuildUpdateVideoFormDataParams = {
   form: VideoFormValues;
   thumbnailFile: File | null;
   existingThumbnail: ExistingMediaItem | null;
-  currentVideoFile: VideoMediaAsset | null;
-  initialVideoFileId: string | number | null;
 };
 
 export function buildUpdateVideoFormData({
   form,
   thumbnailFile,
   existingThumbnail,
-  currentVideoFile,
-  initialVideoFileId,
 }: BuildUpdateVideoFormDataParams): FormData {
   const formData = new FormData();
   const durationSeconds = parseVideoDurationInput(form.duration_seconds);
@@ -277,15 +234,10 @@ export function buildUpdateVideoFormData({
   formData.append("doctor_id", form.doctor_id ? String(form.doctor_id) : "");
   formData.append("title", form.title.trim());
   formData.append("description", form.description.trim());
-  formData.append("distribution_channel", form.distribution_channel);
   formData.append("external_video_url", form.external_video_url.trim());
-  formData.append("external_video_id", form.external_video_id.trim());
   formData.append("duration_seconds", durationSeconds === null ? "" : String(durationSeconds));
-  formData.append("status", form.status);
-  formData.append("allow_status", form.allow_status);
-  formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
-  formData.append("publish_start_at", form.is_publish_period_unlimited ? "" : form.publish_start_at);
-  formData.append("publish_end_at", form.is_publish_period_unlimited ? "" : form.publish_end_at);
+  formData.append("view_count", normalizeIntegerInput(form.view_count));
+  formData.append("like_count", normalizeIntegerInput(form.like_count));
 
   if (form.category_ids.length > 0) {
     form.category_ids.forEach((categoryId) => {
@@ -295,14 +247,22 @@ export function buildUpdateVideoFormData({
     formData.append("category_ids[]", "");
   }
 
+  if (form.hashtag_ids.length > 0) {
+    form.hashtag_ids.forEach((hashtagId) => {
+      formData.append("hashtag_ids[]", String(hashtagId));
+    });
+  } else {
+    formData.append("hashtag_ids[]", "");
+  }
+
+  form.hashtag_names.forEach((hashtagName) => {
+    formData.append("hashtag_names[]", hashtagName.trim());
+  });
+
   if (thumbnailFile) {
     formData.append("thumbnail_file", thumbnailFile);
   } else {
     formData.append("existing_thumbnail_file_id", existingMediaId(existingThumbnail));
-  }
-
-  if (initialVideoFileId && !currentVideoFile) {
-    formData.append("remove_video_file", "1");
   }
 
   return formData;
@@ -322,16 +282,13 @@ export function mapVideoDetailToForm(detail: VideoDetailResponse): VideoFormValu
     doctor_name: doctorName.trim(),
     title: detail.title ?? "",
     description: detail.description ?? "",
-    distribution_channel: detail.distribution_channel ?? INITIAL_VIDEO_FORM.distribution_channel,
-    external_video_id: detail.external_video_id ?? "",
     external_video_url: detail.external_video_url ?? "",
     duration_seconds: formatVideoDurationInput(detail.duration_seconds),
-    status: detail.status ?? INITIAL_VIDEO_FORM.status,
-    allow_status: detail.allow_status ?? INITIAL_VIDEO_FORM.allow_status,
+    view_count: String(Number(detail.view_count ?? 0)),
+    like_count: String(Number(detail.like_count ?? 0)),
     category_ids: detail.categories?.map((category) => category.id) ?? [],
-    publish_start_at: formatDateTimeInput(detail.publish_start_at),
-    publish_end_at: formatDateTimeInput(detail.publish_end_at),
-    is_publish_period_unlimited: Boolean(detail.is_publish_period_unlimited),
+    hashtag_ids: detail.hashtags?.map((hashtag) => hashtag.id) ?? [],
+    hashtag_names: [],
   };
 }
 
@@ -465,7 +422,7 @@ export function parseVideoDurationInput(value?: string | null): number | null {
   return hours * 3600 + minutes * 60 + seconds;
 }
 
-function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boolean): VideoFormErrors {
+function validateVideoBaseForm(form: VideoFormValues, validateMetrics: boolean): VideoFormErrors {
   const nextErrors: VideoFormErrors = {};
 
   if (!form.hospital_id) {
@@ -476,20 +433,8 @@ function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boo
     nextErrors.title = "제목을 입력해 주세요.";
   }
 
-  if (!form.distribution_channel) {
-    nextErrors.distribution_channel = "배포채널을 선택해 주세요.";
-  }
-
-  if (!form.status) {
-    nextErrors.status = "운영 상태를 선택해 주세요.";
-  }
-
-  if (!form.allow_status) {
-    nextErrors.allow_status = "검수 상태를 선택해 주세요.";
-  }
-
-  if (requireExternalSource && !form.external_video_id.trim() && !form.external_video_url.trim()) {
-    nextErrors.external_video_url = "외부 영상 URL 또는 영상 ID를 입력해 주세요.";
+  if (!form.external_video_url.trim()) {
+    nextErrors.external_video_url = "유튜브 링크를 입력해 주세요.";
   }
 
   if (form.duration_seconds.trim()) {
@@ -499,22 +444,13 @@ function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boo
     }
   }
 
-  if (!form.is_publish_period_unlimited) {
-    if (!form.publish_start_at) {
-      nextErrors.publish_start_at = "게시 시작 시각을 입력해 주세요.";
+  if (validateMetrics) {
+    if (!isNonNegativeIntegerInput(form.view_count)) {
+      nextErrors.view_count = "조회수는 0 이상의 숫자로 입력해 주세요.";
     }
 
-    if (!form.publish_end_at) {
-      nextErrors.publish_end_at = "게시 종료 시각을 입력해 주세요.";
-    }
-
-    if (form.publish_start_at && form.publish_end_at) {
-      const start = new Date(form.publish_start_at);
-      const end = new Date(form.publish_end_at);
-
-      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() < start.getTime()) {
-        nextErrors.publish_end_at = "게시 종료 시각은 시작 시각 이후여야 합니다.";
-      }
+    if (!isNonNegativeIntegerInput(form.like_count)) {
+      nextErrors.like_count = "좋아요수는 0 이상의 숫자로 입력해 주세요.";
     }
   }
 
@@ -522,13 +458,23 @@ function validateVideoBaseForm(form: VideoFormValues, requireExternalSource: boo
 }
 
 export function validateCreateVideoForm(form: VideoFormValues): VideoFormErrors {
-  return validateVideoBaseForm(form, true);
+  return validateVideoBaseForm(form, false);
 }
 
 export function validateUpdateVideoForm(form: VideoFormValues): VideoFormErrors {
-  return validateVideoBaseForm(form, false);
+  return validateVideoBaseForm(form, true);
 }
 
 function existingMediaId(media?: ExistingMediaItem | null) {
   return media?.id ? String(media.id) : "";
+}
+
+function normalizeIntegerInput(value?: string | null) {
+  const normalized = (value ?? "").trim();
+
+  return /^\d+$/.test(normalized) ? normalized : "0";
+}
+
+function isNonNegativeIntegerInput(value?: string | null) {
+  return /^\d+$/.test((value ?? "").trim());
 }

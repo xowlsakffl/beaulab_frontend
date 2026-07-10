@@ -7,13 +7,11 @@ import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { VideoBasicSection } from "@/components/video/form/VideoBasicSection";
-import { VideoCategorySection } from "@/components/video/form/VideoCategorySection";
-import { VideoMediaPanel } from "@/components/video/form/VideoMediaPanel";
-import { VideoPublishSection } from "@/components/video/form/VideoPublishSection";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
 import { api } from "@/lib/common/api";
-import type { VideoCategoryItem, VideoDetailResponse, VideoMediaAsset } from "@/lib/video/detail";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
+import type { VideoCategoryItem, VideoDetailResponse, VideoHashtagItem } from "@/lib/video/detail";
 import {
   buildUpdateVideoFormData,
   buildVideoExistingFileItem,
@@ -27,6 +25,8 @@ import {
   type VideoFormValues,
   type VideoHospitalOption,
 } from "@/lib/video/form";
+
+const VIDEO_EDIT_FORM_ID = "video-edit-form";
 
 export default function VideoEditFormClient() {
   const params = useParams<{ id: string }>();
@@ -42,13 +42,12 @@ export default function VideoEditFormClient() {
   const [form, setForm] = React.useState<VideoFormValues>(INITIAL_VIDEO_FORM);
   const [thumbnailFile, setThumbnailFile] = React.useState<File | null>(null);
   const [existingThumbnail, setExistingThumbnail] = React.useState<ReturnType<typeof buildVideoExistingFileItem>>(null);
-  const [currentVideoFile, setCurrentVideoFile] = React.useState<VideoMediaAsset | null>(null);
   const [selectedCategoryItems, setSelectedCategoryItems] = React.useState<VideoCategoryItem[]>([]);
+  const [selectedHashtagItems, setSelectedHashtagItems] = React.useState<VideoHashtagItem[]>([]);
   const [errors, setErrors] = React.useState<VideoFormErrors>({});
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const initialVideoFileIdRef = React.useRef<string | number | null>(null);
 
   const detailPath = React.useMemo(() => {
     if (!Number.isFinite(videoId) || videoId <= 0) return "/video-manage/videos";
@@ -92,6 +91,39 @@ export default function VideoEditFormClient() {
     [clearError],
   );
 
+  const toggleHashtag = React.useCallback(
+    (hashtagId: number, checked: boolean) => {
+      setForm((prev) => ({
+        ...prev,
+        hashtag_ids: checked
+          ? prev.hashtag_ids.includes(hashtagId)
+            ? prev.hashtag_ids
+            : [...prev.hashtag_ids, hashtagId]
+          : prev.hashtag_ids.filter((item) => item !== hashtagId),
+      }));
+      clearError("hashtag_ids");
+    },
+    [clearError],
+  );
+
+  const addHashtagName = React.useCallback(
+    (name: string) => {
+      setForm((prev) => ({
+        ...prev,
+        hashtag_names: prev.hashtag_names.includes(name) ? prev.hashtag_names : [...prev.hashtag_names, name],
+      }));
+      clearError("hashtag_ids");
+    },
+    [clearError],
+  );
+
+  const removeHashtagName = React.useCallback((name: string) => {
+    setForm((prev) => ({
+      ...prev,
+      hashtag_names: prev.hashtag_names.filter((item) => item !== name),
+    }));
+  }, []);
+
   const handleSelectHospital = React.useCallback(
     (hospital: VideoHospitalOption) => {
       setForm((prev) => ({
@@ -107,6 +139,18 @@ export default function VideoEditFormClient() {
     },
     [clearError],
   );
+
+  const handleClearHospital = React.useCallback(() => {
+    setForm((prev) => ({
+      ...prev,
+      hospital_id: null,
+      hospital_name: "",
+      hospital_business_number: "",
+      doctor_id: null,
+      doctor_name: "",
+    }));
+    clearError("doctor_id");
+  }, [clearError]);
 
   const handleSelectDoctorOption = React.useCallback(
     (doctor: VideoDoctorOption | null) => {
@@ -141,9 +185,8 @@ export default function VideoEditFormClient() {
       const detail = response.data;
       setForm(mapVideoDetailToForm(detail));
       setSelectedCategoryItems(detail.categories ?? []);
+      setSelectedHashtagItems(detail.hashtags ?? []);
       setExistingThumbnail(buildVideoExistingFileItem(detail.thumbnail_file));
-      setCurrentVideoFile(detail.video_file ?? null);
-      initialVideoFileIdRef.current = detail.video_file?.id ?? null;
     } catch {
       setLoadError("동영상 정보를 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -177,8 +220,6 @@ export default function VideoEditFormClient() {
       form,
       thumbnailFile,
       existingThumbnail,
-      currentVideoFile,
-      initialVideoFileId: initialVideoFileIdRef.current,
     });
 
     setIsSubmitting(true);
@@ -218,6 +259,17 @@ export default function VideoEditFormClient() {
     }
   };
 
+  const headerAction = React.useMemo(
+    () => (
+      <Button type="submit" form={VIDEO_EDIT_FORM_ID} variant="brand" size="sm" disabled={isSubmitting}>
+        {isSubmitting ? "저장 중..." : "저장하기"}
+      </Button>
+    ),
+    [isSubmitting],
+  );
+
+  usePageHeaderExtra(isLoading || loadError ? null : headerAction);
+
   if (isLoading) {
     return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" />;
   }
@@ -233,59 +285,28 @@ export default function VideoEditFormClient() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
-    >
-      <div className="min-w-0 space-y-6">
-        <VideoBasicSection
-          form={form}
-          errors={errors}
-          onFieldChange={setField}
-          onSelectHospital={handleSelectHospital}
-          onSelectDoctorOption={handleSelectDoctorOption}
-        />
-
-        <VideoCategorySection
-          selectedIds={form.category_ids}
-          selectedItems={selectedCategoryItems}
-          errors={errors}
-          loadCategories={loadCategories}
-          onToggleCategory={toggleCategory}
-        />
-      </div>
-
-      <div className="min-w-0 space-y-6">
-        <VideoPublishSection form={form} errors={errors} onFieldChange={setField} />
-
-        <VideoMediaPanel
-          thumbnailFile={thumbnailFile}
-          existingThumbnail={thumbnailFile ? null : existingThumbnail}
-          currentVideoFile={currentVideoFile}
-          videoFileDownloadUrl={
-            Number.isFinite(videoId) && videoId > 0 ? `/videos/${videoId}/download-video-file` : null
-          }
-          isCurrentVideoFileRemoved={Boolean(initialVideoFileIdRef.current) && !currentVideoFile}
-          errors={errors}
-          onThumbnailChange={(file) => {
-            setThumbnailFile(file);
-            clearError("thumbnail_file");
-          }}
-          onExistingThumbnailChange={(item) => {
-            setExistingThumbnail(item);
-            clearError("thumbnail_file");
-          }}
-          onCurrentVideoFileChange={(file) => {
-            setCurrentVideoFile(file);
-          }}
-        />
-
-        <div className="flex flex-col gap-3">
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "저장 중..." : "동영상 저장"}
-          </Button>
-        </div>
-      </div>
+    <form id={VIDEO_EDIT_FORM_ID} onSubmit={handleSubmit} autoComplete="off" className="min-w-0 space-y-6">
+      <VideoBasicSection
+        form={form}
+        errors={errors}
+        thumbnailFile={thumbnailFile}
+        existingThumbnail={thumbnailFile ? null : existingThumbnail}
+        selectedCategoryItems={selectedCategoryItems}
+        selectedHashtagItems={selectedHashtagItems}
+        loadCategories={loadCategories}
+        onFieldChange={setField}
+        onSelectHospital={handleSelectHospital}
+        onClearHospital={handleClearHospital}
+        onSelectDoctorOption={handleSelectDoctorOption}
+        onToggleCategory={toggleCategory}
+        onToggleHashtag={toggleHashtag}
+        onAddHashtagName={addHashtagName}
+        onRemoveHashtagName={removeHashtagName}
+        onThumbnailChange={(file) => {
+          setThumbnailFile(file);
+          clearError("thumbnail_file");
+        }}
+      />
     </form>
   );
 }

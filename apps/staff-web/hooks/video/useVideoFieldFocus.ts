@@ -19,6 +19,10 @@ export function useVideoFieldFocus() {
       return document.querySelector<HTMLElement>('[data-field-target="category_ids"]');
     }
 
+    if (field === "hashtag_ids") {
+      return document.querySelector<HTMLElement>('[data-field-target="hashtag_ids"]');
+    }
+
     if (field === "thumbnail_file") {
       return document.querySelector<HTMLElement>('[data-media-collection="thumbnail_file"]');
     }

@@ -12,6 +12,12 @@ export type VideoDoctorRef = {
   position?: string | null;
 };
 
+export type VideoManagerStaffRef = {
+  id: number;
+  name?: string | null;
+  email?: string | null;
+};
+
 export type VideoMediaAsset = {
   id?: number | string;
   path?: string | null;
@@ -29,7 +35,20 @@ export type VideoCategoryItem = {
   domain?: string | null;
   name: string;
   full_path?: string | null;
-  is_primary?: boolean;
+};
+
+export type VideoHashtagItem = {
+  id: number;
+  name: string;
+  sort_order?: number | null;
+};
+
+export type VideoReportState = {
+  status?: string | null;
+  label?: string | null;
+  report_count?: number | null;
+  process_reason?: string | null;
+  updated_at?: string | null;
 };
 
 export type VideoDetailResponse = {
@@ -41,25 +60,25 @@ export type VideoDetailResponse = {
   doctor?: VideoDoctorRef | null;
   doctor_id?: number | null;
   doctor_name?: string | null;
+  manager_staff?: VideoManagerStaffRef | null;
   title: string;
   description?: string | null;
-  distribution_channel?: string | null;
-  external_video_id?: string | null;
   external_video_url?: string | null;
   thumbnail_file?: VideoMediaAsset | null;
-  video_file?: VideoMediaAsset | null;
   duration_seconds?: number | null;
-  status?: string | null;
-  allow_status?: string | null;
+  hospital_status?: string | null;
+  hospital_status_label?: string | null;
+  admin_status?: string | null;
+  admin_status_label?: string | null;
   view_count?: number | null;
   like_count?: number | null;
-  allowed_at?: string | null;
-  publish_start_at?: string | null;
-  publish_end_at?: string | null;
-  is_publish_period_unlimited?: boolean | null;
+  report_state?: VideoReportState | null;
   categories?: VideoCategoryItem[] | null;
+  hashtags?: VideoHashtagItem[] | null;
+  operation_histories?: unknown[] | null;
   created_at?: string | null;
   updated_at?: string | null;
+  deleted_at?: string | null;
 };
 
 export function resolveVideoMediaUrl(
