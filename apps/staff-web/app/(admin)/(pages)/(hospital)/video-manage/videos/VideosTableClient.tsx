@@ -282,18 +282,21 @@ export default function VideosTableClient() {
     setIsReportStatusDropdownOpen(false);
   }, []);
 
-  const applySummaryFilter = React.useCallback((key: VideoSummaryFilter) => {
-    const nextFilters = buildSummaryFilterState(key);
+  const applySummaryFilter = React.useCallback(
+    (key: VideoSummaryFilter) => {
+      const nextFilters = activeSummaryKey === key ? cloneDefaultFilters() : buildSummaryFilterState(key);
 
-    setPage(1);
-    setSearchInput("");
-    setSearchKeyword("");
-    setDraftFilters(nextFilters);
-    setAppliedFilters(nextFilters);
-    setDraftDateRange(undefined);
-    setIsDatePickerOpen(false);
-    setIsReportStatusDropdownOpen(false);
-  }, []);
+      setPage(1);
+      setSearchInput("");
+      setSearchKeyword("");
+      setDraftFilters(nextFilters);
+      setAppliedFilters(nextFilters);
+      setDraftDateRange(undefined);
+      setIsDatePickerOpen(false);
+      setIsReportStatusDropdownOpen(false);
+    },
+    [activeSummaryKey],
+  );
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const normalizedRange =
