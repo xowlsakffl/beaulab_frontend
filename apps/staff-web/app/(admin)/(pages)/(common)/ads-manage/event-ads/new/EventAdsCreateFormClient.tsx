@@ -833,7 +833,7 @@ function AdImageFileRow({
   };
 
   return (
-    <FormRow label="광고이미지" error={error}>
+    <FormRow label="광고이미지" required error={error}>
       <div className="space-y-2">
         <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
           <span

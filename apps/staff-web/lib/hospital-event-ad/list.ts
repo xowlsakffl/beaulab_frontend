@@ -290,7 +290,7 @@ export function buildEventAdDateState(startDate: string, endDate: string) {
 }
 
 export function formatEventAdCost(value: number) {
-  return `${value.toLocaleString()}원`;
+  return `${value.toLocaleString()}P`;
 }
 
 export function labelEventAdPlacement(placement?: string | null) {

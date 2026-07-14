@@ -350,6 +350,10 @@ export function validateEventAdCreateForm(form: EventAdCreateFormValues, adImage
     errors.hospital_event_id = "이벤트를 선택해 주세요.";
   }
 
+  if (!adImageFile) {
+    errors.ad_image_file = "광고 이미지를 등록해 주세요.";
+  }
+
   if (adImageFile && !["image/jpeg", "image/png"].includes(adImageFile.type)) {
     errors.ad_image_file = "광고 이미지는 jpg, jpeg, png 파일만 업로드할 수 있습니다.";
   }
