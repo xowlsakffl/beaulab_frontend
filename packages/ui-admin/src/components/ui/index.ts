@@ -7,6 +7,7 @@ export * from "./dropdown/Dropdown";
 export * from "./dropdown/DropdownItem";
 export * from "./modal";
 export * from "./tabs/SegmentedTabs";
+export * from "./calendar/WeeklyReservationCalendar";
 export * from "./alert/Alert";
 export * from "./avatar/Avatar";
 export * from "./avatar/AvatarText";

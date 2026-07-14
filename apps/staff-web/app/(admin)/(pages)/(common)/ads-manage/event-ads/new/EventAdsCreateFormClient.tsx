@@ -718,7 +718,7 @@ function FormStep({
             <FormRow label="금액">
               <div className="flex h-9 items-center gap-4">
                 <span className="text-sm font-semibold text-gray-800">
-                  {isFreeAd ? "0원" : formatEventAdCost(selectedPlacement.cost)}
+                  {isFreeAd ? "0P" : formatEventAdCost(selectedPlacement.cost)}
                 </span>
                 <FormCheckbox checked={isFreeAd} onChange={onFreeAdChange} label="무료이벤트" />
               </div>
@@ -1137,7 +1137,7 @@ function normalizeEventOptionForAd(event: HospitalEventApiItem): EventAdHospital
 }
 
 function formatEventAdCost(cost: number) {
-  return `${Number(cost || 0).toLocaleString()}원`;
+  return `${Number(cost || 0).toLocaleString()}P`;
 }
 
 function formatEventOptionDate(value?: string | null) {
