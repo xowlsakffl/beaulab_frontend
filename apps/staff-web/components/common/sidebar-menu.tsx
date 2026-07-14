@@ -2,17 +2,18 @@ import React from "react";
 import { getStaticRoutePermissions, type StaticAdminRoutePath } from "@/lib/common/routing/route-permissions";
 import {
   type SidebarNavItem,
-  Hospital,
-  Database,
-  Megaphone,
-  Video,
-  MessageSquareText,
-  ShieldAlert,
+  BarChart3,
   Bell,
-  Users,
-  Tags,
-  LayoutDashboard,
+  Database,
+  Hospital,
+  Megaphone,
+  MessageSquareText,
+  Settings,
+  ShieldAlert,
   Store,
+  Tags,
+  Users,
+  Video,
   Wallet,
 } from "@beaulab/ui-admin";
 
@@ -34,7 +35,6 @@ export type StaffSidebarDomain = "hospital" | "beauty";
 
 export type StaffSidebarMenuBundle = {
   domainMenus: Record<StaffSidebarDomain, SidebarMenu>;
-  commonMenu: SidebarMenu;
 };
 
 export const STAFF_SIDEBAR_DOMAIN_OPTIONS: { key: StaffSidebarDomain; label: string }[] = [
@@ -51,11 +51,23 @@ function routeSubItem(item: { name: string; path: StaticAdminRoutePath }): AppNa
   };
 }
 
+function routeItem(item: { name: string; path: StaticAdminRoutePath; icon: React.ReactNode }): AppNavItem {
+  return {
+    ...item,
+    requiredPermissions: getStaticRoutePermissions(item.path),
+  };
+}
+
 const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
   main: [
     {
+      icon: <Users className={iconClass} />,
+      name: "회원",
+      subItems: [routeSubItem({ name: "일반 회원", path: "/user-manage/users" })],
+    },
+    {
       icon: <Hospital className={iconClass} />,
-      name: "병의원 관리",
+      name: "병의원",
       subItems: [
         routeSubItem({ name: "병의원", path: "/hospital-manage/hospitals" }),
         routeSubItem({ name: "의료진", path: "/hospital-manage/doctors" }),
@@ -63,8 +75,17 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
       ],
     },
     {
+      icon: <Wallet className={iconClass} />,
+      name: "충전금",
+      subItems: [
+        routeSubItem({ name: "충전금 정산/이용 현황", path: "/wallet-manage/deposits" }),
+        routeSubItem({ name: "병의원 충전금 관리", path: "/wallet-manage/hospitals" }),
+        routeSubItem({ name: "충전금 사용내역", path: "/wallet-manage/history" }),
+      ],
+    },
+    {
       icon: <Database className={iconClass} />,
-      name: "고객 DB 관리",
+      name: "고객 DB",
       subItems: [
         routeSubItem({ name: "이벤트 DB", path: "/customer-db-manage/events" }),
         routeSubItem({ name: "리얼모델 DB", path: "/customer-db-manage/real-models" }),
@@ -72,33 +93,71 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     },
     {
       icon: <Megaphone className={iconClass} />,
-      name: "광고 관리",
-      subItems: [routeSubItem({ name: "이벤트 관리", path: "/ads-manage/events" })],
+      name: "이벤트/광고",
+      subItems: [
+        routeSubItem({ name: "이벤트 관리", path: "/ads-manage/events" }),
+        routeSubItem({ name: "광고 관리", path: "/ads-manage/event-ads" }),
+        routeSubItem({ name: "광고 현황", path: "/ads-manage/calendar" }),
+      ],
     },
     {
       icon: <Video className={iconClass} />,
-      name: "동영상 관리",
-      subItems: [routeSubItem({ name: "동영상", path: "/video-manage/videos" })],
+      name: "동영상",
+      subItems: [routeSubItem({ name: "동영상 관리", path: "/video-manage/videos" })],
     },
     {
       icon: <MessageSquareText className={iconClass} />,
-      name: "게시물 관리",
+      name: "게시물",
       subItems: [
         routeSubItem({ name: "성형후기", path: "/post-manage/surgery-reviews" }),
-        routeSubItem({ name: "시술후기", path: "/post-manage/treatment-reviews" }),
-        routeSubItem({ name: "병의원 평가", path: "/post-manage/hospital-evaluations" }),
+        routeSubItem({ name: "쁘띠후기", path: "/post-manage/treatment-reviews" }),
         routeSubItem({ name: "토크", path: "/post-manage/talks" }),
+        routeSubItem({ name: "병의원평가", path: "/post-manage/hospital-evaluations" }),
       ],
     },
     {
       icon: <ShieldAlert className={iconClass} />,
-      name: "신고게시물 관리",
+      name: "신고게시물",
       subItems: [
         routeSubItem({ name: "성형후기", path: "/reported-post-manage/surgery-reviews" }),
-        routeSubItem({ name: "시술후기", path: "/reported-post-manage/treatment-reviews" }),
-        routeSubItem({ name: "병의원 평가", path: "/reported-post-manage/hospital-evaluations" }),
+        routeSubItem({ name: "쁘띠후기", path: "/reported-post-manage/treatment-reviews" }),
         routeSubItem({ name: "토크", path: "/reported-post-manage/talks" }),
+        routeSubItem({ name: "병의원평가", path: "/reported-post-manage/hospital-evaluations" }),
         routeSubItem({ name: "채팅", path: "/reported-post-manage/chats" }),
+      ],
+    },
+    {
+      icon: <Bell className={iconClass} />,
+      name: "공지사항",
+      subItems: [
+        routeSubItem({ name: "공지사항", path: "/notice-manage/notices" }),
+        routeSubItem({ name: "병의원대상 공지사항", path: "/notice-manage/hospital-notices" }),
+        routeSubItem({ name: "자주하는 질문", path: "/notice-manage/faqs" }),
+        routeSubItem({ name: "1:1문의", path: "/notice-manage/inquiries" }),
+      ],
+    },
+    {
+      icon: <Tags className={iconClass} />,
+      name: "컨텐츠",
+      subItems: [
+        routeSubItem({ name: "배너 / 팝업", path: "/content-manage/banners" }),
+        routeSubItem({ name: "카테고리", path: "/category-hashtag-manage/categories" }),
+        routeSubItem({ name: "상단타이틀 관리", path: "/content-manage/top-titles" }),
+      ],
+    },
+    routeItem({
+      icon: <BarChart3 className={iconClass} />,
+      name: "통계",
+      path: "/statistics-manage/statistics",
+    }),
+    {
+      icon: <Settings className={iconClass} />,
+      name: "관리자 설정",
+      subItems: [
+        routeSubItem({ name: "유해성 단어 설정", path: "/admin-settings/harmful-words" }),
+        routeSubItem({ name: "닉네임 관리", path: "/admin-settings/nicknames" }),
+        routeSubItem({ name: "직원 관리", path: "/admin-settings/staff" }),
+        routeSubItem({ name: "이벤트 노출위치 설정", path: "/admin-settings/event-display-positions" }),
       ],
     },
   ],
@@ -108,77 +167,59 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
 const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
   main: [
     {
-      icon: <LayoutDashboard className={iconClass} />,
-      name: "뷰티 대시보드",
-      subItems: [routeSubItem({ name: "대시보드", path: "/beauty-dashboard/dashboard" })],
-    },
-    {
       icon: <Store className={iconClass} />,
-      name: "뷰티 관리",
+      name: "뷰티샵",
       subItems: [
-        routeSubItem({ name: "뷰티", path: "/beauty-shop-manage/beauties" }),
-        routeSubItem({ name: "전문가", path: "/beauty-shop-manage/experts" }),
-      ],
-    },
-    {
-      icon: <Database className={iconClass} />,
-      name: "고객 DB 관리",
-      subItems: [routeSubItem({ name: "리얼모델 DB", path: "/beauty-customer-db-manage/real-models" })],
-    },
-    {
-      icon: <Megaphone className={iconClass} />,
-      name: "광고 관리",
-      subItems: [
-        routeSubItem({ name: "이벤트 관리", path: "/beauty-ads-manage/events" }),
-        routeSubItem({ name: "상품 관리", path: "/beauty-ads-manage/products" }),
-        routeSubItem({ name: "광고 캘린더", path: "/beauty-ads-manage/calendar" }),
+        routeSubItem({ name: "뷰티샵", path: "/beauty-shop-manage/beauties" }),
+        routeSubItem({ name: "뷰티전문가", path: "/beauty-shop-manage/experts" }),
       ],
     },
     {
       icon: <Wallet className={iconClass} />,
-      name: "지갑 관리",
+      name: "충전금",
       subItems: [
-        routeSubItem({ name: "뷰티 포인트", path: "/beauty-wallet-manage/beauties" }),
-        routeSubItem({ name: "사용 내역", path: "/beauty-wallet-manage/usages" }),
+        routeSubItem({ name: "뷰티샵 목록", path: "/beauty-wallet-manage/beauties" }),
+        routeSubItem({ name: "충전금 사용 목록", path: "/beauty-wallet-manage/usages" }),
+      ],
+    },
+    {
+      icon: <Database className={iconClass} />,
+      name: "고객 DB",
+      subItems: [routeSubItem({ name: "체험단 신청", path: "/beauty-customer-db-manage/real-models" })],
+    },
+    {
+      icon: <Megaphone className={iconClass} />,
+      name: "광고",
+      subItems: [
+        routeSubItem({ name: "이벤트 관리", path: "/beauty-ads-manage/events" }),
+        routeSubItem({ name: "상품 등록 관리", path: "/beauty-ads-manage/products" }),
+        routeSubItem({ name: "상품 캘린더", path: "/beauty-ads-manage/calendar" }),
       ],
     },
     {
       icon: <MessageSquareText className={iconClass} />,
-      name: "게시물 관리",
+      name: "게시물",
       subItems: [
-        routeSubItem({ name: "뷰티 후기", path: "/beauty-post-manage/beauty-reviews" }),
-        routeSubItem({ name: "뷰티 게시글", path: "/beauty-post-manage/beauty-posts" }),
-        routeSubItem({ name: "토크", path: "/beauty-post-manage/talks" }),
+        routeSubItem({ name: "뷰티시술 후기", path: "/beauty-post-manage/beauty-reviews" }),
+        routeSubItem({ name: "뷰티샵 리뷰", path: "/beauty-post-manage/beauty-posts" }),
       ],
     },
     {
       icon: <ShieldAlert className={iconClass} />,
-      name: "신고게시물 관리",
+      name: "신고게시물",
       subItems: [
-        routeSubItem({ name: "신고 게시글", path: "/beauty-reported-content-manage/posts" }),
-        routeSubItem({ name: "신고 댓글", path: "/beauty-reported-content-manage/comments" }),
+        routeSubItem({ name: "뷰티시술 후기", path: "/beauty-reported-content-manage/posts" }),
+        routeSubItem({ name: "뷰티샵 리뷰", path: "/beauty-reported-content-manage/comments" }),
       ],
     },
-  ],
-  others: [],
-};
-
-const commonMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
-  main: [
     {
       icon: <Bell className={iconClass} />,
-      name: "공지사항 관리",
-      subItems: [routeSubItem({ name: "공지사항", path: "/notice-manage/notices" })],
-    },
-    {
-      icon: <Users className={iconClass} />,
-      name: "회원 관리",
-      subItems: [routeSubItem({ name: "일반 회원", path: "/user-manage/users" })],
-    },
-    {
-      icon: <Tags className={iconClass} />,
-      name: "해시태그 관리",
-      subItems: [routeSubItem({ name: "해시태그", path: "/category-hashtag-manage/hashtags" })],
+      name: "공지사항",
+      subItems: [
+        routeSubItem({ name: "공지사항", path: "/beauty-notice-manage/notices" }),
+        routeSubItem({ name: "자주하는 질문", path: "/beauty-notice-manage/faqs" }),
+        routeSubItem({ name: "1:1문의", path: "/beauty-notice-manage/inquiries" }),
+      ],
     },
   ],
   others: [],
@@ -227,15 +268,11 @@ export function buildStaffSidebarMenus(permissions: string[]): StaffSidebarMenuB
       hospital: toSidebarMenu(hospitalDomainMenu, permissions),
       beauty: toSidebarMenu(beautyDomainMenu, permissions),
     },
-    commonMenu: toSidebarMenu(commonMenu, permissions),
   };
 }
 
 export function mergeStaffSidebarMenu(bundle: StaffSidebarMenuBundle, domain: StaffSidebarDomain): SidebarMenu {
-  return {
-    main: bundle.domainMenus[domain].main,
-    others: [...bundle.domainMenus[domain].others, ...bundle.commonMenu.main, ...bundle.commonMenu.others],
-  };
+  return bundle.domainMenus[domain];
 }
 
 export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebarDomain | null {
@@ -244,26 +281,33 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
   }
 
   if (
-    pathname.startsWith("/hospital-manage") ||
-    pathname.startsWith("/customer-db-manage") ||
-    pathname.startsWith("/ads-manage") ||
-    pathname.startsWith("/video-manage") ||
-    pathname.startsWith("/post-manage") ||
-    pathname.startsWith("/reported-post-manage")
-  ) {
-    return "hospital";
-  }
-
-  if (
-    pathname.startsWith("/beauty-dashboard") ||
     pathname.startsWith("/beauty-shop-manage") ||
     pathname.startsWith("/beauty-customer-db-manage") ||
     pathname.startsWith("/beauty-ads-manage") ||
     pathname.startsWith("/beauty-wallet-manage") ||
     pathname.startsWith("/beauty-post-manage") ||
-    pathname.startsWith("/beauty-reported-content-manage")
+    pathname.startsWith("/beauty-reported-content-manage") ||
+    pathname.startsWith("/beauty-notice-manage")
   ) {
     return "beauty";
+  }
+
+  if (
+    pathname.startsWith("/user-manage") ||
+    pathname.startsWith("/hospital-manage") ||
+    pathname.startsWith("/wallet-manage") ||
+    pathname.startsWith("/customer-db-manage") ||
+    pathname.startsWith("/ads-manage") ||
+    pathname.startsWith("/video-manage") ||
+    pathname.startsWith("/post-manage") ||
+    pathname.startsWith("/reported-post-manage") ||
+    pathname.startsWith("/notice-manage") ||
+    pathname.startsWith("/content-manage") ||
+    pathname.startsWith("/category-hashtag-manage") ||
+    pathname.startsWith("/statistics-manage") ||
+    pathname.startsWith("/admin-settings")
+  ) {
+    return "hospital";
   }
 
   return null;

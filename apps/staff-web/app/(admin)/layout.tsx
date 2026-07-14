@@ -130,7 +130,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
           topContent={sidebarTopContent}
           sectionLabels={{
             main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
-            others: "공통메뉴",
+            others: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
           }}
           brand={{
             href: brandHref,
