@@ -18,11 +18,10 @@ import {
 } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
-import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
+import type { CategoryApiItem } from "@/lib/common/category";
 import {
   DEFAULT_HOSPITAL_EVENT_FILTERS,
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS,
-  HOSPITAL_EVENT_CATEGORY_USAGES,
   buildHospitalEventPresetDateRange,
   buildHospitalEventsQuery,
   buildHospitalEventsQueryString,
@@ -49,15 +48,10 @@ type SelectOption = {
   label: string;
 };
 
-const CATEGORY_ITEMS_CACHE_TTL_MS = 5 * 60 * 1000;
-const categoryItemsCache = new Map<string, { expiresAt: number; items: CategoryApiItem[] }>();
-
-function buildCategoryItemsCacheKey(params: Record<string, string | number>) {
-  return Object.entries(params)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key}:${value}`)
-    .join("|");
-}
+type HospitalEventCategoryFilterOptionsResponse = {
+  major_categories?: CategoryApiItem[] | null;
+  middle_categories_by_parent?: Record<string, CategoryApiItem[]> | null;
+};
 
 function cloneDefaultHospitalEventFilters(): HospitalEventFilters {
   return {
@@ -136,7 +130,6 @@ export default function HospitalEventsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const middleCategoryParentRef = React.useRef("");
   const [initialTableState] = React.useState(() =>
     parseHospitalEventsTableState(new URLSearchParams(searchParams.toString())),
   );
@@ -152,7 +145,9 @@ export default function HospitalEventsTableClient() {
   const [page, setPage] = React.useState(initialTableState.page);
   const [summary, setSummary] = React.useState<HospitalEventSummary | null>(null);
   const [majorCategoryItems, setMajorCategoryItems] = React.useState<CategoryApiItem[]>([]);
-  const [middleCategoryItems, setMiddleCategoryItems] = React.useState<CategoryApiItem[]>([]);
+  const [middleCategoryItemsByParent, setMiddleCategoryItemsByParent] = React.useState<
+    Record<string, CategoryApiItem[]>
+  >({});
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
   const [periodEdit, setPeriodEdit] = React.useState<HospitalEventPeriodEditState | null>(null);
   const [periodUpdating, setPeriodUpdating] = React.useState(false);
@@ -228,6 +223,11 @@ export default function HospitalEventsTableClient() {
     [majorCategoryItems],
   );
 
+  const middleCategoryItems = React.useMemo(
+    () => middleCategoryItemsByParent[draftFilters.majorCategoryId] ?? [],
+    [draftFilters.majorCategoryId, middleCategoryItemsByParent],
+  );
+
   const middleCategoryOptions = React.useMemo<SelectOption[]>(() => {
     if (!draftFilters.majorCategoryId) return [{ value: "", label: "대분류 선택" }];
 
@@ -247,74 +247,23 @@ export default function HospitalEventsTableClient() {
     router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
   }, [pathname, queryString, router, searchParams]);
 
-  const fetchCategoryItems = React.useCallback(
-    async (params: Record<string, string | number>): Promise<CategoryApiItem[]> => {
-      const queryParams = {
-        domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
-        status: "ACTIVE",
-        per_page: 100,
-        ...params,
-      };
-      const cacheKey = buildCategoryItemsCacheKey(queryParams);
-      const cachedItems = categoryItemsCache.get(cacheKey);
-
-      if (cachedItems && cachedItems.expiresAt > Date.now()) {
-        return cachedItems.items;
-      }
-
-      const response = await api.get<CategoryApiItem[]>("/categories/selector", queryParams);
+  const loadCategoryFilterOptions = React.useCallback(async () => {
+    try {
+      const response = await api.get<HospitalEventCategoryFilterOptionsResponse>(
+        "/hospital-events/category-filter-options",
+      );
 
       if (!isApiSuccess(response)) {
         throw new Error(response.error.message || "카테고리 필터를 불러오지 못했습니다.");
       }
 
-      categoryItemsCache.set(cacheKey, {
-        expiresAt: Date.now() + CATEGORY_ITEMS_CACHE_TTL_MS,
-        items: response.data,
-      });
-
-      return response.data;
-    },
-    [],
-  );
-
-  const loadMajorCategories = React.useCallback(async () => {
-    try {
-      const groupedItems = await Promise.all(
-        HOSPITAL_EVENT_CATEGORY_USAGES.map((usage) => fetchCategoryItems({ usage })),
-      );
-      const uniqueItems = new Map<number, CategoryApiItem>();
-
-      groupedItems.flat().forEach((item) => {
-        uniqueItems.set(item.id, item);
-      });
-
-      setMajorCategoryItems(Array.from(uniqueItems.values()));
+      setMajorCategoryItems(response.data.major_categories ?? []);
+      setMiddleCategoryItemsByParent(response.data.middle_categories_by_parent ?? {});
     } catch {
       setMajorCategoryItems([]);
+      setMiddleCategoryItemsByParent({});
     }
-  }, [fetchCategoryItems]);
-
-  const loadMiddleCategories = React.useCallback(
-    async (parentId: string) => {
-      middleCategoryParentRef.current = parentId;
-      setMiddleCategoryItems([]);
-
-      if (!parentId) return;
-
-      try {
-        const items = await fetchCategoryItems({ parent_id: parentId });
-        if (middleCategoryParentRef.current === parentId) {
-          setMiddleCategoryItems(items);
-        }
-      } catch {
-        if (middleCategoryParentRef.current === parentId) {
-          setMiddleCategoryItems([]);
-        }
-      }
-    },
-    [fetchCategoryItems],
-  );
+  }, []);
 
   React.useEffect(() => {
     void fetchSummary();
@@ -337,14 +286,8 @@ export default function HospitalEventsTableClient() {
   }, [pathname, router, searchParams]);
 
   React.useEffect(() => {
-    void loadMajorCategories();
-  }, [loadMajorCategories]);
-
-  React.useEffect(() => {
-    if (!draftFilters.majorCategoryId) return;
-
-    void loadMiddleCategories(draftFilters.majorCategoryId);
-  }, [draftFilters.majorCategoryId, loadMiddleCategories]);
+    void loadCategoryFilterOptions();
+  }, [loadCategoryFilterOptions]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -573,7 +516,6 @@ export default function HospitalEventsTableClient() {
         onAdminStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, adminStatus: value }))}
         onMajorCategoryChange={(value) => {
           setDraftFilters((prev) => ({ ...prev, majorCategoryId: value, middleCategoryId: "" }));
-          void loadMiddleCategories(value);
         }}
         onMiddleCategoryChange={(value) => setDraftFilters((prev) => ({ ...prev, middleCategoryId: value }))}
         onQuantityMetricChange={(value: HospitalEventQuantityMetric) =>

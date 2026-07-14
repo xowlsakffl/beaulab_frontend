@@ -47,6 +47,7 @@ import {
   isSameDate,
   isSameMonth,
   monthKey,
+  normalizeEventAdCategoryOptions,
   normalizeEventAdPlacementOptions,
   parseDateKey,
   startOfMonth,
@@ -163,16 +164,7 @@ export default function EventAdsCreateFormClient() {
         return;
       }
 
-      setCategoryOptions(
-        response.data
-          .filter((category) => category.status === "ACTIVE")
-          .map((category) => ({
-            id: category.id,
-            name: category.name,
-            full_path: category.full_path,
-            depth: category.depth,
-          })),
-      );
+      setCategoryOptions(normalizeEventAdCategoryOptions(placement.category_usage, response.data));
     } catch {
       setCategoryLoadError("카테고리 목록을 불러오는 중 오류가 발생했습니다.");
     } finally {
@@ -571,12 +563,7 @@ function PlacementCard({ placement, onClick }: { placement: EventAdPlacementOpti
       className="group min-h-32 min-w-0 rounded-xl border border-gray-200 bg-white p-5 text-left transition hover:border-brand-400 hover:bg-brand-50/40 hover:shadow-md"
     >
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-gray-500">{placement.group_label}</p>
         <p className="text-sm font-bold text-gray-900">{placement.label}</p>
-        <p className="text-xs text-gray-500">주 {placement.slot_limit}구좌</p>
-        {placement.category_required ? (
-          <p className="text-xs font-semibold text-brand-500">카테고리 선택 필요</p>
-        ) : null}
       </div>
     </button>
   );
@@ -642,7 +629,7 @@ function DateStep({
             </div>
             {selectedCategory ? (
               <p className="mt-3 text-xs font-semibold text-brand-500">
-                {selectedCategory.full_path || selectedCategory.name}
+                {selectedCategory.display_name || selectedCategory.name}
               </p>
             ) : null}
           </div>
@@ -795,7 +782,7 @@ function FormStep({
           <h2 className="text-sm font-bold text-gray-900">상품정보</h2>
           <InfoRow label="광고위치" value={selectedPlacement.label} />
           {selectedCategory ? (
-            <InfoRow label="카테고리" value={selectedCategory.full_path || selectedCategory.name} />
+            <InfoRow label="카테고리" value={selectedCategory.display_name || selectedCategory.name} />
           ) : null}
           <InfoRow label="광고기간" value={formatEventAdPeriodLabel(selectedWeek)} />
 
@@ -1014,16 +1001,16 @@ function CategorySelectModal({
   onConfirm: () => void;
 }) {
   return (
-    <Modal isOpen={Boolean(placement)} onClose={onClose}>
-      <ModalPanel className="max-w-3xl">
-        <ModalHeader>
+    <Modal isOpen={Boolean(placement)} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-2xl">
+      <ModalPanel>
+        <ModalHeader className="pr-0">
           <ModalTitle>카테고리 선택</ModalTitle>
         </ModalHeader>
-        <ModalBody>
-          <div className="space-y-6">
-            <p className="text-sm font-semibold text-gray-800">상단 배너 광고를 게재할 카테고리를 선택해 주세요.</p>
+        <ModalBody className="mt-5">
+          <div className="space-y-5">
+            <p className="text-sm font-medium text-gray-800">상단 배너 광고를 게재할 카테고리를 선택해 주세요.</p>
             {isLoading ? (
-              <SpinnerBlock className="min-h-32" spinnerClassName="size-7" label="카테고리 불러오는 중" />
+              <SpinnerBlock className="min-h-24" spinnerClassName="size-7" label="카테고리 불러오는 중" />
             ) : error ? (
               <p className="text-sm text-error-500">{error}</p>
             ) : categories.length === 0 ? (
@@ -1039,13 +1026,13 @@ function CategorySelectModal({
                       type="button"
                       onClick={() => onSelectCategory(category.id)}
                       className={[
-                        "h-10 min-w-20 rounded-lg border px-4 text-sm font-semibold transition",
+                        "h-9 min-w-18 rounded-md border px-4 text-sm font-semibold transition",
                         selected
                           ? "border-brand-500 bg-brand-500 text-white"
-                          : "border-gray-300 bg-white text-gray-700 hover:border-brand-300 hover:text-brand-500",
+                          : "border-gray-300 bg-white text-gray-700 hover:border-brand-400 hover:text-brand-500",
                       ].join(" ")}
                     >
-                      {category.name}
+                      {category.display_name || category.name}
                     </button>
                   );
                 })}
@@ -1054,13 +1041,12 @@ function CategorySelectModal({
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button type="button" variant="outline" size="sm" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             취소
           </Button>
           <Button
             type="button"
             variant="brand"
-            size="sm"
             onClick={onConfirm}
             disabled={isLoading || Boolean(error) || !selectedCategoryId}
           >

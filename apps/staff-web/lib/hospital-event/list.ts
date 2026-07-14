@@ -1,7 +1,6 @@
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
 import {
   labelReviewAllowStatus,
@@ -217,11 +216,6 @@ export const DEFAULT_HOSPITAL_EVENT_FILTERS: HospitalEventFilters = {
   amountMin: "",
   amountMax: "",
 };
-
-export const HOSPITAL_EVENT_CATEGORY_USAGES = [
-  CATEGORY_USAGES.HOSPITAL_EVENT_SURGERY,
-  CATEGORY_USAGES.HOSPITAL_EVENT_TREATMENT,
-] as const;
 
 export const HOSPITAL_EVENT_ADMIN_STATUS_OPTIONS = [
   { value: "", label: "전체" },

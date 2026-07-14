@@ -30,7 +30,9 @@ export type EventAdAvailabilityResponse = {
   weeks: EventAdAvailabilityWeek[];
 };
 
-export type EventAdCategoryOption = Pick<CategoryApiItem, "id" | "name" | "full_path" | "depth">;
+export type EventAdCategoryOption = Pick<CategoryApiItem, "id" | "name" | "code" | "full_path" | "depth"> & {
+  display_name?: string;
+};
 
 export type EventAdHospitalEventOption = {
   id: number;
@@ -152,7 +154,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     label: "쁘띠 카테고리별 배너",
     group_label: "쁘띠이벤트",
     category_required: true,
-    category_usage: CATEGORY_USAGES.HOSPITAL_EVENT_AD_PETIT,
+    category_usage: CATEGORY_USAGES.HOSPITAL_EVENT_AD_TREATMENT,
     slot_limit: 3,
   },
   {
@@ -173,6 +175,36 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
   },
 ];
 
+type EventAdFixedCategory = {
+  label: string;
+  codes: string[];
+};
+
+export const EVENT_AD_FIXED_CATEGORIES_BY_USAGE: Record<string, EventAdFixedCategory[]> = {
+  [CATEGORY_USAGES.HOSPITAL_EVENT_AD_SURGERY]: [
+    { label: "눈", codes: ["HS_EYE"] },
+    { label: "코", codes: ["HS_NOSE"] },
+    { label: "지방흡입/이식", codes: ["HS_BODY"] },
+    { label: "가슴", codes: ["HS_BREAST"] },
+    { label: "거상", codes: ["HS_LIFT"] },
+    { label: "안면윤곽/양악", codes: ["HS_FACE_CONTOUR"] },
+    { label: "모발이식", codes: ["HS_HAIR_TRANSPLANT"] },
+    { label: "기타", codes: ["HM_PLASTIC_OTHER"] },
+  ],
+  [CATEGORY_USAGES.HOSPITAL_EVENT_AD_TREATMENT]: [
+    { label: "리프팅", codes: ["HT_LIFTING"] },
+    { label: "필러", codes: ["HT_FILLER"] },
+    { label: "보톡스", codes: ["HT_BOTOX"] },
+    { label: "지방분해주사", codes: ["HM_PETIT_SKIN_BODY_CONTOUR_INJECTION"] },
+    { label: "피부", codes: ["HM_PETIT_SKIN_CARE"] },
+    { label: "헤어", codes: ["HM_PETIT_SKIN_HAIR"] },
+    { label: "치과", codes: ["HM_PETIT_SKIN_DENTAL"] },
+    { label: "부인과", codes: ["HM_PETIT_SKIN_GYNECOLOGY"] },
+    { label: "안과", codes: ["HM_PETIT_SKIN_OPHTHALMOLOGY"] },
+    { label: "한방", codes: ["HM_PETIT_SKIN_ORIENTAL"] },
+  ],
+};
+
 export function normalizeEventAdPlacementOptions(items: EventAdPlacementOption[]) {
   const fallbackByValue = new Map(FALLBACK_EVENT_AD_PLACEMENT_OPTIONS.map((item) => [item.value, item]));
 
@@ -183,6 +215,37 @@ export function normalizeEventAdPlacementOptions(items: EventAdPlacementOption[]
     category_usage: item.category_usage ?? fallbackByValue.get(item.value)?.category_usage ?? null,
     slot_limit: Number(item.slot_limit || fallbackByValue.get(item.value)?.slot_limit || 3),
   }));
+}
+
+export function normalizeEventAdCategoryOptions(usage: string, categories: CategoryApiItem[]): EventAdCategoryOption[] {
+  const fixedCategories = EVENT_AD_FIXED_CATEGORIES_BY_USAGE[usage];
+  const activeCategories = categories.filter((category) => category.status === "ACTIVE");
+
+  if (!fixedCategories) {
+    return activeCategories.map(normalizeEventAdCategoryOption);
+  }
+
+  return fixedCategories.reduce<EventAdCategoryOption[]>((options, fixedCategory) => {
+    const category = activeCategories.find((item) => item.code && fixedCategory.codes.includes(item.code));
+    if (!category) return options;
+
+    options.push({
+      ...normalizeEventAdCategoryOption(category),
+      display_name: fixedCategory.label,
+    });
+
+    return options;
+  }, []);
+}
+
+function normalizeEventAdCategoryOption(category: CategoryApiItem): EventAdCategoryOption {
+  return {
+    id: category.id,
+    name: category.name,
+    code: category.code,
+    full_path: category.full_path,
+    depth: category.depth,
+  };
 }
 
 export function monthKey(date: Date) {
