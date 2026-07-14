@@ -1,4 +1,5 @@
 import { CATEGORY_USAGES, type CategoryApiItem } from "@/lib/common/category";
+import type { HospitalEventMedia } from "@/lib/hospital-event/list";
 import { formatEventAdLocalDate } from "@/lib/hospital-event-ad/list";
 
 export type EventAdPlacementGroupKey = "main" | "surgery" | "petit" | "etc";
@@ -10,6 +11,9 @@ export type EventAdPlacementOption = {
   category_required: boolean;
   category_usage?: string | null;
   slot_limit: number;
+  cost: number;
+  start_day_of_week?: number | null;
+  start_day_label?: string | null;
 };
 
 export type EventAdAvailabilityWeek = {
@@ -21,12 +25,15 @@ export type EventAdAvailabilityWeek = {
   slot_limit: number;
   is_sold_out: boolean;
   is_past: boolean;
+  is_deadline_closed: boolean;
 };
 
 export type EventAdAvailabilityResponse = {
   placement: string;
   category_id?: number | null;
   month: string;
+  start_day_of_week?: number | null;
+  start_day_label?: string | null;
   weeks: EventAdAvailabilityWeek[];
 };
 
@@ -37,6 +44,9 @@ export type EventAdCategoryOption = Pick<CategoryApiItem, "id" | "name" | "code"
 export type EventAdHospitalEventOption = {
   id: number;
   name: string;
+  thumbnail_image?: HospitalEventMedia | null;
+  created_at?: string | null;
+  event_price?: number | null;
 };
 
 export type EventAdCreateFormValues = {
@@ -44,12 +54,9 @@ export type EventAdCreateFormValues = {
   hospital_name: string;
   hospital_business_number: string;
   hospital_event_id: number | null;
-  cost: string;
 };
 
-export type EventAdCreateFormErrors = Partial<
-  Record<"hospital_id" | "hospital_event_id" | "cost" | "ad_image_file", string>
->;
+export type EventAdCreateFormErrors = Partial<Record<"hospital_id" | "hospital_event_id" | "ad_image_file", string>>;
 
 export const EVENT_AD_CREATE_FORM_ID = "hospital-event-ad-create-form";
 
@@ -58,7 +65,6 @@ export const INITIAL_EVENT_AD_CREATE_FORM: EventAdCreateFormValues = {
   hospital_name: "",
   hospital_business_number: "",
   hospital_event_id: null,
-  cost: "0",
 };
 
 export const EVENT_AD_PLACEMENT_GROUPS: { key: EventAdPlacementGroupKey; label: string; values: string[] }[] = [
@@ -92,6 +98,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "MAIN_VERTICAL_BANNER",
@@ -100,6 +107,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "MAIN_HORIZONTAL_BANNER",
@@ -108,6 +116,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "SURGERY_TOP_BANNER",
@@ -116,6 +125,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "SURGERY_HOT_EVENT",
@@ -124,6 +134,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "SURGERY_CATEGORY_BANNER",
@@ -132,6 +143,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: true,
     category_usage: CATEGORY_USAGES.HOSPITAL_EVENT_AD_SURGERY,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "PETIT_TOP_BANNER",
@@ -140,6 +152,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "PETIT_HOT_EVENT",
@@ -148,6 +161,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "PETIT_CATEGORY_BANNER",
@@ -156,6 +170,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: true,
     category_usage: CATEGORY_USAGES.HOSPITAL_EVENT_AD_TREATMENT,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "CONSULT_MEMO",
@@ -164,6 +179,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
   {
     value: "SEARCH",
@@ -172,6 +188,7 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
     category_required: false,
     category_usage: null,
     slot_limit: 3,
+    cost: 0,
   },
 ];
 
@@ -214,7 +231,14 @@ export function normalizeEventAdPlacementOptions(items: EventAdPlacementOption[]
     group_label: item.group_label?.trim() || fallbackByValue.get(item.value)?.group_label || "-",
     category_usage: item.category_usage ?? fallbackByValue.get(item.value)?.category_usage ?? null,
     slot_limit: Number(item.slot_limit || fallbackByValue.get(item.value)?.slot_limit || 3),
+    cost: Number(item.cost ?? fallbackByValue.get(item.value)?.cost ?? 0),
+    start_day_of_week: Number(item.start_day_of_week ?? fallbackByValue.get(item.value)?.start_day_of_week ?? 2),
+    start_day_label: item.start_day_label?.trim() || fallbackByValue.get(item.value)?.start_day_label || "화요일",
   }));
+}
+
+export function eventAdStartDayLabel(placement: EventAdPlacementOption) {
+  return placement.start_day_label?.trim() || (placement.value.startsWith("PETIT_") ? "목요일" : "화요일");
 }
 
 export function normalizeEventAdCategoryOptions(usage: string, categories: CategoryApiItem[]): EventAdCategoryOption[] {
@@ -317,7 +341,6 @@ export function formatEventAdPeriodLabel(week: EventAdAvailabilityWeek | null) {
 
 export function validateEventAdCreateForm(form: EventAdCreateFormValues, adImageFile: File | null) {
   const errors: EventAdCreateFormErrors = {};
-  const cost = Number(form.cost);
 
   if (!form.hospital_id) {
     errors.hospital_id = "병의원을 선택해 주세요.";
@@ -325,10 +348,6 @@ export function validateEventAdCreateForm(form: EventAdCreateFormValues, adImage
 
   if (!form.hospital_event_id) {
     errors.hospital_event_id = "이벤트를 선택해 주세요.";
-  }
-
-  if (!Number.isFinite(cost) || cost < 0) {
-    errors.cost = "비용은 0 이상의 숫자로 입력해 주세요.";
   }
 
   if (adImageFile && !["image/jpeg", "image/png"].includes(adImageFile.type)) {
@@ -344,6 +363,7 @@ export function buildEventAdCreateFormData({
   selectedCategory,
   selectedWeek,
   adImageFile,
+  isFreeAd,
   managerStaffId,
 }: {
   form: EventAdCreateFormValues;
@@ -351,6 +371,7 @@ export function buildEventAdCreateFormData({
   selectedCategory: EventAdCategoryOption | null;
   selectedWeek: EventAdAvailabilityWeek;
   adImageFile: File | null;
+  isFreeAd?: boolean;
   managerStaffId?: number | null;
 }) {
   const formData = new FormData();
@@ -358,7 +379,8 @@ export function buildEventAdCreateFormData({
   formData.append("hospital_id", String(form.hospital_id ?? ""));
   formData.append("hospital_event_id", String(form.hospital_event_id ?? ""));
   formData.append("placement", selectedPlacement.value);
-  formData.append("cost", String(Number(form.cost) || 0));
+  formData.append("cost", String(isFreeAd ? 0 : selectedPlacement.cost));
+  formData.append("is_free_event", isFreeAd ? "1" : "0");
   formData.append("start_date", selectedWeek.date);
 
   if (managerStaffId) {

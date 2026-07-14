@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   Button,
   Card,
-  ChevronLeft,
-  ChevronRight,
+  ArrowLeft,
   FormCheckbox,
-  FormFileInput,
   InputField,
   Label,
   Modal,
@@ -17,39 +15,36 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
-  Select,
   SegmentedTabs,
   SpinnerBlock,
+  WeeklyReservationCalendar,
   useGlobalAlert,
 } from "@beaulab/ui-admin";
 import { isApiSuccess } from "@beaulab/types";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { useDoctorHospitalOptions } from "@/hooks/doctor/useDoctorHospitalOptions";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
+import { resolveHospitalEventMediaUrl, type HospitalEventApiItem } from "@/lib/hospital-event/list";
 import type { EventAdApiItem } from "@/lib/hospital-event-ad/list";
 import {
   EVENT_AD_CREATE_FORM_ID,
   EVENT_AD_PLACEMENT_GROUPS,
   FALLBACK_EVENT_AD_PLACEMENT_OPTIONS,
   INITIAL_EVENT_AD_CREATE_FORM,
-  addDays,
-  buildCalendarDays,
   buildEventAdCreateFormData,
+  eventAdStartDayLabel,
   formatEventAdMonthLabel,
   formatEventAdPeriodLabel,
   isCurrentOrNextMonth,
-  isDateInRange,
-  isSameDate,
-  isSameMonth,
   monthKey,
   normalizeEventAdCategoryOptions,
   normalizeEventAdPlacementOptions,
-  parseDateKey,
   startOfMonth,
   validateEventAdCreateForm,
   type EventAdAvailabilityResponse,
@@ -84,7 +79,6 @@ export default function EventAdsCreateFormClient() {
   const [availabilityWeeks, setAvailabilityWeeks] = React.useState<EventAdAvailabilityWeek[]>([]);
   const [isLoadingAvailability, setIsLoadingAvailability] = React.useState(false);
   const [availabilityError, setAvailabilityError] = React.useState<string | null>(null);
-  const [hoveredWeekDate, setHoveredWeekDate] = React.useState<string | null>(null);
   const [form, setForm] = React.useState<EventAdCreateFormValues>(INITIAL_EVENT_AD_CREATE_FORM);
   const [errors, setErrors] = React.useState<EventAdCreateFormErrors>({});
   const [eventOptions, setEventOptions] = React.useState<EventAdHospitalEventOption[]>([]);
@@ -104,11 +98,6 @@ export default function EventAdsCreateFormClient() {
 
     return (group?.values ?? []).map((value) => placementMap.get(value)).filter(Boolean) as EventAdPlacementOption[];
   }, [activeGroup, placementMap]);
-  const weekByDate = React.useMemo(
-    () => new Map(availabilityWeeks.map((week) => [week.date, week])),
-    [availabilityWeeks],
-  );
-  const calendarDays = React.useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth]);
 
   const selectedCategoryForModal = React.useMemo(
     () => categoryOptions.find((category) => category.id === categoryModalSelectedId) ?? null,
@@ -184,7 +173,6 @@ export default function EventAdsCreateFormClient() {
   const handleSelectPlacement = React.useCallback(
     (placement: EventAdPlacementOption) => {
       setSelectedWeek(null);
-      setHoveredWeekDate(null);
 
       if (placement.category_required) {
         openCategoryModal(placement);
@@ -212,7 +200,6 @@ export default function EventAdsCreateFormClient() {
     setSelectedPlacement(categoryModalPlacement);
     setSelectedCategory(selectedCategoryForModal);
     setSelectedWeek(null);
-    setHoveredWeekDate(null);
     setCalendarMonth(startOfMonth(new Date()));
     setStep("date");
     closeCategoryModal();
@@ -273,7 +260,7 @@ export default function EventAdsCreateFormClient() {
     setEventLoadError(null);
 
     try {
-      const response = await api.get<EventAdHospitalEventOption[]>("/hospital-events", {
+      const response = await api.get<HospitalEventApiItem[]>("/hospital-events", {
         hospital_id: hospitalId,
         sort: "id",
         direction: "desc",
@@ -286,7 +273,7 @@ export default function EventAdsCreateFormClient() {
         return;
       }
 
-      setEventOptions(response.data.map((event) => ({ id: event.id, name: event.name })));
+      setEventOptions(response.data.map(normalizeEventOptionForAd));
     } catch {
       setEventOptions([]);
       setEventLoadError("이벤트 목록을 불러오는 중 오류가 발생했습니다.");
@@ -371,6 +358,7 @@ export default function EventAdsCreateFormClient() {
         selectedCategory,
         selectedWeek,
         adImageFile,
+        isFreeAd,
         managerStaffId: Number.isFinite(managerStaffId) && managerStaffId > 0 ? managerStaffId : null,
       });
       const response = await api.post<EventAdApiItem>("/hospital-event-ads", formData);
@@ -454,12 +442,9 @@ export default function EventAdsCreateFormClient() {
             selectedPlacement={selectedPlacement}
             selectedCategory={selectedCategory}
             calendarMonth={calendarMonth}
-            calendarDays={calendarDays}
-            weekByDate={weekByDate}
+            availabilityWeeks={availabilityWeeks}
             isLoading={isLoadingAvailability}
             error={availabilityError}
-            hoveredWeekDate={hoveredWeekDate}
-            onHoverWeek={setHoveredWeekDate}
             onMonthChange={setCalendarMonth}
             onRefresh={() => void fetchAvailability()}
             onSelectWeek={handleSelectWeek}
@@ -492,12 +477,8 @@ export default function EventAdsCreateFormClient() {
                 return next;
               });
             }}
-            onFreeAdChange={(checked) => {
-              setIsFreeAd(checked);
-              if (checked) {
-                setField("cost", "0");
-              }
-            }}
+            onAdImageError={(message) => setErrors((prev) => ({ ...prev, ad_image_file: message }))}
+            onFreeAdChange={setIsFreeAd}
           />
         ) : null}
       </div>
@@ -573,12 +554,9 @@ function DateStep({
   selectedPlacement,
   selectedCategory,
   calendarMonth,
-  calendarDays,
-  weekByDate,
+  availabilityWeeks,
   isLoading,
   error,
-  hoveredWeekDate,
-  onHoverWeek,
   onMonthChange,
   onRefresh,
   onSelectWeek,
@@ -587,148 +565,86 @@ function DateStep({
   selectedPlacement: EventAdPlacementOption;
   selectedCategory: EventAdCategoryOption | null;
   calendarMonth: Date;
-  calendarDays: Date[];
-  weekByDate: Map<string, EventAdAvailabilityWeek>;
+  availabilityWeeks: EventAdAvailabilityWeek[];
   isLoading: boolean;
   error: string | null;
-  hoveredWeekDate: string | null;
-  onHoverWeek: (date: string | null) => void;
   onMonthChange: (month: Date) => void;
   onRefresh: () => void;
   onSelectWeek: (week: EventAdAvailabilityWeek) => void;
   onBack: () => void;
 }) {
-  const canGoPrev = isCurrentOrNextMonth(calendarMonth, "prev");
-  const canGoNext = isCurrentOrNextMonth(calendarMonth, "next");
-  const hoveredStart = hoveredWeekDate ? parseDateKey(hoveredWeekDate) : null;
-  const hoveredEnd = hoveredStart ? addDays(hoveredStart, 6) : null;
-  const today = new Date();
+  const startDayLabel = eventAdStartDayLabel(selectedPlacement);
 
   return (
     <Card className="rounded-xl p-8">
-      <div className="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="space-y-5">
-          <Button type="button" variant="outline" size="sm" onClick={onBack}>
-            광고 위치 다시 선택
-          </Button>
-
+      <div className="space-y-5">
+        <div className="flex items-start justify-between gap-4">
           <div className="space-y-2 text-sm">
             <p className="font-bold text-gray-900">상품 구매 유의사항</p>
-            <ul className="list-disc space-y-1 pl-5 text-gray-600">
-              <li>희망 노출 시작일은 화요일만 선택 가능합니다.</li>
-              <li>선택한 날짜의 11:00부터 차주 화요일 10:59까지 노출됩니다.</li>
-              <li>각 광고 영역은 주차별 최대 3구좌까지 구매 가능합니다.</li>
+            <ul className="space-y-1 pl-1 text-gray-600">
+              <li className="relative pl-3 before:absolute before:top-2 before:left-0 before:size-1 before:rounded-full before:bg-gray-400">
+                희망 노출 시작일은 {startDayLabel}만 선택 가능하며, 선택한 날짜로부터 7일간 자동으로 지정됩니다.
+              </li>
+              <li className="relative pl-3 before:absolute before:top-2 before:left-0 before:size-1 before:rounded-full before:bg-gray-400">
+                배너광고는 주단위로 판매되며 광고 시작일 11:00부터 차주 {startDayLabel} 10:59:59 까지 노출돼요.
+              </li>
+              <li className="relative pl-3 before:absolute before:top-2 before:left-0 before:size-1 before:rounded-full before:bg-gray-400">
+                매월 첫 영업일 오전 9시 30분에 차월 광고 구매가 가능해요.
+              </li>
+              <li className="relative pl-3 before:absolute before:top-2 before:left-0 before:size-1 before:rounded-full before:bg-gray-400">
+                광고 게시일 2 영업일전까지만 신청이 가능해요.
+              </li>
             </ul>
           </div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-600 transition hover:border-brand-300 hover:text-brand-500"
+          >
+            <ArrowLeft className="size-4" />
+            <span>뒤로가기</span>
+          </button>
+        </div>
 
-          <div>
-            <p className="text-sm font-bold text-gray-900">선택한 광고위치</p>
-            <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <p className="text-sm font-bold text-gray-900">{selectedPlacement.label}</p>
-              <p className="mt-1 text-xs text-gray-500">주 {selectedPlacement.slot_limit}구좌</p>
-            </div>
-            {selectedCategory ? (
-              <p className="mt-3 text-xs font-semibold text-brand-500">
-                {selectedCategory.display_name || selectedCategory.name}
-              </p>
-            ) : null}
-          </div>
-        </aside>
-
-        <section className="min-w-0">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">{formatEventAdMonthLabel(calendarMonth)}</h2>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled={!canGoPrev}
-                onClick={() => onMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}
-                className="flex size-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 disabled:cursor-not-allowed disabled:opacity-30"
-                aria-label="이전달"
-              >
-                <ChevronLeft className="size-5" />
-              </button>
-              <button
-                type="button"
-                disabled={!canGoNext}
-                onClick={() => onMonthChange(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
-                className="flex size-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 disabled:cursor-not-allowed disabled:opacity-30"
-                aria-label="다음달"
-              >
-                <ChevronRight className="size-5" />
-              </button>
-            </div>
-          </div>
-
-          {error ? (
-            <LoadErrorState title="광고 예약 현황을 불러오지 못했습니다." message={error} onRetry={onRefresh} />
-          ) : (
-            <div className="relative overflow-hidden rounded-xl border border-gray-200">
-              {isLoading ? (
-                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70">
-                  <SpinnerBlock className="min-h-0" spinnerClassName="size-7" label="예약 현황을 불러오는 중" />
-                </div>
+        <div className="grid gap-8 xl:grid-cols-[340px_minmax(0,1fr)]">
+          <aside>
+            <div>
+              <p className="text-sm font-bold text-gray-900">선택한 광고위치</p>
+              <div className="mt-2 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-bold text-gray-900">{selectedPlacement.label}</p>
+              </div>
+              {selectedCategory ? (
+                <p className="mt-3 text-xs font-semibold text-brand-500">
+                  {selectedCategory.display_name || selectedCategory.name}
+                </p>
               ) : null}
-              <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
-                {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
-                  <div
-                    key={day}
-                    className={`px-3 py-2 text-xs font-bold ${index === 0 ? "text-error-500" : index === 6 ? "text-brand-500" : "text-gray-500"}`}
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7">
-                {calendarDays.map((date) => {
-                  const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-                  const week = weekByDate.get(dateKey);
-                  const isDimmed = !isSameMonth(date, calendarMonth);
-                  const isToday = isSameDate(date, today);
-                  const isHighlighted =
-                    hoveredStart && hoveredEnd && isSameMonth(date, calendarMonth)
-                      ? isDateInRange(date, hoveredStart, hoveredEnd)
-                      : false;
-                  const isAvailable = Boolean(week && !week.is_sold_out && week.remaining_count > 0);
-
-                  return (
-                    <button
-                      key={dateKey}
-                      type="button"
-                      disabled={!isAvailable}
-                      onClick={() => week && onSelectWeek(week)}
-                      onMouseEnter={() => onHoverWeek(isAvailable ? dateKey : null)}
-                      onMouseLeave={() => onHoverWeek(null)}
-                      className={[
-                        "relative min-h-28 border-r border-b border-gray-200 p-2 text-left transition",
-                        isDimmed ? "bg-gray-50 text-gray-300" : "bg-white text-gray-800",
-                        isToday ? "bg-warning-50" : "",
-                        isHighlighted ? "bg-brand-50" : "",
-                        isAvailable ? "cursor-pointer hover:bg-brand-50" : "cursor-default",
-                      ].join(" ")}
-                    >
-                      <span className="text-sm font-semibold">{date.getDate()}</span>
-                      {week ? (
-                        <span
-                          className={[
-                            "absolute right-2 bottom-3 left-2 flex h-7 items-center justify-center rounded-md text-xs font-bold",
-                            week.is_sold_out || week.remaining_count <= 0
-                              ? "bg-gray-100 text-gray-500"
-                              : "bg-brand-50 text-brand-500",
-                          ].join(" ")}
-                        >
-                          {week.is_sold_out || week.remaining_count <= 0
-                            ? "판매종료"
-                            : `예약가능(${week.remaining_count}/${week.slot_limit})`}
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
-          )}
-        </section>
+          </aside>
+
+          <section className="min-w-0">
+            {error ? (
+              <LoadErrorState title="광고 예약 현황을 불러오지 못했습니다." message={error} onRetry={onRefresh} />
+            ) : (
+              <WeeklyReservationCalendar<EventAdAvailabilityWeek>
+                month={calendarMonth}
+                weeks={availabilityWeeks}
+                getWeekDate={(week) => week.date}
+                getRemainingCount={(week) => week.remaining_count}
+                getSlotLimit={(week) => week.slot_limit}
+                getIsSoldOut={(week) => week.is_sold_out}
+                canGoPrev={isCurrentOrNextMonth(calendarMonth, "prev")}
+                canGoNext={isCurrentOrNextMonth(calendarMonth, "next")}
+                isLoading={isLoading}
+                loadingLabel="예약 현황을 불러오는 중"
+                monthLabel={formatEventAdMonthLabel(calendarMonth)}
+                availableLabel={(week) => `예약가능(${week.reserved_count}/${week.slot_limit})`}
+                showSoldOutWeekRange
+                onMonthChange={onMonthChange}
+                onSelectWeek={onSelectWeek}
+              />
+            )}
+          </section>
+        </div>
       </div>
     </Card>
   );
@@ -751,6 +667,7 @@ function FormStep({
   onSelectHospital,
   onClearHospital,
   onSetAdImageFile,
+  onAdImageError,
   onFreeAdChange,
 }: {
   form: EventAdCreateFormValues;
@@ -769,42 +686,65 @@ function FormStep({
   onSelectHospital: (hospital: DoctorHospitalOption) => void;
   onClearHospital: () => void;
   onSetAdImageFile: (file: File | null) => void;
+  onAdImageError: (message: string) => void;
   onFreeAdChange: (checked: boolean) => void;
 }) {
   return (
     <form id={EVENT_AD_CREATE_FORM_ID} onSubmit={onSubmit} autoComplete="off" className="space-y-4">
-      <Button type="button" variant="outline" size="sm" onClick={onBack}>
-        날짜 다시 선택
-      </Button>
+      <Card className="relative rounded-xl p-6">
+        <div className="absolute top-6 right-6">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-600 transition hover:border-brand-300 hover:text-brand-500"
+          >
+            <ArrowLeft className="size-4" />
+            <span>뒤로가기</span>
+          </button>
+        </div>
 
-      <Card className="rounded-xl p-6">
-        <div className="max-w-3xl space-y-4">
-          <h2 className="text-sm font-bold text-gray-900">상품정보</h2>
-          <InfoRow label="광고위치" value={selectedPlacement.label} />
-          {selectedCategory ? (
-            <InfoRow label="카테고리" value={selectedCategory.display_name || selectedCategory.name} />
-          ) : null}
-          <InfoRow label="광고기간" value={formatEventAdPeriodLabel(selectedWeek)} />
+        <div className="grid gap-8 xl:grid-cols-[22rem_minmax(0,1fr)]">
+          <div className="min-w-0">
+            <AdTemporaryPreviewCard adImageFile={adImageFile} />
+          </div>
 
-          <HospitalSearchRow
-            selectedHospital={
-              form.hospital_id
-                ? {
-                    id: form.hospital_id,
-                    name: form.hospital_name,
-                    business_number: form.hospital_business_number,
-                  }
-                : null
-            }
-            error={errors.hospital_id}
-            onSelectHospital={onSelectHospital}
-            onClearHospital={onClearHospital}
-          />
+          <div className="max-w-[34rem] min-w-0 space-y-4">
+            <h2 className="text-sm font-bold text-gray-900">상품정보</h2>
+            <InfoRow label="광고위치" value={selectedPlacement.label} />
+            {selectedCategory ? (
+              <InfoRow label="카테고리" value={selectedCategory.display_name || selectedCategory.name} />
+            ) : null}
+            <InfoRow label="광고기간" value={formatEventAdPeriodLabel(selectedWeek)} />
+            <FormRow label="금액">
+              <div className="flex h-9 items-center gap-4">
+                <span className="text-sm font-semibold text-gray-800">
+                  {isFreeAd ? "0원" : formatEventAdCost(selectedPlacement.cost)}
+                </span>
+                <FormCheckbox checked={isFreeAd} onChange={onFreeAdChange} label="무료이벤트" />
+              </div>
+            </FormRow>
 
-          <FormRow label="이벤트" required error={errors.hospital_event_id || eventLoadError || undefined}>
-            <Select
-              value={form.hospital_event_id ? String(form.hospital_event_id) : ""}
-              options={eventOptions.map((event) => ({ value: String(event.id), label: event.name }))}
+            <HospitalSearchRow
+              selectedHospital={
+                form.hospital_id
+                  ? {
+                      id: form.hospital_id,
+                      name: form.hospital_name,
+                      business_number: form.hospital_business_number,
+                    }
+                  : null
+              }
+              error={errors.hospital_id}
+              onSelectHospital={onSelectHospital}
+              onClearHospital={onClearHospital}
+            />
+
+            <EventSearchRow
+              selectedEvent={eventOptions.find((event) => event.id === form.hospital_event_id) ?? null}
+              eventOptions={eventOptions}
+              disabled={!form.hospital_id || isLoadingEvents}
+              isLoading={isLoadingEvents}
+              error={errors.hospital_event_id || eventLoadError || undefined}
               placeholder={
                 !form.hospital_id
                   ? "병의원을 먼저 선택해 주세요."
@@ -812,50 +752,255 @@ function FormStep({
                     ? "이벤트 불러오는 중"
                     : "이벤트를 선택해 주세요."
               }
-              disabled={!form.hospital_id || isLoadingEvents}
-              onChange={(value) => onSetField("hospital_event_id", Number(value) || null)}
-              className="h-11 px-3"
+              onSelectEvent={(event) => onSetField("hospital_event_id", event.id)}
+              onClearEvent={() => onSetField("hospital_event_id", null)}
             />
-          </FormRow>
 
-          <FormRow label="금액" required error={errors.cost}>
-            <div className="flex items-center gap-3">
-              <InputField
-                type="number"
-                min="0"
-                value={form.cost}
-                disabled={isFreeAd}
-                onChange={(event) => onSetField("cost", event.target.value)}
-                className="bg-white"
-              />
-              <FormCheckbox checked={isFreeAd} onChange={onFreeAdChange} label="무료이벤트" />
-            </div>
-          </FormRow>
-
-          <FormRow label="광고이미지" error={errors.ad_image_file}>
-            <FormFileInput
-              key={adImageFile?.name ?? "empty-ad-image"}
-              accept="image/jpeg,image/png"
-              onChange={(event) => onSetAdImageFile(event.target.files?.[0] ?? null)}
-              className="bg-white"
+            <AdImageFileRow
+              file={adImageFile}
+              error={errors.ad_image_file}
+              onChange={onSetAdImageFile}
+              onValidationError={onAdImageError}
             />
-            <p className="mt-1.5 text-xs text-gray-500">jpg, jpeg, png / 최대 10MB</p>
-            {adImageFile ? (
-              <div className="mt-2 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-                <span className="truncate">{adImageFile.name}</span>
-                <button
-                  type="button"
-                  className="shrink-0 text-gray-500 hover:text-brand-500"
-                  onClick={() => onSetAdImageFile(null)}
-                >
-                  삭제
-                </button>
-              </div>
-            ) : null}
-          </FormRow>
+          </div>
         </div>
       </Card>
     </form>
+  );
+}
+
+const EVENT_AD_IMAGE_ACCEPT = "image/jpeg,image/png";
+const EVENT_AD_IMAGE_MAX_SIZE = 10 * 1024 * 1024;
+const eventAdInputClassName = "h-9 bg-white px-3 text-sm";
+const eventAdLabelClassName = "pt-2 text-xs font-semibold text-gray-500";
+
+function AdTemporaryPreviewCard({ adImageFile }: { adImageFile: File | null }) {
+  const imageUrl = useObjectUrl(adImageFile);
+
+  return (
+    <div className="min-w-0">
+      <h2 className="text-sm font-bold text-gray-900">미리보기</h2>
+      <div className="mt-4 w-full rounded-[1.75rem] border border-gray-200 bg-white p-2 shadow-sm">
+        <div className="mb-3 flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-brand-400" />
+          <span className="h-2 w-10 rounded-full bg-gray-200" />
+        </div>
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+          {imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+            <img src={imageUrl} alt="광고 이미지 미리보기" className="aspect-[4/3] w-full object-cover" />
+          ) : (
+            <div className="flex aspect-[4/3] items-center justify-center px-6 text-center text-xs font-semibold text-gray-400">
+              광고 이미지 미리보기
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdImageFileRow({
+  file,
+  error,
+  onChange,
+  onValidationError,
+}: {
+  file: File | null;
+  error?: string;
+  onChange: (file: File | null) => void;
+  onValidationError: (message: string) => void;
+}) {
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] ?? null;
+    event.currentTarget.value = "";
+
+    if (!selectedFile) return;
+
+    if (!EVENT_AD_IMAGE_ACCEPT.split(",").includes(selectedFile.type)) {
+      onValidationError("광고 이미지는 jpg, jpeg, png 파일만 업로드할 수 있습니다.");
+      return;
+    }
+
+    if (selectedFile.size > EVENT_AD_IMAGE_MAX_SIZE) {
+      onValidationError("광고 이미지는 최대 10MB 이하로 업로드해 주세요.");
+      return;
+    }
+
+    onChange(selectedFile);
+  };
+
+  return (
+    <FormRow label="광고이미지" error={error}>
+      <div className="space-y-2">
+        <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+          <span
+            className={[
+              "min-w-0 truncate rounded-md px-2 py-1 text-xs",
+              file ? "bg-gray-50 font-medium text-gray-700" : "text-gray-500",
+            ].join(" ")}
+          >
+            {file?.name ?? "jpg, jpeg, png / 최대 10MB"}
+          </span>
+          <Button
+            type="button"
+            variant="brand"
+            size="sm"
+            className="h-8 shrink-0 px-3 text-xs"
+            onClick={() => inputRef.current?.click()}
+          >
+            파일선택
+          </Button>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={EVENT_AD_IMAGE_ACCEPT}
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      </div>
+    </FormRow>
+  );
+}
+
+function EventSearchRow({
+  selectedEvent,
+  eventOptions,
+  disabled,
+  isLoading,
+  error,
+  placeholder,
+  onSelectEvent,
+  onClearEvent,
+}: {
+  selectedEvent: EventAdHospitalEventOption | null;
+  eventOptions: EventAdHospitalEventOption[];
+  disabled: boolean;
+  isLoading: boolean;
+  error?: string;
+  placeholder: string;
+  onSelectEvent: (event: EventAdHospitalEventOption) => void;
+  onClearEvent: () => void;
+}) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [query, setQuery] = React.useState(selectedEvent?.name ?? "");
+  const trimmedQuery = query.trim().toLowerCase();
+
+  const filteredEvents = React.useMemo(() => {
+    if (!trimmedQuery) return eventOptions;
+
+    return eventOptions.filter((event) => event.name.toLowerCase().includes(trimmedQuery));
+  }, [eventOptions, trimmedQuery]);
+
+  React.useEffect(() => {
+    setQuery(selectedEvent?.name ?? "");
+  }, [selectedEvent?.id, selectedEvent?.name]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isOpen]);
+
+  return (
+    <FormRow label="이벤트" required error={error}>
+      <div ref={containerRef} className="relative">
+        <InputField
+          value={query}
+          placeholder={placeholder}
+          disabled={disabled}
+          onClick={() => {
+            if (!disabled) setIsOpen(true);
+          }}
+          onChange={(event) => {
+            const nextQuery = event.target.value;
+            setQuery(nextQuery);
+            if (selectedEvent && nextQuery !== selectedEvent.name) {
+              onClearEvent();
+            }
+            if (!disabled) setIsOpen(true);
+          }}
+          className={eventAdInputClassName}
+        />
+
+        {isOpen && !disabled ? (
+          <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-80 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+            {isLoading ? (
+              <div className="py-5">
+                <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="이벤트 검색 중" />
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <p className="px-3 py-4 text-sm text-gray-500">검색 결과가 없습니다.</p>
+            ) : (
+              <div className="space-y-1">
+                {filteredEvents.slice(0, 8).map((event) => (
+                  <EventOptionButton
+                    key={event.id}
+                    event={event}
+                    isSelected={selectedEvent?.id === event.id}
+                    onClick={() => {
+                      onSelectEvent(event);
+                      setQuery(event.name);
+                      setIsOpen(false);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </Card>
+        ) : null}
+      </div>
+    </FormRow>
+  );
+}
+
+function EventOptionButton({
+  event,
+  isSelected,
+  onClick,
+}: {
+  event: EventAdHospitalEventOption;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  const thumbnailUrl = resolveHospitalEventMediaUrl(event.thumbnail_image, "thumb");
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "flex w-full min-w-0 gap-3 rounded-lg p-2 text-left transition hover:bg-brand-50",
+        isSelected ? "bg-brand-50" : "",
+      ].join(" ")}
+    >
+      <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 text-[10px] font-semibold text-gray-400">
+        {thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- thumbnail URL from API
+          <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          "NO IMG"
+        )}
+      </span>
+      <span className="min-w-0 flex-1 space-y-1">
+        <span className="block truncate text-sm font-semibold text-gray-800">{event.name}</span>
+        <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+          <span>{formatEventAdCost(Number(event.event_price ?? 0))}</span>
+          <span>{formatEventOptionDate(event.created_at)}</span>
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -907,7 +1052,7 @@ function HospitalSearchRow({
             }
             setIsOpen(true);
           }}
-          className="bg-white"
+          className={eventAdInputClassName}
         />
         {isOpen ? (
           <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
@@ -960,7 +1105,7 @@ function FormRow({
 }) {
   return (
     <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3">
-      <Label className="flex h-11 items-center text-xs font-semibold text-gray-500">
+      <Label className={eventAdLabelClassName}>
         {label}
         {required ? <span className="ml-0.5 text-brand-500">*</span> : null}
       </Label>
@@ -979,6 +1124,35 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="min-w-0 break-words text-gray-800">{value || "-"}</span>
     </div>
   );
+}
+
+function normalizeEventOptionForAd(event: HospitalEventApiItem): EventAdHospitalEventOption {
+  return {
+    id: event.id,
+    name: event.name?.trim() || `이벤트 #${event.id}`,
+    thumbnail_image: event.thumbnail_image ?? null,
+    created_at: event.created_at ?? null,
+    event_price: Number(event.event_price ?? 0),
+  };
+}
+
+function formatEventAdCost(cost: number) {
+  return `${Number(cost || 0).toLocaleString()}원`;
+}
+
+function formatEventOptionDate(value?: string | null) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 10) || "-";
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function CategorySelectModal({
@@ -1072,7 +1246,6 @@ function extractEventAdCreateFieldErrors(details: unknown): EventAdCreateFormErr
   const fieldMap: Record<string, keyof EventAdCreateFormErrors> = {
     hospital_id: "hospital_id",
     hospital_event_id: "hospital_event_id",
-    cost: "cost",
     ad_image_file: "ad_image_file",
   };
 

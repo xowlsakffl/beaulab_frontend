@@ -136,7 +136,6 @@ function buildEventAdColumns({
           <span className="line-clamp-2 font-medium break-words text-gray-800" title={row.placementLabel}>
             {row.placementLabel}
           </span>
-          <span className="mt-1 block text-theme-xs text-gray-500">{row.placementGroupLabel}</span>
         </div>
       ),
     },
