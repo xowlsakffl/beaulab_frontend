@@ -27,6 +27,7 @@ import {
   type EventAdDatePresetKey,
   type EventAdDateType,
   type EventAdFilters,
+  type EventAdRow,
   type EventAdSortField,
   type EventAdSortState,
 } from "@/lib/hospital-event-ad/list";
@@ -272,6 +273,14 @@ export default function EventAdsTableClient() {
     void fetchEventAds(true);
   }, [fetchEventAds]);
 
+  const openEventAdDetailPage = React.useCallback(
+    (row: EventAdRow) => {
+      const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
+      router.push(`/ads-manage/event-ads/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);
+    },
+    [pathname, queryString, router],
+  );
+
   return (
     <div className="min-w-0 space-y-4">
       <EventAdsFilterPanel
@@ -334,6 +343,7 @@ export default function EventAdsTableClient() {
         onToggleSort={handleToggleSort}
         onRefresh={handleRefresh}
         onGoPage={handleGoPage}
+        onOpenDetail={openEventAdDetailPage}
       />
     </div>
   );

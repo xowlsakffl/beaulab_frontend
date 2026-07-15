@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   ArrowLeft,
+  ChevronDown,
   FormCheckbox,
   InputField,
   Label,
@@ -31,7 +32,12 @@ import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
 import { resolveHospitalEventMediaUrl, type HospitalEventApiItem } from "@/lib/hospital-event/list";
-import type { EventAdApiItem } from "@/lib/hospital-event-ad/list";
+import {
+  getEventAdMediaFilename,
+  resolveEventAdMediaUrl,
+  type EventAdApiItem,
+  type EventAdMediaAsset,
+} from "@/lib/hospital-event-ad/list";
 import {
   EVENT_AD_CREATE_FORM_ID,
   EVENT_AD_PLACEMENT_GROUPS,
@@ -262,6 +268,8 @@ export default function EventAdsCreateFormClient() {
     try {
       const response = await api.get<HospitalEventApiItem[]>("/hospital-events", {
         hospital_id: hospitalId,
+        allow_status: "APPROVED",
+        admin_status: "NORMAL",
         sort: "id",
         direction: "desc",
         per_page: 50,
@@ -273,7 +281,7 @@ export default function EventAdsCreateFormClient() {
         return;
       }
 
-      setEventOptions(response.data.map(normalizeEventOptionForAd));
+      setEventOptions(response.data.filter(isSelectableEventForAd).map(normalizeEventOptionForAd));
     } catch {
       setEventOptions([]);
       setEventLoadError("이벤트 목록을 불러오는 중 오류가 발생했습니다.");
@@ -453,7 +461,7 @@ export default function EventAdsCreateFormClient() {
         ) : null}
 
         {step === "form" && selectedPlacement && selectedWeek ? (
-          <FormStep
+          <EventAdFormStep
             form={form}
             errors={errors}
             selectedPlacement={selectedPlacement}
@@ -650,7 +658,7 @@ function DateStep({
   );
 }
 
-function FormStep({
+export function EventAdFormStep({
   form,
   errors,
   selectedPlacement,
@@ -660,7 +668,9 @@ function FormStep({
   isLoadingEvents,
   eventLoadError,
   adImageFile,
+  existingAdImage = null,
   isFreeAd,
+  isHospitalEditable = true,
   onSubmit,
   onBack,
   onSetField,
@@ -679,7 +689,9 @@ function FormStep({
   isLoadingEvents: boolean;
   eventLoadError: string | null;
   adImageFile: File | null;
+  existingAdImage?: EventAdMediaAsset | null;
   isFreeAd: boolean;
+  isHospitalEditable?: boolean;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
   onSetField: <K extends keyof EventAdCreateFormValues>(key: K, value: EventAdCreateFormValues[K]) => void;
@@ -705,7 +717,7 @@ function FormStep({
 
         <div className="grid gap-8 xl:grid-cols-[22rem_minmax(0,1fr)]">
           <div className="min-w-0">
-            <AdTemporaryPreviewCard adImageFile={adImageFile} />
+            <AdTemporaryPreviewCard adImageFile={adImageFile} existingAdImage={existingAdImage} />
           </div>
 
           <div className="max-w-[34rem] min-w-0 space-y-4">
@@ -724,20 +736,24 @@ function FormStep({
               </div>
             </FormRow>
 
-            <HospitalSearchRow
-              selectedHospital={
-                form.hospital_id
-                  ? {
-                      id: form.hospital_id,
-                      name: form.hospital_name,
-                      business_number: form.hospital_business_number,
-                    }
-                  : null
-              }
-              error={errors.hospital_id}
-              onSelectHospital={onSelectHospital}
-              onClearHospital={onClearHospital}
-            />
+            {isHospitalEditable ? (
+              <HospitalSearchRow
+                selectedHospital={
+                  form.hospital_id
+                    ? {
+                        id: form.hospital_id,
+                        name: form.hospital_name,
+                        business_number: form.hospital_business_number,
+                      }
+                    : null
+                }
+                error={errors.hospital_id}
+                onSelectHospital={onSelectHospital}
+                onClearHospital={onClearHospital}
+              />
+            ) : (
+              <InfoRow label="병의원" value={form.hospital_name || "-"} />
+            )}
 
             <EventSearchRow
               selectedEvent={eventOptions.find((event) => event.id === form.hospital_event_id) ?? null}
@@ -753,11 +769,11 @@ function FormStep({
                     : "이벤트를 선택해 주세요."
               }
               onSelectEvent={(event) => onSetField("hospital_event_id", event.id)}
-              onClearEvent={() => onSetField("hospital_event_id", null)}
             />
 
             <AdImageFileRow
               file={adImageFile}
+              existingAdImage={existingAdImage}
               error={errors.ad_image_file}
               onChange={onSetAdImageFile}
               onValidationError={onAdImageError}
@@ -774,8 +790,15 @@ const EVENT_AD_IMAGE_MAX_SIZE = 10 * 1024 * 1024;
 const eventAdInputClassName = "h-9 bg-white px-3 text-sm";
 const eventAdLabelClassName = "pt-2 text-xs font-semibold text-gray-500";
 
-function AdTemporaryPreviewCard({ adImageFile }: { adImageFile: File | null }) {
-  const imageUrl = useObjectUrl(adImageFile);
+function AdTemporaryPreviewCard({
+  adImageFile,
+  existingAdImage,
+}: {
+  adImageFile: File | null;
+  existingAdImage: EventAdMediaAsset | null;
+}) {
+  const objectUrl = useObjectUrl(adImageFile);
+  const imageUrl = objectUrl ?? resolveEventAdMediaUrl(existingAdImage, "original");
 
   return (
     <div className="min-w-0">
@@ -802,16 +825,19 @@ function AdTemporaryPreviewCard({ adImageFile }: { adImageFile: File | null }) {
 
 function AdImageFileRow({
   file,
+  existingAdImage,
   error,
   onChange,
   onValidationError,
 }: {
   file: File | null;
+  existingAdImage: EventAdMediaAsset | null;
   error?: string;
   onChange: (file: File | null) => void;
   onValidationError: (message: string) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const fileName = file?.name ?? getEventAdMediaFilename(existingAdImage);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] ?? null;
@@ -839,10 +865,10 @@ function AdImageFileRow({
           <span
             className={[
               "min-w-0 truncate rounded-md px-2 py-1 text-xs",
-              file ? "bg-gray-50 font-medium text-gray-700" : "text-gray-500",
+              fileName ? "bg-gray-50 font-medium text-gray-700" : "text-gray-500",
             ].join(" ")}
           >
-            {file?.name ?? "jpg, jpeg, png / 최대 10MB"}
+            {fileName || "jpg, jpeg, png / 최대 10MB"}
           </span>
           <Button
             type="button"
@@ -874,7 +900,6 @@ function EventSearchRow({
   error,
   placeholder,
   onSelectEvent,
-  onClearEvent,
 }: {
   selectedEvent: EventAdHospitalEventOption | null;
   eventOptions: EventAdHospitalEventOption[];
@@ -883,22 +908,9 @@ function EventSearchRow({
   error?: string;
   placeholder: string;
   onSelectEvent: (event: EventAdHospitalEventOption) => void;
-  onClearEvent: () => void;
 }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [query, setQuery] = React.useState(selectedEvent?.name ?? "");
-  const trimmedQuery = query.trim().toLowerCase();
-
-  const filteredEvents = React.useMemo(() => {
-    if (!trimmedQuery) return eventOptions;
-
-    return eventOptions.filter((event) => event.name.toLowerCase().includes(trimmedQuery));
-  }, [eventOptions, trimmedQuery]);
-
-  React.useEffect(() => {
-    setQuery(selectedEvent?.name ?? "");
-  }, [selectedEvent?.id, selectedEvent?.name]);
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -916,42 +928,42 @@ function EventSearchRow({
   return (
     <FormRow label="이벤트" required error={error}>
       <div ref={containerRef} className="relative">
-        <InputField
-          value={query}
-          placeholder={placeholder}
+        <button
+          type="button"
           disabled={disabled}
+          className={[
+            "flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm transition",
+            disabled
+              ? "cursor-not-allowed bg-gray-50 text-gray-400"
+              : "text-gray-800 hover:border-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none",
+          ].join(" ")}
           onClick={() => {
             if (!disabled) setIsOpen(true);
           }}
-          onChange={(event) => {
-            const nextQuery = event.target.value;
-            setQuery(nextQuery);
-            if (selectedEvent && nextQuery !== selectedEvent.name) {
-              onClearEvent();
-            }
-            if (!disabled) setIsOpen(true);
-          }}
-          className={eventAdInputClassName}
-        />
+        >
+          <span className={["min-w-0 truncate", selectedEvent ? "text-gray-800" : "text-gray-400"].join(" ")}>
+            {selectedEvent?.name ?? placeholder}
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-gray-400" />
+        </button>
 
         {isOpen && !disabled ? (
           <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-80 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
             {isLoading ? (
               <div className="py-5">
-                <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="이벤트 검색 중" />
+                <SpinnerBlock className="min-h-0" spinnerClassName="size-5" label="이벤트 불러오는 중" />
               </div>
-            ) : filteredEvents.length === 0 ? (
-              <p className="px-3 py-4 text-sm text-gray-500">검색 결과가 없습니다.</p>
+            ) : eventOptions.length === 0 ? (
+              <p className="px-3 py-4 text-sm text-gray-500">선택 가능한 이벤트가 없습니다.</p>
             ) : (
               <div className="space-y-1">
-                {filteredEvents.slice(0, 8).map((event) => (
+                {eventOptions.slice(0, 10).map((event) => (
                   <EventOptionButton
                     key={event.id}
                     event={event}
                     isSelected={selectedEvent?.id === event.id}
                     onClick={() => {
                       onSelectEvent(event);
-                      setQuery(event.name);
                       setIsOpen(false);
                     }}
                   />
@@ -1134,6 +1146,10 @@ function normalizeEventOptionForAd(event: HospitalEventApiItem): EventAdHospital
     created_at: event.created_at ?? null,
     event_price: Number(event.event_price ?? 0),
   };
+}
+
+function isSelectableEventForAd(event: HospitalEventApiItem): boolean {
+  return event.allow_status === "APPROVED" && event.admin_status === "NORMAL";
 }
 
 function formatEventAdCost(cost: number) {

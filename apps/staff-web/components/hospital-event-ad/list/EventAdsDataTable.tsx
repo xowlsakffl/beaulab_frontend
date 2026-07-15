@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import {
   Button,
+  CategoryBadgeList,
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
@@ -136,6 +137,11 @@ function buildEventAdColumns({
           <span className="line-clamp-2 font-medium break-words text-gray-800" title={row.placementLabel}>
             {row.placementLabel}
           </span>
+          {row.categoryLabel !== "-" ? (
+            <div className="mt-1">
+              <CategoryBadgeList values={[row.categoryLabel]} title={row.categoryLabel} />
+            </div>
+          ) : null}
         </div>
       ),
     },
@@ -202,11 +208,6 @@ function buildEventAdColumns({
           >
             {row.eventName}
           </DetailLink>
-          {row.categoryLabel !== "-" ? (
-            <span className="mt-1 line-clamp-1 block text-theme-xs text-gray-500" title={row.categoryLabel}>
-              {row.categoryLabel}
-            </span>
-          ) : null}
         </div>
       ),
     },
@@ -269,6 +270,7 @@ type EventAdsDataTableProps = {
   onToggleSort: (field: EventAdSortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
+  onOpenDetail: (row: EventAdRow) => void;
 };
 
 export function EventAdsDataTable({
@@ -281,6 +283,7 @@ export function EventAdsDataTable({
   onToggleSort,
   onRefresh,
   onGoPage,
+  onOpenDetail,
 }: EventAdsDataTableProps) {
   const columns = React.useMemo(() => buildEventAdColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
@@ -299,6 +302,7 @@ export function EventAdsDataTable({
       meta={meta}
       onRefresh={onRefresh}
       onGoPage={onGoPage}
+      onRowClick={onOpenDetail}
       footerCenter={
         meta ? (
           <Pagination

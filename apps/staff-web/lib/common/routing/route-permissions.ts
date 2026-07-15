@@ -90,6 +90,8 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/ads-manage/events/[id]", requiredPermissions: ["beaulab.hospital_event.show"] },
   { path: "/ads-manage/events/[id]/edit", requiredPermissions: ["beaulab.hospital_event.update"] },
   { path: "/ads-manage/events/new", requiredPermissions: ["beaulab.hospital_event.create"] },
+  { path: "/ads-manage/event-ads/[id]", requiredPermissions: ["beaulab.hospital_event_ad.show"] },
+  { path: "/ads-manage/event-ads/[id]/edit", requiredPermissions: ["beaulab.hospital_event_ad.update"] },
   { path: "/ads-manage/event-ads/new", requiredPermissions: ["beaulab.hospital_event_ad.create"] },
   { path: "/notice-manage/notices/[id]", requiredPermissions: ["beaulab.notice.show"] },
   { path: "/notice-manage/notices/[id]/edit", requiredPermissions: ["beaulab.notice.update"] },

@@ -1,11 +1,13 @@
 import type { BadgeColor, CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
 import {
   labelReviewAllowStatus,
   REVIEW_ALLOW_STATUS_OPTIONS,
   reviewAllowStatusColor,
 } from "@/lib/common/review-status";
+import type { HospitalEventMedia } from "@/lib/hospital-event/list";
 
 type EventAdHospitalRef = {
   id?: number | null;
@@ -18,6 +20,7 @@ type EventAdHospitalEventRef = {
   allow_status?: string | null;
   hospital_status?: string | null;
   admin_status?: string | null;
+  thumbnail_image?: HospitalEventMedia | null;
 };
 
 type EventAdManagerStaffRef = {
@@ -33,6 +36,17 @@ type EventAdCategoryRef = {
   full_path?: string | null;
   depth?: number | null;
   is_primary?: boolean | null;
+};
+
+export type EventAdMediaAsset = {
+  id?: number | string | null;
+  path?: string | null;
+  url?: string | null;
+  mime_type?: string | null;
+  size?: number | null;
+  width?: number | null;
+  height?: number | null;
+  metadata?: unknown;
 };
 
 export type EventAdApiItem = {
@@ -52,6 +66,7 @@ export type EventAdApiItem = {
   allow_status_label?: string | null;
   ad_status?: string | null;
   ad_status_label?: string | null;
+  ad_image?: EventAdMediaAsset | null;
   created_at?: string | null;
   updated_at?: string | null;
 };
@@ -315,6 +330,32 @@ export function eventAdStatusColor(status?: string | null): BadgeColor {
   if (status === "ENDED") return "gray";
 
   return "light";
+}
+
+export function resolveEventAdMediaUrl(
+  media?: EventAdMediaAsset | null,
+  preferredVariant: MediaVariantPreference = "original",
+): string | null {
+  return resolveMediaAssetUrl(media, preferredVariant);
+}
+
+export function getEventAdMediaFilename(media?: EventAdMediaAsset | null) {
+  if (!media) return "";
+
+  const rawPath = media.path?.trim();
+  if (rawPath) {
+    const fileName = rawPath.split("/").filter(Boolean).pop();
+    if (fileName) return fileName;
+  }
+
+  const rawUrl = media.url?.trim();
+  if (rawUrl) {
+    const cleanUrl = rawUrl.split("?")[0];
+    const fileName = cleanUrl.split("/").filter(Boolean).pop();
+    if (fileName) return fileName;
+  }
+
+  return `event-ad-media-${media.id ?? "file"}`;
 }
 
 function formatEventAdCategory(category?: EventAdCategoryRef | null) {
