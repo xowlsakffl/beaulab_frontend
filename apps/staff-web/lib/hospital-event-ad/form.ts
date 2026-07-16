@@ -192,36 +192,6 @@ export const FALLBACK_EVENT_AD_PLACEMENT_OPTIONS: EventAdPlacementOption[] = [
   },
 ];
 
-type EventAdFixedCategory = {
-  label: string;
-  codes: string[];
-};
-
-export const EVENT_AD_FIXED_CATEGORIES_BY_USAGE: Record<string, EventAdFixedCategory[]> = {
-  [CATEGORY_USAGES.HOSPITAL_EVENT_AD_SURGERY]: [
-    { label: "눈", codes: ["HS_EYE"] },
-    { label: "코", codes: ["HS_NOSE"] },
-    { label: "지방흡입/이식", codes: ["HS_BODY"] },
-    { label: "가슴", codes: ["HS_BREAST"] },
-    { label: "거상", codes: ["HS_LIFT"] },
-    { label: "안면윤곽/양악", codes: ["HS_FACE_CONTOUR"] },
-    { label: "모발이식", codes: ["HS_HAIR_TRANSPLANT"] },
-    { label: "기타", codes: ["HM_PLASTIC_OTHER"] },
-  ],
-  [CATEGORY_USAGES.HOSPITAL_EVENT_AD_TREATMENT]: [
-    { label: "리프팅", codes: ["HT_LIFTING"] },
-    { label: "필러", codes: ["HT_FILLER"] },
-    { label: "보톡스", codes: ["HT_BOTOX"] },
-    { label: "지방분해주사", codes: ["HM_PETIT_SKIN_BODY_CONTOUR_INJECTION"] },
-    { label: "피부", codes: ["HM_PETIT_SKIN_CARE"] },
-    { label: "헤어", codes: ["HM_PETIT_SKIN_HAIR"] },
-    { label: "치과", codes: ["HM_PETIT_SKIN_DENTAL"] },
-    { label: "부인과", codes: ["HM_PETIT_SKIN_GYNECOLOGY"] },
-    { label: "안과", codes: ["HM_PETIT_SKIN_OPHTHALMOLOGY"] },
-    { label: "한방", codes: ["HM_PETIT_SKIN_ORIENTAL"] },
-  ],
-};
-
 export function normalizeEventAdPlacementOptions(items: EventAdPlacementOption[]) {
   const fallbackByValue = new Map(FALLBACK_EVENT_AD_PLACEMENT_OPTIONS.map((item) => [item.value, item]));
 
@@ -241,25 +211,11 @@ export function eventAdStartDayLabel(placement: EventAdPlacementOption) {
   return placement.start_day_label?.trim() || (placement.value.startsWith("PETIT_") ? "목요일" : "화요일");
 }
 
-export function normalizeEventAdCategoryOptions(usage: string, categories: CategoryApiItem[]): EventAdCategoryOption[] {
-  const fixedCategories = EVENT_AD_FIXED_CATEGORIES_BY_USAGE[usage];
-  const activeCategories = categories.filter((category) => category.status === "ACTIVE");
-
-  if (!fixedCategories) {
-    return activeCategories.map(normalizeEventAdCategoryOption);
-  }
-
-  return fixedCategories.reduce<EventAdCategoryOption[]>((options, fixedCategory) => {
-    const category = activeCategories.find((item) => item.code && fixedCategory.codes.includes(item.code));
-    if (!category) return options;
-
-    options.push({
-      ...normalizeEventAdCategoryOption(category),
-      display_name: fixedCategory.label,
-    });
-
-    return options;
-  }, []);
+export function normalizeEventAdCategoryOptions(
+  _usage: string,
+  categories: CategoryApiItem[],
+): EventAdCategoryOption[] {
+  return categories.filter((category) => category.status === "ACTIVE").map(normalizeEventAdCategoryOption);
 }
 
 function normalizeEventAdCategoryOption(category: CategoryApiItem): EventAdCategoryOption {
