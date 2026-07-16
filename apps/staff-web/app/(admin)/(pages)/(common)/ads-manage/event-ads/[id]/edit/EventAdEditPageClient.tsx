@@ -237,7 +237,7 @@ export default function EventAdEditPageClient() {
           existingAdImage: readyState.detail.ad_image ?? null,
           isFreeAd,
         });
-        const response = await api.patch<EventAdApiItem>(`/hospital-event-ads/${readyState.detail.id}`, formData);
+        const response = await api.post<EventAdApiItem>(`/hospital-event-ads/${readyState.detail.id}`, formData);
 
         if (!isApiSuccess(response)) {
           const apiErrors = extractEventAdEditFieldErrors(response.error.details);
@@ -465,6 +465,7 @@ function buildEventAdEditFormData({
 }) {
   const formData = new FormData();
 
+  formData.append("_method", "PATCH");
   formData.append("hospital_event_id", String(form.hospital_event_id ?? ""));
   formData.append("placement", selectedPlacement.value);
   formData.append("cost", String(isFreeAd ? 0 : selectedPlacement.cost));

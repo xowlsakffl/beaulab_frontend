@@ -5,6 +5,10 @@ import { isApiSuccess } from "@beaulab/types";
 import { Card, ChevronLeft, ChevronRight, SegmentedTabs, SpinnerBlock } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import {
+  EventAdCalendarAdSticker,
+  type EventAdCalendarStickerAd,
+} from "@/components/hospital-event-ad/calendar/EventAdCalendarAdSticker";
 import { api } from "@/lib/common/api";
 import {
   EVENT_AD_PLACEMENT_GROUPS,
@@ -37,6 +41,7 @@ type EventAdCalendarPlacementStatus = {
   is_past: boolean;
   is_deadline_closed: boolean;
   sort_order: number;
+  ads: EventAdCalendarStickerAd[];
 };
 
 type EventAdCalendarDay = {
@@ -50,6 +55,7 @@ type EventAdCalendarResponse = {
   category_id?: number | null;
   month: string;
   categories: EventAdCalendarCategory[];
+  category_groups?: Partial<Record<EventAdPlacementGroupKey, EventAdCalendarCategory[]>>;
   days: EventAdCalendarDay[];
 };
 
@@ -63,8 +69,8 @@ const PLACEMENT_COLORS: Record<string, CalendarBadgeColor> = {
   PETIT_TOP_BANNER: "blue",
   PETIT_HOT_EVENT: "orange",
   PETIT_CATEGORY_BANNER: "red",
-  CONSULT_MEMO: "brand",
-  SEARCH: "green",
+  CONSULT_MEMO: "blue",
+  SEARCH: "orange",
 };
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -81,12 +87,17 @@ export default function EventAdsCalendarPageClient() {
     petit: null,
   });
   const [calendarData, setCalendarData] = React.useState<EventAdCalendarResponse | null>(null);
+  const [categoryOptionsByGroup, setCategoryOptionsByGroup] = React.useState<
+    Partial<Record<EventAdPlacementGroupKey, EventAdCalendarCategory[]>>
+  >({});
   const [isLoading, setIsLoading] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const requestIdRef = React.useRef(0);
 
   const selectedCategoryId = selectedCategoryIdByGroup[activeGroup] ?? null;
-  const categories = calendarData?.group === activeGroup ? calendarData.categories : EMPTY_CATEGORIES;
+  const categories =
+    categoryOptionsByGroup[activeGroup] ??
+    (calendarData?.group === activeGroup ? calendarData.categories : EMPTY_CATEGORIES);
   const calendarDays = calendarData?.group === activeGroup ? calendarData.days : EMPTY_DAYS;
   const hasCategoryTabs = activeGroup === "surgery" || activeGroup === "petit";
 
@@ -113,6 +124,11 @@ export default function EventAdsCalendarPageClient() {
       }
 
       setCalendarData(response.data);
+      setCategoryOptionsByGroup((prev) => ({
+        ...prev,
+        ...(response.data.category_groups ?? {}),
+        [response.data.group]: response.data.categories,
+      }));
     } catch {
       if (requestId !== requestIdRef.current) return;
 
@@ -186,6 +202,7 @@ export default function EventAdsCalendarPageClient() {
           <EventAdStatusCalendar
             month={calendarMonth}
             days={calendarDays}
+            selectedCategory={categories.find((category) => category.id === selectedCategoryId) ?? null}
             loading={isLoading}
             canGoPrev={isCurrentOrNextMonth(calendarMonth, "prev")}
             canGoNext={isCurrentOrNextMonth(calendarMonth, "next")}
@@ -236,6 +253,7 @@ function CategoryTabs({
 function EventAdStatusCalendar({
   month,
   days,
+  selectedCategory,
   loading,
   canGoPrev,
   canGoNext,
@@ -243,13 +261,22 @@ function EventAdStatusCalendar({
 }: {
   month: Date;
   days: EventAdCalendarDay[];
+  selectedCategory: EventAdCalendarCategory | null;
   loading: boolean;
   canGoPrev: boolean;
   canGoNext: boolean;
   onMonthChange: (month: Date) => void;
 }) {
   const today = React.useMemo(() => new Date(), []);
+  const calendarRef = React.useRef<HTMLDivElement | null>(null);
+  const stickerRef = React.useRef<HTMLElement | null>(null);
   const statusByDate = React.useMemo(() => new Map(days.map((day) => [day.date, day])), [days]);
+  const [selectedBadge, setSelectedBadge] = React.useState<{
+    key: string;
+    left: number;
+    top: number;
+  } | null>(null);
+  const selectedBadgeKey = selectedBadge?.key ?? null;
   const closedRangeDateKeys = React.useMemo(() => {
     const dateKeys = new Set<string>();
 
@@ -267,6 +294,76 @@ function EventAdStatusCalendar({
     return dateKeys;
   }, [days]);
   const calendarDays = React.useMemo(() => buildCalendarDays(month), [month]);
+  const selectedStatus = findSelectedStatus(days, selectedBadgeKey);
+
+  React.useEffect(() => {
+    if (selectedBadgeKey && !selectedStatus) {
+      setSelectedBadge(null);
+    }
+  }, [selectedBadgeKey, selectedStatus]);
+
+  React.useEffect(() => {
+    if (!selectedBadge) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (stickerRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest("[data-calendar-ad-badge='true']")) return;
+
+      setSelectedBadge(null);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [selectedBadge]);
+
+  const openSticker = React.useCallback(
+    (dateKey: string, status: EventAdCalendarPlacementStatus, event: React.MouseEvent<HTMLButtonElement>) => {
+      const wrapper = calendarRef.current;
+      if (!wrapper) return;
+
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const targetRect = event.currentTarget.getBoundingClientRect();
+      const stickerWidth = 320;
+      const stickerEstimatedHeight = 360;
+      const gap = 8;
+      const margin = 8;
+      const targetRight = targetRect.right - wrapperRect.left;
+      const targetLeft = targetRect.left - wrapperRect.left;
+      const targetTop = targetRect.top - wrapperRect.top;
+      const preferredLeft = targetRight + gap;
+      const fallbackLeft = targetLeft - stickerWidth - gap;
+      const canPlaceRight = preferredLeft + stickerWidth + margin <= wrapperRect.width;
+      const rawLeft = canPlaceRight ? preferredLeft : fallbackLeft;
+      const maxLeft = Math.max(margin, wrapperRect.width - stickerWidth - margin);
+      const maxTop = Math.max(margin, wrapperRect.height - stickerEstimatedHeight - margin);
+
+      setSelectedBadge({
+        key: badgeKey(dateKey, status.placement),
+        left: Math.min(Math.max(margin, rawLeft), maxLeft),
+        top: Math.min(Math.max(margin, targetTop - margin), maxTop),
+      });
+
+      window.requestAnimationFrame(() => {
+        const scrollContainer = findScrollableAncestor(wrapper);
+        const viewportBottom =
+          scrollContainer === window
+            ? window.innerHeight
+            : (scrollContainer as HTMLElement).getBoundingClientRect().bottom;
+        const viewportOverflow = targetRect.top + stickerEstimatedHeight - viewportBottom + 24;
+        const scrollOffset = Math.max(80, viewportOverflow);
+
+        if (scrollOffset > 0) {
+          scrollContainer.scrollBy({ top: scrollOffset, behavior: "smooth" });
+        }
+      });
+    },
+    [],
+  );
 
   return (
     <div className="min-w-0">
@@ -288,7 +385,7 @@ function EventAdStatusCalendar({
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-xl border border-gray-200">
+      <div ref={calendarRef} className="relative overflow-visible rounded-xl border border-gray-200">
         {loading ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70">
             <SpinnerBlock className="min-h-0" spinnerClassName="size-7" label="광고 현황을 불러오는 중" />
@@ -325,12 +422,15 @@ function EventAdStatusCalendar({
                 key={dateKey}
                 className={[
                   "relative min-h-28 border-r border-b border-gray-200 p-2 text-left transition",
-                  isDimmed ? "bg-gray-50 text-gray-300" : "bg-white text-gray-800",
-                  isToday ? "bg-warning-50" : "",
+                  isDimmed
+                    ? "bg-gray-50 text-gray-300"
+                    : isToday
+                      ? "bg-warning-50 text-gray-800"
+                      : "bg-white text-gray-800",
                 ].join(" ")}
               >
                 <span className="absolute top-2 left-2 text-sm font-semibold">{date.getDate()}</span>
-                <div className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] space-y-1">
+                <div className="absolute bottom-2 left-2 flex max-w-[calc(100%-1rem)] flex-col items-start gap-1">
                   {showSoldOut ? (
                     <span className="block w-fit max-w-full truncate rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] leading-4 font-bold text-gray-500">
                       판매종료
@@ -340,7 +440,9 @@ function EventAdStatusCalendar({
                       <CalendarStatusBadge
                         key={`${dateKey}-${status.placement}`}
                         color={PLACEMENT_COLORS[status.placement] ?? "blue"}
-                        label={calendarBadgeLabel(status)}
+                        content={calendarBadgeContent(status, selectedCategory)}
+                        selected={selectedBadgeKey === badgeKey(dateKey, status.placement)}
+                        onClick={(event) => openSticker(dateKey, status, event)}
                       />
                     ))
                   )}
@@ -349,6 +451,18 @@ function EventAdStatusCalendar({
             );
           })}
         </div>
+
+        {selectedStatus ? (
+          <EventAdCalendarAdSticker
+            ref={stickerRef}
+            date={selectedStatus.date}
+            ads={selectedStatus.status.ads}
+            {...calendarBadgeContent(selectedStatus.status, selectedCategory)}
+            left={selectedBadge?.left ?? 0}
+            top={selectedBadge?.top ?? 0}
+            onClose={() => setSelectedBadge(null)}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -378,7 +492,22 @@ function MonthButton({
   );
 }
 
-function CalendarStatusBadge({ color, label }: { color: CalendarBadgeColor; label: string }) {
+type CalendarBadgeContent = {
+  label: string;
+  countLabel: string;
+};
+
+function CalendarStatusBadge({
+  color,
+  content,
+  selected,
+  onClick,
+}: {
+  color: CalendarBadgeColor;
+  content: CalendarBadgeContent;
+  selected: boolean;
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+}) {
   const colorClassName = {
     blue: "bg-blue-50 text-blue-500",
     orange: "bg-orange-50 text-orange-500",
@@ -388,19 +517,56 @@ function CalendarStatusBadge({ color, label }: { color: CalendarBadgeColor; labe
   }[color];
 
   return (
-    <p
+    <button
+      type="button"
+      onClick={onClick}
+      data-calendar-ad-badge="true"
       className={[
-        "w-fit max-w-full truncate rounded-md px-1.5 py-0.5 text-[11px] leading-4 font-bold",
+        "block w-fit max-w-full rounded-md px-1.5 py-0.5 text-left text-[11px] leading-4 font-bold transition hover:ring-1 hover:ring-brand-300",
         colorClassName,
+        selected ? "ring-1 ring-brand-500" : "",
       ].join(" ")}
+      title={`${content.label}${content.countLabel}`}
     >
-      {label}
-    </p>
+      <span className="line-clamp-2 max-w-full break-words">
+        {content.label}
+        <span className="whitespace-nowrap">{content.countLabel}</span>
+      </span>
+    </button>
   );
 }
 
-function calendarBadgeLabel(status: EventAdCalendarPlacementStatus) {
-  return `${shortPlacementLabel(status.placement_label)}(${status.reserved_count}/${status.slot_limit})`;
+function calendarBadgeContent(
+  status: EventAdCalendarPlacementStatus,
+  selectedCategory: EventAdCalendarCategory | null,
+): CalendarBadgeContent {
+  const isCategoryBanner = status.placement.includes("CATEGORY_BANNER");
+  const placementLabel =
+    selectedCategory && isCategoryBanner
+      ? `${status.placement_label}_${selectedCategory.display_name || selectedCategory.name}`
+      : status.placement_label;
+
+  return {
+    label: placementLabel,
+    countLabel: `(${status.reserved_count}/${status.slot_limit})`,
+  };
+}
+
+function badgeKey(date: string, placement: string) {
+  return `${date}:${placement}`;
+}
+
+function findSelectedStatus(days: EventAdCalendarDay[], selectedBadgeKey: string | null) {
+  if (!selectedBadgeKey) return null;
+
+  for (const day of days) {
+    const status = day.statuses.find((item) => badgeKey(day.date, item.placement) === selectedBadgeKey);
+    if (status) {
+      return { date: day.date, status };
+    }
+  }
+
+  return null;
 }
 
 function isClosedCalendarDay(day?: EventAdCalendarDay) {
@@ -415,16 +581,6 @@ function parseDateKey(value: string) {
   const date = new Date(year, month - 1, day);
 
   return Number.isFinite(date.getTime()) ? date : null;
-}
-
-function shortPlacementLabel(label: string) {
-  return label
-    .replace(/^메인\s*/, "")
-    .replace(/^성형\s*/, "")
-    .replace(/^쁘띠\s*/, "")
-    .replace(/이벤트$/, "")
-    .replace(/카테고리별 배너$/, "카테고리별")
-    .trim();
 }
 
 function startOfMonth(date: Date) {
@@ -451,4 +607,21 @@ function isSameOrBeforeDate(a: Date, b: Date) {
   const right = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
 
   return left <= right;
+}
+
+function findScrollableAncestor(element: HTMLElement): HTMLElement | Window {
+  let current = element.parentElement;
+
+  while (current && current !== document.body) {
+    const overflowY = window.getComputedStyle(current).overflowY;
+    const canScroll = current.scrollHeight > current.clientHeight;
+
+    if (canScroll && ["auto", "scroll", "overlay"].includes(overflowY)) {
+      return current;
+    }
+
+    current = current.parentElement;
+  }
+
+  return window;
 }
