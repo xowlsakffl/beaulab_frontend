@@ -2,27 +2,13 @@
 
 import React from "react";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
-  Pagination,
-  SpinnerBlock,
-} from "@beaulab/ui-admin";
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalPanel, ModalTitle } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
-import {
-  formatReportedContentDetailDateTime,
-  formatReportedContentReason,
-  formatReportedContentReporterName,
-  type ReportedContentDetailReportItem,
-  type ReportedContentReportsMeta,
-} from "@/lib/reported-content/detail";
+import { type ReportedContentDetailReportItem, type ReportedContentReportsMeta } from "@/lib/reported-content/detail";
 import type { ReportedContentRow } from "@/lib/reported-content/list";
+
+import { ReportedContentReportsList, reportedContentReportsTotal } from "./ReportedContentReportsList";
 
 type ReportedContentReportsModalProps = {
   row: ReportedContentRow | null;
@@ -89,8 +75,7 @@ export function ReportedContentReportsModal({ row, onClose }: ReportedContentRep
   }, [page, row]);
 
   const currentPage = Number(meta?.current_page ?? page);
-  const lastPage = Math.max(1, Number(meta?.last_page ?? 1));
-  const total = Number(meta?.total ?? reports.length);
+  const total = reportedContentReportsTotal(meta, reports);
 
   return (
     <Modal isOpen={row !== null} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-2xl">
@@ -103,39 +88,14 @@ export function ReportedContentReportsModal({ row, onClose }: ReportedContentRep
         </ModalHeader>
 
         <ModalBody className="mt-5">
-          {loading ? (
-            <SpinnerBlock className="min-h-[14rem]" spinnerClassName="size-10" label="신고목록을 불러오는 중" />
-          ) : error ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
-          ) : reports.length > 0 ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-[8rem_minmax(0,1fr)_8rem] gap-3 border-b border-gray-200 pb-2 text-xs font-semibold text-gray-500">
-                <span>신고자</span>
-                <span>신고사유</span>
-                <span>신고일</span>
-              </div>
-              {reports.map((report) => (
-                <div
-                  key={report.id ?? `${report.created_at}-${report.reason}`}
-                  className="grid grid-cols-[8rem_minmax(0,1fr)_8rem] gap-3 text-sm text-gray-800"
-                >
-                  <span className="min-w-0 truncate">{formatReportedContentReporterName(report)}</span>
-                  <span className="min-w-0 break-words">{formatReportedContentReason(report)}</span>
-                  <span className="text-xs whitespace-nowrap text-gray-600">
-                    {formatReportedContentDetailDateTime(report.created_at)}
-                  </span>
-                </div>
-              ))}
-
-              <div className="flex justify-center pt-2">
-                <Pagination currentPage={currentPage} totalPages={lastPage} onPageChange={setPage} disabled={loading} />
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-              신고목록이 없습니다.
-            </div>
-          )}
+          <ReportedContentReportsList
+            reports={reports}
+            meta={meta}
+            loading={loading}
+            error={error}
+            page={currentPage}
+            onPageChange={setPage}
+          />
         </ModalBody>
 
         <ModalFooter>

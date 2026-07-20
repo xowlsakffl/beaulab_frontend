@@ -94,12 +94,18 @@ export default function EventAdsCalendarPageClient() {
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const requestIdRef = React.useRef(0);
 
+  const viewMonthKey = monthKey(calendarMonth);
   const selectedCategoryId = selectedCategoryIdByGroup[activeGroup] ?? null;
+  const isCalendarDataForCurrentView =
+    calendarData?.group === activeGroup &&
+    calendarData.month === viewMonthKey &&
+    normalizeOptionalNumber(calendarData.category_id) === selectedCategoryId;
   const categories =
     categoryOptionsByGroup[activeGroup] ??
     (calendarData?.group === activeGroup ? calendarData.categories : EMPTY_CATEGORIES);
-  const calendarDays = calendarData?.group === activeGroup ? calendarData.days : EMPTY_DAYS;
+  const calendarDays = isCalendarDataForCurrentView ? calendarData.days : EMPTY_DAYS;
   const hasCategoryTabs = activeGroup === "surgery" || activeGroup === "petit";
+  const isCalendarPending = !isCalendarDataForCurrentView;
 
   const fetchCalendar = React.useCallback(async () => {
     requestIdRef.current += 1;
@@ -203,7 +209,7 @@ export default function EventAdsCalendarPageClient() {
             month={calendarMonth}
             days={calendarDays}
             selectedCategory={categories.find((category) => category.id === selectedCategoryId) ?? null}
-            loading={isLoading}
+            pending={isCalendarPending}
             canGoPrev={isCurrentOrNextMonth(calendarMonth, "prev")}
             canGoNext={isCurrentOrNextMonth(calendarMonth, "next")}
             onMonthChange={changeMonth}
@@ -254,7 +260,7 @@ function EventAdStatusCalendar({
   month,
   days,
   selectedCategory,
-  loading,
+  pending,
   canGoPrev,
   canGoNext,
   onMonthChange,
@@ -262,7 +268,7 @@ function EventAdStatusCalendar({
   month: Date;
   days: EventAdCalendarDay[];
   selectedCategory: EventAdCalendarCategory | null;
-  loading: boolean;
+  pending: boolean;
   canGoPrev: boolean;
   canGoNext: boolean;
   onMonthChange: (month: Date) => void;
@@ -386,7 +392,7 @@ function EventAdStatusCalendar({
       </div>
 
       <div ref={calendarRef} className="relative overflow-visible rounded-xl border border-gray-200">
-        {loading ? (
+        {pending ? (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70">
             <SpinnerBlock className="min-h-0" spinnerClassName="size-7" label="광고 현황을 불러오는 중" />
           </div>
@@ -415,7 +421,9 @@ function EventAdStatusCalendar({
             const isPastOrToday = isSameOrBeforeDate(date, today);
             const isClosedRangeDate = closedRangeDateKeys.has(dateKey);
             const showSoldOut =
-              !isDimmed && (isClosedRangeDate || isClosedCalendarDay(dayStatus) || (!dayStatus && isPastOrToday));
+              !pending &&
+              !isDimmed &&
+              (isClosedRangeDate || isClosedCalendarDay(dayStatus) || (!dayStatus && isPastOrToday));
 
             return (
               <div
@@ -435,7 +443,7 @@ function EventAdStatusCalendar({
                     <span className="block w-fit max-w-full truncate rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] leading-4 font-bold text-gray-500">
                       판매종료
                     </span>
-                  ) : (
+                  ) : !pending ? (
                     dayStatus?.statuses.map((status) => (
                       <CalendarStatusBadge
                         key={`${dateKey}-${status.placement}`}
@@ -445,7 +453,7 @@ function EventAdStatusCalendar({
                         onClick={(event) => openSticker(dateKey, status, event)}
                       />
                     ))
-                  )}
+                  ) : null}
                 </div>
               </div>
             );
@@ -624,4 +632,8 @@ function findScrollableAncestor(element: HTMLElement): HTMLElement | Window {
   }
 
   return window;
+}
+
+function normalizeOptionalNumber(value: number | null | undefined) {
+  return value ?? null;
 }

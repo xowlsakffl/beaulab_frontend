@@ -30,6 +30,7 @@ import {
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
+import { type ReportedContentDetailReportItem, type ReportedContentReportsMeta } from "@/lib/reported-content/detail";
 import { getVideoMediaFilename, resolveVideoMediaUrl, type VideoDetailResponse } from "@/lib/video/detail";
 import {
   formatLocalDateTime,
@@ -39,6 +40,10 @@ import {
   videoHospitalStatusColor,
   videoReportStatusColor,
 } from "@/lib/video/list";
+import {
+  ReportedContentReportsList,
+  reportedContentReportsTotal,
+} from "@/components/reported-content/list/ReportedContentReportsList";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
@@ -564,11 +569,7 @@ function VideoOperationInfoCard({
           color={videoHospitalStatusColor}
           compact
         />
-        <InfoField
-          label="신고횟수"
-          value={`${Number(detail.report_state?.report_count ?? 0).toLocaleString()}회`}
-          compact
-        />
+        <ReportCountInfoField videoId={detail.id} reportCount={Number(detail.report_state?.report_count ?? 0)} />
         <ReportStatusActionField
           status={detail.report_state?.status ?? "NONE"}
           updating={updatingReportStatus}
@@ -578,6 +579,191 @@ function VideoOperationInfoCard({
     </Card>
   );
 }
+
+function ReportCountInfoField({ videoId, reportCount }: { videoId: number; reportCount: number }) {
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null);
+  const stickerRef = React.useRef<HTMLElement | null>(null);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [page, setPage] = React.useState(1);
+  const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>([]);
+  const [meta, setMeta] = React.useState<ReportedContentReportsMeta | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const normalizedReportCount = Math.max(0, Number(reportCount || 0));
+  const canOpen = normalizedReportCount > 0;
+
+  React.useEffect(() => {
+    setIsOpen(false);
+    setPage(1);
+    setReports([]);
+    setMeta(null);
+    setError(null);
+  }, [videoId, normalizedReportCount]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (wrapperRef.current?.contains(target)) return;
+      if (stickerRef.current?.contains(target)) return;
+
+      setIsOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen || !canOpen) return;
+
+    let isMounted = true;
+
+    const fetchReports = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await api.get<ReportedContentDetailReportItem[]>(
+          `/reported-contents/hospital_video/${videoId}/reports`,
+          { reports_page: page },
+          { latestKey: `video:reports:${videoId}` },
+        );
+
+        if (!isMounted) return;
+
+        if (!isApiSuccess(response)) {
+          setReports([]);
+          setMeta(null);
+          setError(response.error.message || "신고내역을 불러오지 못했습니다.");
+          return;
+        }
+
+        setReports(response.data ?? []);
+        setMeta((response.meta as ReportedContentReportsMeta | null) ?? null);
+      } catch {
+        if (!isMounted) return;
+
+        setReports([]);
+        setMeta(null);
+        setError("신고내역 조회 중 오류가 발생했습니다.");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void fetchReports();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [canOpen, isOpen, page, videoId]);
+
+  const openSticker = React.useCallback(() => {
+    if (!canOpen) return;
+
+    setIsOpen((prev) => !prev);
+  }, [canOpen]);
+
+  return (
+    <div ref={wrapperRef} className="relative grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3">
+      <p className={labelClassName}>신고횟수</p>
+      <div className="flex min-h-[1.5rem] items-center">
+        {canOpen ? (
+          <button
+            type="button"
+            onClick={openSticker}
+            className="text-sm leading-6 font-semibold text-gray-800 underline decoration-gray-300 underline-offset-4 transition hover:text-brand-500 hover:decoration-brand-500"
+          >
+            {normalizedReportCount.toLocaleString()}회
+          </button>
+        ) : (
+          <span className={valueClassName}>0회</span>
+        )}
+      </div>
+
+      {isOpen ? (
+        <ReportCountSticker
+          ref={stickerRef}
+          reports={reports}
+          meta={meta}
+          loading={loading}
+          error={error}
+          total={normalizedReportCount}
+          page={page}
+          onPageChange={setPage}
+          onClose={() => setIsOpen(false)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+type ReportCountStickerProps = {
+  reports: ReportedContentDetailReportItem[];
+  meta: ReportedContentReportsMeta | null;
+  loading: boolean;
+  error: string | null;
+  total: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  onClose: () => void;
+};
+
+const ReportCountSticker = React.forwardRef<HTMLElement, ReportCountStickerProps>(function ReportCountSticker(
+  { reports, meta, loading, error, total, page, onPageChange, onClose },
+  ref,
+) {
+  const currentPage = Number(meta?.current_page ?? page);
+  const displayTotal = reportedContentReportsTotal(meta, reports, total);
+
+  return (
+    <aside
+      ref={ref}
+      className="absolute top-full left-[7.25rem] z-30 mt-2 w-[34rem] rounded-xl border border-gray-200 bg-white p-4 shadow-xl"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-gray-900">신고내역</p>
+          <p className="mt-1 text-xs font-semibold text-gray-500">{displayTotal.toLocaleString()}건</p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700"
+          aria-label="신고내역 닫기"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M6.04289 16.5413C5.65237 16.9318 5.65237 17.565 6.04289 17.9555C6.43342 18.346 7.06658 18.346 7.45711 17.9555L11.9987 13.4139L16.5408 17.956C16.9313 18.3466 17.5645 18.3466 17.955 17.956C18.3455 17.5655 18.3455 16.9323 17.955 16.5418L13.4129 11.9997L17.955 7.4576C18.3455 7.06707 18.3455 6.43391 17.955 6.04338C17.5645 5.65286 16.9313 5.65286 16.5408 6.04338L11.9987 10.5855L7.45711 6.0439C7.06658 5.65338 6.43342 5.65338 6.04289 6.0439C5.65237 6.43442 5.65237 7.06759 6.04289 7.45811L10.5845 11.9997L6.04289 16.5413Z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div className="mt-3">
+        <ReportedContentReportsList
+          reports={reports}
+          meta={meta}
+          loading={loading}
+          error={error}
+          page={currentPage}
+          loadingLabel="신고내역을 불러오는 중"
+          emptyLabel="신고내역이 없습니다."
+          onPageChange={onPageChange}
+        />
+      </div>
+    </aside>
+  );
+});
 
 function InfoField({
   label,
