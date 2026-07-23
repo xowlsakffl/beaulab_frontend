@@ -30,6 +30,7 @@ export default function LoginPageClient({ nextPath }: LoginPageClientProps) {
       identifierType="text"
       passwordPlaceholder="비밀번호를 입력하세요."
       submitText="로그인"
+      forgotPasswordHref="/password-reset"
       hideSocialButtons
       onSubmit={handleSubmit}
     />

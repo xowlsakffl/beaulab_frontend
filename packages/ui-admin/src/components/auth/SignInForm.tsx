@@ -137,7 +137,7 @@ export function SignInForm({
                     onChange={(e) => setIdentifier(e.target.value)}
                   />
                 </div>
-                <div className="mb-4">
+                <div>
                   <Label>
                     비밀번호 <span className="text-error-500">*</span>{" "}
                   </Label>
@@ -155,9 +155,11 @@ export function SignInForm({
                       {showPassword ? <Eye className="" /> : <EyeOff className="" />}
                     </span>
                   </div>
+                  {finalErrorMessage ? (
+                    <p className="mt-1 text-[11px] leading-4 text-error-500">{finalErrorMessage}</p>
+                  ) : null}
                 </div>
-                {finalErrorMessage ? <div className="text-sm text-error-600">{finalErrorMessage}</div> : null}
-                <div className="flex items-center justify-between">
+                <div className="-mt-2 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Checkbox checked={isChecked} onChange={setIsChecked} />
                     <span className="block text-theme-sm font-normal text-gray-700">로그인 유지</span>
@@ -167,7 +169,7 @@ export function SignInForm({
                   </Link>
                 </div>
                 <div>
-                  <Button variant="brand" className="w-full" size="sm" disabled={isSubmitting}>
+                  <Button variant="brand" className="w-full" size="auth" disabled={isSubmitting}>
                     {isSubmitting ? "로그인 중..." : submitText}
                   </Button>
                 </div>
