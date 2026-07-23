@@ -11,6 +11,8 @@ import { InputField } from "../input/InputField";
 export type CategorySelectorItem = {
   id: number;
   name: string;
+  group_code?: string | null;
+  group_label?: string | null;
   full_path?: string | null;
   depth: number;
   parent_id?: number | null;
@@ -130,7 +132,7 @@ const DEFAULT_TEXT: SelectorText = {
   directTitle: "직접 선택하기",
   largeTitle: "대카테고리",
   middleTitle: "중카테고리",
-  smallTitle: "소카테고리",
+  smallTitle: "카테고리",
   loadingText: "카테고리를 불러오는 중입니다.",
   noResultsText: "검색 결과가 없습니다.",
   selectedTitle: "선택된 카테고리",
@@ -752,7 +754,7 @@ export function HierarchicalCategorySelector({
                 <span className="min-w-0">
                   <span className="block truncate font-semibold text-gray-800">{node.name}</span>
                   <span className="block truncate text-xs text-gray-500">
-                    {node.full_path || (canSelect ? node.name : "소카테고리만 선택할 수 있습니다.")}
+                    {node.full_path || (canSelect ? node.name : "자식 없는 카테고리만 선택할 수 있습니다.")}
                   </span>
                 </span>
                 {isSelected ? <Check className="size-4 shrink-0" /> : null}

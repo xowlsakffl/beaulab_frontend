@@ -202,7 +202,6 @@ export function CategoryDoctorPickerCard({
         showDirectTitle={false}
         selectionMode="leaf-click"
         selectedDisplay="input"
-        searchDepth={3}
         searchInputClassName="h-9"
         columnHeightClassName="h-[232px]"
         headerTitle={<h3 className="text-sm font-bold text-gray-900">카테고리 설정</h3>}
@@ -218,9 +217,9 @@ export function CategoryDoctorPickerCard({
           </div>
         }
         text={{
-          selectedTitle: "선택한 소카테고리",
+          selectedTitle: "선택한 카테고리",
           primaryTitle: "대표 카테고리 선택",
-          selectedPlaceholder: "소카테고리를 선택해 주세요.",
+          selectedPlaceholder: "카테고리를 선택해 주세요.",
           primaryPlaceholder: "대표 카테고리를 선택해 주세요.",
         }}
       />

@@ -113,7 +113,7 @@ export function EventMainCard({
           customValue={<CategoryBadgeList values={primaryCategory ? [categoryFullPath(primaryCategory)] : ["-"]} />}
         />
         <ReadonlyField
-          label="선택한 소카테고리"
+          label="선택한 카테고리"
           value="-"
           customValue={<CategoryBadgeList values={categoryBadges.map((category) => category.label)} />}
         />

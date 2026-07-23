@@ -22,6 +22,7 @@ import { useVideoDoctorOptions } from "@/hooks/video/useVideoDoctorOptions";
 import { useVideoHospitalOptions } from "@/hooks/video/useVideoHospitalOptions";
 import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { groupMedicalCategorySelectorItems } from "@/lib/common/category";
 import { normalizeHashtagName, sanitizeHashtagName, validateHashtagName } from "@/lib/hashtag/list";
 import type { VideoCategoryItem, VideoHashtagItem } from "@/lib/video/detail";
 import {
@@ -510,7 +511,7 @@ function VideoCategorySelect({
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
   onToggleCategory: (categoryId: number, checked: boolean) => void;
 }) {
-  const [options, setOptions] = React.useState<Array<{ value: string; label: string }>>([]);
+  const [options, setOptions] = React.useState<CategorySelectorItem[]>([]);
   const [isOpen, setIsOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -523,7 +524,7 @@ function VideoCategorySelect({
     loadCategories({ section: videoCategorySection, depth: 1, perPage: 100 })
       .then((items) => {
         if (!isMounted) return;
-        setOptions(items.map((item) => ({ value: String(item.id), label: item.name })));
+        setOptions(items);
         setLoadError(null);
       })
       .catch(() => {
@@ -543,13 +544,14 @@ function VideoCategorySelect({
   useOutsideClose(containerRef, isOpen, () => setIsOpen(false));
 
   const selectedLabels = selectedIds.map((id) => {
-    const option = options.find((item) => item.value === String(id));
+    const option = options.find((item) => item.id === id);
     const fallback = selectedItems?.find((item) => item.id === id);
     return {
       id,
-      label: option?.label ?? fallback?.name ?? String(id),
+      label: option?.name ?? fallback?.name ?? String(id),
     };
   });
+  const groupedOptions = React.useMemo(() => groupMedicalCategorySelectorItems(options), [options]);
 
   return (
     <div ref={containerRef} className="relative space-y-2" data-field-target="category_ids" tabIndex={-1}>
@@ -569,22 +571,38 @@ function VideoCategorySelect({
             loadError={loadError}
             emptyText="선택 가능한 카테고리가 없습니다."
           >
-            {options.map((option) => {
-              const categoryId = Number(option.value);
-              const isSelected = selectedIds.includes(categoryId);
+            {groupedOptions.map((group) => (
+              <div
+                key={group.key}
+                className="space-y-1.5 border-t border-dashed border-gray-200 pt-2 first:border-t-0 first:pt-0"
+              >
+                <p className="px-3 py-1 text-[11px] font-bold text-brand-500">{group.label}</p>
+                {group.items.map((option) => {
+                  const categoryId = option.id;
+                  const isSelected = selectedIds.includes(categoryId);
 
-              return (
-                <OptionButton
-                  key={option.value}
-                  label={option.label}
-                  selected={isSelected}
-                  onClick={() => {
-                    if (!Number.isFinite(categoryId)) return;
-                    onToggleCategory(categoryId, !isSelected);
-                  }}
-                />
-              );
-            })}
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => {
+                        if (!Number.isFinite(categoryId)) return;
+                        onToggleCategory(categoryId, !isSelected);
+                      }}
+                      className={[
+                        "flex h-9 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
+                        isSelected
+                          ? "border-brand-200 bg-brand-50 font-semibold text-brand-700"
+                          : "text-gray-700 hover:border-gray-200 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span>{option.name}</span>
+                      {isSelected ? <span className="text-xs font-semibold text-brand-500">선택됨</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </OptionsPanel>
         ) : null}
       </div>

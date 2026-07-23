@@ -3,6 +3,7 @@
 import React from "react";
 
 import type { DoctorCategoryItem } from "@/lib/doctor/detail";
+import { groupMedicalCategorySelectorItems } from "@/lib/common/category";
 import { MAX_DOCTOR_CATEGORY_SELECTION } from "@/lib/doctor/form";
 import { Card, ChevronDown, SpinnerBlock, X, type CategorySelectorItem } from "@beaulab/ui-admin";
 
@@ -39,6 +40,7 @@ export function CategorySelectPanel({
   const [isOpen, setIsOpen] = React.useState(false);
   const optionMap = React.useMemo(() => new Map(options.map((option) => [option.id, option])), [options]);
   const selectedItemMap = React.useMemo(() => new Map(selectedItems.map((item) => [item.id, item])), [selectedItems]);
+  const groupedOptions = React.useMemo(() => groupMedicalCategorySelectorItems(options), [options]);
   const selectedDisplayItems = selectedIds
     .map((categoryId) => optionMap.get(categoryId) ?? selectedItemMap.get(categoryId))
     .filter((item): item is DoctorCategoryOption | DoctorCategoryItem => Boolean(item));
@@ -106,25 +108,35 @@ export function CategorySelectPanel({
               ) : options.length === 0 ? (
                 <p className="px-3 py-4 text-sm text-gray-500">선택 가능한 진료분야가 없습니다.</p>
               ) : (
-                <div className="space-y-1">
-                  {options.map((option) => {
-                    const isSelected = selectedIds.includes(option.id);
+                <div className="space-y-3">
+                  {groupedOptions.map((group) => (
+                    <div
+                      key={group.key}
+                      className="space-y-1.5 border-t border-dashed border-gray-200 pt-2 first:border-t-0 first:pt-0"
+                    >
+                      <p className="px-3 py-1 text-[11px] font-bold text-brand-500">{group.label}</p>
+                      {group.items.map((option) => {
+                        const isSelected = selectedIds.includes(option.id);
 
-                    return (
-                      <button
-                        key={`${option.domain ?? "category"}:${option.id}`}
-                        type="button"
-                        onClick={() => onToggleCategory(option.id, !isSelected)}
-                        className={cx(
-                          "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm",
-                          isSelected ? "bg-brand-50 font-semibold text-brand-700" : "text-gray-700 hover:bg-gray-50",
-                        )}
-                      >
-                        {option.name}
-                        {isSelected ? <span className="text-xs">선택됨</span> : null}
-                      </button>
-                    );
-                  })}
+                        return (
+                          <button
+                            key={`${option.domain ?? "category"}:${option.id}`}
+                            type="button"
+                            onClick={() => onToggleCategory(option.id, !isSelected)}
+                            className={cx(
+                              "flex h-9 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
+                              isSelected
+                                ? "border-brand-200 bg-brand-50 font-semibold text-brand-700"
+                                : "text-gray-700 hover:border-gray-200 hover:bg-gray-50",
+                            )}
+                          >
+                            {option.name}
+                            {isSelected ? <span className="text-xs font-semibold text-brand-500">선택됨</span> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
               )}
             </Card>

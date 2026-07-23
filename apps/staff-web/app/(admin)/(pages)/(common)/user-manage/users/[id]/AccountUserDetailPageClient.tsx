@@ -44,7 +44,7 @@ import {
   type AdminNoteListResponse,
 } from "@/lib/account-user/detail";
 
-type AccountUserUpdateResponse = AccountUserDetail;
+type AccountUserStatusUpdateResponse = AccountUserDetail;
 
 const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm text-gray-800";
@@ -184,7 +184,7 @@ export default function AccountUserDetailPageClient() {
     setBlockError(null);
 
     try {
-      const response = await api.patch<AccountUserUpdateResponse>(`/users/${userId}/status`, {
+      const response = await api.patch<AccountUserStatusUpdateResponse>(`/users/${userId}/status`, {
         status: "BLOCKED",
         reason,
       });
@@ -382,7 +382,7 @@ function MemberInfoCard({
           </div>
         </div>
 
-        <Can permission="beaulab.user.update">
+        <Can permission="beaulab.user.status.update">
           <div className="relative">
             <button
               type="button"
