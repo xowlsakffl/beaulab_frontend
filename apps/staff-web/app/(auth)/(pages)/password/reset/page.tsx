@@ -121,11 +121,11 @@ export default async function PasswordResetPage({ searchParams }: PasswordResetP
   const verifyResult = await verifyPasswordResetToken(email, token);
 
   if (verifyResult.status === "invalid") {
-    redirect("/error-419");
+    redirect("/error/419");
   }
 
   if (verifyResult.status === "rate_limited") {
-    redirect("/error-429");
+    redirect("/error/429");
   }
 
   if (verifyResult.status === "retry") {

@@ -17,6 +17,10 @@
       "types": "./src/components/auth/index.ts",
       "default": "./src/components/auth/index.ts"
     },
+    "./components/error": {
+      "types": "./src/components/error/index.ts",
+      "default": "./src/components/error/index.ts"
+    },
     "./context": {
       "types": "./src/context/index.ts",
       "default": "./src/context/index.ts"
