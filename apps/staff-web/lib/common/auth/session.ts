@@ -3,7 +3,7 @@ import { tokenStorage, sessionStorage } from "@beaulab/auth";
 import type { ActorAuthorization, StaffProfile, StaffSession } from "@beaulab/types";
 import { isApiSuccess } from "@beaulab/types";
 
-type LoginPayload = { nickname: string; password: string };
+type LoginPayload = { nickname: string; password: string; keep_logged_in?: boolean };
 type AuthFields = {
   auth?: Partial<ActorAuthorization>;
   roles?: string[];
@@ -33,13 +33,14 @@ function resolveAuth(data: AuthFields): Partial<ActorAuthorization> | undefined 
 }
 
 export async function login(payload: LoginPayload): Promise<StaffSession> {
+  const persistent = Boolean(payload.keep_logged_in);
   const res = await api.post<LoginResponse>("/auth/login", payload, undefined, {
     skipUnauthorizedHandler: true,
   });
 
   if (!isApiSuccess(res)) throw res;
 
-  tokenStorage.set("staff", res.data.token);
+  tokenStorage.set("staff", res.data.token, { persistent });
 
   if (res.data.profile) {
     const session: StaffSession = {
@@ -48,7 +49,7 @@ export async function login(payload: LoginPayload): Promise<StaffSession> {
       auth: resolveAuth(res.data),
     };
 
-    sessionStorage.set("staff", session);
+    sessionStorage.set("staff", session, { persistent });
     return session;
   }
 
@@ -66,7 +67,7 @@ export async function restoreSession(): Promise<StaffSession> {
     auth: resolveAuth(me.data),
   };
 
-  sessionStorage.set("staff", session);
+  sessionStorage.set("staff", session, { persistent: tokenStorage.isPersistent("staff") });
   return session;
 }
 

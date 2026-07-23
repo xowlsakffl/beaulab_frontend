@@ -11,12 +11,12 @@ type LoginPageClientProps = {
 export default function LoginPageClient({ nextPath }: LoginPageClientProps) {
   const router = useRouter();
 
-  const handleSubmit = async ({ identifier, password }: SignInFormValues) => {
+  const handleSubmit = async ({ identifier, password, keepLoggedIn }: SignInFormValues) => {
     if (!identifier || !password) {
       throw new Error("아이디와 비밀번호를 입력해주세요.");
     }
 
-    await login({ nickname: identifier, password });
+    await login({ nickname: identifier, password, keep_logged_in: keepLoggedIn });
     router.replace(nextPath);
     router.refresh();
   };
