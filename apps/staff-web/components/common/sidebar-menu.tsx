@@ -1,5 +1,6 @@
 import React from "react";
 import { getStaticRoutePermissions, type StaticAdminRoutePath } from "@/lib/common/routing/route-permissions";
+import type { NavigationBadgeMap } from "@/lib/common/navigation-badges";
 import {
   type SidebarNavItem,
   BarChart3,
@@ -230,7 +231,16 @@ function hasAnyPermission(requiredPermissions: string[] | undefined, permissions
   return requiredPermissions.some((permission) => permissions.includes(permission));
 }
 
-function toSidebarMenu(menu: { main: AppNavItem[]; others: AppNavItem[] }, permissions: string[]): SidebarMenu {
+function hasNavigationBadge(path: string | undefined, badges: NavigationBadgeMap) {
+  if (!path) return false;
+  return Boolean(badges[path]?.has_new);
+}
+
+function toSidebarMenu(
+  menu: { main: AppNavItem[]; others: AppNavItem[] },
+  permissions: string[],
+  badges: NavigationBadgeMap,
+): SidebarMenu {
   const mapItems = (items: AppNavItem[]): SidebarNavItem[] => {
     const mappedItems: SidebarNavItem[] = [];
 
@@ -239,18 +249,23 @@ function toSidebarMenu(menu: { main: AppNavItem[]; others: AppNavItem[] }, permi
 
       if (!item.subItems) {
         const { name, icon, path } = item;
-        mappedItems.push({ name, icon, path });
+        mappedItems.push({ name, icon, path, new: hasNavigationBadge(path, badges) });
         return;
       }
 
       const subItems = item.subItems
         .filter((subItem) => hasAnyPermission(subItem.requiredPermissions, permissions))
-        .map(({ name, path, pro, new: isNew }) => ({ name, path, pro, new: isNew }));
+        .map(({ name, path, pro, new: isNew }) => ({
+          name,
+          path,
+          pro,
+          new: isNew || hasNavigationBadge(path, badges),
+        }));
 
       if (subItems.length === 0) return;
 
       const { name, icon, path } = item;
-      mappedItems.push({ name, icon, path, subItems });
+      mappedItems.push({ name, icon, path, subItems, new: subItems.some((subItem) => subItem.new) });
     });
 
     return mappedItems;
@@ -262,11 +277,11 @@ function toSidebarMenu(menu: { main: AppNavItem[]; others: AppNavItem[] }, permi
   };
 }
 
-export function buildStaffSidebarMenus(permissions: string[]): StaffSidebarMenuBundle {
+export function buildStaffSidebarMenus(permissions: string[], badges: NavigationBadgeMap = {}): StaffSidebarMenuBundle {
   return {
     domainMenus: {
-      hospital: toSidebarMenu(hospitalDomainMenu, permissions),
-      beauty: toSidebarMenu(beautyDomainMenu, permissions),
+      hospital: toSidebarMenu(hospitalDomainMenu, permissions, badges),
+      beauty: toSidebarMenu(beautyDomainMenu, permissions, badges),
     },
   };
 }

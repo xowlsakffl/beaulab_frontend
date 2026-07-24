@@ -18,6 +18,7 @@ export type SidebarNavItem = {
   name: string;
   icon?: ReactNode;
   path?: string;
+  new?: boolean;
   subItems?: SidebarNavSubItem[];
 };
 
@@ -38,6 +39,17 @@ type AppSidebarProps = {
     others?: string;
   };
 };
+
+function NewBadge() {
+  return (
+    <span
+      aria-label="신규"
+      className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] leading-none font-semibold text-white"
+    >
+      N
+    </span>
+  );
+}
 
 export function AppSidebar({
   menu,
@@ -90,6 +102,7 @@ export function AppSidebar({
                     </span>
 
                     <span className="menu-item-text">{nav.name}</span>
+                    {nav.new ? <NewBadge /> : null}
 
                     <ChevronDown
                       className={`ml-auto h-5 w-5 transition-transform duration-200 ${
@@ -106,6 +119,7 @@ export function AppSidebar({
                       {nav.icon ?? <span className="h-5 w-5" />}
                     </span>
                     <span className="menu-item-text">{nav.name}</span>
+                    {nav.new ? <NewBadge /> : null}
                   </Link>
                 ) : null}
 
@@ -124,7 +138,8 @@ export function AppSidebar({
                               isActive(subItem.path) ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive"
                             }`}
                           >
-                            {subItem.name}
+                            <span>{subItem.name}</span>
+                            {subItem.new ? <NewBadge /> : null}
                           </Link>
                         </li>
                       ))}

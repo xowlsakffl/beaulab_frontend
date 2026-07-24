@@ -5,6 +5,7 @@ interface CheckboxProps {
   ariaLabel?: string;
   checked: boolean;
   className?: string;
+  labelClassName?: string;
   id?: string;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
@@ -17,6 +18,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
   id,
   onChange,
   className = "",
+  labelClassName = "text-sm font-medium text-gray-800",
   disabled = false,
 }) => {
   return (
@@ -54,7 +56,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
           </svg>
         )}
       </div>
-      {label && <span className="text-sm font-medium text-gray-800">{label}</span>}
+      {label && <span className={labelClassName}>{label}</span>}
     </label>
   );
 };

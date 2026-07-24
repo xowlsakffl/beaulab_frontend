@@ -3,7 +3,28 @@ import { sessionStorage, tokenStorage } from "@beaulab/auth";
 
 export { isApiRequestCanceledError } from "@beaulab/api-client";
 
+export const NAVIGATION_BADGE_REFRESH_EVENT = "staff:navigation-badges:refresh";
+
 let isRedirectingToLogin = false;
+
+function dispatchNavigationBadgeRefresh() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(NAVIGATION_BADGE_REFRESH_EVENT));
+}
+
+function wrapMutation<Args extends unknown[], Result extends { success?: boolean }>(
+  request: (...args: Args) => Promise<Result>,
+) {
+  return async (...args: Args): Promise<Result> => {
+    const response = await request(...args);
+
+    if (response.success) {
+      dispatchNavigationBadgeRefresh();
+    }
+
+    return response;
+  };
+}
 
 function redirectToLoginAfterUnauthorized(context: ApiUnauthorizedContext) {
   if (typeof window === "undefined" || isRedirectingToLogin) return;
@@ -21,11 +42,19 @@ function redirectToLoginAfterUnauthorized(context: ApiUnauthorizedContext) {
   window.location.replace(`/login${next}`);
 }
 
-export const api = createClient({
+const staffApi = createClient({
   baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/staff`,
   actor: "staff",
   onUnauthorized: redirectToLoginAfterUnauthorized,
 });
+
+export const api: typeof staffApi = {
+  ...staffApi,
+  post: wrapMutation(staffApi.post) as typeof staffApi.post,
+  put: wrapMutation(staffApi.put) as typeof staffApi.put,
+  patch: wrapMutation(staffApi.patch) as typeof staffApi.patch,
+  delete: wrapMutation(staffApi.delete) as typeof staffApi.delete,
+};
 
 function parseContentDispositionFileName(headerValue: string | null): string | null {
   if (!headerValue) return null;

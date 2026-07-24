@@ -4,7 +4,13 @@ import Image from "next/image";
 import React, { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Guard } from "@/components/common/guard";
+import { api, isApiRequestCanceledError, NAVIGATION_BADGE_REFRESH_EVENT } from "@/lib/common/api";
 import { getSession, logout } from "@/lib/common/auth/session";
+import {
+  normalizeNavigationBadges,
+  type NavigationBadgeMap,
+  type NavigationBadgesApiResponse,
+} from "@/lib/common/navigation-badges";
 import {
   buildStaffSidebarMenus,
   mergeStaffSidebarMenu,
@@ -13,6 +19,7 @@ import {
   type StaffSidebarDomain,
 } from "@/components/common/sidebar-menu";
 import { AppHeader, AppSidebar } from "@beaulab/ui-admin";
+import { isApiSuccess } from "@beaulab/types";
 import { resolveAdminPageByPath } from "@/lib/common/routing/admin-pages";
 import { PageHeaderExtraProvider } from "@/lib/common/routing/page-header-extra";
 
@@ -33,7 +40,11 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const session = React.useMemo(() => getSession(), []);
   const permissions = React.useMemo(() => session?.auth?.permissions ?? [], [session]);
-  const sidebarMenus = React.useMemo(() => buildStaffSidebarMenus(permissions), [permissions]);
+  const [navigationBadges, setNavigationBadges] = React.useState<NavigationBadgeMap>({});
+  const sidebarMenus = React.useMemo(
+    () => buildStaffSidebarMenus(permissions, navigationBadges),
+    [navigationBadges, permissions],
+  );
   const availableDomains = React.useMemo(
     () => STAFF_SIDEBAR_DOMAIN_OPTIONS.filter(({ key }) => sidebarMenus.domainMenus[key].main.length > 0),
     [sidebarMenus],
@@ -68,6 +79,43 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     return () => {
       document.documentElement.classList.remove("admin-shell-scroll-lock");
       document.body.classList.remove("admin-shell-scroll-lock");
+    };
+  }, []);
+
+  React.useEffect(() => {
+    let disposed = false;
+
+    const fetchNavigationBadges = async () => {
+      try {
+        const response = await api.get<NavigationBadgesApiResponse>("/navigation-badges", undefined, {
+          latestKey: "navigation-badges",
+        });
+
+        if (disposed) return;
+
+        if (isApiSuccess(response)) {
+          setNavigationBadges(normalizeNavigationBadges(response.data));
+          return;
+        }
+
+        setNavigationBadges({});
+      } catch (error) {
+        if (isApiRequestCanceledError(error) || disposed) return;
+        setNavigationBadges({});
+      }
+    };
+
+    void fetchNavigationBadges();
+
+    const intervalId = window.setInterval(fetchNavigationBadges, 30_000);
+    window.addEventListener("focus", fetchNavigationBadges);
+    window.addEventListener(NAVIGATION_BADGE_REFRESH_EVENT, fetchNavigationBadges);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", fetchNavigationBadges);
+      window.removeEventListener(NAVIGATION_BADGE_REFRESH_EVENT, fetchNavigationBadges);
     };
   }, []);
 

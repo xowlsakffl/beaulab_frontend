@@ -160,10 +160,13 @@ export function SignInForm({
                   ) : null}
                 </div>
                 <div className="-mt-2 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Checkbox checked={isChecked} onChange={setIsChecked} />
-                    <span className="block text-theme-sm font-normal text-gray-700">로그인 유지</span>
-                  </div>
+                  <Checkbox
+                    id="keep-logged-in"
+                    checked={isChecked}
+                    onChange={setIsChecked}
+                    label="로그인 유지"
+                    labelClassName="block text-theme-sm font-normal text-gray-700"
+                  />
                   <Link href={forgotPasswordHref} className="text-sm text-brand-500 hover:text-brand-600">
                     비밀번호를 잊으셨나요?
                   </Link>
