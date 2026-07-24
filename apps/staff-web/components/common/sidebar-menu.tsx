@@ -143,6 +143,7 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
       subItems: [
         routeSubItem({ name: "배너 / 팝업", path: "/content-manage/banners" }),
         routeSubItem({ name: "카테고리", path: "/category-hashtag-manage/categories" }),
+        routeSubItem({ name: "해시태그", path: "/content-manage/hashtags" }),
         routeSubItem({ name: "상단타이틀 관리", path: "/content-manage/top-titles" }),
       ],
     },

@@ -6,19 +6,13 @@ import {
   ChevronUp,
   ChevronsUpDown,
   DataTable,
-  SingleCheckboxFilterDropdown,
+  Pagination,
   StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import {
-  PER_PAGE_OPTIONS,
-  labelHashtagStatus,
-  type HashtagRow,
-  type SortField,
-  type SortState,
-} from "@/lib/hashtag/list";
+import { type HashtagRow, type SortField, type SortState } from "@/lib/hashtag/list";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -35,15 +29,15 @@ function buildHashtagColumns({
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<HashtagRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
-  const cellBaseClass = "px-3 py-4 text-start align-top ";
-  const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600";
+  const cellBaseClass = "px-2 py-4 text-start align-top";
+  const nowrapCellClass = `${cellBaseClass} overflow-hidden text-ellipsis whitespace-nowrap`;
 
   return [
     {
       key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[72px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[72px]`,
+      headerClassName: `${headerBaseClass} lg:w-[70px]`,
+      cellClassName: `${nowrapCellClass} lg:w-[70px]`,
       header: (
         <Button
           type="button"
@@ -59,8 +53,8 @@ function buildHashtagColumns({
     },
     {
       key: "name",
-      headerClassName: `${headerBaseClass} lg:w-[180px]`,
-      cellClassName: `${cellBaseClass} lg:w-[180px]`,
+      headerClassName: `${headerBaseClass} lg:w-[220px]`,
+      cellClassName: `${cellBaseClass} lg:w-[220px]`,
       header: (
         <Button
           type="button"
@@ -72,7 +66,11 @@ function buildHashtagColumns({
           해시태그명 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
         </Button>
       ),
-      render: (row) => <span className="font-medium text-gray-800">#{row.name}</span>,
+      render: (row) => (
+        <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.name}>
+          #{row.name}
+        </span>
+      ),
     },
     {
       key: "normalizedName",
@@ -94,11 +92,21 @@ function buildHashtagColumns({
       ),
     },
     {
-      key: "assignmentCount",
+      key: "usageCount",
       headerClassName: `${headerBaseClass} lg:w-[96px]`,
       cellClassName: `${nowrapCellClass} lg:w-[96px]`,
-      header: "연결 수",
-      render: (row) => row.assignmentCount.toLocaleString(),
+      header: (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleSort("usage_count")}
+          className="inline-flex items-center gap-1 px-0 text-xs"
+        >
+          사용수 <span className="text-xs text-gray-400">{renderSortMark("usage_count", sortState)}</span>
+        </Button>
+      ),
+      render: (row) => row.usageCount.toLocaleString(),
     },
     {
       key: "status",
@@ -117,7 +125,7 @@ function buildHashtagColumns({
       ),
       render: (row) => (
         <StatusBadge size="sm" color={row.status === "ACTIVE" ? "success" : "warning"}>
-          {labelHashtagStatus(row.status)}
+          {row.statusLabel}
         </StatusBadge>
       ),
     },
@@ -166,11 +174,9 @@ type HashtagsDataTableProps = {
   error: string | null;
   highlightedRowId: number | null;
   sortState: SortState;
-  perPage: number;
   onToggleSort: (field: SortField) => void;
   onRefresh: () => void;
   onGoPage: (page: number) => void;
-  onPerPageChange: (value: number) => void;
   onRowClick: (row: HashtagRow) => void;
 };
 
@@ -182,20 +188,17 @@ export function HashtagsDataTable({
   error,
   highlightedRowId,
   sortState,
-  perPage,
   onToggleSort,
   onRefresh,
   onGoPage,
-  onPerPageChange,
   onRowClick,
 }: HashtagsDataTableProps) {
   const columns = React.useMemo(() => buildHashtagColumns({ sortState, onToggleSort }), [onToggleSort, sortState]);
 
   return (
     <DataTable
-      title="해시태그 목록"
-      description="검색어와 필터를 적용해 해시태그 운영 현황을 확인할 수 있습니다."
-      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
+      refreshPlacement="left"
+      tableClassName="w-[1000px] min-w-[1000px] table-fixed"
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
@@ -211,19 +214,15 @@ export function HashtagsDataTable({
       onRefresh={onRefresh}
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      rightActions={
-        <div className="flex items-center gap-2">
-          <SingleCheckboxFilterDropdown
-            label="개수"
-            hideLabel
-            value={String(perPage)}
-            options={PER_PAGE_OPTIONS}
-            onChange={(value) => onPerPageChange(Number(value))}
-            emptyLabel="개수 선택"
-            className="w-[86px]"
-            triggerClassName="h-9 px-2 text-xs"
+      footerCenter={
+        meta ? (
+          <Pagination
+            currentPage={meta.current_page}
+            totalPages={Math.max(1, meta.last_page)}
+            onPageChange={onGoPage}
+            disabled={refreshing}
           />
-        </div>
+        ) : null
       }
       emptyText="조건에 맞는 해시태그가 없습니다."
     />

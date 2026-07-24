@@ -64,68 +64,75 @@ export function HashtagsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HashtagsFilterPanelProps) {
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
+  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
 
   return (
-    <Card className="rounded-xl p-3">
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)] gap-x-4 gap-y-4">
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+    <Card className="min-w-0 rounded-xl p-3">
+      <div className="grid grid-cols-[minmax(12rem,0.8fr)_minmax(14rem,1fr)_minmax(14rem,1fr)_minmax(18rem,1.7fr)] gap-x-3 gap-y-3 max-[1440px]:grid-cols-2 max-[960px]:grid-cols-1">
+        <div className={filterRowClass}>
           <span className={inlineLabelClass}>운영 상태</span>
-          <CheckboxFilterDropdown
-            label="운영 상태"
-            hideLabel
-            containerRef={statusDropdownRef}
-            selectedValues={draftFilters.statuses}
-            options={HASHTAG_STATUS_OPTIONS}
-            isOpen={isStatusDropdownOpen}
-            onToggleOpen={onToggleStatusDropdown}
-            onToggleValue={onToggleStatus}
-            onToggleAll={onToggleAllStatus}
-          />
+          <div className="min-w-0 flex-1">
+            <CheckboxFilterDropdown
+              label="운영 상태"
+              hideLabel
+              containerRef={statusDropdownRef}
+              selectedValues={draftFilters.statuses}
+              options={HASHTAG_STATUS_OPTIONS}
+              isOpen={isStatusDropdownOpen}
+              onToggleOpen={onToggleStatusDropdown}
+              onToggleValue={onToggleStatus}
+              onToggleAll={onToggleAllStatus}
+            />
+          </div>
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className={filterRowClass}>
           <span className={inlineLabelClass}>등록일</span>
-          <DateRangeFilterDropdown
-            label="등록일"
-            hideLabel
-            containerRef={datePickerRef}
-            value={draftFilters.dateRange}
-            placeholder="등록일 기간 선택"
-            selected={draftDateRange}
-            isOpen={isDatePickerOpen}
-            presetOptions={DATE_PRESET_OPTIONS}
-            onToggleOpen={onToggleDatePicker}
-            onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
-            onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
-            onReset={() => {
-              onApplyDateRange("created", undefined);
-              onToggleDatePicker();
-            }}
-            onConfirm={onToggleDatePicker}
-          />
+          <div className="min-w-0 flex-1">
+            <DateRangeFilterDropdown
+              label="등록일"
+              hideLabel
+              containerRef={datePickerRef}
+              value={draftFilters.dateRange}
+              placeholder="등록일 기간 선택"
+              selected={draftDateRange}
+              isOpen={isDatePickerOpen}
+              presetOptions={DATE_PRESET_OPTIONS}
+              onToggleOpen={onToggleDatePicker}
+              onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
+              onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
+              onReset={() => {
+                onApplyDateRange("created", undefined);
+                onToggleDatePicker();
+              }}
+              onConfirm={onToggleDatePicker}
+            />
+          </div>
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className={filterRowClass}>
           <span className={inlineLabelClass}>수정일</span>
-          <DateRangeFilterDropdown
-            label="수정일"
-            hideLabel
-            containerRef={updatedDatePickerRef}
-            value={draftFilters.updatedDateRange}
-            placeholder="수정일 기간 선택"
-            selected={draftUpdatedDateRange}
-            isOpen={isUpdatedDatePickerOpen}
-            presetOptions={DATE_PRESET_OPTIONS}
-            onToggleOpen={onToggleUpdatedDatePicker}
-            onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
-            onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
-            onReset={() => {
-              onApplyDateRange("updated", undefined);
-              onToggleUpdatedDatePicker();
-            }}
-            onConfirm={onToggleUpdatedDatePicker}
-          />
+          <div className="min-w-0 flex-1">
+            <DateRangeFilterDropdown
+              label="수정일"
+              hideLabel
+              containerRef={updatedDatePickerRef}
+              value={draftFilters.updatedDateRange}
+              placeholder="수정일 기간 선택"
+              selected={draftUpdatedDateRange}
+              isOpen={isUpdatedDatePickerOpen}
+              presetOptions={DATE_PRESET_OPTIONS}
+              onToggleOpen={onToggleUpdatedDatePicker}
+              onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
+              onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
+              onReset={() => {
+                onApplyDateRange("updated", undefined);
+                onToggleUpdatedDatePicker();
+              }}
+              onConfirm={onToggleUpdatedDatePicker}
+            />
+          </div>
         </div>
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
+        <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
@@ -149,7 +156,7 @@ export function HashtagsFilterPanel({
               검색
             </Button>
             <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
-              필터 초기화
+              검색 초기화
             </Button>
             <Button type="button" variant="brand" size="filter" onClick={onOpenCreate}>
               <SquarePlus className="size-5" />

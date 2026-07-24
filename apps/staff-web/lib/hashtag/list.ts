@@ -6,6 +6,7 @@ export type HashtagApiItem = {
   name?: string | null;
   normalized_name?: string | null;
   status?: string | null;
+  status_label?: string | null;
   usage_count?: number | null;
   assignment_count?: number | null;
   created_at?: string | null;
@@ -17,6 +18,7 @@ export type HashtagRow = {
   name: string;
   normalizedName: string;
   status: string;
+  statusLabel: string;
   usageCount: number;
   assignmentCount: number;
   createdAt: string;
@@ -78,11 +80,7 @@ export const DEFAULT_SORT: SortState = {
   enabled: true,
 };
 
-export const PER_PAGE_OPTIONS = [
-  { value: "15", label: "15개" },
-  { value: "30", label: "30개" },
-  { value: "50", label: "50개" },
-];
+export const DEFAULT_PER_PAGE = 50;
 
 export const DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
@@ -234,6 +232,7 @@ export function normalizeHashtag(item: HashtagApiItem): HashtagRow {
     name: item.name?.trim() || "-",
     normalizedName: item.normalized_name?.trim() || "-",
     status: item.status?.trim() || "ACTIVE",
+    statusLabel: item.status_label?.trim() || labelHashtagStatus(item.status?.trim() || "ACTIVE"),
     usageCount: Number(item.usage_count ?? item.assignment_count ?? 0),
     assignmentCount: Number(item.assignment_count ?? 0),
     createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
@@ -256,10 +255,11 @@ export function nextSortState(prev: SortState, field: SortField): SortState {
 }
 
 export function parseHashtagsTableState(searchParams: URLSearchParams) {
+  const allowedStatusValues = new Set(HASHTAG_STATUS_OPTIONS.map((option) => option.value));
   const statuses = (searchParams.get("status") ?? "")
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter((value) => allowedStatusValues.has(value));
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
   const updatedStartDate = searchParams.get("updated_start_date") ?? "";
@@ -268,8 +268,8 @@ export function parseHashtagsTableState(searchParams: URLSearchParams) {
   const updatedDateState = buildFilterDateState(updatedStartDate, updatedEndDate);
 
   const parsedPerPage = Number(searchParams.get("per_page"));
-  const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage) ? parsedPerPage : 15;
+  const perPage =
+    Number.isFinite(parsedPerPage) && parsedPerPage > 0 && parsedPerPage <= 100 ? parsedPerPage : DEFAULT_PER_PAGE;
 
   const parsedPage = Number(searchParams.get("page"));
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
@@ -356,7 +356,7 @@ export function buildHashtagsQueryString(query: HashtagsQuery) {
   if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
+  if (query.per_page !== DEFAULT_PER_PAGE) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 
   return params.toString();

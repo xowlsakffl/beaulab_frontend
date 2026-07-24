@@ -56,7 +56,7 @@ export default function HashtagsPageClient() {
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
   const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
-  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
+  const perPage = initialTableState.perPage;
   const [page, setPage] = React.useState(initialTableState.page);
 
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
@@ -364,17 +364,12 @@ export default function HashtagsPageClient() {
           error={error}
           highlightedRowId={highlightedRowId}
           sortState={sortState}
-          perPage={perPage}
           onToggleSort={(field: SortField) => {
             setPage(1);
             setSortState((current) => nextSortState(current, field));
           }}
           onRefresh={() => void fetchHashtags(true)}
           onGoPage={setPage}
-          onPerPageChange={(value) => {
-            setPage(1);
-            setPerPage(value);
-          }}
           onRowClick={openEditModal}
         />
       </div>

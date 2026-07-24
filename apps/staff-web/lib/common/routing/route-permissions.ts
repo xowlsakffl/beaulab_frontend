@@ -39,6 +39,7 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/notice-manage/inquiries": ["beaulab.notice.show"],
   "/content-manage/banners": ["beaulab.notice.show"],
   "/content-manage/popups": ["beaulab.notice.show"],
+  "/content-manage/hashtags": ["beaulab.hashtag.manage"],
   "/content-manage/top-titles": ["beaulab.category.manage"],
   "/statistics-manage/statistics": ["common.dashboard.show"],
   "/category-hashtag-manage/categories": ["beaulab.category.manage"],

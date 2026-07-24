@@ -159,7 +159,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
     group: "컨텐츠",
   },
   {
-    slug: ["category-hashtag-manage", "hashtags"],
+    slug: ["content-manage", "hashtags"],
     title: "해시태그",
     group: "컨텐츠",
   },
