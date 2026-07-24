@@ -1,42 +1,18 @@
 import React from "react";
-import {
-  Button,
-  Card,
-  CheckboxFilterDropdown,
-  DateRangeFilterDropdown,
-  InputField,
-  SquarePlus,
-} from "@beaulab/ui-admin";
-import type { DateRange } from "react-day-picker";
+import { Button, Card, CheckboxFilterDropdown, InputField, SquarePlus } from "@beaulab/ui-admin";
 
-import {
-  DATE_PRESET_OPTIONS,
-  HASHTAG_STATUS_OPTIONS,
-  type DateFilterKey,
-  type DatePresetKey,
-  type Filters,
-} from "@/lib/hashtag/list";
+import { HASHTAG_STATUS_OPTIONS, type Filters } from "@/lib/hashtag/list";
 
 type HashtagsFilterPanelProps = {
   searchInput: string;
   draftFilters: Filters;
-  draftDateRange?: DateRange;
-  draftUpdatedDateRange?: DateRange;
   isStatusDropdownOpen: boolean;
-  isDatePickerOpen: boolean;
-  isUpdatedDatePickerOpen: boolean;
   statusDropdownRef: React.RefObject<HTMLDivElement | null>;
-  datePickerRef: React.RefObject<HTMLDivElement | null>;
-  updatedDatePickerRef: React.RefObject<HTMLDivElement | null>;
   onSearchChange: (value: string) => void;
   onOpenCreate: () => void;
   onToggleStatusDropdown: () => void;
-  onToggleDatePicker: () => void;
-  onToggleUpdatedDatePicker: () => void;
   onToggleStatus: (value: string) => void;
   onToggleAllStatus: () => void;
-  onApplyDateRange: (key: DateFilterKey, nextRange?: DateRange) => void;
-  onApplyDatePreset: (key: DateFilterKey, preset: DatePresetKey) => void;
   onApplyFilters: () => void;
   onResetFilters: () => void;
 };
@@ -44,23 +20,13 @@ type HashtagsFilterPanelProps = {
 export function HashtagsFilterPanel({
   searchInput,
   draftFilters,
-  draftDateRange,
-  draftUpdatedDateRange,
   isStatusDropdownOpen,
-  isDatePickerOpen,
-  isUpdatedDatePickerOpen,
   statusDropdownRef,
-  datePickerRef,
-  updatedDatePickerRef,
   onSearchChange,
   onOpenCreate,
   onToggleStatusDropdown,
-  onToggleDatePicker,
-  onToggleUpdatedDatePicker,
   onToggleStatus,
   onToggleAllStatus,
-  onApplyDateRange,
-  onApplyDatePreset,
   onApplyFilters,
   onResetFilters,
 }: HashtagsFilterPanelProps) {
@@ -69,7 +35,7 @@ export function HashtagsFilterPanel({
 
   return (
     <Card className="min-w-0 rounded-xl p-3">
-      <div className="grid grid-cols-[minmax(12rem,0.8fr)_minmax(14rem,1fr)_minmax(14rem,1fr)_minmax(18rem,1.7fr)] gap-x-3 gap-y-3 max-[1440px]:grid-cols-2 max-[960px]:grid-cols-1">
+      <div className="grid grid-cols-[minmax(12rem,0.8fr)_minmax(18rem,1.7fr)] gap-x-3 gap-y-3 max-[960px]:grid-cols-1">
         <div className={filterRowClass}>
           <span className={inlineLabelClass}>운영 상태</span>
           <div className="min-w-0 flex-1">
@@ -86,52 +52,7 @@ export function HashtagsFilterPanel({
             />
           </div>
         </div>
-        <div className={filterRowClass}>
-          <span className={inlineLabelClass}>등록일</span>
-          <div className="min-w-0 flex-1">
-            <DateRangeFilterDropdown
-              label="등록일"
-              hideLabel
-              containerRef={datePickerRef}
-              value={draftFilters.dateRange}
-              placeholder="등록일 기간 선택"
-              selected={draftDateRange}
-              isOpen={isDatePickerOpen}
-              presetOptions={DATE_PRESET_OPTIONS}
-              onToggleOpen={onToggleDatePicker}
-              onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
-              onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
-              onReset={() => {
-                onApplyDateRange("created", undefined);
-                onToggleDatePicker();
-              }}
-              onConfirm={onToggleDatePicker}
-            />
-          </div>
-        </div>
-        <div className={filterRowClass}>
-          <span className={inlineLabelClass}>수정일</span>
-          <div className="min-w-0 flex-1">
-            <DateRangeFilterDropdown
-              label="수정일"
-              hideLabel
-              containerRef={updatedDatePickerRef}
-              value={draftFilters.updatedDateRange}
-              placeholder="수정일 기간 선택"
-              selected={draftUpdatedDateRange}
-              isOpen={isUpdatedDatePickerOpen}
-              presetOptions={DATE_PRESET_OPTIONS}
-              onToggleOpen={onToggleUpdatedDatePicker}
-              onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
-              onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
-              onReset={() => {
-                onApplyDateRange("updated", undefined);
-                onToggleUpdatedDatePicker();
-              }}
-              onConfirm={onToggleUpdatedDatePicker}
-            />
-          </div>
-        </div>
+
         <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className={inlineLabelClass}>검색</span>

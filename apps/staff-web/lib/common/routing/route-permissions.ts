@@ -7,7 +7,7 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/admin-settings/profile": ["common.profile.show"],
   "/admin-settings/harmful-words": ["beaulab.category.manage"],
   "/admin-settings/nicknames": ["beaulab.user.show"],
-  "/admin-settings/staff": ["beaulab.agency.show"],
+  "/admin-settings/staff": ["beaulab.staff.show"],
   "/admin-settings/event-display-positions": ["beaulab.hospital_event_ad.show"],
   "/hospital-dashboard/dashboard": ["common.dashboard.show"],
   "/user-manage/users": ["beaulab.user.show"],

@@ -1,5 +1,4 @@
-import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
-import type { DateRange } from "react-day-picker";
+import type { CheckboxFilterOption } from "@beaulab/ui-admin";
 
 export type HashtagApiItem = {
   id: number;
@@ -36,21 +35,11 @@ export type SortState = {
 
 export type Filters = {
   statuses: string[];
-  dateRange: string;
-  startDate: string;
-  endDate: string;
-  updatedDateRange: string;
-  updatedStartDate: string;
-  updatedEndDate: string;
 };
 
 export type HashtagsQuery = {
   q?: string;
   status?: string;
-  start_date?: string;
-  end_date?: string;
-  updated_start_date?: string;
-  updated_end_date?: string;
   sort: SortField;
   direction: SortDirection;
   per_page: number;
@@ -66,12 +55,6 @@ export const HASHTAG_STATUS_OPTIONS: CheckboxFilterOption[] = [
 
 export const DEFAULT_FILTERS: Filters = {
   statuses: [],
-  dateRange: "",
-  startDate: "",
-  endDate: "",
-  updatedDateRange: "",
-  updatedStartDate: "",
-  updatedEndDate: "",
 };
 
 export const DEFAULT_SORT: SortState = {
@@ -81,16 +64,6 @@ export const DEFAULT_SORT: SortState = {
 };
 
 export const DEFAULT_PER_PAGE = 50;
-
-export const DATE_PRESET_OPTIONS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
-
-export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
-export type DateFilterKey = "created" | "updated";
 
 export function sanitizeHashtagName(value: string) {
   return value.replace(/^[#＃]+/u, "").trim();
@@ -142,87 +115,6 @@ export function formatLocalDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function formatFilterDisplayDate(date: Date) {
-  const year = String(date.getFullYear() % 100).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-export function formatDateRange(range?: DateRange) {
-  if (!range?.from) return "";
-
-  const fromDate = formatFilterDisplayDate(range.from);
-  if (!range.to) return fromDate;
-
-  return `${fromDate} ~ ${formatFilterDisplayDate(range.to)}`;
-}
-
-export function normalizeRangeDate(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-export function buildPresetDateRange(preset: DatePresetKey): DateRange {
-  const today = normalizeRangeDate(new Date());
-
-  if (preset === "today") {
-    return { from: today, to: today };
-  }
-
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    return { from: yesterday, to: yesterday };
-  }
-
-  const days = preset === "recent7" ? 6 : 29;
-  const from = new Date(today);
-  from.setDate(today.getDate() - days);
-
-  return { from, to: today };
-}
-
-export function mapDateRangeToFilter(range?: DateRange) {
-  return {
-    label: formatDateRange(range),
-    startDate: range?.from ? formatLocalDate(range.from) : "",
-    endDate: range?.to ? formatLocalDate(range.to) : "",
-  };
-}
-
-export function parseDateParam(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  if (
-    Number.isNaN(parsedDate.getTime()) ||
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return parsedDate;
-}
-
-export function buildFilterDateState(startDate: string, endDate: string) {
-  const from = startDate ? parseDateParam(startDate) : undefined;
-  const to = endDate ? parseDateParam(endDate) : undefined;
-  const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
-
-  return {
-    range,
-    label: formatDateRange(range),
-  };
-}
-
 export function normalizeHashtag(item: HashtagApiItem): HashtagRow {
   const createdDate = item.created_at ? new Date(item.created_at) : null;
   const updatedDate = item.updated_at ? new Date(item.updated_at) : null;
@@ -260,12 +152,6 @@ export function parseHashtagsTableState(searchParams: URLSearchParams) {
     .split(",")
     .map((value) => value.trim())
     .filter((value) => allowedStatusValues.has(value));
-  const startDate = searchParams.get("start_date") ?? "";
-  const endDate = searchParams.get("end_date") ?? "";
-  const updatedStartDate = searchParams.get("updated_start_date") ?? "";
-  const updatedEndDate = searchParams.get("updated_end_date") ?? "";
-  const createdDateState = buildFilterDateState(startDate, endDate);
-  const updatedDateState = buildFilterDateState(updatedStartDate, updatedEndDate);
 
   const parsedPerPage = Number(searchParams.get("per_page"));
   const perPage =
@@ -295,15 +181,7 @@ export function parseHashtagsTableState(searchParams: URLSearchParams) {
     searchKeyword: searchParams.get("q")?.trim() ?? "",
     filters: {
       statuses,
-      dateRange: createdDateState.label,
-      startDate,
-      endDate,
-      updatedDateRange: updatedDateState.label,
-      updatedStartDate,
-      updatedEndDate,
     },
-    draftDateRange: createdDateState.range,
-    draftUpdatedDateRange: updatedDateState.range,
     sortState: {
       field: sortField,
       direction: sortDirection,
@@ -337,10 +215,6 @@ export function buildHashtagsQuery({
   const trimmedSearch = sanitizeHashtagSearchKeyword(searchKeyword);
   if (trimmedSearch) query.q = trimmedSearch;
   if (appliedFilters.statuses.length > 0) query.status = appliedFilters.statuses.join(",");
-  if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
-  if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
-  if (appliedFilters.updatedStartDate) query.updated_start_date = appliedFilters.updatedStartDate;
-  if (appliedFilters.updatedEndDate) query.updated_end_date = appliedFilters.updatedEndDate;
 
   return query;
 }
@@ -350,10 +224,6 @@ export function buildHashtagsQueryString(query: HashtagsQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.status) params.set("status", query.status);
-  if (query.start_date) params.set("start_date", query.start_date);
-  if (query.end_date) params.set("end_date", query.end_date);
-  if (query.updated_start_date) params.set("updated_start_date", query.updated_start_date);
-  if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
   if (query.per_page !== DEFAULT_PER_PAGE) params.set("per_page", String(query.per_page));

@@ -13,24 +13,18 @@ import { api } from "@/lib/common/api";
 import {
   DEFAULT_FILTERS,
   HASHTAG_STATUS_OPTIONS,
-  buildPresetDateRange,
   buildHashtagsQuery,
   buildHashtagsQueryString,
-  mapDateRangeToFilter,
   nextSortState,
   normalizeHashtag,
-  normalizeRangeDate,
   parseHashtagsTableState,
   sanitizeHashtagName,
-  type DateFilterKey,
-  type DatePresetKey,
   type Filters,
   type HashtagApiItem,
   type HashtagRow,
   type SortField,
   type SortState,
 } from "@/lib/hashtag/list";
-import type { DateRange } from "react-day-picker";
 
 export default function HashtagsPageClient() {
   const router = useRouter();
@@ -44,17 +38,9 @@ export default function HashtagsPageClient() {
   const [searchInput, setSearchInput] = React.useState(initialTableState.searchKeyword);
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [isUpdatedDatePickerOpen, setIsUpdatedDatePickerOpen] = React.useState(false);
-  const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(
-    initialTableState.draftUpdatedDateRange,
-  );
   const [draftFilters, setDraftFilters] = React.useState<Filters>(initialTableState.filters);
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
-  const datePickerRef = React.useRef<HTMLDivElement | null>(null);
-  const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const perPage = initialTableState.perPage;
   const [page, setPage] = React.useState(initialTableState.page);
@@ -128,12 +114,6 @@ export default function HashtagsPageClient() {
       if (!statusDropdownRef.current?.contains(event.target as Node)) {
         setIsStatusDropdownOpen(false);
       }
-      if (!datePickerRef.current?.contains(event.target as Node)) {
-        setIsDatePickerOpen(false);
-      }
-      if (!updatedDatePickerRef.current?.contains(event.target as Node)) {
-        setIsUpdatedDatePickerOpen(false);
-      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -175,22 +155,12 @@ export default function HashtagsPageClient() {
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
       statuses: [...draftFilters.statuses],
-      dateRange: draftFilters.dateRange,
-      startDate: draftFilters.startDate,
-      endDate: draftFilters.endDate,
-      updatedDateRange: draftFilters.updatedDateRange,
-      updatedStartDate: draftFilters.updatedStartDate,
-      updatedEndDate: draftFilters.updatedEndDate,
     });
   }, [draftFilters, searchInput]);
 
   const resetFilters = React.useCallback((applyNow = true) => {
     setIsStatusDropdownOpen(false);
     setDraftFilters(DEFAULT_FILTERS);
-    setDraftDateRange(undefined);
-    setDraftUpdatedDateRange(undefined);
-    setIsDatePickerOpen(false);
-    setIsUpdatedDatePickerOpen(false);
     if (applyNow) {
       setPage(1);
       setSearchInput("");
@@ -216,61 +186,6 @@ export default function HashtagsPageClient() {
         prev.statuses.length === HASHTAG_STATUS_OPTIONS.length ? [] : HASHTAG_STATUS_OPTIONS.map((item) => item.value),
     }));
   }, []);
-
-  const applyDateRange = React.useCallback(
-    (
-      key: DateFilterKey,
-      nextRange?: DateRange,
-      options?: {
-        closePicker?: boolean;
-      },
-    ) => {
-      const normalizedRange =
-        nextRange?.from || nextRange?.to
-          ? {
-              from: nextRange?.from ? normalizeRangeDate(nextRange.from) : undefined,
-              to: nextRange?.to ? normalizeRangeDate(nextRange.to) : undefined,
-            }
-          : undefined;
-      const mapped = mapDateRangeToFilter(normalizedRange);
-
-      if (key === "created") {
-        setDraftDateRange(normalizedRange);
-        setDraftFilters((prev) => ({
-          ...prev,
-          dateRange: mapped.label,
-          startDate: mapped.startDate,
-          endDate: mapped.endDate,
-        }));
-
-        if (options?.closePicker) {
-          setIsDatePickerOpen(false);
-        }
-
-        return;
-      }
-
-      setDraftUpdatedDateRange(normalizedRange);
-      setDraftFilters((prev) => ({
-        ...prev,
-        updatedDateRange: mapped.label,
-        updatedStartDate: mapped.startDate,
-        updatedEndDate: mapped.endDate,
-      }));
-
-      if (options?.closePicker) {
-        setIsUpdatedDatePickerOpen(false);
-      }
-    },
-    [],
-  );
-
-  const applyDatePreset = React.useCallback(
-    (key: DateFilterKey, preset: DatePresetKey) => {
-      applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
-    },
-    [applyDateRange],
-  );
 
   const handleSubmitHashtag = React.useCallback(
     async (name: string, status: string) => {
@@ -325,33 +240,11 @@ export default function HashtagsPageClient() {
           onSearchChange={setSearchInput}
           onOpenCreate={openCreateModal}
           draftFilters={draftFilters}
-          draftDateRange={draftDateRange}
-          draftUpdatedDateRange={draftUpdatedDateRange}
           isStatusDropdownOpen={isStatusDropdownOpen}
-          isDatePickerOpen={isDatePickerOpen}
-          isUpdatedDatePickerOpen={isUpdatedDatePickerOpen}
           statusDropdownRef={statusDropdownRef}
-          datePickerRef={datePickerRef}
-          updatedDatePickerRef={updatedDatePickerRef}
-          onToggleStatusDropdown={() => {
-            setIsDatePickerOpen(false);
-            setIsUpdatedDatePickerOpen(false);
-            setIsStatusDropdownOpen((prev) => !prev);
-          }}
-          onToggleDatePicker={() => {
-            setIsStatusDropdownOpen(false);
-            setIsUpdatedDatePickerOpen(false);
-            setIsDatePickerOpen((prev) => !prev);
-          }}
-          onToggleUpdatedDatePicker={() => {
-            setIsStatusDropdownOpen(false);
-            setIsDatePickerOpen(false);
-            setIsUpdatedDatePickerOpen((prev) => !prev);
-          }}
+          onToggleStatusDropdown={() => setIsStatusDropdownOpen((prev) => !prev)}
           onToggleStatus={toggleStatus}
           onToggleAllStatus={toggleAllStatus}
-          onApplyDateRange={(key, nextRange) => applyDateRange(key, nextRange)}
-          onApplyDatePreset={applyDatePreset}
           onApplyFilters={applyFilters}
           onResetFilters={() => resetFilters(true)}
         />
