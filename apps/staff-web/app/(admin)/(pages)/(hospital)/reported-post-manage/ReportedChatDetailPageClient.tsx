@@ -40,7 +40,7 @@ import {
   type ReportedContentWarningStatusUpdatePayload,
 } from "@/lib/reported-content/detail";
 
-type ReportActionStatus = "VALID" | "INVALID";
+type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
 type WarningActionStatus = "WARNED" | "IGNORED";
 
 type ReportedChatDetailResponse = ReportedContentDetailResponse & {
@@ -177,8 +177,8 @@ export default function ReportedChatDetailPageClient() {
   const author = detail?.author ?? null;
   const reporter = latestReport?.reporter ?? null;
   const reportStatus = reportState?.status?.trim() || "";
-  const isReported = reportStatus === "VALID";
-  const isIgnoredReport = reportStatus === "INVALID";
+  const isReported = reportStatus === "ADMIN_HIDDEN";
+  const isIgnoredReport = reportStatus === "NORMAL_VISIBLE" || reportStatus === "REEXPOSED";
   const warningStatus = reportState?.warning_status?.trim() || "NONE";
   const warningCount = Number(author?.warning_count ?? 0);
   const histories = detail?.operation_histories ?? [];
@@ -245,9 +245,9 @@ export default function ReportedChatDetailPageClient() {
         ? "해당 경고를 무시로 변경하시겠습니까?"
         : "해당 채팅 신고의 경고 처리를 무시하시겠습니까?";
   const statusModalMessage =
-    pendingStatus === "VALID"
+    pendingStatus === "ADMIN_HIDDEN"
       ? "해당 유저의 채팅내용 신고를 진행하시겠습니까?"
-      : pendingStatus === "INVALID"
+      : pendingStatus === "NORMAL_VISIBLE"
         ? "해당 유저의 채팅내용을 신고취소하시겠습니까?"
         : "";
 
@@ -603,19 +603,19 @@ function ChatReportActionCard({
               type="button"
               variant={isReported ? "brand" : "outline"}
               disabled={updatingStatus !== null}
-              onClick={() => onOpenStatusModal("VALID")}
+              onClick={() => onOpenStatusModal("ADMIN_HIDDEN")}
               className={["h-12 px-6 text-base font-semibold", isReported ? "" : "text-gray-500"].join(" ")}
             >
-              {updatingStatus === "VALID" ? "처리 중" : "신고"}
+              {updatingStatus === "ADMIN_HIDDEN" ? "처리 중" : "신고"}
             </Button>
             <Button
               type="button"
               variant={isIgnoredReport ? "brand" : "outline"}
               disabled={updatingStatus !== null}
-              onClick={() => onOpenStatusModal("INVALID")}
+              onClick={() => onOpenStatusModal("NORMAL_VISIBLE")}
               className={["h-12 px-6 text-base font-semibold", isIgnoredReport ? "" : "text-gray-500"].join(" ")}
             >
-              {updatingStatus === "INVALID" ? "처리 중" : "무시"}
+              {updatingStatus === "NORMAL_VISIBLE" ? "처리 중" : "무시"}
             </Button>
           </div>
         </div>

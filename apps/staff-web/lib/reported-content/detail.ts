@@ -123,7 +123,7 @@ export type ReportedContentReportsMeta = {
 export type ReportedContentStatusUpdatePayload = {
   target_type: ReportedContentTargetType;
   target_id: number;
-  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE" | "REEXPOSED" | "VALID" | "INVALID";
+  report_status: "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
   process_reason?: string;
 };
 
