@@ -121,8 +121,8 @@ export type EventAdsQuery = {
   placement?: string;
   allow_status?: string;
   ad_status?: string;
-  sort: EventAdSortField;
-  direction: EventAdSortDirection;
+  sort?: EventAdSortField;
+  direction?: EventAdSortDirection;
   per_page: number;
   page: number;
 };
@@ -132,7 +132,7 @@ export const EVENT_ADS_PER_PAGE = 15;
 export const DEFAULT_EVENT_AD_SORT: EventAdSortState = {
   field: "id",
   direction: "desc",
-  enabled: true,
+  enabled: false,
 };
 
 export const DEFAULT_EVENT_AD_FILTERS: EventAdFilters = {
@@ -470,11 +470,14 @@ export function buildEventAdsQuery({
   page: number;
 }): EventAdsQuery {
   const query: EventAdsQuery = {
-    sort: sortState.enabled ? sortState.field : DEFAULT_EVENT_AD_SORT.field,
-    direction: sortState.enabled ? sortState.direction : DEFAULT_EVENT_AD_SORT.direction,
     per_page: EVENT_ADS_PER_PAGE,
     page,
   };
+
+  if (sortState.enabled) {
+    query.sort = sortState.field;
+    query.direction = sortState.direction;
+  }
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
@@ -498,8 +501,8 @@ export function buildEventAdsQueryString(query: EventAdsQuery) {
   if (query.placement) params.set("placement", query.placement);
   if (query.allow_status) params.set("allow_status", query.allow_status);
   if (query.ad_status) params.set("ad_status", query.ad_status);
-  if (query.sort !== DEFAULT_EVENT_AD_SORT.field || !DEFAULT_EVENT_AD_SORT.enabled) params.set("sort", query.sort);
-  if (query.direction !== DEFAULT_EVENT_AD_SORT.direction) params.set("direction", query.direction);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.direction) params.set("direction", query.direction);
   if (query.page > 1) params.set("page", String(query.page));
 
   return params.toString();

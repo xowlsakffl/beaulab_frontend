@@ -24,6 +24,7 @@ import {
   type EventAdSortField,
   type EventAdSortState,
 } from "@/lib/hospital-event-ad/list";
+import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
 
 function renderSortMark(field: EventAdSortField, sortState: EventAdSortState) {
   if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
@@ -294,6 +295,7 @@ export function EventAdsDataTable({
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
+      getRowClassName={(row) => pendingReviewAllowStatusRowClass(row.allowStatus)}
       loadingVariant="spinner"
       loadingLabel="이벤트 광고 목록 불러오는 중"
       loading={loading}
