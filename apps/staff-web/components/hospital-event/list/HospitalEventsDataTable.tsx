@@ -24,6 +24,7 @@ import {
   type HospitalEventSortField,
   type HospitalEventSortState,
 } from "@/lib/hospital-event/list";
+import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
 
 function renderSortMark(field: HospitalEventSortField, sortState: HospitalEventSortState) {
   if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
@@ -328,6 +329,16 @@ export function HospitalEventsDataTable({
     () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations }),
     [sortState, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations],
   );
+  const getRowClassName = React.useCallback(
+    (row: HospitalEventRow) =>
+      [
+        pendingReviewAllowStatusRowClass(row.allowStatus),
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500" : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined,
+    [highlightedRowId],
+  );
 
   return (
     <DataTable
@@ -338,9 +349,7 @@ export function HospitalEventsDataTable({
       getRowKey={(row) => row.id}
       loadingVariant="spinner"
       loadingLabel="이벤트 목록 불러오는 중"
-      getRowClassName={(row) =>
-        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
-      }
+      getRowClassName={getRowClassName}
       loading={loading}
       refreshing={refreshing}
       error={error}

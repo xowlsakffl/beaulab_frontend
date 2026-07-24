@@ -2,7 +2,8 @@
 
 import { Card, InputField, StatusBadge } from "@beaulab/ui-admin";
 
-import { hospitalStatusBadgeColor, labelReviewStatus } from "@/lib/hospital/list";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
+import { labelReviewStatus } from "@/lib/hospital/list";
 import { formatHospitalPointBalance, type AccountHospitalAsset } from "@/lib/hospital/detail";
 import type { HospitalFormErrors, HospitalFormValues } from "@/lib/hospital/form";
 
@@ -39,7 +40,7 @@ export function HospitalAllowStatusReadOnlyCard({
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
-        <StatusBadge size="sm" color={hospitalStatusBadgeColor(allowStatus)}>
+        <StatusBadge size="sm" color={reviewAllowStatusColor(allowStatus)}>
           {labelReviewStatus(allowStatus)}
         </StatusBadge>
       </div>

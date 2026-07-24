@@ -375,7 +375,7 @@ export function labelVideoReportStatus(status?: string | null, fallbackLabel = "
 
 export function videoReportStatusColor(status?: string | null): BadgeColor {
   if (status === "REPORTED") return "yellow";
-  if (status === "AUTO_BLOCKED") return "red";
+  if (status === "AUTO_BLOCKED") return "yellow";
   if (status === "ADMIN_HIDDEN") return "orange";
   if (status === "NORMAL_VISIBLE") return "green";
   if (status === "REEXPOSED") return "blue";

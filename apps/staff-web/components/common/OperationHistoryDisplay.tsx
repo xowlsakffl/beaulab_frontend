@@ -434,7 +434,8 @@ function statusColor(
   if (field === "report_status") {
     if (normalized === "NORMAL_VISIBLE" || normalized === "REEXPOSED" || normalized === "VALID") return "success";
     if (normalized === "AUTO_BLOCKED" || normalized === "INVALID") return "error";
-    if (normalized === "ADMIN_HIDDEN" || normalized === "REPORTED" || normalized === "RECEIVED") return "warning";
+    if (normalized === "ADMIN_HIDDEN") return "orange";
+    if (normalized === "REPORTED" || normalized === "RECEIVED") return "yellow";
     return "light";
   }
 

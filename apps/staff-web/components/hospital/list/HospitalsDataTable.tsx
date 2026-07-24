@@ -20,6 +20,7 @@ import {
   type SortField,
   type SortState,
 } from "@/lib/hospital/list";
+import { pendingReviewAllowStatusRowClass, reviewAllowStatusColor } from "@/lib/common/review-status";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
@@ -211,10 +212,7 @@ function buildHospitalColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge
-          size="sm"
-          color={row.reviewStatus === "APPROVED" ? "success" : row.reviewStatus === "PENDING" ? "warning" : "error"}
-        >
+        <StatusBadge size="sm" color={reviewAllowStatusColor(row.reviewStatus)}>
           {labelReviewStatus(row.reviewStatus)}
         </StatusBadge>
       ),
@@ -276,6 +274,16 @@ export function HospitalsDataTable({
   onRowClick,
 }: HospitalsDataTableProps) {
   const columns = React.useMemo(() => buildHospitalColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
+  const getRowClassName = React.useCallback(
+    (row: HospitalRow) =>
+      [
+        pendingReviewAllowStatusRowClass(row.reviewStatus),
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500" : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined,
+    [highlightedRowId],
+  );
 
   return (
     <DataTable
@@ -286,9 +294,7 @@ export function HospitalsDataTable({
       getRowKey={(row) => row.id}
       loadingVariant="spinner"
       loadingLabel="병의원 목록 불러오는 중"
-      getRowClassName={(row) =>
-        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
-      }
+      getRowClassName={getRowClassName}
       loading={loading}
       refreshing={refreshing}
       error={error}

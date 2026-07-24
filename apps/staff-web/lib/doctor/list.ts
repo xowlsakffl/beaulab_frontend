@@ -91,8 +91,8 @@ export type DoctorsQuery = {
   metric_max?: number;
   start_date?: string;
   end_date?: string;
-  sort: SortField;
-  direction: SortDirection;
+  sort?: SortField;
+  direction?: SortDirection;
   per_page: number;
   page: number;
 };
@@ -113,7 +113,7 @@ export type Filters = {
 export const DEFAULT_SORT: SortState = {
   field: "id",
   direction: "desc",
-  enabled: true,
+  enabled: false,
 };
 
 export const DEFAULT_FILTERS: Filters = {
@@ -511,11 +511,14 @@ export function buildDoctorsQuery({
   page: number;
 }): DoctorsQuery {
   const query: DoctorsQuery = {
-    sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
-    direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
     per_page: perPage,
     page,
   };
+
+  if (sortState.enabled) {
+    query.sort = sortState.field;
+    query.direction = sortState.direction;
+  }
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
@@ -559,8 +562,8 @@ export function buildDoctorsQueryString(query: DoctorsQuery) {
   if (query.metric_max !== undefined) params.set("metric_max", String(query.metric_max));
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
-  if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.direction) params.set("direction", query.direction);
   if (query.per_page !== DOCTORS_PER_PAGE) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 

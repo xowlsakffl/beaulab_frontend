@@ -20,6 +20,7 @@ import {
   type SortField,
   type SortState,
 } from "@/lib/doctor/list";
+import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -295,6 +296,16 @@ export function DoctorsDataTable({
   onRowClick,
 }: DoctorsDataTableProps) {
   const columns = React.useMemo(() => buildDoctorColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
+  const getRowClassName = React.useCallback(
+    (row: DoctorRow) =>
+      [
+        pendingReviewAllowStatusRowClass(row.approvalStatus),
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500" : undefined,
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined,
+    [highlightedRowId],
+  );
 
   return (
     <DataTable
@@ -303,9 +314,7 @@ export function DoctorsDataTable({
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
-      getRowClassName={(row) =>
-        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
-      }
+      getRowClassName={getRowClassName}
       loadingVariant="spinner"
       loadingLabel="의료진 목록 불러오는 중"
       loading={loading}

@@ -61,8 +61,8 @@ export type HospitalEntriesQuery = {
   allow_status?: string;
   start_date?: string;
   end_date?: string;
-  sort: SortField;
-  direction: SortDirection;
+  sort?: SortField;
+  direction?: SortDirection;
   per_page: number;
   page: number;
 };
@@ -79,7 +79,7 @@ export const HOSPITAL_ENTRIES_PER_PAGE = 15;
 export const DEFAULT_SORT: SortState = {
   field: "id",
   direction: "desc",
-  enabled: true,
+  enabled: false,
 };
 
 export const DEFAULT_FILTERS: Filters = {
@@ -211,8 +211,9 @@ export function labelHospitalEntryAllowStatus(status?: string | null) {
 }
 
 export function hospitalEntryAllowStatusColor(status?: string | null): BadgeColor {
+  if (status === "PENDING") return "info";
+  if (status === "REVIEWING") return "warning";
   if (status === "APPROVED") return "success";
-  if (status === "PENDING" || status === "REVIEWING") return "warning";
   if (status === "REJECTED") return "error";
   return "light";
 }
@@ -323,11 +324,14 @@ export function buildHospitalEntriesQuery({
   page: number;
 }): HospitalEntriesQuery {
   const query: HospitalEntriesQuery = {
-    sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
-    direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
     per_page: perPage,
     page,
   };
+
+  if (sortState.enabled) {
+    query.sort = sortState.field;
+    query.direction = sortState.direction;
+  }
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
@@ -345,8 +349,8 @@ export function buildHospitalEntriesQueryString(query: HospitalEntriesQuery) {
   if (query.allow_status) params.set("allow_status", query.allow_status);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
-  if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.direction) params.set("direction", query.direction);
   if (query.page > 1) params.set("page", String(query.page));
 
   return params.toString();

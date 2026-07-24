@@ -185,8 +185,8 @@ export type HospitalEventsQuery = {
   amount_metric?: HospitalEventAmountMetric;
   amount_min?: string;
   amount_max?: string;
-  sort: HospitalEventSortField;
-  direction: HospitalEventSortDirection;
+  sort?: HospitalEventSortField;
+  direction?: HospitalEventSortDirection;
   per_page: number;
   page: number;
 };
@@ -196,7 +196,7 @@ export const HOSPITAL_EVENTS_PER_PAGE = 15;
 export const DEFAULT_HOSPITAL_EVENT_SORT: HospitalEventSortState = {
   field: "id",
   direction: "desc",
-  enabled: true,
+  enabled: false,
 };
 
 export const DEFAULT_HOSPITAL_EVENT_FILTERS: HospitalEventFilters = {
@@ -625,11 +625,14 @@ export function buildHospitalEventsQuery({
   page: number;
 }): HospitalEventsQuery {
   const query: HospitalEventsQuery = {
-    sort: sortState.enabled ? sortState.field : DEFAULT_HOSPITAL_EVENT_SORT.field,
-    direction: sortState.enabled ? sortState.direction : DEFAULT_HOSPITAL_EVENT_SORT.direction,
     per_page: HOSPITAL_EVENTS_PER_PAGE,
     page,
   };
+
+  if (sortState.enabled) {
+    query.sort = sortState.field;
+    query.direction = sortState.direction;
+  }
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
@@ -680,9 +683,8 @@ export function buildHospitalEventsQueryString(query: HospitalEventsQuery) {
   if (query.amount_metric) params.set("amount_metric", query.amount_metric);
   if (query.amount_min) params.set("amount_min", query.amount_min);
   if (query.amount_max) params.set("amount_max", query.amount_max);
-  if (query.sort !== DEFAULT_HOSPITAL_EVENT_SORT.field || !DEFAULT_HOSPITAL_EVENT_SORT.enabled)
-    params.set("sort", query.sort);
-  if (query.direction !== DEFAULT_HOSPITAL_EVENT_SORT.direction) params.set("direction", query.direction);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.direction) params.set("direction", query.direction);
   if (query.page > 1) params.set("page", String(query.page));
 
   return params.toString();

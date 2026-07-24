@@ -21,6 +21,7 @@ import {
   type SortField,
   type SortState,
 } from "@/lib/hospital-entry/list";
+import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -213,6 +214,7 @@ export function HospitalEntriesDataTable({
       columns={columns}
       rows={rows}
       getRowKey={(row) => row.id}
+      getRowClassName={(row) => pendingReviewAllowStatusRowClass(row.allowStatus)}
       loadingVariant="spinner"
       loadingLabel="입점신청 목록 불러오는 중"
       loading={loading}

@@ -18,9 +18,18 @@ export function labelReviewAllowStatus(status?: string | null, fallbackLabel = "
 }
 
 export function reviewAllowStatusColor(status?: string | null): BadgeColor {
+  if (status === "PENDING") return "info";
+  if (status === "REVIEWING") return "warning";
   if (status === "APPROVED") return "success";
-  if (status === "PENDING" || status === "REVIEWING") return "warning";
   if (status === "REJECTED") return "error";
 
   return "light";
+}
+
+export function isPendingReviewAllowStatus(status?: string | null) {
+  return status === "PENDING" || status === "REVIEWING";
+}
+
+export function pendingReviewAllowStatusRowClass(status?: string | null) {
+  return isPendingReviewAllowStatus(status) ? "shadow-[inset_3px_0_0_var(--color-brand-500)]" : undefined;
 }

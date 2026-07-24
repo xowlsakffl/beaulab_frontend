@@ -1,7 +1,11 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
+import {
+  labelReviewAllowStatus,
+  reviewAllowStatusColor,
+  REVIEW_ALLOW_STATUS_OPTIONS,
+} from "@/lib/common/review-status";
 import { resolveMediaUrl, type MediaAsset } from "./detail";
 
 export type HospitalApiItem = {
@@ -118,8 +122,8 @@ export type HospitalsQuery = {
   dormant?: "1";
   start_date?: string;
   end_date?: string;
-  sort: SortField;
-  direction: SortDirection;
+  sort?: SortField;
+  direction?: SortDirection;
   per_page: number;
   page: number;
 };
@@ -134,7 +138,7 @@ export const DEFAULT_FILTERS: Filters = {
   endDate: "",
 };
 
-export const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: true };
+export const DEFAULT_SORT: SortState = { field: "id", direction: "desc", enabled: false };
 export const HOSPITALS_PER_PAGE = 10;
 
 export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
@@ -245,11 +249,14 @@ export function buildHospitalsQuery({
   page: number;
 }): HospitalsQuery {
   const query: HospitalsQuery = {
-    sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
-    direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
     per_page: perPage,
     page,
   };
+
+  if (sortState.enabled) {
+    query.sort = sortState.field;
+    query.direction = sortState.direction;
+  }
 
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
@@ -430,7 +437,8 @@ export function labelApprovalStatus(status: string) {
 
 export function hospitalStatusBadgeColor(status: string) {
   if (status === "ACTIVE" || status === "APPROVED") return "success" as const;
-  if (status === "SUSPENDED" || status === "PENDING" || status === "REVIEWING") return "warning" as const;
+  if (status === "PENDING" || status === "REVIEWING") return reviewAllowStatusColor(status);
+  if (status === "SUSPENDED") return "warning" as const;
   return "error" as const;
 }
 
@@ -453,8 +461,8 @@ export function buildHospitalsQueryString(query: HospitalsQuery) {
   if (query.dormant) params.set("dormant", query.dormant);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
-  if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.direction) params.set("direction", query.direction);
   if (query.per_page !== HOSPITALS_PER_PAGE) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 
