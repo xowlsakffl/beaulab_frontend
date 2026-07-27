@@ -1,3 +1,5 @@
+import { resolveMediaAssetUrl } from "@/lib/common/media";
+
 export type NoticeAttachment = {
   id: number;
   collection?: string | null;
@@ -38,8 +40,6 @@ export type NoticeDetailResponse = {
   updated_at?: string | null;
 };
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
-
 export function labelNoticeChannel(channel?: string | null) {
   if (channel === "ALL") return "전체 채널";
   if (channel === "APP_WEB") return "앱/웹";
@@ -74,9 +74,7 @@ export function formatLocalDateTime(isoString?: string | null) {
 }
 
 export function resolveNoticeAttachmentUrl(attachment?: NoticeAttachment | null) {
-  const path = attachment?.path?.trim();
-  if (!path || !API_BASE_URL) return null;
-  return `${API_BASE_URL}/storage/${path.replace(/^\/+/, "")}`;
+  return resolveMediaAssetUrl(attachment);
 }
 
 export function getNoticeAttachmentFilename(attachment?: NoticeAttachment | null) {

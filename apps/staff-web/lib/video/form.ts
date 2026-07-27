@@ -1,6 +1,7 @@
 import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig } from "@beaulab/ui-admin";
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
+import { validateImageFileRuleMessage, type ImageFileValidationRule } from "@/lib/common/media-validation";
 import { getVideoMediaFilename, resolveVideoMediaUrl, type VideoDetailResponse, type VideoMediaAsset } from "./detail";
 
 export type VideoHospitalOption = {
@@ -68,13 +69,21 @@ export const VIDEO_CATEGORY_SECTIONS: CategorySelectorSection[] = [
   },
 ];
 
-const VIDEO_THUMBNAIL_ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png"]);
-const VIDEO_THUMBNAIL_ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
-const VIDEO_THUMBNAIL_RATIO = 16 / 9;
-
 export const VIDEO_THUMBNAIL_MAX_BYTES = 5 * 1024 * 1024;
 export const VIDEO_THUMBNAIL_ACCEPT = "image/jpeg,image/png";
 export const VIDEO_THUMBNAIL_HELPER_TEXT = "16:9 비율 / jpg, jpeg, png / 최대 5MB";
+const VIDEO_THUMBNAIL_VALIDATION_MESSAGE =
+  "썸네일은 16:9 비율의 jpg, jpeg, png 파일로 최대 5MB 이하만 업로드할 수 있습니다.";
+
+const VIDEO_THUMBNAIL_IMAGE_RULE: ImageFileValidationRule = {
+  allowedExtensions: [".jpg", ".jpeg", ".png"],
+  allowedMimeTypes: ["image/jpeg", "image/png"],
+  maxBytes: VIDEO_THUMBNAIL_MAX_BYTES,
+  aspectRatio: {
+    width: 16,
+    height: 9,
+  },
+};
 
 export const VIDEO_THUMBNAIL_COLLECTIONS: readonly MediaCollectionConfig<"thumbnail_file">[] = [
   {
@@ -165,30 +174,7 @@ export function extractVideoFieldErrors(details: unknown): VideoFormErrors {
 }
 
 export async function validateVideoThumbnailFile(file: File): Promise<string | null> {
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-  const isAllowedExtension = VIDEO_THUMBNAIL_ALLOWED_EXTENSIONS.has(extension);
-  const isAllowedMimeType = !file.type || VIDEO_THUMBNAIL_ALLOWED_MIME_TYPES.has(file.type);
-
-  if (!isAllowedExtension || !isAllowedMimeType) {
-    return "썸네일은 jpg, jpeg, png 파일만 업로드할 수 있습니다.";
-  }
-
-  if (file.size > VIDEO_THUMBNAIL_MAX_BYTES) {
-    return "썸네일은 최대 5MB 이하로 업로드해 주세요.";
-  }
-
-  const dimensions = await loadVideoThumbnailDimensions(file);
-  if (!dimensions || dimensions.width <= 0 || dimensions.height <= 0) {
-    return "썸네일 이미지 크기를 확인할 수 없습니다.";
-  }
-
-  const ratio = dimensions.width / dimensions.height;
-  const ratioPrecision = 1 / (Math.max((dimensions.width + dimensions.height) / 2, dimensions.height) + 1);
-  if (Math.abs(ratio - VIDEO_THUMBNAIL_RATIO) > ratioPrecision) {
-    return "썸네일은 16:9 비율의 이미지만 업로드할 수 있습니다.";
-  }
-
-  return null;
+  return validateImageFileRuleMessage(file, VIDEO_THUMBNAIL_IMAGE_RULE, VIDEO_THUMBNAIL_VALIDATION_MESSAGE);
 }
 
 export function buildVideoExistingFileItem(media?: VideoMediaAsset | null): ExistingMediaItem | null {
@@ -512,28 +498,4 @@ function normalizeIntegerInput(value?: string | null) {
 
 function isNonNegativeIntegerInput(value?: string | null) {
   return /^\d+$/.test((value ?? "").trim());
-}
-
-function loadVideoThumbnailDimensions(file: File): Promise<{ width: number; height: number } | null> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-
-    const release = () => URL.revokeObjectURL(url);
-
-    image.onload = () => {
-      release();
-      resolve({
-        width: image.naturalWidth || image.width,
-        height: image.naturalHeight || image.height,
-      });
-    };
-
-    image.onerror = () => {
-      release();
-      resolve(null);
-    };
-
-    image.src = url;
-  });
 }

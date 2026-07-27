@@ -15,6 +15,11 @@ export type ImageFileValidationRule = {
   minWidth?: number;
   minHeight?: number;
   square?: boolean;
+  aspectRatio?: {
+    width: number;
+    height: number;
+    tolerance?: number;
+  };
 };
 
 export async function validateImageFileRule(file: File, rule: ImageFileValidationRule) {
@@ -30,6 +35,7 @@ export async function validateImageFileRule(file: File, rule: ImageFileValidatio
   if (rule.minWidth !== undefined && dimensions.width < rule.minWidth) return false;
   if (rule.minHeight !== undefined && dimensions.height < rule.minHeight) return false;
   if (rule.square && dimensions.width !== dimensions.height) return false;
+  if (rule.aspectRatio && !matchesImageAspectRatio(dimensions, rule.aspectRatio)) return false;
 
   return true;
 }
@@ -99,8 +105,22 @@ function needsImageDimensions(rule: ImageFileValidationRule) {
     rule.exactHeight !== undefined ||
     rule.minWidth !== undefined ||
     rule.minHeight !== undefined ||
-    rule.square,
+    rule.square ||
+    rule.aspectRatio !== undefined,
   );
+}
+
+function matchesImageAspectRatio(
+  dimensions: ImageDimensions,
+  rule: NonNullable<ImageFileValidationRule["aspectRatio"]>,
+) {
+  if (dimensions.width <= 0 || dimensions.height <= 0 || rule.width <= 0 || rule.height <= 0) return false;
+
+  const expectedRatio = rule.width / rule.height;
+  const actualRatio = dimensions.width / dimensions.height;
+  const defaultTolerance = 1 / (Math.max((dimensions.width + dimensions.height) / 2, dimensions.height) + 1);
+
+  return Math.abs(actualRatio - expectedRatio) <= (rule.tolerance ?? defaultTolerance);
 }
 
 function toMimeTypeSet(mimeTypes: readonly string[] | ReadonlySet<string>) {

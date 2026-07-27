@@ -30,6 +30,7 @@
 - 정확한 width/height
 - 최소 width/height
 - 정사각형 여부
+- 가로/세로 비율
 
 도메인별 검증 메시지는 도메인 form/helper에 둔다. UI 컴포넌트가 직접 문구를 만들지 않는다.
 

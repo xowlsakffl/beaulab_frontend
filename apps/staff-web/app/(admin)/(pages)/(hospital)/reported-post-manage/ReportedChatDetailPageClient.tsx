@@ -24,6 +24,7 @@ import {
 } from "@/components/hospital/media/HospitalMediaPreviewModal";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { api } from "@/lib/common/api";
+import { resolveMediaAssetUrl } from "@/lib/common/media";
 import {
   formatReportedContentAuthorName,
   formatReportedContentDetailDate,
@@ -63,7 +64,6 @@ type ChatReportMember = ReportedContentDetailAuthor | NonNullable<ReportedConten
 const targetType = "chat_message";
 const labelClassName = "text-xs font-semibold text-gray-500 ";
 const valueClassName = "text-sm font-medium text-gray-800 ";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export default function ReportedChatDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -714,18 +714,7 @@ function messageBody(target?: ReportedChatMessageDetailTarget | null, snapshot?:
 }
 
 function resolveReportedChatAttachmentUrl(attachment?: ReportedChatMessageAttachment | null) {
-  const rawUrl = attachment?.url?.trim();
-  if (rawUrl) return rawUrl;
-
-  const rawPath = attachment?.path?.trim();
-  if (!rawPath) return null;
-  if (/^https?:\/\//i.test(rawPath)) return rawPath;
-  if (!API_BASE_URL) return rawPath;
-  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
-  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
-  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
-
-  return `${API_BASE_URL}/storage/${rawPath}`;
+  return resolveMediaAssetUrl(attachment);
 }
 
 function isImageAttachment(attachment: ReportedChatMessageAttachment) {

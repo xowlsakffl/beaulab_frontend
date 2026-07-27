@@ -1,6 +1,7 @@
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
 import type { ContentReportSummary } from "@/lib/common/content-report";
+import { resolveMediaAssetUrl } from "@/lib/common/media";
 import {
   formatHospitalEvaluationAuthorName,
   formatHospitalEvaluationCost,
@@ -112,21 +113,8 @@ export const HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS = [
   { value: "OTHER", label: "기타" },
 ] as const;
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-
 export function resolveHospitalEvaluationMediaUrl(media?: HospitalEvaluationMediaAsset | null): string | null {
-  const rawUrl = media?.url?.trim();
-  if (rawUrl) return rawUrl;
-
-  const rawPath = media?.path?.trim();
-  if (!rawPath) return null;
-  if (/^https?:\/\//i.test(rawPath)) return rawPath;
-  if (!API_BASE_URL) return rawPath;
-  if (rawPath.startsWith("/storage/")) return `${API_BASE_URL}${rawPath}`;
-  if (rawPath.startsWith("storage/")) return `${API_BASE_URL}/${rawPath}`;
-  if (rawPath.startsWith("/")) return `${API_BASE_URL}${rawPath}`;
-
-  return `${API_BASE_URL}/storage/${rawPath}`;
+  return resolveMediaAssetUrl(media);
 }
 
 export function formatHospitalEvaluationDetailDate(value?: string | null) {
