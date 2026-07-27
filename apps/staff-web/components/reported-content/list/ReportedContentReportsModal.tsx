@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import { isApiSuccess } from "@beaulab/types";
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, ModalPanel, ModalTitle } from "@beaulab/ui-admin";
 
-import { api } from "@/lib/common/api";
-import { type ReportedContentDetailReportItem, type ReportedContentReportsMeta } from "@/lib/reported-content/detail";
+import { useReportedContentReports } from "@/hooks/reported-content/useReportedContentReports";
 import type { ReportedContentRow } from "@/lib/reported-content/list";
 
 import { ReportedContentReportsList, reportedContentReportsTotal } from "./ReportedContentReportsList";
@@ -16,63 +14,12 @@ type ReportedContentReportsModalProps = {
 };
 
 export function ReportedContentReportsModal({ row, onClose }: ReportedContentReportsModalProps) {
-  const [page, setPage] = React.useState(1);
-  const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>([]);
-  const [meta, setMeta] = React.useState<ReportedContentReportsMeta | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    setPage(1);
-    setReports([]);
-    setMeta(null);
-    setError(null);
-  }, [row?.id, row?.targetType]);
-
-  React.useEffect(() => {
-    if (!row) return;
-
-    let isMounted = true;
-
-    const fetchReports = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await api.get<ReportedContentDetailReportItem[]>(
-          `/reported-contents/${row.targetType}/${row.id}/reports`,
-          { reports_page: page },
-          { latestKey: `reported-content:reports:${row.targetType}:${row.id}` },
-        );
-
-        if (!isMounted) return;
-
-        if (!isApiSuccess(response)) {
-          setReports([]);
-          setMeta(null);
-          setError(response.error.message || "신고목록을 불러오지 못했습니다.");
-          return;
-        }
-
-        setReports(response.data ?? []);
-        setMeta((response.meta as ReportedContentReportsMeta | null) ?? null);
-      } catch {
-        if (!isMounted) return;
-
-        setReports([]);
-        setMeta(null);
-        setError("신고목록 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    void fetchReports();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, row]);
+  const { reports, meta, loading, error, page, setPage } = useReportedContentReports({
+    targetType: row?.targetType ?? null,
+    targetId: row?.id ?? null,
+    enabled: row !== null,
+    latestKey: row ? `reported-content:reports:${row.targetType}:${row.id}` : undefined,
+  });
 
   const currentPage = Number(meta?.current_page ?? page);
   const total = reportedContentReportsTotal(meta, reports);

@@ -18,6 +18,7 @@ type ReportedContentReportsListProps = {
   page: number;
   loadingLabel?: string;
   emptyLabel?: string;
+  disabled?: boolean;
   onPageChange: (page: number) => void;
 };
 
@@ -37,6 +38,7 @@ export function ReportedContentReportsList({
   page,
   loadingLabel = "신고목록을 불러오는 중",
   emptyLabel = "신고목록이 없습니다.",
+  disabled = false,
   onPageChange,
 }: ReportedContentReportsListProps) {
   const currentPage = Number(meta?.current_page ?? page);
@@ -79,7 +81,12 @@ export function ReportedContentReportsList({
       ))}
 
       <div className="flex justify-center pt-2">
-        <Pagination currentPage={currentPage} totalPages={lastPage} onPageChange={onPageChange} disabled={loading} />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={lastPage}
+          onPageChange={onPageChange}
+          disabled={loading || disabled}
+        />
       </div>
     </div>
   );

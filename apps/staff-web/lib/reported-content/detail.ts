@@ -120,6 +120,12 @@ export type ReportedContentReportsMeta = {
   last_page?: number | null;
 };
 
+export type ReportedContentReportsBlock = {
+  items: ReportedContentDetailReportItem[];
+  meta: ReportedContentReportsMeta | null;
+  page: number;
+};
+
 export type ReportedContentStatusUpdatePayload = {
   target_type: ReportedContentTargetType;
   target_id: number;

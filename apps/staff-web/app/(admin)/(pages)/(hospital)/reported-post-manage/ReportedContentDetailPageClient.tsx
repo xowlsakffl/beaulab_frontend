@@ -25,10 +25,7 @@ import {
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
-import {
-  ReportedContentDetailPanel,
-  type ReportedContentReportsBlock,
-} from "@/components/reported-content/detail/ReportedContentDetailPanel";
+import { ReportedContentDetailPanel } from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { ReportedOriginalHistoryCard } from "@/components/reported-content/detail/ReportedOriginalHistoryCard";
 import { VisibilityActionButtons, VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -82,6 +79,7 @@ import {
 import type {
   ReportedContentDetailReportItem,
   ReportedContentDetailResponse,
+  ReportedContentReportsBlock,
   ReportedContentReportsMeta,
   ReportedContentTargetType,
 } from "@/lib/reported-content/detail";

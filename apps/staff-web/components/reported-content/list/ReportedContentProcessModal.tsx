@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   InputField,
@@ -13,13 +12,8 @@ import {
   ModalTitle,
 } from "@beaulab/ui-admin";
 
-import { api } from "@/lib/common/api";
-import type { ReportedContentDetailReportState, ReportedContentProcessPayload } from "@/lib/reported-content/detail";
+import { useReportedContentProcessModal } from "@/hooks/reported-content/useReportedContentProcessModal";
 import type { ReportedContentRow } from "@/lib/reported-content/list";
-
-type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
-type WarningActionStatus = "WARNED" | "IGNORED";
-type ProcessStep = "status" | "warning";
 
 type ReportedContentProcessModalProps = {
   row: ReportedContentRow | null;
@@ -27,102 +21,31 @@ type ReportedContentProcessModalProps = {
   onProcessed: () => void;
 };
 
-function isNormalVisibleStatus(status?: string | null) {
-  return status === "NORMAL_VISIBLE" || status === "REEXPOSED";
-}
-
 function actionButtonClassName(active: boolean) {
   return ["h-11 min-w-24 px-6 text-sm font-semibold", active ? "" : "text-gray-500"].join(" ");
 }
 
 export function ReportedContentProcessModal({ row, onClose, onProcessed }: ReportedContentProcessModalProps) {
-  const [step, setStep] = React.useState<ProcessStep>("status");
-  const [reportStatus, setReportStatus] = React.useState<ReportActionStatus | null>(null);
-  const [processReason, setProcessReason] = React.useState("");
-  const [warningStatus, setWarningStatus] = React.useState<WarningActionStatus | null>(null);
-  const [submitting, setSubmitting] = React.useState(false);
-  const [reasonError, setReasonError] = React.useState<string | null>(null);
-  const [submitError, setSubmitError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    setStep("status");
-    setReportStatus(null);
-    setProcessReason("");
-    setWarningStatus(null);
-    setSubmitting(false);
-    setReasonError(null);
-    setSubmitError(null);
-  }, [row]);
-
-  const close = React.useCallback(() => {
-    if (submitting) return;
-    onClose();
-  }, [onClose, submitting]);
-
-  const submit = React.useCallback(async () => {
-    if (!row || !reportStatus) return;
-
-    const payload: ReportedContentProcessPayload = {
-      target_type: row.targetType,
-      target_id: row.id,
-      report_status: reportStatus,
-    };
-
-    if (reportStatus === "ADMIN_HIDDEN") {
-      const normalizedReason = processReason.trim();
-      if (!normalizedReason) {
-        setReasonError("노출중지 사유를 입력해주세요.");
-        return;
-      }
-
-      if (!warningStatus) {
-        setSubmitError("경고여부를 선택해주세요.");
-        return;
-      }
-
-      payload.process_reason = normalizedReason;
-      payload.warning_status = warningStatus;
-    }
-
-    setSubmitting(true);
-    setReasonError(null);
-    setSubmitError(null);
-
-    try {
-      const response = await api.patch<ReportedContentDetailReportState>("/reported-contents/process", payload);
-
-      if (!isApiSuccess(response)) {
-        setSubmitError(response.error.message || "신고 조치 처리에 실패했습니다.");
-        return;
-      }
-
-      onProcessed();
-      onClose();
-    } catch {
-      setSubmitError("신고 조치 처리 중 오류가 발생했습니다.");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [onClose, onProcessed, processReason, reportStatus, row, warningStatus]);
-
-  const moveNext = React.useCallback(() => {
-    if (reportStatus !== "ADMIN_HIDDEN") return;
-
-    if (!processReason.trim()) {
-      setReasonError("노출중지 사유를 입력해주세요.");
-      return;
-    }
-
-    setReasonError(null);
-    setSubmitError(null);
-    setStep("warning");
-  }, [processReason, reportStatus]);
-
-  const adminHiddenDisabled = row?.status === "ADMIN_HIDDEN" || submitting;
-  const normalVisibleDisabled = isNormalVisibleStatus(row?.status) || submitting;
-  const warningDisabled = row?.warningStatus === "WARNED" || submitting;
-  const ignoredDisabled = row?.warningStatus === "IGNORED" || submitting;
-  const title = step === "warning" ? "경고여부" : "조치유형";
+  const {
+    step,
+    reportStatus,
+    processReason,
+    warningStatus,
+    submitting,
+    reasonError,
+    submitError,
+    title,
+    adminHiddenDisabled,
+    normalVisibleDisabled,
+    warningDisabled,
+    ignoredDisabled,
+    close,
+    submit,
+    moveNext,
+    selectReportStatus,
+    changeProcessReason,
+    selectWarningStatus,
+  } = useReportedContentProcessModal({ row, onClose, onProcessed });
 
   return (
     <Modal isOpen={row !== null} onClose={close} showCloseButton={false} className="mx-4 w-full max-w-md">
@@ -139,11 +62,7 @@ export function ReportedContentProcessModal({ row, onClose, onProcessed }: Repor
                   type="button"
                   variant={reportStatus === "ADMIN_HIDDEN" ? "brand" : "outline"}
                   disabled={adminHiddenDisabled}
-                  onClick={() => {
-                    setReportStatus("ADMIN_HIDDEN");
-                    setReasonError(null);
-                    setSubmitError(null);
-                  }}
+                  onClick={() => selectReportStatus("ADMIN_HIDDEN")}
                   className={actionButtonClassName(reportStatus === "ADMIN_HIDDEN")}
                 >
                   노출중지
@@ -152,11 +71,7 @@ export function ReportedContentProcessModal({ row, onClose, onProcessed }: Repor
                   type="button"
                   variant={reportStatus === "NORMAL_VISIBLE" ? "brand" : "outline"}
                   disabled={normalVisibleDisabled}
-                  onClick={() => {
-                    setReportStatus("NORMAL_VISIBLE");
-                    setReasonError(null);
-                    setSubmitError(null);
-                  }}
+                  onClick={() => selectReportStatus("NORMAL_VISIBLE")}
                   className={actionButtonClassName(reportStatus === "NORMAL_VISIBLE")}
                 >
                   정상노출
@@ -174,11 +89,7 @@ export function ReportedContentProcessModal({ row, onClose, onProcessed }: Repor
                   <InputField
                     id="reported-content-process-reason"
                     value={processReason}
-                    onChange={(event) => {
-                      setProcessReason(event.target.value);
-                      if (reasonError) setReasonError(null);
-                      if (submitError) setSubmitError(null);
-                    }}
+                    onChange={(event) => changeProcessReason(event.target.value)}
                     disabled={submitting}
                     error={Boolean(reasonError)}
                     hint={reasonError ?? undefined}
@@ -192,10 +103,7 @@ export function ReportedContentProcessModal({ row, onClose, onProcessed }: Repor
                 type="button"
                 variant={warningStatus === "WARNED" ? "brand" : "outline"}
                 disabled={warningDisabled}
-                onClick={() => {
-                  setWarningStatus("WARNED");
-                  setSubmitError(null);
-                }}
+                onClick={() => selectWarningStatus("WARNED")}
                 className={actionButtonClassName(warningStatus === "WARNED")}
               >
                 경고
@@ -204,10 +112,7 @@ export function ReportedContentProcessModal({ row, onClose, onProcessed }: Repor
                 type="button"
                 variant={warningStatus === "IGNORED" ? "brand" : "outline"}
                 disabled={ignoredDisabled}
-                onClick={() => {
-                  setWarningStatus("IGNORED");
-                  setSubmitError(null);
-                }}
+                onClick={() => selectWarningStatus("IGNORED")}
                 className={actionButtonClassName(warningStatus === "IGNORED")}
               >
                 무시

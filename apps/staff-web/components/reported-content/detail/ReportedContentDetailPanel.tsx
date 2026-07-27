@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
@@ -15,23 +14,17 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
-  Pagination,
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 
-import { api } from "@/lib/common/api";
+import { useReportedContentDetailPanel } from "@/hooks/reported-content/useReportedContentDetailPanel";
 import {
-  formatReportedContentDetailDateTime,
-  formatReportedContentReason,
-  formatReportedContentReporterName,
-  type ReportedContentDetailReportItem,
-  type ReportedContentDetailReportState,
   type ReportedContentDetailResponse,
-  type ReportedContentReportsMeta,
-  type ReportedContentStatusUpdatePayload,
+  type ReportedContentReportsBlock,
   type ReportedContentTargetType,
-  type ReportedContentWarningStatusUpdatePayload,
 } from "@/lib/reported-content/detail";
+
+import { ReportedContentReportsList } from "../list/ReportedContentReportsList";
 
 type ReportedContentDetailPanelProps = {
   targetType: ReportedContentTargetType;
@@ -41,65 +34,6 @@ type ReportedContentDetailPanelProps = {
   onStatusUpdated?: () => void;
 };
 
-export type ReportedContentReportsBlock = {
-  items: ReportedContentDetailReportItem[];
-  meta: ReportedContentReportsMeta | null;
-  page: number;
-};
-
-type ReportActionStatus = "ADMIN_HIDDEN" | "NORMAL_VISIBLE";
-type WarningActionStatus = "WARNED" | "IGNORED";
-
-function isMatchingInitialDetail(
-  detail: ReportedContentDetailResponse | null | undefined,
-  targetType: ReportedContentTargetType,
-  targetId: number,
-) {
-  return detail?.target_type === targetType && Number(detail.target_id) === targetId;
-}
-
-function mergeReportState(
-  detail: ReportedContentDetailResponse | null,
-  report: ReportedContentDetailReportState,
-): ReportedContentDetailResponse | null {
-  if (!detail) return detail;
-
-  return {
-    ...detail,
-    report: {
-      ...(detail.report ?? {}),
-      ...report,
-    },
-  };
-}
-
-function resolveWarningCount(currentCount: number, beforeStatus: string, afterStatus: string) {
-  if (afterStatus === "WARNED" && beforeStatus !== "WARNED") return currentCount + 1;
-  if (beforeStatus === "WARNED" && afterStatus !== "WARNED") return Math.max(0, currentCount - 1);
-
-  return currentCount;
-}
-
-function mergeWarningState(
-  detail: ReportedContentDetailResponse | null,
-  report: ReportedContentDetailReportState,
-  beforeStatus: string,
-  afterStatus: string,
-): ReportedContentDetailResponse | null {
-  const nextDetail = mergeReportState(detail, report);
-  if (!nextDetail?.author) return nextDetail;
-
-  const currentWarningCount = Number(nextDetail.author.warning_count ?? 0);
-
-  return {
-    ...nextDetail,
-    author: {
-      ...nextDetail.author,
-      warning_count: resolveWarningCount(currentWarningCount, beforeStatus, afterStatus),
-    },
-  };
-}
-
 export function ReportedContentDetailPanel({
   targetType,
   targetId,
@@ -107,252 +41,46 @@ export function ReportedContentDetailPanel({
   initialReports = null,
   onStatusUpdated,
 }: ReportedContentDetailPanelProps) {
-  const hasInitialDetail = isMatchingInitialDetail(initialDetail, targetType, targetId);
-  const hasInitialReports = initialReports?.page === 1;
-  const [detail, setDetail] = React.useState<ReportedContentDetailResponse | null>(
-    hasInitialDetail ? initialDetail : null,
-  );
-  const [loading, setLoading] = React.useState(!hasInitialDetail);
-  const [updatingStatus, setUpdatingStatus] = React.useState<ReportActionStatus | null>(null);
-  const [pendingStatus, setPendingStatus] = React.useState<ReportActionStatus | null>(null);
-  const [updatingWarningStatus, setUpdatingWarningStatus] = React.useState<WarningActionStatus | null>(null);
-  const [pendingWarningStatus, setPendingWarningStatus] = React.useState<WarningActionStatus | null>(null);
-  const [isWarningUnavailableModalOpen, setIsWarningUnavailableModalOpen] = React.useState(false);
-  const [processReason, setProcessReason] = React.useState("");
-  const [modalError, setModalError] = React.useState<string | null>(null);
-  const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>(
-    hasInitialReports ? initialReports.items : [],
-  );
-  const [reportsMeta, setReportsMeta] = React.useState<ReportedContentReportsMeta | null>(
-    hasInitialReports ? initialReports.meta : null,
-  );
-  const [reportsLoading, setReportsLoading] = React.useState(!hasInitialReports);
-  const [reportsError, setReportsError] = React.useState<string | null>(null);
-  const [reportsPage, setReportsPage] = React.useState(1);
-
-  const fetchDetail = React.useCallback(async () => {
-    if (!Number.isFinite(targetId) || targetId <= 0) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await api.get<ReportedContentDetailResponse>(
-        `/reported-contents/detail/${targetType}/${targetId}`,
-        { include_target: 0 },
-      );
-
-      if (!isApiSuccess(response)) {
-        setError(response.error.message || "신고 상세 조회에 실패했습니다.");
-        return;
-      }
-
-      setDetail(response.data);
-    } catch {
-      setError("신고 상세 조회 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, [targetId, targetType]);
-
-  React.useEffect(() => {
-    if (!hasInitialDetail) return;
-
-    setDetail(initialDetail);
-    setLoading(false);
-    setError(null);
-  }, [hasInitialDetail, initialDetail]);
-
-  const fetchReports = React.useCallback(async () => {
-    if (!Number.isFinite(targetId) || targetId <= 0) return;
-
-    setReportsLoading(true);
-    setReportsError(null);
-
-    try {
-      const response = await api.get<ReportedContentDetailReportItem[]>(
-        `/reported-contents/${targetType}/${targetId}/reports`,
-        { reports_page: reportsPage },
-      );
-
-      if (!isApiSuccess(response)) {
-        setReports([]);
-        setReportsMeta(null);
-        setReportsError(response.error.message || "신고 내역 조회에 실패했습니다.");
-        return;
-      }
-
-      setReports(response.data ?? []);
-      setReportsMeta((response.meta as ReportedContentReportsMeta | null) ?? null);
-    } catch {
-      setReports([]);
-      setReportsMeta(null);
-      setReportsError("신고 내역 조회 중 오류가 발생했습니다.");
-    } finally {
-      setReportsLoading(false);
-    }
-  }, [reportsPage, targetId, targetType]);
-
-  React.useEffect(() => {
-    setReportsPage(1);
-    if (hasInitialReports) {
-      setReports(initialReports.items);
-      setReportsMeta(initialReports.meta);
-      setReportsLoading(false);
-      setReportsError(null);
-      return;
-    }
-
-    setReports([]);
-    setReportsMeta(null);
-    setReportsLoading(true);
-  }, [hasInitialReports, initialReports, targetId, targetType]);
-
-  React.useEffect(() => {
-    if (hasInitialDetail) return;
-
-    void fetchDetail();
-  }, [fetchDetail, hasInitialDetail]);
-
-  React.useEffect(() => {
-    if (hasInitialReports && reportsPage === 1) return;
-
-    void fetchReports();
-  }, [fetchReports, hasInitialReports, reportsPage]);
-
-  const reportState = detail?.report ?? null;
-  const reportsTotal = Number(reportsMeta?.total ?? reports.length);
-  const reportsCurrentPage = Number(reportsMeta?.current_page ?? reportsPage);
-  const reportsLastPage = Math.max(1, Number(reportsMeta?.last_page ?? 1));
-  const reportStatus = reportState?.status?.trim() || "";
-  const warningStatus = reportState?.warning_status?.trim() || "NONE";
-  const warningCount = Number(detail?.author?.warning_count ?? 0);
-  const isAdminHiddenButtonDisabled = reportStatus === "ADMIN_HIDDEN" || updatingStatus !== null;
-  const isNormalVisibleButtonDisabled = reportStatus === "NORMAL_VISIBLE" || updatingStatus !== null;
-  const isWarningButtonDisabled = warningStatus === "WARNED" || updatingWarningStatus !== null;
-  const isIgnoreButtonDisabled = warningStatus === "IGNORED" || updatingWarningStatus !== null;
-
-  const updateReportStatus = React.useCallback(
-    async (reportStatus: ReportActionStatus, reason?: string) => {
-      setUpdatingStatus(reportStatus);
-      setModalError(null);
-
-      const payload: ReportedContentStatusUpdatePayload = {
-        target_type: targetType,
-        target_id: targetId,
-        report_status: reportStatus,
-      };
-      const normalizedReason = reason?.trim();
-      if (normalizedReason) payload.process_reason = normalizedReason;
-
-      try {
-        const response = await api.patch<ReportedContentDetailReportState>("/reported-contents/status", payload);
-
-        if (!isApiSuccess(response)) {
-          setModalError(response.error.message || "신고 처리 상태 변경에 실패했습니다.");
-          return;
-        }
-
-        setDetail((current) => mergeReportState(current, response.data));
-        onStatusUpdated?.();
-        setPendingStatus(null);
-        setProcessReason("");
-      } catch {
-        setModalError("신고 처리 상태 변경 중 오류가 발생했습니다.");
-      } finally {
-        setUpdatingStatus(null);
-      }
-    },
-    [onStatusUpdated, targetId, targetType],
-  );
-
-  const updateWarningStatus = React.useCallback(
-    async (warningStatus: WarningActionStatus) => {
-      setUpdatingWarningStatus(warningStatus);
-      setWarningModalError(null);
-
-      const payload: ReportedContentWarningStatusUpdatePayload = {
-        target_type: targetType,
-        target_id: targetId,
-        warning_status: warningStatus,
-      };
-
-      try {
-        const previousWarningStatus = warningStatus;
-        const response = await api.patch<ReportedContentDetailReportState>(
-          "/reported-contents/warning-status",
-          payload,
-        );
-
-        if (!isApiSuccess(response)) {
-          setWarningModalError(response.error.message || "경고 처리 상태 변경에 실패했습니다.");
-          return;
-        }
-
-        setDetail((current) => mergeWarningState(current, response.data, previousWarningStatus, warningStatus));
-        onStatusUpdated?.();
-        setPendingWarningStatus(null);
-      } catch {
-        setWarningModalError("경고 처리 상태 변경 중 오류가 발생했습니다.");
-      } finally {
-        setUpdatingWarningStatus(null);
-      }
-    },
-    [onStatusUpdated, targetId, targetType],
-  );
-
-  const openStatusModal = React.useCallback(
-    (nextReportStatus: ReportActionStatus) => {
-      if (reportStatus === nextReportStatus) return;
-
-      setPendingStatus(nextReportStatus);
-      setProcessReason("");
-      setModalError(null);
-    },
-    [reportStatus],
-  );
-
-  const closeStatusModal = React.useCallback(() => {
-    if (updatingStatus !== null) return;
-
-    setPendingStatus(null);
-    setProcessReason("");
-    setModalError(null);
-  }, [updatingStatus]);
-
-  const openWarningModal = React.useCallback(
-    (warningStatus: WarningActionStatus) => {
-      if (reportState?.status?.trim() !== "ADMIN_HIDDEN") {
-        setIsWarningUnavailableModalOpen(true);
-        return;
-      }
-
-      setPendingWarningStatus(warningStatus);
-      setWarningModalError(null);
-    },
-    [reportState?.status],
-  );
-
-  const closeWarningModal = React.useCallback(() => {
-    if (updatingWarningStatus !== null) return;
-
-    setPendingWarningStatus(null);
-    setWarningModalError(null);
-  }, [updatingWarningStatus]);
-
-  const submitStatusChange = React.useCallback(() => {
-    if (!pendingStatus) return;
-
-    void updateReportStatus(pendingStatus, pendingStatus === "ADMIN_HIDDEN" ? processReason : undefined);
-  }, [pendingStatus, processReason, updateReportStatus]);
-
-  const submitWarningStatusChange = React.useCallback(() => {
-    if (!pendingWarningStatus) return;
-
-    void updateWarningStatus(pendingWarningStatus);
-  }, [pendingWarningStatus, updateWarningStatus]);
+  const {
+    loading,
+    error,
+    reports,
+    reportsMeta,
+    reportsLoading,
+    reportsError,
+    reportsCurrentPage,
+    reportsTotal,
+    setReportsPage,
+    reportStatus,
+    warningStatus,
+    warningCount,
+    updatingStatus,
+    updatingWarningStatus,
+    pendingStatus,
+    pendingWarningStatus,
+    isWarningUnavailableModalOpen,
+    processReason,
+    modalError,
+    warningModalError,
+    isAdminHiddenButtonDisabled,
+    isNormalVisibleButtonDisabled,
+    isWarningButtonDisabled,
+    isIgnoreButtonDisabled,
+    changeProcessReason,
+    setIsWarningUnavailableModalOpen,
+    openStatusModal,
+    closeStatusModal,
+    openWarningModal,
+    closeWarningModal,
+    submitStatusChange,
+    submitWarningStatusChange,
+  } = useReportedContentDetailPanel({
+    targetType,
+    targetId,
+    initialDetail,
+    initialReports,
+    onStatusUpdated,
+  });
 
   const pendingStatusLabel = pendingStatus === "ADMIN_HIDDEN" ? "노출중지" : "정상노출";
   const targetNoun = targetType.includes("comment") ? "댓글" : "게시물";
@@ -388,47 +116,17 @@ export function ReportedContentDetailPanel({
           ) : (
             <>
               <section className="space-y-4">
-                <div className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-xs font-semibold text-gray-500">
-                  <span>신고자목록</span>
-                  <span>신고 사유</span>
-                  <span>신고일</span>
-                </div>
-
-                {reportsLoading ? (
-                  <SpinnerBlock className="min-h-[10rem]" spinnerClassName="size-10" label="신고 내역 불러오는 중" />
-                ) : reportsError ? (
-                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                    {reportsError}
-                  </div>
-                ) : reports.length > 0 ? (
-                  <div className="space-y-2">
-                    {reports.map((report) => (
-                      <div
-                        key={report.id ?? `${report.created_at}-${report.reason}`}
-                        className="grid grid-cols-[minmax(5rem,0.8fr)_minmax(0,1.35fr)_minmax(6.5rem,0.9fr)] gap-3 text-sm text-gray-800"
-                      >
-                        <span className="min-w-0 truncate">{formatReportedContentReporterName(report)}</span>
-                        <span className="min-w-0 break-words">{formatReportedContentReason(report)}</span>
-                        <span className="text-xs whitespace-nowrap text-gray-600">
-                          {formatReportedContentDetailDateTime(report.created_at)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-                    신고 내역이 없습니다.
-                  </div>
-                )}
-
-                <div className="flex justify-center pt-2">
-                  <Pagination
-                    currentPage={reportsCurrentPage}
-                    totalPages={reportsLastPage}
-                    onPageChange={setReportsPage}
-                    disabled={reportsLoading || updatingStatus !== null}
-                  />
-                </div>
+                <ReportedContentReportsList
+                  reports={reports}
+                  meta={reportsMeta}
+                  loading={reportsLoading}
+                  error={reportsError}
+                  page={reportsCurrentPage}
+                  loadingLabel="신고 내역 불러오는 중"
+                  emptyLabel="신고 내역이 없습니다."
+                  disabled={updatingStatus !== null}
+                  onPageChange={setReportsPage}
+                />
               </section>
 
               <section className="grid gap-6 sm:grid-cols-2">
@@ -524,10 +222,7 @@ export function ReportedContentDetailPanel({
                 <InputField
                   id="reported-content-admin-hidden-reason"
                   value={processReason}
-                  onChange={(event) => {
-                    setProcessReason(event.target.value);
-                    if (modalError) setModalError(null);
-                  }}
+                  onChange={(event) => changeProcessReason(event.target.value)}
                   disabled={updatingStatus !== null}
                   placeholder="노출중지 사유를 입력해주세요"
                 />
