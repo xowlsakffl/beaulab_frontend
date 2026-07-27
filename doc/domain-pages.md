@@ -1,0 +1,227 @@
+# Staff Web Domain Pages
+
+작성 기준: 2026-07-27
+
+이 문서는 `apps/staff-web` 도메인별 화면 책임을 정리한다.
+
+## 1. 병의원
+
+경로:
+
+- `/hospital-manage/hospitals`
+- `/hospital-manage/hospitals/[id]`
+- `/hospital-manage/hospitals/[id]/edit`
+- `/hospital-manage/hospitals/new`
+
+책임:
+
+- 병의원 목록/summary/상세/등록/수정
+- 사업자 정보, 계좌정보, 운영정보
+- 로고/이미지 media
+- 인증된 계정 정보
+- 검수상태, 병의원상태, 운영중지/정상노출
+- 관리자 메모, 운영 히스토리
+- 미확인 DB 버튼
+
+기준:
+
+- 병의원명은 수정 불가이면 input이 아니라 텍스트로 표시한다.
+- 이메일은 실제 사용하는 계정/세금계산서 목적을 구분한다.
+- 신규 생성 기본 상태는 정상 운영 기준이다.
+
+## 2. 의료진
+
+경로:
+
+- `/hospital-manage/doctors`
+- `/hospital-manage/doctors/[id]`
+- `/hospital-manage/doctors/[id]/edit`
+- `/hospital-manage/doctors/new`
+
+책임:
+
+- 의료진 목록/상세/등록/수정
+- 병의원 검색
+- 진료과목/시술 분야 선택
+- 프로필 이미지/면허 파일
+- 검수상태 변경과 반려사유
+
+기준:
+
+- 검수 상태는 병의원과 같은 신청/검수/승인/반려 문구를 사용한다.
+- 현재 승인 텍스트를 상세에 중복 표시하지 않는다.
+
+## 3. 입점신청
+
+경로:
+
+- `/hospital-manage/hospital-entries`
+- `/hospital-manage/hospital-entries/[id]`
+- `/hospital-manage/hospital-entries/[id]/edit`
+
+책임:
+
+- 입점신청 목록/summary/상세/수정
+- 병의원 정보와 신청자 정보
+- 사업자등록증/의사면허증 media
+- 검수상태 변경
+
+기준:
+
+- 사용자 신청 화면은 현재 관리자 범위에서 제외한다.
+- 파일 UI는 다른 도메인의 파일선택/원본보기/파일명 뱃지 스타일과 맞춘다.
+
+## 4. 이벤트
+
+경로:
+
+- `/ads-manage/events`
+- `/ads-manage/events/[id]`
+- `/ads-manage/events/[id]/edit`
+- `/ads-manage/events/new`
+
+책임:
+
+- 이벤트 목록/summary/상세/등록/수정
+- 병의원/의료진/카테고리/옵션 연결
+- 검수상태
+- 병원 공개여부 `hospital_status`
+- 직원 강제중지 `admin_status`
+- 이벤트 DB 현황 이동
+- 관리자 메모, 운영 히스토리
+
+기준:
+
+- 이벤트 관리의 `status` 단일 상태로 공개여부와 강제중지를 섞지 않는다.
+- 대표카테고리 개념은 현재 정책에서 사용하지 않는다.
+- 카테고리는 공통 카테고리 selector와 도메인 usage 기준을 따른다.
+
+## 5. 광고
+
+경로:
+
+- `/ads-manage/event-ads`
+- `/ads-manage/event-ads/[id]`
+- `/ads-manage/event-ads/[id]/edit`
+- `/ads-manage/event-ads/new`
+- `/ads-manage/calendar`
+
+책임:
+
+- 광고 목록/상세/등록/수정
+- 광고 위치 선택
+- 화요일/목요일 시작일 정책
+- 주차별 3구좌 현황
+- 검수상태
+- 광고상태
+- 광고 이미지
+- 관리자 메모, 운영 히스토리
+
+기준:
+
+- 비용 단위는 P다.
+- 광고 이미지는 필수다.
+- 쁘띠 이벤트 광고 시작일은 목요일이고, 나머지는 화요일이다.
+- 승인 시점에는 병원/이벤트 상태, 이미지, 구좌를 다시 검증해야 한다.
+
+## 6. 동영상
+
+경로:
+
+- `/video-manage/videos`
+- `/video-manage/videos/[id]`
+- `/video-manage/videos/[id]/edit`
+- `/video-manage/videos/new`
+
+책임:
+
+- 동영상 목록/summary/상세/등록/수정
+- 병의원/의료진 검색
+- 카테고리 선택
+- 해시태그 선택/입력
+- 썸네일
+- 유튜브 링크
+- 공개여부 `hospital_status`
+- 강제중지 `admin_status`
+- 신고 처리
+- 관리자 메모, 운영 히스토리
+
+기준:
+
+- 병의원은 동영상을 등록하지 않고 공개/비공개만 처리하는 구조다.
+- 동영상 썸네일은 16:9, 5MB 이하, jpg/jpeg/png 기준이다.
+- 동영상 신고오류 후 72시간 재신고 제한 정책은 동영상에만 적용한다.
+
+## 7. 고객 DB
+
+경로:
+
+- `/customer-db-manage/events`
+- `/customer-db-manage/real-models`
+
+책임:
+
+- 이벤트 DB 목록/상세/상태 변경
+- 리얼모델 DB 목록/상세/상태 변경
+- 회원 상세와 연결
+- 이벤트 상세/이벤트 DB 현황 이동
+
+기준:
+
+- 회원 상세에서는 상담신청정보 버튼을 해당 목록 필터로 연결한다.
+- 리얼모델 이미지는 필수 정책이면 없는 이미지를 숫자로 표시하지 않는다.
+
+## 8. 게시물/신고게시물
+
+경로:
+
+- `/post-manage/*`
+- `/reported-post-manage/*`
+
+책임:
+
+- 성형후기/쁘띠후기/토크/병의원평가 목록/상세
+- 댓글 목록
+- 신고 목록/처리
+- 신고 상태/경고 여부/조치유형 변경
+
+기준:
+
+- 신고 댓글에는 상세 페이지를 만들지 않는다.
+- 댓글 신고사유 클릭 시 신고목록 모달을 사용한다.
+- 신고 처리 모달은 조치유형 -> 사유 -> 경고여부 흐름을 따른다.
+- 신고목록 모달도 페이지네이션을 표시한다.
+
+## 9. 회원
+
+경로:
+
+- `/user-manage/users`
+- `/user-manage/users/[id]`
+
+책임:
+
+- 일반 회원 목록/상세
+- 회원 상태 차단/해제
+- 상담신청정보, 활동정보, 신고게시물 실데이터 연결
+
+기준:
+
+- 관리자가 일반 회원을 삭제/수정하는 기능은 현재 범위가 아니다.
+- 차단은 병의원 운영중지와 같은 점세개 메뉴/사유 모달 스타일을 따른다.
+
+## 10. 공지/해시태그/placeholder
+
+공지사항:
+
+- `/notice-manage/notices`
+- 병의원 대상 공지사항, FAQ, 1:1문의 placeholder 포함
+
+해시태그:
+
+- `/content-manage/hashtags`
+- 해시태그 목록/운영상태/검색 중심
+
+placeholder:
+
+- 실제 API/화면이 없는 영역은 placeholder로 남기되 권한과 메뉴 구조는 유지한다.

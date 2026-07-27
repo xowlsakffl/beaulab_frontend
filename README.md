@@ -6,6 +6,25 @@
 
 이 저장소는 뷰랩 플랫폼의 관리자 화면, 공통 UI 시스템, Actor별 세션/권한 처리, API client, 채팅 테스트 화면을 담당합니다. 현재 프론트 코드 기준으로 실제 앱은 `apps/staff-web`와 `apps/user-web`뿐이며, Hospital/Beauty 파트너 웹은 별도 앱으로 구현되어 있지 않습니다.
 
+## 문서
+
+프론트엔드 구조와 구현 규칙은 [doc/README.md](/root/beaulab_frontend/doc/README.md)를 기준으로 관리합니다.
+
+주요 문서:
+
+- [architecture.md](/root/beaulab_frontend/doc/architecture.md)
+- [staff-web-rules.md](/root/beaulab_frontend/doc/staff-web-rules.md)
+- [api.md](/root/beaulab_frontend/doc/api.md)
+- [routing.md](/root/beaulab_frontend/doc/routing.md)
+- [list-pages.md](/root/beaulab_frontend/doc/list-pages.md)
+- [forms.md](/root/beaulab_frontend/doc/forms.md)
+- [media.md](/root/beaulab_frontend/doc/media.md)
+- [ui-components.md](/root/beaulab_frontend/doc/ui-components.md)
+- [status-badges.md](/root/beaulab_frontend/doc/status-badges.md)
+- [domain-pages.md](/root/beaulab_frontend/doc/domain-pages.md)
+- [performance.md](/root/beaulab_frontend/doc/performance.md)
+- [development.md](/root/beaulab_frontend/doc/development.md)
+
 ## 서비스 범위
 
 이 README의 서비스 범위는 현재 코드에 존재하는 앱과 화면을 먼저 적고, 아직 구현되지 않은 확장 예정 영역은 아래 `확장 예정 범위`에 분리합니다.

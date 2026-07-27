@@ -47,6 +47,11 @@ type LatestRequest = {
   requestId: number;
 };
 
+type ApiResponseWithHttp<T> = {
+  response: Response;
+  payload: ApiResponse<T>;
+};
+
 const latestRequests = new Map<string, LatestRequest>();
 let latestRequestSequence = 0;
 
@@ -86,7 +91,7 @@ function shouldJsonify(body: unknown): boolean {
 export function createClient(options: CreateClientOptions) {
   const { baseURL, actor, onUnauthorized } = options;
 
-  async function request<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async function requestWithResponse<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponseWithHttp<T>> {
     const { query, body: rawBody, latestKey, skipUnauthorizedHandler, ...rest } = opts;
 
     const url = buildUrl(baseURL, path, query);
@@ -162,7 +167,10 @@ export function createClient(options: CreateClientOptions) {
         });
       }
 
-      return payload;
+      return {
+        response: res,
+        payload,
+      };
     } catch (error) {
       if (isAbortError(error)) {
         throw new ApiRequestCanceledError();
@@ -174,6 +182,12 @@ export function createClient(options: CreateClientOptions) {
         latestRequests.delete(latestKey);
       }
     }
+  }
+
+  async function request<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponse<T>> {
+    const { payload } = await requestWithResponse<T>(path, opts);
+
+    return payload;
   }
 
   return {
@@ -206,5 +220,6 @@ export function createClient(options: CreateClientOptions) {
 
     // 필요하면 외부에서 커스텀 옵션까지 쓰게 raw도 제공 가능
     raw: request,
+    rawWithResponse: requestWithResponse,
   };
 }

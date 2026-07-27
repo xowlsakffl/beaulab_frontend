@@ -1,8 +1,21 @@
 # Staff Web Rules
 
-작성 기준: 2026-06-29
+작성 기준: 2026-07-27
 
 이 문서는 `apps/staff-web`에서 지켜야 할 리팩토링/구조/구현 규칙이다.
+
+세부 규칙은 주제별 문서를 우선 확인한다.
+
+- [api.md](/root/beaulab_frontend/doc/api.md)
+- [routing.md](/root/beaulab_frontend/doc/routing.md)
+- [list-pages.md](/root/beaulab_frontend/doc/list-pages.md)
+- [forms.md](/root/beaulab_frontend/doc/forms.md)
+- [media.md](/root/beaulab_frontend/doc/media.md)
+- [ui-components.md](/root/beaulab_frontend/doc/ui-components.md)
+- [status-badges.md](/root/beaulab_frontend/doc/status-badges.md)
+- [domain-pages.md](/root/beaulab_frontend/doc/domain-pages.md)
+- [performance.md](/root/beaulab_frontend/doc/performance.md)
+- [development.md](/root/beaulab_frontend/doc/development.md)
 
 ## 1. 공통 원칙
 

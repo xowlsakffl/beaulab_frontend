@@ -1,5 +1,6 @@
 import PasswordResetPageClient from "./PasswordResetPageClient";
 import Link from "next/link";
+import { verifyPasswordResetToken } from "@/lib/common/auth/password-reset";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -10,79 +11,6 @@ type PasswordResetPageProps = {
     token?: string;
   }>;
 };
-
-type PasswordResetTokenVerifyResult =
-  | {
-      status: "valid";
-    }
-  | {
-      status: "invalid";
-    }
-  | {
-      status: "rate_limited";
-    }
-  | {
-      status: "retry";
-      message: string;
-    };
-
-const RETRY_MESSAGE = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-
-async function verifyPasswordResetToken(email: string, token: string): Promise<PasswordResetTokenVerifyResult> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  if (!email || !token) {
-    return { status: "invalid" };
-  }
-
-  if (!apiBaseUrl) {
-    return {
-      status: "retry",
-      message: RETRY_MESSAGE,
-    };
-  }
-
-  try {
-    const response = await fetch(`${apiBaseUrl}/api/v1/staff/auth/password-reset/verify`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, token }),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      if (response.status === 419 || response.status === 422) {
-        return { status: "invalid" };
-      }
-
-      if (response.status === 429) {
-        return { status: "rate_limited" };
-      }
-
-      return {
-        status: "retry",
-        message: RETRY_MESSAGE,
-      };
-    }
-
-    const payload = (await response.json()) as {
-      success?: boolean;
-      data?: {
-        valid?: boolean;
-      };
-    };
-
-    return payload.success === true && payload.data?.valid === true ? { status: "valid" } : { status: "invalid" };
-  } catch {
-    return {
-      status: "retry",
-      message: RETRY_MESSAGE,
-    };
-  }
-}
 
 function PasswordResetRetryMessage({ message }: { message: string }) {
   return (
@@ -118,7 +46,7 @@ export default async function PasswordResetPage({ searchParams }: PasswordResetP
   const email = typeof resolvedSearchParams.email === "string" ? resolvedSearchParams.email : "";
   const token = typeof resolvedSearchParams.token === "string" ? resolvedSearchParams.token : "";
 
-  const verifyResult = await verifyPasswordResetToken(email, token);
+  const verifyResult = await verifyPasswordResetToken({ email, token });
 
   if (verifyResult.status === "invalid") {
     redirect("/error/419");
