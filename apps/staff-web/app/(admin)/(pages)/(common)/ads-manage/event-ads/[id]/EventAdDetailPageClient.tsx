@@ -4,22 +4,9 @@ import React from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import {
-  Button,
-  Card,
-  FormTextArea,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
-  SpinnerBlock,
-  StatusBadge,
-  useGlobalAlert,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, StatusBadge, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
+import { AdminNoteCreateModal } from "@/components/common/AdminNoteCreateModal";
 import { AdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
@@ -346,7 +333,7 @@ export default function EventAdDetailPageClient() {
         onClose={closeAllowStatusConfirmModal}
         onConfirm={() => void confirmAllowStatusChange()}
       />
-      <NoteCreateModal
+      <AdminNoteCreateModal
         isOpen={isNoteModalOpen}
         value={noteInput}
         saving={savingNote}
@@ -476,48 +463,6 @@ function EventAdImageCard({
         </button>
       </div>
     </div>
-  );
-}
-
-function NoteCreateModal({
-  isOpen,
-  value,
-  saving,
-  onChange,
-  onClose,
-  onSave,
-}: {
-  isOpen: boolean;
-  value: string;
-  saving: boolean;
-  onChange: (value: string) => void;
-  onClose: () => void;
-  onSave: () => void;
-}) {
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-lg">
-      <ModalPanel>
-        <ModalHeader className="pr-0">
-          <ModalTitle>관리자 메모 등록</ModalTitle>
-        </ModalHeader>
-        <ModalBody className="mt-5">
-          <FormTextArea
-            value={value}
-            onChange={(next) => onChange(next.slice(0, 1000))}
-            rows={5}
-            placeholder="관리자 메모를 입력해 주세요."
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            취소
-          </Button>
-          <Button type="button" variant="brand" onClick={onSave} disabled={saving || !value.trim()}>
-            등록
-          </Button>
-        </ModalFooter>
-      </ModalPanel>
-    </Modal>
   );
 }
 

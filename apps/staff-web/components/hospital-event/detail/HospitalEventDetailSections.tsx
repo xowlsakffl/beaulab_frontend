@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { AdminNoteCreateModal as NoteCreateModal } from "@/components/common/AdminNoteCreateModal";
 import { AdminNotesCard as CommonAdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
@@ -20,20 +21,9 @@ import {
   type HospitalEventCategory,
   type HospitalEventMedia,
 } from "@/lib/hospital-event/list";
-import {
-  Button,
-  Card,
-  CategoryBadgeList,
-  FormTextArea,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
-  StatusBadge,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { Button, Card, CategoryBadgeList, StatusBadge, type DataTableMeta } from "@beaulab/ui-admin";
+
+export { NoteCreateModal };
 
 export type AdminNoteItem = {
   id: number;
@@ -297,48 +287,6 @@ function PriceSummaryCard({ detail }: { detail: HospitalEventApiItem }) {
         />
       </div>
     </div>
-  );
-}
-
-export function NoteCreateModal({
-  isOpen,
-  value,
-  saving,
-  onChange,
-  onClose,
-  onSave,
-}: {
-  isOpen: boolean;
-  value: string;
-  saving: boolean;
-  onChange: (value: string) => void;
-  onClose: () => void;
-  onSave: () => void;
-}) {
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-lg">
-      <ModalPanel>
-        <ModalHeader className="pr-0">
-          <ModalTitle>관리자 메모 등록</ModalTitle>
-        </ModalHeader>
-        <ModalBody className="mt-5">
-          <FormTextArea
-            value={value}
-            onChange={(next) => onChange(next.slice(0, 1000))}
-            rows={5}
-            placeholder="관리자 메모를 입력해 주세요."
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            취소
-          </Button>
-          <Button type="button" variant="brand" onClick={onSave} disabled={saving || !value.trim()}>
-            등록
-          </Button>
-        </ModalFooter>
-      </ModalPanel>
-    </Modal>
   );
 }
 

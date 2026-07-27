@@ -4,25 +4,18 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import {
-  Button,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   Dropdown,
   DropdownItem,
-  FormTextArea,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  ModalPanel,
-  ModalTitle,
   MoreVertical,
   SpinnerBlock,
   StatusBadge,
 } from "@beaulab/ui-admin";
 
+import { AdminNoteCreateModal } from "@/components/common/AdminNoteCreateModal";
 import { AdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
@@ -318,31 +311,17 @@ export default function AccountUserDetailPageClient() {
         onConfirm={() => void submitBlock()}
       />
 
-      <Modal isOpen={isNoteModalOpen} onClose={closeNoteModal} className="mx-4 max-w-lg" showCloseButton={false}>
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>관리자 메모</ModalTitle>
-          </ModalHeader>
-          <ModalBody className="mt-5">
-            <FormTextArea
-              rows={5}
-              value={noteInput}
-              onChange={setNoteInput}
-              placeholder="관리자 메모를 입력해주세요."
-              error={Boolean(noteError)}
-              hint={noteError ?? undefined}
-            />
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeNoteModal} disabled={savingNote}>
-              취소
-            </Button>
-            <Button type="button" variant="brand" onClick={submitNote} disabled={savingNote}>
-              등록
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+      <AdminNoteCreateModal
+        isOpen={isNoteModalOpen}
+        value={noteInput}
+        saving={savingNote}
+        onChange={setNoteInput}
+        onClose={closeNoteModal}
+        onSave={submitNote}
+        title="관리자 메모"
+        placeholder="관리자 메모를 입력해 주세요."
+        errorMessage={noteError}
+      />
     </div>
   );
 }
