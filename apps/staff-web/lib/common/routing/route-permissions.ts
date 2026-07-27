@@ -77,6 +77,7 @@ export function getStaticRoutePermissions(path: StaticAdminRoutePath): string[] 
 }
 
 export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
+  { path: "/user-manage/users/[id]", requiredPermissions: ["beaulab.user.show"] },
   { path: "/hospital-manage/hospitals/[id]", requiredPermissions: ["beaulab.hospital.show"] },
   { path: "/hospital-manage/hospitals/[id]/edit", requiredPermissions: ["beaulab.hospital.update"] },
   { path: "/hospital-manage/hospitals/new", requiredPermissions: ["beaulab.hospital.create"] },
@@ -94,6 +95,25 @@ export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { path: "/ads-manage/event-ads/[id]", requiredPermissions: ["beaulab.hospital_event_ad.show"] },
   { path: "/ads-manage/event-ads/[id]/edit", requiredPermissions: ["beaulab.hospital_event_ad.update"] },
   { path: "/ads-manage/event-ads/new", requiredPermissions: ["beaulab.hospital_event_ad.create"] },
+  { path: "/customer-db-manage/real-models/[id]", requiredPermissions: ["beaulab.hospital_event_real_model_db.show"] },
+  { path: "/post-manage/surgery-reviews/[id]", requiredPermissions: ["beaulab.hospital_review.show"] },
+  { path: "/post-manage/treatment-reviews/[id]", requiredPermissions: ["beaulab.hospital_review.show"] },
+  { path: "/post-manage/hospital-evaluations/[id]", requiredPermissions: ["beaulab.hospital_evaluation.show"] },
+  { path: "/post-manage/talks/[id]", requiredPermissions: ["beaulab.talk.show"] },
+  {
+    path: "/reported-post-manage/surgery-reviews/[id]",
+    requiredPermissions: ["beaulab.reported_hospital_review.show"],
+  },
+  {
+    path: "/reported-post-manage/treatment-reviews/[id]",
+    requiredPermissions: ["beaulab.reported_hospital_review.show"],
+  },
+  {
+    path: "/reported-post-manage/hospital-evaluations/[id]",
+    requiredPermissions: ["beaulab.reported_hospital_evaluation.show"],
+  },
+  { path: "/reported-post-manage/talks/[id]", requiredPermissions: ["beaulab.reported_talk.show"] },
+  { path: "/reported-post-manage/chats/[id]", requiredPermissions: ["beaulab.reported_chat_message.show"] },
   { path: "/notice-manage/notices/[id]", requiredPermissions: ["beaulab.notice.show"] },
   { path: "/notice-manage/notices/[id]/edit", requiredPermissions: ["beaulab.notice.update"] },
   { path: "/notice-manage/notices/new", requiredPermissions: ["beaulab.notice.create"] },

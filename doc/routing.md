@@ -54,6 +54,18 @@
 - placeholder도 향후 개발 대상이면 메뉴 껍데기를 남긴다.
 - 메뉴 노출 권한은 route permission helper를 통해 가져온다.
 
+메뉴에 노출되지 않아도 권한 매핑이 필요한 route가 있다.
+
+| Route                               | 이유                                                               |
+| ----------------------------------- | ------------------------------------------------------------------ |
+| `/admin-settings/profile`           | header 사용자 메뉴에서 진입하는 내 프로필 화면                     |
+| `/category-hashtag-manage/hashtags` | `/content-manage/hashtags`로 보내는 legacy redirect route          |
+| `/hospital-dashboard/dashboard`     | 현재 메뉴에는 없지만 route placeholder가 남아 있는 병의원 대시보드 |
+| `/beauty-dashboard/dashboard`       | 현재 메뉴에는 없지만 route placeholder가 남아 있는 뷰티 대시보드   |
+| `/ads-manage/products`              | 현재 메뉴에는 없지만 이벤트/광고 placeholder route                 |
+| `/content-manage/popups`            | `배너 / 팝업` 메뉴와 별도로 남아 있는 팝업 placeholder route       |
+| `/beauty-post-manage/talks`         | 현재 메뉴에는 없지만 뷰티 게시물 placeholder route                 |
+
 ## 4. 권한 단일 소스
 
 route 권한은 `apps/staff-web/lib/common/routing/route-permissions.ts`가 단일 소스다.
