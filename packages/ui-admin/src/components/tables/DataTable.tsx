@@ -4,6 +4,7 @@ import React from "react";
 import { RotateCw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 import { Spinner } from "../ui/spinner/Spinner";
+import { Button } from "../ui/button/Button";
 import Pagination from "./Pagination";
 
 export type DataTableColumn<T> = {
@@ -198,8 +199,15 @@ export function DataTable<T>({
             <TableBody className="divide-y divide-gray-100">
               {!loading && error ? (
                 <TableRow>
-                  <TableCell className="px-5 py-6 text-center text-theme-sm text-rose-600" colSpan={colCount}>
-                    {error}
+                  <TableCell className="px-5 py-12 text-center" colSpan={colCount}>
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <p className="text-theme-sm font-medium text-rose-600">{error}</p>
+                      {onRefresh ? (
+                        <Button type="button" variant="brand" size="sm" onClick={onRefresh} disabled={refreshing}>
+                          {refreshing ? "불러오는 중..." : "다시 불러오기"}
+                        </Button>
+                      ) : null}
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : null}
