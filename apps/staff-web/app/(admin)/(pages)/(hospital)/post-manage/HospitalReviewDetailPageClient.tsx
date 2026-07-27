@@ -17,6 +17,7 @@ import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import {
   VisibilityActionButtons as VisibilityButtons,
@@ -618,47 +619,13 @@ function HospitalReviewHistoryCard({
   onGoPage: (page: number) => void;
 }) {
   return (
-    <Card as="section">
-      <CardHeader className="pb-4">
-        <CardTitle>히스토리</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {histories.length > 0 ? (
-          <div className="divide-y divide-gray-200">
-            {histories.map((history) => (
-              <div
-                key={history.id}
-                className="grid gap-2 py-3 text-xs text-gray-700 md:grid-cols-[10rem_8rem_8rem_minmax(0,1fr)]"
-              >
-                <span className="text-xs whitespace-nowrap text-gray-500">
-                  {formatHospitalReviewDetailDateTime(history.created_at)}
-                </span>
-                <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
-                <span>
-                  <OperationHistoryActionBadge history={history} />
-                </span>
-                <span className="min-w-0 text-xs break-words text-gray-600">
-                  <OperationHistoryReason history={history} />
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <EmptyDetailState>등록된 히스토리가 없습니다.</EmptyDetailState>
-        )}
-
-        {meta ? (
-          <div className="flex justify-center pt-1">
-            <Pagination
-              currentPage={meta.current_page}
-              totalPages={Math.max(1, meta.last_page)}
-              onPageChange={onGoPage}
-              disabled={refreshing}
-            />
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
+    <CommonOperationHistoryCard
+      histories={histories}
+      meta={meta}
+      loading={refreshing}
+      onPageChange={onGoPage}
+      formatDateTime={formatHospitalReviewDetailDateTime}
+    />
   );
 }
 

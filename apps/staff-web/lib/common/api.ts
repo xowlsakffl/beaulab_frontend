@@ -118,11 +118,17 @@ export async function downloadFile(pathOrUrl: string, fallbackFileName?: string)
     const contentType = response.headers.get("content-type") ?? "";
 
     if (contentType.includes("application/json")) {
+      let errorMessage: string | null = null;
+
       try {
         const payload = (await response.json()) as { error?: { message?: string } };
-        throw new Error(payload.error?.message || `Download failed with status ${response.status}`);
+        errorMessage = payload.error?.message?.trim() || null;
       } catch {
-        throw new Error(`Download failed with status ${response.status}`);
+        errorMessage = null;
+      }
+
+      if (errorMessage) {
+        throw new Error(errorMessage);
       }
     }
 
