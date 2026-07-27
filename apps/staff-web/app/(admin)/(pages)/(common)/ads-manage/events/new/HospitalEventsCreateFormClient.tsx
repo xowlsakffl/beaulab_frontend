@@ -15,7 +15,7 @@ import {
 } from "@beaulab/ui-admin";
 import { isApiSuccess } from "@beaulab/types";
 
-import { HospitalMediaPreviewModal } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { HospitalEventAppPreviewModal } from "@/components/hospital-event/form/HospitalEventAppPreviewModal";
 import { EventInfoCard } from "@/components/hospital-event/form/HospitalEventInfoCard";
@@ -552,7 +552,7 @@ function HospitalEventsFormClient({
         discountRate={discountRate}
       />
 
-      <HospitalMediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={closePreviewMedia} />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={closePreviewMedia} />
       <UploadWarningModal message={uploadWarning} onClose={closeUploadWarning} />
     </>
   );

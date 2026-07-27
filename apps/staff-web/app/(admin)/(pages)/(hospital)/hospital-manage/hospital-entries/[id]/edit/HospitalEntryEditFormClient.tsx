@@ -11,10 +11,7 @@ import {
   HospitalEntryApplicantEditCard,
   HospitalEntryHospitalEditCard,
 } from "@/components/hospital-entry/form/HospitalEntryEditCards";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
@@ -55,7 +52,7 @@ export default function HospitalEntryEditFormClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
 
   const detailPath = React.useMemo(() => {
     if (!Number.isFinite(entryId) || entryId <= 0) return "/hospital-manage/hospital-entries";
@@ -269,11 +266,7 @@ export default function HospitalEntryEditFormClient() {
 
       <HospitalEntryAllowStatusReadonlyCard detail={detail} />
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </form>
   );
 }

@@ -5,13 +5,13 @@ import { ArrowRight, StatusBadge } from "@beaulab/ui-admin";
 import type { BadgeColor } from "@beaulab/ui-admin";
 
 import { reportStatusBadgeColor } from "@/components/common/ReportStatusBadge";
+import { labelReviewAllowStatus, reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
-  hospitalEventAdminStatusColor,
-  hospitalEventAllowStatusColor,
-  hospitalEventHospitalStatusColor,
-  labelHospitalEventAdminStatus,
-  labelHospitalEventHospitalStatus,
-} from "@/lib/hospital-event/list";
+  adminStatusColor,
+  labelAdminStatus,
+  labelOwnerVisibilityStatus,
+  ownerVisibilityStatusColor,
+} from "@/lib/common/status-labels";
 
 export type OperationHistoryChangeLike = {
   field_key?: string | null;
@@ -378,15 +378,15 @@ function statusDisplayLabel(
       return allowStatusLabel(normalized, fallbackLabel) || fallbackLabel || normalized || "-";
     }
 
-    return fallbackLabel || normalized || "-";
+    return labelReviewAllowStatus(normalized, fallbackLabel || normalized || "-");
   }
 
   if (field === "admin_status") {
-    return labelHospitalEventAdminStatus(displayLabel || normalized);
+    return labelAdminStatus(displayLabel || normalized);
   }
 
   if (field === "hospital_status") {
-    return labelHospitalEventHospitalStatus(displayLabel || normalized);
+    return labelOwnerVisibilityStatus(displayLabel || normalized);
   }
 
   return fallbackLabel || normalized || "-";
@@ -407,15 +407,15 @@ function statusColor(
   }
 
   if (field === "allow_status") {
-    return hospitalEventAllowStatusColor(normalized);
+    return reviewAllowStatusColor(normalized);
   }
 
   if (field === "admin_status") {
-    return hospitalEventAdminStatusColor(normalized);
+    return adminStatusColor(normalized);
   }
 
   if (field === "hospital_status") {
-    return hospitalEventHospitalStatusColor(normalized);
+    return ownerVisibilityStatusColor(normalized);
   }
 
   if (field === "receipt_status") {

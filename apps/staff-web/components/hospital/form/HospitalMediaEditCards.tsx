@@ -3,7 +3,7 @@
 import React from "react";
 import { Button, Card, MediaUploader, type ExistingMediaItem } from "@beaulab/ui-admin";
 
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import {
   MEDIA_COLLECTIONS,
@@ -32,7 +32,7 @@ export function HospitalLogoEditCard({
   error?: string;
   className?: string;
   onChange: (file: File | null) => void;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
   onUploadValidationError: (message: string) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -142,7 +142,7 @@ export function HospitalGalleryEditCard({
   onGalleryChange: (files: File[]) => void;
   onExistingItemsChange?: (key: HospitalMediaField, items: ExistingMediaItem[]) => void;
   onGalleryOrderChange?: (order: string[]) => void;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
   onUploadValidationError: (message: string) => void;
 }) {
   const galleryCollection = MEDIA_COLLECTIONS.find((collection) => collection.key === "gallery");
@@ -163,7 +163,7 @@ export function HospitalGalleryEditCard({
     uploaderRef.current?.querySelector<HTMLInputElement>('input[data-media-file-input="true"]')?.click();
   };
 
-  const handlePreview = (preview: HospitalMediaPreviewState) => {
+  const handlePreview = (preview: MediaPreviewState) => {
     onPreview(normalizeGalleryPreviewTitle(preview, galleryPreviewItems));
   };
 
@@ -274,9 +274,9 @@ function buildGalleryPreviewItems(
 }
 
 function normalizeGalleryPreviewTitle(
-  preview: HospitalMediaPreviewState,
+  preview: MediaPreviewState,
   galleryPreviewItems: GalleryPreviewItem[],
-): HospitalMediaPreviewState {
+): MediaPreviewState {
   const items = preview.items?.map((item) => ({
     ...item,
     title: resolveGalleryPreviewTitle(item, galleryPreviewItems) ?? item.title,
@@ -294,7 +294,7 @@ function normalizeGalleryPreviewTitle(
 }
 
 function resolveGalleryPreviewTitle(
-  preview: Pick<HospitalMediaPreviewState, "url" | "title">,
+  preview: Pick<MediaPreviewState, "url" | "title">,
   galleryPreviewItems: GalleryPreviewItem[],
 ) {
   const matchedByUrl = galleryPreviewItems.find((item) => item.url && item.url === preview.url);

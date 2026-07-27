@@ -8,10 +8,7 @@ import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaul
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import {
   AdminNotesCard,
   AllowStatusCard,
@@ -52,7 +49,7 @@ export default function HospitalEventDetailPageClient() {
   const [detail, setDetail] = React.useState<HospitalEventApiItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [updatingStatus, setUpdatingStatus] = React.useState(false);
   const [notes, setNotes] = React.useState<AdminNoteItem[]>([]);
   const [notesLoading, setNotesLoading] = React.useState(false);
@@ -386,11 +383,7 @@ export default function HospitalEventDetailPageClient() {
         <EventMediaColumn detail={detail} onPreview={setPreviewMedia} />
       </section>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAdminStatusChange}
         title={pendingAdminStatusChange?.allowStatus === "NORMAL" ? "정상 전환" : "강제중지"}

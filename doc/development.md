@@ -30,7 +30,7 @@ beaulab_frontend/
 
 ## 2. 실행 명령
 
-루트에서 실행한다.
+루트 명령은 Turborepo 기준으로 전체 workspace를 대상으로 실행한다.
 
 ```bash
 pnpm dev
@@ -41,12 +41,21 @@ pnpm format
 pnpm format:check
 ```
 
-특정 앱만 실행할 때는 workspace filter를 사용한다.
+특정 앱/패키지만 실행할 때는 workspace filter를 사용한다.
 
 ```bash
 pnpm --filter staff-web dev
+pnpm --filter staff-web lint
+pnpm --filter staff-web typecheck
+pnpm --filter staff-web build
+
 pnpm --filter user-web dev
+
+pnpm --filter @beaulab/ui-admin typecheck
 ```
+
+작은 변경은 전체 `pnpm format`보다 변경 파일에만 `pnpm exec prettier --write <files...>`를 우선 사용한다.
+불필요한 포맷 churn을 만들지 않기 위해서다.
 
 ## 3. 검증 기준
 
@@ -59,7 +68,20 @@ pnpm exec prettier --check doc README.md AGENTS.md
 프론트 코드 수정 시 최소 기준:
 
 ```bash
-pnpm format:check
+pnpm exec prettier --check <changed-files...>
+pnpm --filter staff-web lint
+pnpm --filter staff-web typecheck
+```
+
+`packages/ui-admin`을 수정했거나 ui-admin export/type에 영향이 있으면 추가로 확인한다.
+
+```bash
+pnpm --filter @beaulab/ui-admin typecheck
+```
+
+공통 패키지 또는 여러 앱에 영향이 있으면 루트 기준으로 확인한다.
+
+```bash
 pnpm lint
 pnpm typecheck
 ```
@@ -86,7 +108,13 @@ staff API client는 내부적으로 `/api/v1/staff`를 붙인다. 화면 코드�
 2. 기존 도메인 패턴을 찾는다.
 3. 문서와 다른 구현이 필요하면 문서를 먼저 갱신한다.
 4. 코드를 수정한다.
-5. 포맷, lint, typecheck를 확인한다.
+5. 변경 범위에 맞는 포맷, lint, typecheck를 확인한다.
+
+검색/점검 기준:
+
+- `git grep` 또는 tracked source 기준 검색을 우선 사용한다.
+- `.next`, `dist`, `build`, `node_modules` 같은 산출물은 검색 결과에서 제외한다.
+- `.prettierignore` 기준으로 `public`, `apps/*/public`, `pnpm-lock.yaml`, 빌드 산출물은 포맷 대상에서 제외된다.
 
 ## 6. 금지
 

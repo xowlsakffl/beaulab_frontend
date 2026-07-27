@@ -14,10 +14,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
@@ -106,7 +103,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
   const [reviewVisibilityUpdating, setReviewVisibilityUpdating] = React.useState(false);
   const [commentVisibilityUpdatingIds, setCommentVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [expandedCommentHistoryIds, setExpandedCommentHistoryIds] = React.useState<Set<number>>(() => new Set());
   const hasLoadedRef = React.useRef(false);
 
@@ -517,11 +514,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         onConfirm={() => void confirmVisibilityChange()}
       />
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -573,7 +566,7 @@ function HospitalReviewContentCard({
   visibilityLocked: boolean;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -862,7 +855,7 @@ function ReviewImageGallery({
 }: {
   beforeImages: HospitalReviewMediaAsset[];
   afterImages: HospitalReviewMediaAsset[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const images = [
     ...beforeImages.map((image, index) => ({ image, label: "전", index })),

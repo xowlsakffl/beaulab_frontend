@@ -5,6 +5,7 @@ import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel"
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, CATEGORY_USAGES, type CategoryApiItem } from "@/lib/common/category";
+import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import {
   DEFAULT_FILTERS,
   DOCTORS_PER_PAGE,
@@ -38,8 +39,6 @@ type CategoryFilterOption = {
   value: string;
   label: string;
 };
-
-let cachedDoctorCategoryOptions: CategoryFilterOption[] | null = null;
 
 function normalizeDoctorCategoryOptions(items: CategoryApiItem[]): CategoryFilterOption[] {
   const groupedOptions = items
@@ -154,26 +153,13 @@ export default function DoctorsTableClient() {
   });
 
   const fetchCategoryOptions = React.useCallback(async () => {
-    if (cachedDoctorCategoryOptions) {
-      setCategoryOptions(cachedDoctorCategoryOptions);
-      return;
-    }
-
     try {
-      const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+      const items = await fetchCategorySelectorItems({
         domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
         usage: CATEGORY_USAGES.HOSPITAL_DOCTOR_SUBJECT,
-        status: ["ACTIVE"],
       });
 
-      if (!isApiSuccess(response)) {
-        setCategoryOptions([]);
-        return;
-      }
-
-      const options = normalizeDoctorCategoryOptions(response.data);
-      cachedDoctorCategoryOptions = options;
-      setCategoryOptions(options);
+      setCategoryOptions(normalizeDoctorCategoryOptions(items));
     } catch {
       setCategoryOptions([]);
     }

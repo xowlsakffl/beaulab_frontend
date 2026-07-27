@@ -4,26 +4,26 @@ import React from "react";
 
 import { ChevronLeft, ChevronRight, Modal, ModalBody, ModalHeader, ModalPanel, ModalTitle } from "@beaulab/ui-admin";
 
-export type HospitalMediaPreviewItem = {
+export type MediaPreviewItem = {
   url: string;
   title: string;
   isImage: boolean;
 };
 
-export type HospitalMediaPreviewState = HospitalMediaPreviewItem & {
-  items?: HospitalMediaPreviewItem[];
+export type MediaPreviewState = MediaPreviewItem & {
+  items?: MediaPreviewItem[];
   index?: number;
 };
 
-const EMPTY_MEDIA_PREVIEW_ITEMS: HospitalMediaPreviewItem[] = [];
+const EMPTY_MEDIA_PREVIEW_ITEMS: MediaPreviewItem[] = [];
 
-type HospitalMediaPreviewModalProps = {
-  preview: HospitalMediaPreviewState | null;
-  onChange: (preview: HospitalMediaPreviewState) => void;
+type MediaPreviewModalProps = {
+  preview: MediaPreviewState | null;
+  onChange: (preview: MediaPreviewState) => void;
   onClose: () => void;
 };
 
-export function HospitalMediaPreviewModal({ preview, onChange, onClose }: HospitalMediaPreviewModalProps) {
+export function MediaPreviewModal({ preview, onChange, onClose }: MediaPreviewModalProps) {
   const items = preview?.items?.length ? preview.items : EMPTY_MEDIA_PREVIEW_ITEMS;
   const activeIndex = preview?.index ?? 0;
   const canNavigate = Boolean(preview && items.length > 1);
@@ -123,11 +123,9 @@ export function HospitalMediaPreviewModal({ preview, onChange, onClose }: Hospit
               ) : null}
             </div>
           ) : (
-            <iframe
-              src={currentPreview.url}
-              title={currentPreview.title}
-              className="h-[76vh] w-full rounded-xl border border-gray-200 bg-white"
-            />
+            <div className="flex min-h-[40vh] items-center justify-center text-sm font-semibold text-gray-500">
+              원본보기를 지원하지 않는 파일입니다.
+            </div>
           )}
         </ModalBody>
       </ModalPanel>

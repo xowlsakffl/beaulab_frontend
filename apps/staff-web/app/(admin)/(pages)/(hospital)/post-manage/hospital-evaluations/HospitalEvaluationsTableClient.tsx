@@ -11,7 +11,7 @@ import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
-import type { CategoryApiItem } from "@/lib/common/category";
+import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_HOSPITAL_EVALUATION_FILTERS,
@@ -124,20 +124,15 @@ export function HospitalEvaluationsTableClient() {
 
     async function fetchReviewTypeOptions() {
       try {
-        const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+        const items = await fetchCategorySelectorItems({
           domain: "HOSPITAL_EVALUATION",
-          status: ["ACTIVE"],
-          per_page: 10,
+          perPage: 10,
         });
-
-        if (!isApiSuccess(response)) {
-          throw new Error(response.error.message || "후기유형 필터를 불러오지 못했습니다.");
-        }
 
         if (cancelled) return;
 
         setReviewTypeOptions(
-          response.data.map((item) => ({
+          items.map((item) => ({
             value: String(item.id),
             label: item.name,
           })),

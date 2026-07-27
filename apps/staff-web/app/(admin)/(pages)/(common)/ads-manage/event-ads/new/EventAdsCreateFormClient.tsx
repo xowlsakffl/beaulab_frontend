@@ -12,7 +12,8 @@ import { EventAdFormStep } from "@/components/hospital-event-ad/form/EventAdForm
 import { EventAdPlacementStep } from "@/components/hospital-event-ad/form/EventAdPlacementStep";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
-import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
+import { CATEGORY_DOMAINS } from "@/lib/common/category";
+import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
 import { type HospitalEventApiItem } from "@/lib/hospital-event/list";
@@ -125,21 +126,15 @@ export default function EventAdsCreateFormClient() {
     setCategoryOptions([]);
 
     try {
-      const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+      const items = await fetchCategorySelectorItems({
         domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
         usage: placement.category_usage,
-        status: ["ACTIVE"],
-        per_page: 100,
+        perPage: 100,
       });
 
-      if (!isApiSuccess(response)) {
-        setCategoryLoadError(response.error.message || "카테고리 목록을 불러오지 못했습니다.");
-        return;
-      }
-
-      setCategoryOptions(normalizeEventAdCategoryOptions(placement.category_usage, response.data));
-    } catch {
-      setCategoryLoadError("카테고리 목록을 불러오는 중 오류가 발생했습니다.");
+      setCategoryOptions(normalizeEventAdCategoryOptions(placement.category_usage, items));
+    } catch (error) {
+      setCategoryLoadError(error instanceof Error ? error.message : "카테고리 목록을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setIsLoadingCategories(false);
     }

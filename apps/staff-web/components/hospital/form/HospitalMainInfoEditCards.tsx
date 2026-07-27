@@ -3,7 +3,7 @@
 import React from "react";
 import { Button, Card, InputField, Select, StatusBadge } from "@beaulab/ui-admin";
 
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
 import { getMediaFilename, isImageMedia, resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
@@ -61,7 +61,7 @@ export function HospitalMainInfoEditCard({
   onBusinessRegistrationFileChange: (file: File | null) => void;
   onExistingCertificateChange?: (hasFile: boolean) => void;
   onOpenAddressSearch: (field: HospitalAddressField, detailFieldId: HospitalAddressDetailField) => Promise<void>;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const isCreate = mode === "create";
 
@@ -297,7 +297,7 @@ function BusinessCertificateEditField({
   error?: string;
   onFileChange: (file: File | null) => void;
   onExistingCertificateChange?: (hasFile: boolean) => void;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(file);

@@ -3,7 +3,7 @@
 import React from "react";
 import type { ExistingMediaItem } from "@beaulab/ui-admin";
 
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { type DoctorFieldName, validateDoctorProfileImageFile } from "@/lib/doctor/form";
 
 type UseDoctorMediaStateParams = {
@@ -18,7 +18,7 @@ export function useDoctorMediaState({ clearError }: UseDoctorMediaStateParams) {
   const [existingLicenseImage, setExistingLicenseImage] = React.useState<ExistingMediaItem | null>(null);
   const [existingSpecialistCertificateImage, setExistingSpecialistCertificateImage] =
     React.useState<ExistingMediaItem | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [uploadModalMessage, setUploadModalMessage] = React.useState<string | null>(null);
 
   const handleProfileImageChange = React.useCallback(

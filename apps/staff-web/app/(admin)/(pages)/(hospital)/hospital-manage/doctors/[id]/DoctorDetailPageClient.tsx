@@ -6,10 +6,7 @@ import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { resolveDoctorMediaUrl, type DoctorDetailResponse, type DoctorMediaAsset } from "@/lib/doctor/detail";
@@ -44,7 +41,7 @@ export default function DoctorDetailPageClient() {
   const [detail, setDetail] = React.useState<DoctorDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [updatingAllowStatus, setUpdatingAllowStatus] = React.useState(false);
   const [allowStatusError, setAllowStatusError] = React.useState<string | null>(null);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
@@ -200,11 +197,7 @@ export default function DoctorDetailPageClient() {
         </div>
       </section>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
         subjectLabel="해당 의료진을"
@@ -253,7 +246,7 @@ function ProfilePhotoCard({
 }: {
   media: DoctorMediaAsset | null;
   doctorName: string;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveDoctorMediaUrl(media);
   const isImage = isImageDoctorMedia(media);
@@ -293,7 +286,7 @@ function DoctorBasicInfoCard({
   onPreview,
 }: {
   detail: DoctorDetailResponse;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card className={`${infoCardClassName} flex min-h-[18rem] flex-col`}>
@@ -361,7 +354,7 @@ function PreviewButton({
 }: {
   title: string;
   media: DoctorMediaAsset | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveDoctorMediaUrl(media);
   if (!mediaUrl) return null;

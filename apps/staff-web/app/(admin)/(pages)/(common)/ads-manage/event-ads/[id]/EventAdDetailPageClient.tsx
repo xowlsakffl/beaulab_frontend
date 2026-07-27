@@ -20,16 +20,13 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { AdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryCard, type OperationHistoryListItem } from "@/components/common/OperationHistoryCard";
 import type { OperationHistoryChangeLike } from "@/components/common/OperationHistoryDisplay";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
@@ -62,8 +59,6 @@ const HISTORY_PER_PAGE = 10;
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
-const stateBoxClassName =
-  "flex min-h-24 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500";
 
 export default function EventAdDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -78,7 +73,7 @@ export default function EventAdDetailPageClient() {
   const [detail, setDetail] = React.useState<EventAdApiItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [notes, setNotes] = React.useState<AdminNoteItem[]>([]);
   const [notesLoading, setNotesLoading] = React.useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = React.useState(false);
@@ -319,7 +314,13 @@ export default function EventAdDetailPageClient() {
         </div>
 
         <aside className="min-w-0 space-y-4">
-          <AdminNotesCard notes={notes} loading={notesLoading} onAdd={() => setIsNoteModalOpen(true)} />
+          <AdminNotesCard
+            notes={notes}
+            loading={notesLoading}
+            onAdd={() => setIsNoteModalOpen(true)}
+            formatDateTime={formatShortDateTime}
+            className={cardClassName}
+          />
           <OperationHistoryCard
             histories={histories}
             meta={historyMeta}
@@ -333,11 +334,7 @@ export default function EventAdDetailPageClient() {
         </aside>
       </section>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
         subjectLabel="해당 광고를"
@@ -373,7 +370,7 @@ function EventAdMainCard({
   detail: EventAdApiItem;
   updating: boolean;
   onAllowStatusChange: (status: string) => void;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card className={cardClassName}>
@@ -448,7 +445,7 @@ function EventAdImageCard({
   onPreview,
 }: {
   media: EventAdMediaAsset | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveEventAdMediaUrl(media, "original");
 
@@ -479,32 +476,6 @@ function EventAdImageCard({
         </button>
       </div>
     </div>
-  );
-}
-
-function AdminNotesCard({ notes, loading, onAdd }: { notes: AdminNoteItem[]; loading: boolean; onAdd: () => void }) {
-  return (
-    <Card className={cardClassName}>
-      <div className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
-        <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
-        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} className="absolute top-0 right-0" />
-      </div>
-      {loading ? (
-        <div className={stateBoxClassName}>메모를 불러오는 중입니다.</div>
-      ) : notes.length > 0 ? (
-        <div className="max-h-44 min-h-24 space-y-3 overflow-y-auto pr-1">
-          {notes.map((note) => (
-            <div key={note.id} className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600">
-              <span>{formatShortDateTime(note.created_at)}</span>
-              <span>{note.creator_name || "-"}</span>
-              <span className="break-words">{note.note || "-"}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className={stateBoxClassName}>등록된 관리자 메모가 없습니다.</div>
-      )}
-    </Card>
   );
 }
 

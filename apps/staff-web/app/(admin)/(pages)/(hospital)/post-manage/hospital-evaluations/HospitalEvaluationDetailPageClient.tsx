@@ -24,10 +24,7 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
@@ -148,7 +145,7 @@ export default function HospitalEvaluationDetailPageClient() {
   const [receiptModalError, setReceiptModalError] = React.useState<string | null>(null);
   const [visibilityUpdating, setVisibilityUpdating] = React.useState(false);
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const hasLoadedRef = React.useRef(false);
 
   const syncDetailQuery = React.useCallback(
@@ -489,11 +486,7 @@ export default function HospitalEvaluationDetailPageClient() {
         onConfirm={() => void confirmVisibilityChange()}
       />
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -547,7 +540,7 @@ function HospitalEvaluationContentCard({
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -773,7 +766,7 @@ function ReceiptVerificationModal({
   onRejectReasonChange: (value: string) => void;
   onRejectReasonTextChange: (value: string) => void;
   onSubmit: () => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const imageUrl = resolveHospitalEvaluationMediaUrl(image);
   const isVerifyCurrent = currentStatus === RECEIPT_STATUS_VERIFIED;
@@ -899,7 +892,7 @@ function ImageGallery({
 }: {
   title: string;
   images: HospitalEvaluationMediaAsset[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const galleryItems: DetailImageGalleryItem[] = images.map((image, index) => ({
     id: image.id ?? `hospital-evaluation-image-${index}`,

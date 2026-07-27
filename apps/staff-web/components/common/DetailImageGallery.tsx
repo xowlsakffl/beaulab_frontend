@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 
 export type DetailImageGalleryItem = {
   id: string | number;
@@ -16,7 +16,7 @@ type DetailImageGalleryProps = {
   items: DetailImageGalleryItem[];
   empty: React.ReactNode;
   layout?: "grid" | "scroll";
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 };
 
 export function DetailImageGallery({ title, items, empty, layout = "scroll", onPreview }: DetailImageGalleryProps) {

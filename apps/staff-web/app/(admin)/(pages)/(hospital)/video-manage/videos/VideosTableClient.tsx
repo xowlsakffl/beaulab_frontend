@@ -12,6 +12,7 @@ import { VideosSummaryCards } from "@/components/video/list/VideosSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
+import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import {
   DEFAULT_FILTERS,
   VIDEO_CATEGORY_USAGES,
@@ -40,16 +41,6 @@ type SelectOption = {
   value: string;
   label: string;
 };
-
-const CATEGORY_ITEMS_CACHE_TTL_MS = 5 * 60 * 1000;
-const categoryItemsCache = new Map<string, { expiresAt: number; items: CategoryApiItem[] }>();
-
-function buildCategoryItemsCacheKey(params: Record<string, string | number>) {
-  return Object.entries(params)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key}:${value}`)
-    .join("|");
-}
 
 function cloneDefaultFilters(): Filters {
   return {
@@ -170,31 +161,12 @@ export default function VideosTableClient() {
 
   const fetchCategoryItems = React.useCallback(
     async (params: Record<string, string | number>): Promise<CategoryApiItem[]> => {
-      const queryParams = {
+      return fetchCategorySelectorItems({
         domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
-        status: "ACTIVE",
-        per_page: 100,
-        ...params,
-      };
-      const cacheKey = buildCategoryItemsCacheKey(queryParams);
-      const cachedItems = categoryItemsCache.get(cacheKey);
-
-      if (cachedItems && cachedItems.expiresAt > Date.now()) {
-        return cachedItems.items;
-      }
-
-      const response = await api.get<CategoryApiItem[]>("/categories/selector", queryParams);
-
-      if (!isApiSuccess(response)) {
-        throw new Error(response.error.message || "카테고리 필터를 불러오지 못했습니다.");
-      }
-
-      categoryItemsCache.set(cacheKey, {
-        expiresAt: Date.now() + CATEGORY_ITEMS_CACHE_TTL_MS,
-        items: response.data,
+        usage: typeof params.usage === "string" ? params.usage : null,
+        parentId: params.parent_id ?? null,
+        perPage: 100,
       });
-
-      return response.data;
     },
     [],
   );

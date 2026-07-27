@@ -2,10 +2,10 @@
 
 import React from "react";
 
-import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { AdminNotesCard as CommonAdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import {
   formatHospitalEventPoint,
   formatHospitalEventPrice,
@@ -69,8 +69,6 @@ export type OperationHistoryItem = {
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
-const stateBoxClassName =
-  "flex min-h-24 items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500";
 
 export function EventMainCard({
   detail,
@@ -171,27 +169,13 @@ export function AdminNotesCard({
   onAdd: () => void;
 }) {
   return (
-    <Card className={cardClassName}>
-      <div className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
-        <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
-        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} className="absolute top-0 right-0" />
-      </div>
-      {loading ? (
-        <div className={stateBoxClassName}>메모를 불러오는 중입니다.</div>
-      ) : notes.length > 0 ? (
-        <div className="max-h-44 min-h-24 space-y-3 overflow-y-auto pr-1">
-          {notes.map((note) => (
-            <div key={note.id} className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600">
-              <span>{formatDateTime(note.created_at)}</span>
-              <span>{note.creator_name || "-"}</span>
-              <span className="break-words">{note.note || "-"}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className={stateBoxClassName}>등록된 관리자 메모가 없습니다.</div>
-      )}
-    </Card>
+    <CommonAdminNotesCard
+      notes={notes}
+      loading={loading}
+      onAdd={onAdd}
+      formatDateTime={formatDateTime}
+      className={cardClassName}
+    />
   );
 }
 
@@ -224,7 +208,7 @@ export function EventMediaColumn({
   onPreview,
 }: {
   detail: HospitalEventApiItem;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   return (
     <div className="min-w-0 space-y-4">
@@ -257,7 +241,7 @@ function MediaPreviewCard({
   title: string;
   helper: string;
   media: HospitalEventMedia | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
   tall?: boolean;
 }) {
   const mediaUrl = resolveHospitalEventMediaUrl(media, "original");

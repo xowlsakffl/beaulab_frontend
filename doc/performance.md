@@ -43,6 +43,12 @@
 - 광고 위치
 - 이벤트/병원 검색 option 중 짧은 TTL이 맞는 데이터
 
+구현 기준:
+
+- 카테고리 selector는 `apps/staff-web/lib/common/category-selector.ts`의 `fetchCategorySelectorItems()`를 사용한다.
+- 병원/의료진/해시태그처럼 검색형 option은 전용 hook 안에서 debounce, request id, 짧은 TTL 캐시를 함께 처리한다.
+- 컴포넌트 파일에 `Map` 캐시를 직접 만들지 않는다. 공통 helper 또는 도메인 option hook으로 뺀다.
+
 주의:
 
 - 권한/상태에 따라 결과가 달라지는 API는 cache key에 조건을 포함한다.

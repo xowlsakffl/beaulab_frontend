@@ -3,6 +3,12 @@ import type { DateRange } from "react-day-picker";
 
 import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
+import {
+  adminStatusColor,
+  labelAdminStatus,
+  labelOwnerVisibilityStatus,
+  ownerVisibilityStatusColor,
+} from "@/lib/common/status-labels";
 
 type MediaAsset = {
   path?: string | null;
@@ -341,25 +347,22 @@ function expandVideoReportStatuses(statuses: string[]) {
 }
 
 export function labelVideoHospitalStatus(status?: string | null, fallbackLabel = "-") {
-  if (status === "PUBLIC" || status === "공개") return "공개";
-  if (status === "PRIVATE" || status === "미공개" || status === "비공개") return "미공개";
-
-  return status?.trim() || fallbackLabel;
+  return labelOwnerVisibilityStatus(status, {
+    privateLabel: "미공개",
+    fallbackLabel,
+  });
 }
 
 export function videoHospitalStatusColor(status?: string | null): BadgeColor {
-  return status === "PRIVATE" || status === "미공개" || status === "비공개" ? "error" : "success";
+  return ownerVisibilityStatusColor(status);
 }
 
 export function labelVideoAdminStatus(status?: string | null, fallbackLabel = "-") {
-  if (status === "NORMAL" || status === "정상") return "정상";
-  if (status === "FORCED_STOPPED" || status === "강제중지") return "강제중지";
-
-  return status?.trim() || fallbackLabel;
+  return labelAdminStatus(status, fallbackLabel);
 }
 
 export function videoAdminStatusColor(status?: string | null): BadgeColor {
-  return status === "FORCED_STOPPED" || status === "강제중지" ? "error" : "success";
+  return adminStatusColor(status);
 }
 
 export function labelVideoReportStatus(status?: string | null, fallbackLabel = "-") {

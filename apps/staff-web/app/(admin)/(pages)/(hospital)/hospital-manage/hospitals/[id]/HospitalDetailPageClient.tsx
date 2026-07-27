@@ -4,16 +4,16 @@ import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 
-import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { AdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewItem,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+  MediaPreviewModal,
+  type MediaPreviewItem,
+  type MediaPreviewState,
+} from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
@@ -106,7 +106,7 @@ export default function HospitalDetailPageClient() {
   const [detail, setDetail] = React.useState<HospitalDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [isActionMenuOpen, setIsActionMenuOpen] = React.useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = React.useState(false);
   const [isActivateModalOpen, setIsActivateModalOpen] = React.useState(false);
@@ -491,13 +491,15 @@ export default function HospitalDetailPageClient() {
           loading={historiesLoading}
           onPageChange={setHistoryPage}
         />
-        <AdminNotesCard notes={notes} loading={notesLoading} onAdd={() => setIsNoteModalOpen(true)} />
+        <AdminNotesCard
+          notes={notes}
+          loading={notesLoading}
+          onAdd={() => setIsNoteModalOpen(true)}
+          formatDateTime={formatDateTime}
+          className={cardClassName}
+        />
       </section>
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
         subjectLabel="해당 병의원을"
@@ -569,7 +571,7 @@ function HospitalLogoCard({
   logo: MediaAsset | null;
   hospitalName: string;
   className?: string;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const logoUrl = resolveMediaUrl(logo);
   const isImage = isImageMedia(logo);
@@ -626,7 +628,7 @@ function HospitalInfoCard({
   onOpenSuspendModal: () => void;
   onOpenActivateModal: () => void;
   statusUpdating: boolean;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const statusHistoryText = buildStatusHistoryText(detail);
   const isSuspended = detail.status === "SUSPENDED";
@@ -792,11 +794,11 @@ function HospitalImagesCard({
   onPreview,
 }: {
   detail: HospitalDetailResponse;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const gallery = detail.gallery ?? [];
   const previewIndexByGalleryIndex = new Map<number, number>();
-  const previewItems = gallery.reduce<HospitalMediaPreviewItem[]>((items, media, index) => {
+  const previewItems = gallery.reduce<MediaPreviewItem[]>((items, media, index) => {
     const mediaUrl = resolveMediaUrl(media);
     if (!mediaUrl || !isImageMedia(media)) return items;
 
@@ -847,9 +849,9 @@ function HospitalImageTile({
   media: MediaAsset;
   index: number;
   isRepresentative: boolean;
-  previewItems: HospitalMediaPreviewItem[];
+  previewItems: MediaPreviewItem[];
   previewIndex: number | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveMediaUrl(media);
   const isImage = isImageMedia(media);
@@ -943,34 +945,6 @@ function OperationHistoryCard({
       allowStatusLabel={labelReviewStatus}
       changeValueDisplay={historyChangeDisplay}
     />
-  );
-}
-
-function AdminNotesCard({ notes, loading, onAdd }: { notes: AdminNoteItem[]; loading: boolean; onAdd: () => void }) {
-  return (
-    <Card className={cardClassName}>
-      <div className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
-        <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
-        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} className="absolute top-0 right-0" />
-      </div>
-      {loading ? (
-        <p className="text-sm text-gray-500">메모를 불러오는 중입니다.</p>
-      ) : notes.length > 0 ? (
-        <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
-          {notes.map((note) => (
-            <div key={note.id} className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600">
-              <span>{formatDateTime(note.created_at)}</span>
-              <span>{note.creator_name || "-"}</span>
-              <span className="break-words">{note.note || "-"}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          등록된 관리자 메모가 없습니다.
-        </div>
-      )}
-    </Card>
   );
 }
 
@@ -1086,7 +1060,7 @@ function CertificatePreviewField({
   onPreview,
 }: {
   media?: MediaAsset | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveMediaUrl(media);
   const displayValue = mediaLabel(media);

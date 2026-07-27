@@ -20,7 +20,7 @@ import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { useVideoDoctorOptions } from "@/hooks/video/useVideoDoctorOptions";
 import { useVideoHashtagOptions } from "@/hooks/video/useVideoHashtagOptions";
 import { useVideoHospitalOptions } from "@/hooks/video/useVideoHospitalOptions";
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { groupMedicalCategorySelectorItems } from "@/lib/common/category";
 import { normalizeHashtagName, sanitizeHashtagName, validateHashtagName } from "@/lib/hashtag/list";
 import type { VideoCategoryItem, VideoHashtagItem } from "@/lib/video/detail";
@@ -61,7 +61,7 @@ type VideoBasicSectionProps = {
   onRemoveHashtagName: (name: string) => void;
   onThumbnailChange: (file: File | null) => void;
   onThumbnailValidationError?: (message: string) => void;
-  onThumbnailPreview?: (preview: HospitalMediaPreviewState) => void;
+  onThumbnailPreview?: (preview: MediaPreviewState) => void;
 };
 
 export function VideoBasicSection({
@@ -305,7 +305,7 @@ function VideoThumbnailPicker({
   error?: string;
   onChange: (file: File | null) => void;
   onValidationError?: (message: string) => void;
-  onPreview?: (preview: HospitalMediaPreviewState) => void;
+  onPreview?: (preview: MediaPreviewState) => void;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(file);

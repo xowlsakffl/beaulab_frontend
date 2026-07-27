@@ -31,10 +31,7 @@ import {
 } from "@/components/reported-content/detail/ReportedContentDetailPanel";
 import { ReportedOriginalHistoryCard } from "@/components/reported-content/detail/ReportedOriginalHistoryCard";
 import { VisibilityActionButtons, VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
@@ -251,7 +248,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const [receiptRejectReasonText, setReceiptRejectReasonText] = React.useState("");
   const [receiptUpdating, setReceiptUpdating] = React.useState(false);
   const [receiptModalError, setReceiptModalError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const hasLoadedRef = React.useRef(false);
 
   const syncDetailQuery = React.useCallback(
@@ -601,11 +598,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           onConfirm={() => void confirmReviewVisibilityChange()}
         />
 
-        <HospitalMediaPreviewModal
-          preview={previewMedia}
-          onChange={setPreviewMedia}
-          onClose={() => setPreviewMedia(null)}
-        />
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       </div>
     );
   }
@@ -671,11 +664,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           onConfirm={() => void confirmReviewVisibilityChange()}
         />
 
-        <HospitalMediaPreviewModal
-          preview={previewMedia}
-          onChange={setPreviewMedia}
-          onClose={() => setPreviewMedia(null)}
-        />
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       </div>
     );
   }
@@ -755,11 +744,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
           onPreviewMedia={setPreviewMedia}
         />
 
-        <HospitalMediaPreviewModal
-          preview={previewMedia}
-          onChange={setPreviewMedia}
-          onClose={() => setPreviewMedia(null)}
-        />
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       </div>
     );
   }
@@ -788,11 +773,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         />
       </div>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -823,7 +804,7 @@ function ReportedTalkContentCard({
   detail: TalkDetailResponse;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const pollOptions = detail.poll?.options ?? [];
   const totalPollVotes = pollOptions.reduce((sum, option) => sum + Number(option.vote_count ?? 0), 0);
@@ -888,7 +869,7 @@ function ReportedTalkImageGrid({
   onPreviewMedia,
 }: {
   images: TalkMediaAsset[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const items: DetailImageGalleryItem[] = images.map((image, index) => ({
     id: image.id ?? `reported-talk-image-${index}`,
@@ -975,7 +956,7 @@ function ReportedReviewContentCard({
   detail: HospitalReviewDetailResponse;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -1026,7 +1007,7 @@ function ReportedReviewImageGallery({
 }: {
   beforeImages: HospitalReviewMediaAsset[];
   afterImages: HospitalReviewMediaAsset[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const items: DetailImageGalleryItem[] = [
     ...beforeImages.map((image, index) => ({
@@ -1114,7 +1095,7 @@ function ReportedEvaluationContentCard({
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card as="section">
@@ -1288,7 +1269,7 @@ function ReportedEvaluationReceiptVerificationModal({
   onRejectReasonChange: (value: string) => void;
   onRejectReasonTextChange: (value: string) => void;
   onSubmit: () => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const imageUrl = resolveHospitalEvaluationMediaUrl(image);
   const isVerifyCurrent = currentStatus === RECEIPT_STATUS_VERIFIED;
@@ -1414,7 +1395,7 @@ function ReportedEvaluationImageGallery({
 }: {
   title: string;
   images: HospitalEvaluationMediaAsset[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const items: DetailImageGalleryItem[] = images.map((image, index) => ({
     id: image.id ?? `reported-hospital-evaluation-image-${index}`,
@@ -1536,7 +1517,7 @@ function renderOriginalSummary(config: ReportedContentDetailConfig, detail: Deta
 function renderOriginalContent(
   config: ReportedContentDetailConfig,
   detail: DetailResponse,
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void,
+  onPreviewMedia: (preview: MediaPreviewState) => void,
 ) {
   if (config.kind === "talk") {
     const talk = detail as TalkDetailResponse;
@@ -1639,7 +1620,7 @@ function ImageStrip<TImage>({
 }: {
   images: TImage[];
   resolveUrl: (image: TImage) => string | null;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const items: DetailImageGalleryItem[] = images.map((image, index) => ({
     id: getImageKey(image, index),

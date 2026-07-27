@@ -19,6 +19,7 @@ import {
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
+import { fetchHospitalEventCategoryFilterOptions } from "@/lib/hospital-event/category-filter-options";
 import {
   DEFAULT_HOSPITAL_EVENT_FILTERS,
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS,
@@ -46,11 +47,6 @@ import {
 type SelectOption = {
   value: string;
   label: string;
-};
-
-type HospitalEventCategoryFilterOptionsResponse = {
-  major_categories?: CategoryApiItem[] | null;
-  middle_categories_by_parent?: Record<string, CategoryApiItem[]> | null;
 };
 
 function cloneDefaultHospitalEventFilters(): HospitalEventFilters {
@@ -249,16 +245,10 @@ export default function HospitalEventsTableClient() {
 
   const loadCategoryFilterOptions = React.useCallback(async () => {
     try {
-      const response = await api.get<HospitalEventCategoryFilterOptionsResponse>(
-        "/hospital-events/category-filter-options",
-      );
+      const options = await fetchHospitalEventCategoryFilterOptions();
 
-      if (!isApiSuccess(response)) {
-        throw new Error(response.error.message || "카테고리 필터를 불러오지 못했습니다.");
-      }
-
-      setMajorCategoryItems(response.data.major_categories ?? []);
-      setMiddleCategoryItemsByParent(response.data.middle_categories_by_parent ?? {});
+      setMajorCategoryItems(options.major_categories);
+      setMiddleCategoryItemsByParent(options.middle_categories_by_parent);
     } catch {
       setMajorCategoryItems([]);
       setMiddleCategoryItemsByParent({});

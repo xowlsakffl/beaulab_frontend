@@ -16,10 +16,7 @@ import {
 import { api } from "@/lib/common/api";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
@@ -97,7 +94,7 @@ export default function TalkDetailPageClient() {
   const [talkVisibilityUpdating, setTalkVisibilityUpdating] = React.useState(false);
   const [commentVisibilityUpdatingIds, setCommentVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
   const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [expandedCommentHistoryIds, setExpandedCommentHistoryIds] = React.useState<Set<number>>(() => new Set());
   const hasLoadedRef = React.useRef(false);
 
@@ -501,11 +498,7 @@ export default function TalkDetailPageClient() {
         onConfirm={() => void confirmVisibilityChange()}
       />
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -538,7 +531,7 @@ function TalkContentCard({
   visibilityLocked: boolean;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const pollOptions = detail.poll?.options ?? [];
   const totalPollVotes = pollOptions.reduce((sum, option) => sum + Number(option.vote_count ?? 0), 0);
@@ -843,7 +836,7 @@ function TalkImageGrid({
   onPreviewMedia,
 }: {
   images: TalkMediaAsset[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const galleryItems: DetailImageGalleryItem[] = images.map((image, index) => ({
     id: image.id ?? `talk-image-${index}`,

@@ -24,6 +24,7 @@ import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButt
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
+import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
@@ -279,20 +280,12 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
 
   const fetchCategoryItems = React.useCallback(
     async (parentId?: string | number | null, perPage = 100): Promise<CategoryApiItem[]> => {
-      const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+      return fetchCategorySelectorItems({
         domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
-        status: ["ACTIVE"],
-        per_page: perPage,
-        ...(parentId !== undefined && parentId !== null && String(parentId) !== ""
-          ? { parent_id: parentId }
-          : { usage: config.categoryUsage }),
+        usage: parentId !== undefined && parentId !== null && String(parentId) !== "" ? null : config.categoryUsage,
+        parentId: parentId !== undefined && parentId !== null && String(parentId) !== "" ? parentId : null,
+        perPage,
       });
-
-      if (!isApiSuccess(response)) {
-        throw new Error(response.error.message || "카테고리 필터를 불러오지 못했습니다.");
-      }
-
-      return response.data;
     },
     [config.categoryUsage],
   );

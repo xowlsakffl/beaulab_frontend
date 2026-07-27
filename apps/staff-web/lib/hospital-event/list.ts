@@ -7,6 +7,12 @@ import {
   REVIEW_ALLOW_STATUS_OPTIONS,
   reviewAllowStatusColor,
 } from "@/lib/common/review-status";
+import {
+  adminStatusColor,
+  labelAdminStatus,
+  labelOwnerVisibilityStatus,
+  ownerVisibilityStatusColor,
+} from "@/lib/common/status-labels";
 
 export type HospitalEventCategory = {
   id?: number | null;
@@ -295,25 +301,19 @@ export function resolveHospitalEventMediaUrl(
 }
 
 export function labelHospitalEventHospitalStatus(status?: string | null) {
-  if (status === "PRIVATE" || status === "비공개") return "비공개";
-  if (status === "PUBLIC" || status === "공개") return "공개";
-
-  return status?.trim() || "-";
+  return labelOwnerVisibilityStatus(status);
 }
 
 export function hospitalEventHospitalStatusColor(status?: string | null): BadgeColor {
-  return status === "PRIVATE" || status === "비공개" ? "error" : "success";
+  return ownerVisibilityStatusColor(status);
 }
 
 export function labelHospitalEventAdminStatus(status?: string | null) {
-  if (status === "FORCED_STOPPED" || status === "강제중지") return "강제중지";
-  if (status === "NORMAL" || status === "정상") return "정상";
-
-  return status?.trim() || "-";
+  return labelAdminStatus(status);
 }
 
 export function hospitalEventAdminStatusColor(status?: string | null): BadgeColor {
-  return status === "FORCED_STOPPED" || status === "강제중지" ? "error" : "success";
+  return adminStatusColor(status);
 }
 
 export function labelHospitalEventAllowStatus(status?: string | null) {

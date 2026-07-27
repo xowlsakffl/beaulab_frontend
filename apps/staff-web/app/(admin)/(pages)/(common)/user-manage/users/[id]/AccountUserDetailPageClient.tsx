@@ -23,7 +23,7 @@ import {
   StatusBadge,
 } from "@beaulab/ui-admin";
 
-import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { AdminNotesCard } from "@/components/common/AdminNotesCard";
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
@@ -290,7 +290,7 @@ export default function AccountUserDetailPageClient() {
           />
           <ConsultationInfoCard user={user} />
           <NotificationSettingsCard user={user} />
-          <AdminMemoCard notes={notes} onOpenNoteModal={openNoteModal} />
+          <AdminNotesCard notes={notes} onAdd={openNoteModal} formatDateTime={formatAccountUserDetailDateTime} />
         </div>
 
         <div className="min-w-0 space-y-5">
@@ -486,39 +486,6 @@ function NotificationSettingsCard({ user }: { user: AccountUserDetail }) {
             <AgreementRow label="푸시" value={settings?.marketing_push_agreed} />
             <AgreementRow label="야간푸시" value={settings?.marketing_night_push_agreed} />
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AdminMemoCard({ notes, onOpenNoteModal }: { notes: AdminNoteItem[]; onOpenNoteModal: () => void }) {
-  return (
-    <Card>
-      <CardHeader className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
-        <CardTitle className="font-bold text-gray-900">관리자 메모</CardTitle>
-        <AddCircleButton label="관리자 메모 추가" onClick={onOpenNoteModal} className="absolute top-0 right-0" />
-      </CardHeader>
-      <CardContent>
-        <div className="max-h-44 overflow-y-auto pr-1">
-          {notes.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-              등록된 관리자 메모가 없습니다.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {notes.map((note) => (
-                <div
-                  key={note.id ?? `${note.created_at}-${note.note}`}
-                  className="grid grid-cols-[6.5rem_5rem_minmax(0,1fr)] gap-3 text-xs text-gray-600"
-                >
-                  <span>{formatAccountUserDetailDateTime(note.created_at)}</span>
-                  <span>{note.creator_name || "-"}</span>
-                  <span className="break-words">{note.note || "-"}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

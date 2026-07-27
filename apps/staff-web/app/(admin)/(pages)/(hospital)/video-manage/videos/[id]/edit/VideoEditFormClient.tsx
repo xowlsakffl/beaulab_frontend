@@ -6,10 +6,7 @@ import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { VideoBasicSection } from "@/components/video/form/VideoBasicSection";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
@@ -52,7 +49,7 @@ export default function VideoEditFormClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
 
   const detailPath = React.useMemo(() => {
     if (!Number.isFinite(videoId) || videoId <= 0) return "/video-manage/videos";
@@ -320,11 +317,7 @@ export default function VideoEditFormClient() {
           onThumbnailPreview={setPreviewMedia}
         />
       </form>
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import type { HospitalEventMedia } from "@/lib/hospital-event/list";
 
 export function useHospitalEventMediaState() {
@@ -10,7 +10,7 @@ export function useHospitalEventMediaState() {
   const [eventPageImage, setEventPageImage] = React.useState<File | null>(null);
   const [existingThumbnailImage, setExistingThumbnailImage] = React.useState<HospitalEventMedia | null>(null);
   const [existingEventPageImage, setExistingEventPageImage] = React.useState<HospitalEventMedia | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [isAppPreviewOpen, setIsAppPreviewOpen] = React.useState(false);
   const [uploadWarning, setUploadWarning] = React.useState<string | null>(null);
 

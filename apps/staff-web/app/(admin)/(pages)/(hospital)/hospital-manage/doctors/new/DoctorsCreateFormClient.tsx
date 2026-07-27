@@ -8,7 +8,7 @@ import {
   ProfileImageEditor,
   RepeaterPanel,
 } from "@/components/doctor/form/DoctorFormEditorPanels";
-import { HospitalMediaPreviewModal } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal } from "@/components/common/MediaPreviewModal";
 import { useDoctorCategorySelection } from "@/hooks/doctor/useDoctorCategorySelection";
 import { useDoctorFieldFocus } from "@/hooks/doctor/useDoctorFieldFocus";
 import { useDoctorMediaState } from "@/hooks/doctor/useDoctorMediaState";
@@ -266,11 +266,7 @@ export default function DoctorsCreateFormClient() {
         </div>
       </section>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <Modal
         isOpen={Boolean(uploadModalMessage)}
         onClose={closeUploadModal}

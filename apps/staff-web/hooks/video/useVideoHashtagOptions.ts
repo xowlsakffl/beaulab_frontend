@@ -4,8 +4,12 @@ import React from "react";
 import { isApiSuccess } from "@beaulab/types";
 
 import { api } from "@/lib/common/api";
+import { getTimedCache, setTimedCache } from "@/lib/common/request-cache";
 import { sanitizeHashtagName } from "@/lib/hashtag/list";
 import type { VideoHashtagOption } from "@/lib/video/form";
+
+const VIDEO_HASHTAG_OPTIONS_CACHE_TTL_MS = 5 * 60 * 1000;
+const videoHashtagOptionsCache = new Map<string, { expiresAt: number; value: VideoHashtagOption[] }>();
 
 export function useVideoHashtagOptions(enabled: boolean, query: string) {
   const [options, setOptions] = React.useState<VideoHashtagOption[]>([]);
@@ -19,13 +23,23 @@ export function useVideoHashtagOptions(enabled: boolean, query: string) {
     const timer = window.setTimeout(async () => {
       requestIdRef.current += 1;
       const requestId = requestIdRef.current;
+      const sanitizedQuery = sanitizeHashtagName(query);
+      const cacheKey = sanitizedQuery;
+      const cachedOptions = getTimedCache(videoHashtagOptionsCache, cacheKey);
+
+      if (cachedOptions) {
+        setOptions(cachedOptions);
+        setIsLoading(false);
+        setError(null);
+        return;
+      }
 
       setIsLoading(true);
       setError(null);
 
       try {
         const response = await api.get<VideoHashtagOption[]>("/hashtags", {
-          q: sanitizeHashtagName(query) || undefined,
+          q: sanitizedQuery || undefined,
           status: "ACTIVE",
           per_page: 20,
         });
@@ -40,6 +54,7 @@ export function useVideoHashtagOptions(enabled: boolean, query: string) {
           return;
         }
 
+        setTimedCache(videoHashtagOptionsCache, cacheKey, response.data, VIDEO_HASHTAG_OPTIONS_CACHE_TTL_MS);
         setOptions(response.data);
       } catch {
         if (requestId !== requestIdRef.current) {

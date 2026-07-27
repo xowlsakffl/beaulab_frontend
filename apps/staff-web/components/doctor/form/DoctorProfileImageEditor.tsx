@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { Button, Card, type ExistingMediaItem } from "@beaulab/ui-admin";
 
@@ -16,7 +16,7 @@ export function ProfileImageEditor({
   file: File | null;
   existingImage: ExistingMediaItem | null;
   error?: string;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
   onChange: (file: File | null) => void | Promise<void>;
 }) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);

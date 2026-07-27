@@ -13,10 +13,7 @@ import {
 } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
@@ -56,7 +53,7 @@ export default function HospitalEntryDetailPageClient() {
   const [detail, setDetail] = React.useState<HospitalEntryDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [updatingStatus, setUpdatingStatus] = React.useState(false);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
   const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
@@ -214,11 +211,7 @@ export default function HospitalEntryDetailPageClient() {
 
       <HospitalEntryAllowStatusCard detail={detail} updating={updatingStatus} onChange={requestAllowStatus} />
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={pendingAllowStatusChange}
         title="검수상태 변경"
@@ -242,7 +235,7 @@ function HospitalEntryHospitalInfoCard({
   onPreview,
 }: {
   detail: HospitalEntryDetailResponse;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card className={`${infoCardClassName} h-full min-h-[18rem]`}>
@@ -358,7 +351,7 @@ function FileInfoRow({
   label: string;
   title: string;
   media: HospitalEntryMediaAsset | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveHospitalEntryMediaUrl(media);
   const fileName = media ? getHospitalEntryMediaFilename(media) : "";

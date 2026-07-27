@@ -18,10 +18,7 @@ import {
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { api } from "@/lib/common/api";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
@@ -79,7 +76,7 @@ export default function ReportedChatDetailPageClient() {
   const [isWarningUnavailableModalOpen, setIsWarningUnavailableModalOpen] = React.useState(false);
   const [modalError, setModalError] = React.useState<string | null>(null);
   const [warningModalError, setWarningModalError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
 
   const fetchDetail = React.useCallback(async () => {
     if (!Number.isFinite(targetId) || targetId <= 0) {
@@ -386,11 +383,7 @@ export default function ReportedChatDetailPageClient() {
         </ModalPanel>
       </Modal>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
   );
 }
@@ -447,7 +440,7 @@ function ReportedChatMessagesCard({
 }: {
   messages: ReportedChatMessageDisplay[];
   reportReason: string;
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card>
@@ -495,7 +488,7 @@ function ChatMessageAttachmentGrid({
 }: {
   messageKey: string;
   attachments: ReportedChatMessageAttachment[];
-  onPreviewMedia: (preview: HospitalMediaPreviewState) => void;
+  onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
   const imageItems = attachments
     .map((attachment, index) => ({

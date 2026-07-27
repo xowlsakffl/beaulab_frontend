@@ -24,10 +24,7 @@ import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { type ReportedContentDetailReportItem, type ReportedContentReportsMeta } from "@/lib/reported-content/detail";
@@ -96,7 +93,7 @@ export default function VideoDetailPageClient() {
   const [detail, setDetail] = React.useState<VideoDetailResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [isForcedStopModalOpen, setIsForcedStopModalOpen] = React.useState(false);
   const [isNormalizeModalOpen, setIsNormalizeModalOpen] = React.useState(false);
   const [adminStatusReason, setAdminStatusReason] = React.useState("");
@@ -403,11 +400,7 @@ export default function VideoDetailPageClient() {
         />
       </section>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <AllowStatusConfirmModal
         pending={isForcedStopModalOpen ? { allowStatus: "FORCED_STOPPED", reason: adminStatusReason } : null}
         title="강제중지 처리"
@@ -465,7 +458,7 @@ function VideoThumbnailPreview({
   onPreview,
 }: {
   detail: VideoDetailResponse;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const thumbnailUrl = resolveVideoMediaUrl(detail.thumbnail_file);
   const isImage = Boolean(detail.thumbnail_file?.mime_type?.startsWith("image/") || thumbnailUrl);
@@ -502,7 +495,7 @@ function VideoInfoCard({
   onPreview,
 }: {
   detail: VideoDetailResponse;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card className={cardClassName}>

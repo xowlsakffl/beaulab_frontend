@@ -17,10 +17,10 @@ import {
 } from "@beaulab/ui-admin";
 
 import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewItem,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+  MediaPreviewModal,
+  type MediaPreviewItem,
+  type MediaPreviewState,
+} from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
@@ -58,7 +58,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
   const [updatingStatus, setUpdatingStatus] = React.useState<HospitalEventRealModelDBStatus | null>(null);
   const [statusError, setStatusError] = React.useState<string | null>(null);
   const [pendingStatus, setPendingStatus] = React.useState<HospitalEventRealModelDBStatus | null>(null);
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
 
   const fetchDetail = React.useCallback(async () => {
     if (!Number.isFinite(applicationId) || applicationId <= 0) {
@@ -210,11 +210,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
         </div>
       </div>
 
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
 
       <StatusConfirmModal
         status={pendingStatus}
@@ -445,10 +441,10 @@ function MemberImagesCard({
   onPreview,
 }: {
   images: HospitalEventRealModelDBMediaAsset[];
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const previewIndexByImageIndex = new Map<number, number>();
-  const previewItems = images.reduce<HospitalMediaPreviewItem[]>((items, image, index) => {
+  const previewItems = images.reduce<MediaPreviewItem[]>((items, image, index) => {
     const url = resolveHospitalEventRealModelDBMediaUrl(image, "original");
     if (!url || !isImageMedia(image)) return items;
 
@@ -496,9 +492,9 @@ function RealModelImageTile({
 }: {
   image: HospitalEventRealModelDBMediaAsset;
   index: number;
-  previewItems: HospitalMediaPreviewItem[];
+  previewItems: MediaPreviewItem[];
   previewIndex: number | null;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const mediaUrl = resolveHospitalEventRealModelDBMediaUrl(image, "thumb");
   const originalUrl = resolveHospitalEventRealModelDBMediaUrl(image, "original");

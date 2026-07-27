@@ -4,7 +4,7 @@ import React from "react";
 import { Button, Card, InputField, StatusBadge } from "@beaulab/ui-admin";
 
 import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
-import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import {
   getHospitalEntryMediaFilename,
@@ -54,7 +54,7 @@ export function HospitalEntryHospitalEditCard({
   onLicenseFileChange: (file: File | null) => void;
   onExistingBusinessFileChange: (hasFile: boolean) => void;
   onExistingLicenseFileChange: (hasFile: boolean) => void;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   return (
     <Card className={`${infoCardClassName} h-full min-h-[18rem]`}>
@@ -262,7 +262,7 @@ function FileEditRow({
   inputRef: React.RefObject<HTMLInputElement | null>;
   onFileChange: (file: File | null) => void;
   onExistingFileChange: (hasFile: boolean) => void;
-  onPreview: (preview: HospitalMediaPreviewState) => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const fileUrl = useObjectUrl(selectedFile);
   const existingUrl = resolveHospitalEntryMediaUrl(media);

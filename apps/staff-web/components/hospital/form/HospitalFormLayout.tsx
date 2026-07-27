@@ -2,10 +2,7 @@
 
 import React from "react";
 
-import {
-  HospitalMediaPreviewModal,
-  type HospitalMediaPreviewState,
-} from "@/components/hospital/media/HospitalMediaPreviewModal";
+import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import {
   HospitalBusinessAccountEditCard,
   HospitalMainInfoEditCard,
@@ -119,7 +116,7 @@ export function HospitalFormLayout({
   onToggleFeature,
 }: HospitalFormLayoutProps) {
   const isCreate = mode === "create";
-  const [previewMedia, setPreviewMedia] = React.useState<HospitalMediaPreviewState | null>(null);
+  const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const [imageUploadWarning, setImageUploadWarning] = React.useState<string | null>(null);
 
   return (
@@ -209,11 +206,7 @@ export function HospitalFormLayout({
 
         {isCreate ? null : <input type="hidden" name="mode" value="edit" readOnly />}
       </form>
-      <HospitalMediaPreviewModal
-        preview={previewMedia}
-        onChange={setPreviewMedia}
-        onClose={() => setPreviewMedia(null)}
-      />
+      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
       <Modal
         isOpen={Boolean(imageUploadWarning)}
         onClose={() => setImageUploadWarning(null)}

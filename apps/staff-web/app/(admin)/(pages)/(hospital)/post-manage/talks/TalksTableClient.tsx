@@ -23,7 +23,7 @@ import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api, downloadFile } from "@/lib/common/api";
-import type { CategoryApiItem } from "@/lib/common/category";
+import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import {
   DEFAULT_TALK_COMMENT_SORT,
@@ -237,20 +237,15 @@ export default function TalksTableClient() {
 
     async function fetchTalkCategoryOptions() {
       try {
-        const response = await api.get<CategoryApiItem[]>("/categories/selector", {
+        const items = await fetchCategorySelectorItems({
           domain: "TALK",
-          status: ["ACTIVE"],
-          per_page: 100,
+          perPage: 100,
         });
-
-        if (!isApiSuccess(response)) {
-          throw new Error(response.error.message || "토크 유형 필터를 불러오지 못했습니다.");
-        }
 
         if (cancelled) return;
 
         setCategoryOptions(
-          response.data.map((item) => ({
+          items.map((item) => ({
             value: String(item.id),
             label: formatTalkCategoryName(item) || item.name,
           })),

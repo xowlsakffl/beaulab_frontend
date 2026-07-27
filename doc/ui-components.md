@@ -30,8 +30,11 @@
 
 - 앱/도메인 문구 없는 UI만 추가한다.
 - API 호출을 넣지 않는다.
-- route 이동을 넣지 않는다.
+- `useRouter` 같은 imperative route 이동을 넣지 않는다.
+- `AppSidebar`처럼 상위 앱에서 받은 path를 `Link`로 렌더링하는 정도는 허용한다.
 - 도메인 status code를 직접 알지 않는다.
+- export하지 않는 예제/템플릿 파일을 숨겨두지 않는다.
+- `packages/ui-admin` 타입체크는 `src` 전체를 대상으로 실행되어야 한다.
 
 ## 3. `components/common`
 
@@ -46,6 +49,7 @@ staff 앱 전용 공통 UI다.
 - `ReportStatusBadge`
 - `OperationHistoryCard`
 - `OperationHistoryDisplay`
+- `MediaPreviewModal`
 - `DetailImageGallery`
 - `DetailMediaCard`
 - `AddCircleButton`
