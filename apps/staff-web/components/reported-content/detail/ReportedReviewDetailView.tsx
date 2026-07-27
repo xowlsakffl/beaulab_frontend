@@ -3,7 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CategoryBadgeList, type DataTableMeta } from "@beaulab/ui-admin";
 
-import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import { type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useReportedOriginalVisibility } from "@/hooks/reported-content/useReportedOriginalVisibility";
 import {
@@ -27,9 +27,8 @@ import type {
 import type { ReportedContentBoardType } from "@/lib/reported-content/list";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "../../common/DetailImageGallery";
+import { ReportedContentDetailLayout } from "./ReportedContentDetailLayout";
 import { DetailField, EmptyDetailState, ReportedOriginalVisibilityButtons } from "./ReportedDetailShared";
-import { ReportedContentDetailPanel } from "./ReportedContentDetailPanel";
-import { ReportedOriginalHistoryCard } from "./ReportedOriginalHistoryCard";
 
 type ReportedReviewDetailViewProps = {
   boardType: ReportedContentBoardType;
@@ -76,15 +75,10 @@ export function ReportedReviewDetailView({
   const boardTitle = HOSPITAL_REVIEW_BOARD_CONFIGS[boardType === "treatment-reviews" ? "treatment" : "surgery"].title;
 
   return (
-    <div className="space-y-6">
-      {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {actionError}
-        </div>
-      ) : null}
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
-        <div className="space-y-6">
+    <ReportedContentDetailLayout
+      actionError={actionError}
+      leftContent={
+        <>
           <ReportedReviewMemberSummaryCard detail={detail} />
           <ReportedReviewContentCard
             boardTitle={boardTitle}
@@ -93,41 +87,36 @@ export function ReportedReviewDetailView({
             onChangeVisibility={(status) => originalVisibility.requestChange("review", detail.id, status)}
             onPreviewMedia={setPreviewMedia}
           />
-          <ReportedOriginalHistoryCard
-            histories={histories}
-            meta={historiesMeta}
-            refreshing={refreshing}
-            formatDate={(history) => formatHospitalReviewDetailDateTime(history.created_at)}
-            onGoPage={onHistoryPageChange}
-          />
-        </div>
-
-        <div className="space-y-6">
-          <ReportedReviewHospitalSummaryCard detail={detail} />
-          <ReportedContentDetailPanel
-            targetType={targetType}
-            targetId={targetId}
-            initialDetail={reportedDetail}
-            initialReports={reportedReports}
-            onStatusUpdated={onReportedStatusUpdated}
-          />
-        </div>
-      </div>
-
-      <VisibilityConfirmModal
-        isOpen={Boolean(originalVisibility.pendingChange)}
-        status={originalVisibility.pendingChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="reported-hospital-review-detail-hidden-reason"
-        onHiddenReasonChange={originalVisibility.updateHiddenReason}
-        onClose={originalVisibility.closeModal}
-        onConfirm={() => void originalVisibility.confirmChange()}
-      />
-
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-    </div>
+        </>
+      }
+      rightContent={<ReportedReviewHospitalSummaryCard detail={detail} />}
+      histories={histories}
+      historiesMeta={historiesMeta}
+      historiesRefreshing={refreshing}
+      formatHistoryDate={(history) => formatHospitalReviewDetailDateTime(history.created_at)}
+      onHistoryPageChange={onHistoryPageChange}
+      targetType={targetType}
+      targetId={targetId}
+      reportedDetail={reportedDetail}
+      reportedReports={reportedReports}
+      onReportedStatusUpdated={onReportedStatusUpdated}
+      previewMedia={previewMedia}
+      onPreviewMediaChange={setPreviewMedia}
+      onPreviewMediaClose={() => setPreviewMedia(null)}
+      modals={
+        <VisibilityConfirmModal
+          isOpen={Boolean(originalVisibility.pendingChange)}
+          status={originalVisibility.pendingChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="reported-hospital-review-detail-hidden-reason"
+          onHiddenReasonChange={originalVisibility.updateHiddenReason}
+          onClose={originalVisibility.closeModal}
+          onConfirm={() => void originalVisibility.confirmChange()}
+        />
+      }
+    />
   );
 }
 

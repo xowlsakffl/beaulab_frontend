@@ -3,7 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, type DataTableMeta } from "@beaulab/ui-admin";
 
-import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import { type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useReportedOriginalVisibility } from "@/hooks/reported-content/useReportedOriginalVisibility";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
@@ -24,9 +24,8 @@ import {
 } from "@/lib/talk/detail";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "../../common/DetailImageGallery";
+import { ReportedContentDetailLayout } from "./ReportedContentDetailLayout";
 import { DetailField, EmptyDetailState, ReportedOriginalVisibilityButtons } from "./ReportedDetailShared";
-import { ReportedContentDetailPanel } from "./ReportedContentDetailPanel";
-import { ReportedOriginalHistoryCard } from "./ReportedOriginalHistoryCard";
 
 type ReportedTalkDetailViewProps = {
   detail: TalkDetailResponse;
@@ -70,15 +69,10 @@ export function ReportedTalkDetailView({
   const pendingVisibilityUpdating = Boolean(originalVisibility.pendingChange) && originalVisibility.updating;
 
   return (
-    <div className="space-y-6">
-      {actionError ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {actionError}
-        </div>
-      ) : null}
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(400px,0.92fr)]">
-        <div className="space-y-6">
+    <ReportedContentDetailLayout
+      actionError={actionError}
+      leftContent={
+        <>
           <ReportedTalkMemberSummaryCard detail={detail} />
           <ReportedTalkContentCard
             detail={detail}
@@ -86,40 +80,35 @@ export function ReportedTalkDetailView({
             onChangeVisibility={(status) => originalVisibility.requestChange("talk", detail.id, status)}
             onPreviewMedia={setPreviewMedia}
           />
-          <ReportedOriginalHistoryCard
-            histories={histories}
-            meta={historiesMeta}
-            refreshing={refreshing}
-            formatDate={(history) => formatTalkDetailDateTime(history.created_at)}
-            onGoPage={onHistoryPageChange}
-          />
-        </div>
-
-        <div className="space-y-6">
-          <ReportedContentDetailPanel
-            targetType={targetType}
-            targetId={targetId}
-            initialDetail={reportedDetail}
-            initialReports={reportedReports}
-            onStatusUpdated={onReportedStatusUpdated}
-          />
-        </div>
-      </div>
-
-      <VisibilityConfirmModal
-        isOpen={Boolean(originalVisibility.pendingChange)}
-        status={originalVisibility.pendingChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="reported-talk-detail-hidden-reason"
-        onHiddenReasonChange={originalVisibility.updateHiddenReason}
-        onClose={originalVisibility.closeModal}
-        onConfirm={() => void originalVisibility.confirmChange()}
-      />
-
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-    </div>
+        </>
+      }
+      histories={histories}
+      historiesMeta={historiesMeta}
+      historiesRefreshing={refreshing}
+      formatHistoryDate={(history) => formatTalkDetailDateTime(history.created_at)}
+      onHistoryPageChange={onHistoryPageChange}
+      targetType={targetType}
+      targetId={targetId}
+      reportedDetail={reportedDetail}
+      reportedReports={reportedReports}
+      onReportedStatusUpdated={onReportedStatusUpdated}
+      previewMedia={previewMedia}
+      onPreviewMediaChange={setPreviewMedia}
+      onPreviewMediaClose={() => setPreviewMedia(null)}
+      modals={
+        <VisibilityConfirmModal
+          isOpen={Boolean(originalVisibility.pendingChange)}
+          status={originalVisibility.pendingChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="reported-talk-detail-hidden-reason"
+          onHiddenReasonChange={originalVisibility.updateHiddenReason}
+          onClose={originalVisibility.closeModal}
+          onConfirm={() => void originalVisibility.confirmChange()}
+        />
+      }
+    />
   );
 }
 
