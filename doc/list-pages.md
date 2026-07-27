@@ -86,7 +86,16 @@ summary 카드는 `SummaryCountCard`를 우선 사용한다.
 
 ## 6. LoadError
 
-목록 전체 로드 실패는 `LoadErrorState`를 사용한다.
+목록 테이블 데이터 로드 실패는 `DataTable`의 공통 error row를 사용한다.
+
+기준:
+
+- 테이블 안에서 중앙 정렬한다.
+- 에러 문구와 `다시 불러오기` 버튼만 표시한다.
+- 취소 버튼을 만들지 않는다.
+- 도메인별로 별도 error card를 만들지 않는다.
+
+페이지 전체 진입 자체가 실패하는 상세/수정/등록 초기 로드 실패는 `LoadErrorState`를 사용한다.
 
 기준:
 

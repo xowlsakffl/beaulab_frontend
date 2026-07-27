@@ -30,6 +30,14 @@ validate -> payload build -> api call -> success/error handling
 | `lib/{domain}/form.ts`                  | 타입, 초기값, validation, mapper, payload builder | React state, API, modal    |
 | `hooks/{domain}/use*MediaState.ts`      | 반복 미디어 상태                                  | API submit                 |
 
+규칙:
+
+- 등록/수정 페이지가 다른 페이지 파일의 UI 컴포넌트를 직접 import하지 않는다.
+- 두 페이지가 같은 UI를 공유하면 `components/{domain}/form` 아래로 분리해서 import한다.
+- form 컴포넌트에서 `api.*`를 직접 호출하지 않는다.
+- 검색형 선택 UI가 자체 상태와 강하게 묶여 있으면 `hooks/{domain}/use*Options`로 조회를 캡슐화한 뒤 picker 컴포넌트에서만 사용한다.
+- 같은 option 데이터를 여러 섹션이 공유하거나 submit 조건에 영향을 주면 Client에서 로드해 props로 내려준다.
+
 ## 3. Form state
 
 기본은 하나의 `form` object다.

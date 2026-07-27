@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
@@ -19,9 +18,9 @@ import {
 
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { useVideoDoctorOptions } from "@/hooks/video/useVideoDoctorOptions";
+import { useVideoHashtagOptions } from "@/hooks/video/useVideoHashtagOptions";
 import { useVideoHospitalOptions } from "@/hooks/video/useVideoHospitalOptions";
 import type { HospitalMediaPreviewState } from "@/components/hospital/media/HospitalMediaPreviewModal";
-import { api } from "@/lib/common/api";
 import { groupMedicalCategorySelectorItems } from "@/lib/common/category";
 import { normalizeHashtagName, sanitizeHashtagName, validateHashtagName } from "@/lib/hashtag/list";
 import type { VideoCategoryItem, VideoHashtagItem } from "@/lib/video/detail";
@@ -627,57 +626,14 @@ function VideoHashtagSelect({
   onAddHashtagName: (name: string) => void;
   onRemoveHashtagName: (name: string) => void;
 }) {
-  const [options, setOptions] = React.useState<VideoHashtagOption[]>([]);
   const [query, setQuery] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
   const [inputError, setInputError] = React.useState<string | null>(null);
   const [selectedNameCache, setSelectedNameCache] = React.useState<Record<number, string>>({});
   const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const { options, isLoading, error: loadError } = useVideoHashtagOptions(isOpen, query);
 
   useOutsideClose(containerRef, isOpen, () => setIsOpen(false));
-
-  React.useEffect(() => {
-    if (!isOpen) return;
-
-    let isMounted = true;
-    const timer = window.setTimeout(async () => {
-      setIsLoading(true);
-      setLoadError(null);
-
-      try {
-        const response = await api.get<VideoHashtagOption[]>("/hashtags", {
-          q: sanitizeHashtagName(query) || undefined,
-          status: "ACTIVE",
-          per_page: 20,
-        });
-
-        if (!isMounted) return;
-
-        if (!isApiSuccess(response)) {
-          setOptions([]);
-          setLoadError(response.error.message || "해시태그를 불러오지 못했습니다.");
-          return;
-        }
-
-        setOptions(response.data);
-      } catch {
-        if (!isMounted) return;
-        setOptions([]);
-        setLoadError("해시태그를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }, 250);
-
-    return () => {
-      isMounted = false;
-      window.clearTimeout(timer);
-    };
-  }, [isOpen, query]);
 
   React.useEffect(() => {
     setSelectedNameCache((prev) => {

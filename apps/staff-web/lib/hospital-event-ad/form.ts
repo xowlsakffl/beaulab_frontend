@@ -1,6 +1,6 @@
 import { CATEGORY_USAGES, type CategoryApiItem } from "@/lib/common/category";
-import type { HospitalEventMedia } from "@/lib/hospital-event/list";
-import { formatEventAdLocalDate } from "@/lib/hospital-event-ad/list";
+import type { HospitalEventApiItem, HospitalEventMedia } from "@/lib/hospital-event/list";
+import { formatEventAdLocalDate, type EventAdMediaAsset } from "@/lib/hospital-event-ad/list";
 
 export type EventAdPlacementGroupKey = "main" | "surgery" | "petit" | "etc";
 
@@ -228,6 +228,20 @@ function normalizeEventAdCategoryOption(category: CategoryApiItem): EventAdCateg
   };
 }
 
+export function normalizeEventAdHospitalEventOption(event: HospitalEventApiItem): EventAdHospitalEventOption {
+  return {
+    id: event.id,
+    name: event.name?.trim() || `이벤트 #${event.id}`,
+    thumbnail_image: event.thumbnail_image ?? null,
+    created_at: event.created_at ?? null,
+    event_price: Number(event.event_price ?? 0),
+  };
+}
+
+export function isSelectableEventAdHospitalEvent(event: HospitalEventApiItem): boolean {
+  return event.allow_status === "APPROVED" && event.admin_status === "NORMAL";
+}
+
 export function monthKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -356,4 +370,116 @@ export function buildEventAdCreateFormData({
   }
 
   return formData;
+}
+
+export function validateEventAdEditForm(
+  form: EventAdCreateFormValues,
+  adImageFile: File | null,
+  existingAdImage: EventAdMediaAsset | null,
+) {
+  const errors: EventAdCreateFormErrors = {};
+
+  if (!form.hospital_id) {
+    errors.hospital_id = "병의원을 선택해 주세요.";
+  }
+
+  if (!form.hospital_event_id) {
+    errors.hospital_event_id = "이벤트를 선택해 주세요.";
+  }
+
+  if (!adImageFile && !existingAdImage) {
+    errors.ad_image_file = "광고 이미지를 등록해 주세요.";
+  }
+
+  if (adImageFile && !["image/jpeg", "image/png"].includes(adImageFile.type)) {
+    errors.ad_image_file = "광고 이미지는 jpg, jpeg, png 파일만 업로드할 수 있습니다.";
+  }
+
+  return errors;
+}
+
+export function buildEventAdEditFormData({
+  form,
+  selectedPlacement,
+  selectedCategory,
+  selectedWeek,
+  adImageFile,
+  existingAdImage,
+  isFreeAd,
+}: {
+  form: EventAdCreateFormValues;
+  selectedPlacement: EventAdPlacementOption;
+  selectedCategory: EventAdCategoryOption | null;
+  selectedWeek: EventAdAvailabilityWeek;
+  adImageFile: File | null;
+  existingAdImage: EventAdMediaAsset | null;
+  isFreeAd: boolean;
+}) {
+  const formData = new FormData();
+
+  formData.append("_method", "PATCH");
+  formData.append("hospital_event_id", String(form.hospital_event_id ?? ""));
+  formData.append("placement", selectedPlacement.value);
+  formData.append("cost", String(isFreeAd ? 0 : selectedPlacement.cost));
+  formData.append("is_free_event", isFreeAd ? "1" : "0");
+  formData.append("start_date", selectedWeek.date);
+
+  if (selectedPlacement.category_required && selectedCategory) {
+    formData.append("category_id", String(selectedCategory.id));
+  }
+
+  if (adImageFile) {
+    formData.append("ad_image_file", adImageFile);
+  } else if (existingAdImage?.id) {
+    formData.append("existing_ad_image_id", String(existingAdImage.id));
+  }
+
+  return formData;
+}
+
+export function extractEventAdCreateFieldErrors(details: unknown): EventAdCreateFormErrors {
+  return extractEventAdFieldErrors(details);
+}
+
+export function extractEventAdEditFieldErrors(details: unknown): EventAdCreateFormErrors {
+  return extractEventAdFieldErrors(details);
+}
+
+function extractEventAdFieldErrors(details: unknown): EventAdCreateFormErrors {
+  if (!details || typeof details !== "object" || !("errors" in details)) {
+    return {};
+  }
+
+  const rawErrors = (details as { errors?: unknown }).errors;
+  if (!rawErrors || typeof rawErrors !== "object") {
+    return {};
+  }
+
+  const nextErrors: EventAdCreateFormErrors = {};
+
+  for (const [key, value] of Object.entries(rawErrors as Record<string, unknown>)) {
+    const field = normalizeEventAdErrorField(key);
+    if (!field) continue;
+
+    if (Array.isArray(value)) {
+      const firstMessage = value.find((item): item is string => typeof item === "string" && item.trim().length > 0);
+      if (firstMessage) {
+        nextErrors[field] = firstMessage;
+      }
+      continue;
+    }
+
+    if (typeof value === "string" && value.trim()) {
+      nextErrors[field] = value.trim();
+    }
+  }
+
+  return nextErrors;
+}
+
+function normalizeEventAdErrorField(key: string): keyof EventAdCreateFormErrors | null {
+  if (key.startsWith("hospital_id")) return "hospital_id";
+  if (key.startsWith("hospital_event_id")) return "hospital_event_id";
+  if (key.startsWith("ad_image_file") || key.startsWith("existing_ad_image_id")) return "ad_image_file";
+  return null;
 }
