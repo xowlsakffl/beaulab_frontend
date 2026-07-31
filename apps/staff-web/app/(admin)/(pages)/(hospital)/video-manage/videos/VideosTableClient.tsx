@@ -136,6 +136,7 @@ export default function VideosTableClient() {
     refreshing,
     fetchList: fetchVideos,
   } = useListData({
+    cacheNamespace: "videos",
     query,
     fetchRows: fetchVideoRows,
     errorMessage: "동영상 목록 조회 중 오류가 발생했습니다.",

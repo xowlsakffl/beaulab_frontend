@@ -136,6 +136,7 @@ export default function HospitalEntriesTableClient() {
     refreshing,
     fetchList: fetchHospitalEntries,
   } = useListData({
+    cacheNamespace: "hospital-entries",
     query,
     fetchRows: fetchHospitalEntryRows,
     errorMessage: "입점신청 목록 조회 중 오류가 발생했습니다.",

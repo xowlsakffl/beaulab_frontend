@@ -147,6 +147,7 @@ export default function DoctorsTableClient() {
     refreshing,
     fetchList: fetchDoctors,
   } = useListData({
+    cacheNamespace: "doctors",
     query,
     fetchRows: fetchDoctorRows,
     errorMessage: "의료진 목록 조회 중 오류가 발생했습니다.",

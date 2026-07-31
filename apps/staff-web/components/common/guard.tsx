@@ -5,7 +5,9 @@ import { hasPermission, hasAnyPermission } from "@beaulab/auth";
 import { ensureSession, getSession } from "@/lib/common/auth/session";
 import { usePathname, useRouter } from "next/navigation";
 import { StaffSession } from "@beaulab/types";
+import { SpinnerBlock } from "@beaulab/ui-admin";
 import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissionRule } from "@/lib/common/routing/route-permissions";
+import { fetchNavigationBadges } from "@/lib/common/navigation-badges";
 
 type GuardProps = {
   children: ReactNode;
@@ -14,8 +16,13 @@ type GuardProps = {
 };
 
 export function Guard(props: GuardProps) {
-  const [session, setSession] = useState<StaffSession | null>(null);
-  const [isChecking, setIsChecking] = useState(true);
+  const [{ session, isChecking }, setGuardState] = useState<{
+    session: StaffSession | null;
+    isChecking: boolean;
+  }>({
+    session: null,
+    isChecking: true,
+  });
 
   const router = useRouter();
   const pathname = usePathname();
@@ -25,49 +32,64 @@ export function Guard(props: GuardProps) {
     () => resolveRoutePermissionRule(pathname, ADMIN_ROUTE_PERMISSION_RULES),
     [pathname],
   );
+  const requiredPermissions =
+    props.requiredPermissions && props.requiredPermissions.length > 0
+      ? props.requiredPermissions
+      : routePermissionRule?.requiredPermissions;
+  const canAccess = Boolean(
+    session &&
+    requiredPermissions &&
+    requiredPermissions.length > 0 &&
+    hasAnyPermission(session.auth, requiredPermissions),
+  );
 
   useEffect(() => {
     let isMounted = true;
 
-    void ensureSession().then((resolvedSession) => {
+    const authorize = async () => {
+      const resolvedSession = session ?? getSession() ?? (await ensureSession());
+
       if (!isMounted) return;
 
       if (!resolvedSession) {
         router.replace(`/login${next}`);
-        setIsChecking(false);
+        setGuardState({ session: null, isChecking: false });
         return;
       }
-
-      const requiredPermissions =
-        props.requiredPermissions && props.requiredPermissions.length > 0
-          ? props.requiredPermissions
-          : routePermissionRule?.requiredPermissions;
 
       if (!requiredPermissions || requiredPermissions.length === 0) {
         router.replace(props.unauthorizedRedirectPath ?? "/error-404");
-        setIsChecking(false);
+        setGuardState({ session: resolvedSession, isChecking: false });
         return;
       }
 
-      const canAccess = hasAnyPermission(resolvedSession.auth, requiredPermissions);
-
-      if (!canAccess) {
+      if (!hasAnyPermission(resolvedSession.auth, requiredPermissions)) {
         router.replace(props.unauthorizedRedirectPath ?? "/error-404");
-        setIsChecking(false);
+        setGuardState({ session: resolvedSession, isChecking: false });
         return;
       }
 
-      setSession(resolvedSession);
-      setIsChecking(false);
-    });
+      await fetchNavigationBadges(resolvedSession.profile.id);
+
+      if (!isMounted) return;
+
+      if (session !== resolvedSession || isChecking) {
+        setGuardState({ session: resolvedSession, isChecking: false });
+      }
+    };
+
+    void authorize();
 
     return () => {
       isMounted = false;
     };
-  }, [next, props.requiredPermissions, props.unauthorizedRedirectPath, routePermissionRule, router]);
+  }, [isChecking, next, props.unauthorizedRedirectPath, requiredPermissions, router, session]);
 
-  if (isChecking) return null;
+  if (isChecking) {
+    return <SpinnerBlock className="min-h-dvh bg-gray-50" spinnerClassName="size-10" label="관리자 확인 중" />;
+  }
   if (!session) return null;
+  if (!canAccess) return null;
 
   return props.children;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { isApiRequestCanceledError } from "@/lib/common/api";
+import { getListDataCache, setListDataCache } from "@/lib/common/list-data-cache";
 import React from "react";
 
 type ListFetchResult<Row, Meta> = {
@@ -9,12 +10,16 @@ type ListFetchResult<Row, Meta> = {
 };
 
 type UseListDataOptions<Query, Row, Meta> = {
+  cacheNamespace: string;
   query: Query;
   fetchRows: (query: Query) => Promise<ListFetchResult<Row, Meta>>;
   errorMessage: string;
   getRequestKey?: (query: Query) => string;
   enabled?: boolean;
+  cacheTtlMs?: number;
 };
+
+const DEFAULT_CACHE_TTL_MS = 30_000;
 
 function defaultGetRequestKey<Query>(query: Query) {
   return JSON.stringify(query);
@@ -25,20 +30,25 @@ function resolveErrorMessage(error: unknown, fallback: string) {
 }
 
 export function useListData<Query, Row, Meta = unknown>({
+  cacheNamespace,
   query,
   fetchRows,
   errorMessage,
   getRequestKey = defaultGetRequestKey,
   enabled = true,
+  cacheTtlMs = DEFAULT_CACHE_TTL_MS,
 }: UseListDataOptions<Query, Row, Meta>) {
-  const [rows, setRows] = React.useState<Row[]>([]);
-  const [meta, setMeta] = React.useState<Meta | null>(null);
+  const [initialCachedData] = React.useState(() =>
+    getListDataCache<Row, Meta>(cacheNamespace, getRequestKey(query), cacheTtlMs),
+  );
+  const [rows, setRows] = React.useState<Row[]>(initialCachedData?.rows ?? []);
+  const [meta, setMeta] = React.useState<Meta | null>(initialCachedData?.meta ?? null);
   const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(initialCachedData === null);
   const [refreshing, setRefreshing] = React.useState(false);
 
   const requestKeyRef = React.useRef("");
-  const hasFetchedRef = React.useRef(false);
+  const hasFetchedRef = React.useRef(initialCachedData !== null);
   const requestSeqRef = React.useRef(0);
 
   const fetchList = React.useCallback(
@@ -64,6 +74,7 @@ export function useListData<Query, Row, Meta = unknown>({
 
         setRows(result.rows);
         setMeta(result.meta);
+        setListDataCache(cacheNamespace, requestKey, result);
         hasFetchedRef.current = true;
       } catch (error) {
         if (requestSeq !== requestSeqRef.current) {
@@ -84,7 +95,7 @@ export function useListData<Query, Row, Meta = unknown>({
         }
       }
     },
-    [errorMessage, fetchRows, getRequestKey, query],
+    [cacheNamespace, errorMessage, fetchRows, getRequestKey, query],
   );
 
   React.useEffect(() => {

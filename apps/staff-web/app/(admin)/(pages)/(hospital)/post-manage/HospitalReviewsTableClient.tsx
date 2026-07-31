@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
@@ -16,8 +17,6 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import { HospitalReviewCommentsDataTable } from "@/components/hospital-review/list/HospitalReviewCommentsDataTable";
-import { HospitalReviewCommentsFilterPanel } from "@/components/hospital-review/list/HospitalReviewCommentsFilterPanel";
 import { HospitalReviewsDataTable } from "@/components/hospital-review/list/HospitalReviewsDataTable";
 import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/HospitalReviewsFilterPanel";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
@@ -61,6 +60,17 @@ import {
   type HospitalReviewSortState,
   type HospitalReviewDatePresetKey,
 } from "@/lib/hospital-review/list";
+
+const HospitalReviewCommentsDataTable = dynamic(() =>
+  import("@/components/hospital-review/list/HospitalReviewCommentsDataTable").then(
+    (module) => module.HospitalReviewCommentsDataTable,
+  ),
+);
+const HospitalReviewCommentsFilterPanel = dynamic(() =>
+  import("@/components/hospital-review/list/HospitalReviewCommentsFilterPanel").then(
+    (module) => module.HospitalReviewCommentsFilterPanel,
+  ),
+);
 
 type HospitalReviewVisibilityUpdateResponse = {
   updated_count: number;
@@ -214,6 +224,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     fetchList: fetchReviews,
     resetList: resetReviewList,
   } = useListData({
+    cacheNamespace: `hospital-reviews:${type}`,
     query,
     fetchRows: fetchReviewRows,
     errorMessage: "후기 목록 조회 중 오류가 발생했습니다.",
@@ -230,6 +241,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     fetchList: fetchComments,
     resetList: resetCommentList,
   } = useListData({
+    cacheNamespace: `hospital-review-comments:${type}`,
     query: commentQuery,
     fetchRows: fetchReviewCommentRows,
     errorMessage: "후기 댓글 목록 조회 중 오류가 발생했습니다.",

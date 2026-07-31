@@ -109,6 +109,7 @@ export default function NoticesTableClient() {
     refreshing,
     fetchList: fetchNotices,
   } = useListData({
+    cacheNamespace: "notices",
     query,
     fetchRows: fetchNoticeRows,
     errorMessage: "공지사항 목록 조회 중 오류가 발생했습니다.",

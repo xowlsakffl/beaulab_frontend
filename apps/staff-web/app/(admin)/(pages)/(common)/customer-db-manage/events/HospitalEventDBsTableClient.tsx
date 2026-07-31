@@ -83,6 +83,7 @@ export default function HospitalEventDBsTableClient() {
     refreshing,
     fetchList: fetchEventDBs,
   } = useListData({
+    cacheNamespace: "hospital-event-dbs",
     query,
     fetchRows: fetchEventDBRows,
     errorMessage: "이벤트 DB 목록 조회 중 오류가 발생했습니다.",

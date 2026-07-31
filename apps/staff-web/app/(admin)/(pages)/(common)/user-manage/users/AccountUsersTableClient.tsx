@@ -113,6 +113,7 @@ export default function AccountUsersTableClient() {
     refreshing,
     fetchList: fetchUsers,
   } = useListData({
+    cacheNamespace: "account-users",
     query,
     fetchRows: fetchAccountUserRows,
     errorMessage: "일반회원 목록 조회 중 오류가 발생했습니다.",

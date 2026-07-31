@@ -114,6 +114,7 @@ export function HospitalEvaluationsTableClient() {
     refreshing,
     fetchList: fetchEvaluations,
   } = useListData({
+    cacheNamespace: "hospital-evaluations",
     query,
     fetchRows: fetchEvaluationRows,
     errorMessage: "평가 목록 조회 중 오류가 발생했습니다.",

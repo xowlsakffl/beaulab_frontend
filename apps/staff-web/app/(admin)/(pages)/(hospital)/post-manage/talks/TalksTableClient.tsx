@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 
 import { isApiSuccess } from "@beaulab/types";
 import {
@@ -17,7 +18,6 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 
-import { TalkCommentsDataTable } from "@/components/talk/list/TalkCommentsDataTable";
 import { TalksDataTable } from "@/components/talk/list/TalksDataTable";
 import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
@@ -58,6 +58,10 @@ import {
   type TalkApiItem,
   type TalkRow,
 } from "@/lib/talk/list";
+
+const TalkCommentsDataTable = dynamic(() =>
+  import("@/components/talk/list/TalkCommentsDataTable").then((module) => module.TalkCommentsDataTable),
+);
 
 type TalkBoard = "talks" | "comments";
 
@@ -192,6 +196,7 @@ export default function TalksTableClient() {
     fetchList: fetchTalks,
     resetList: resetTalkList,
   } = useListData({
+    cacheNamespace: "talks",
     query,
     fetchRows: fetchTalkRows,
     errorMessage: "토크 목록 조회 중 오류가 발생했습니다.",
@@ -209,6 +214,7 @@ export default function TalksTableClient() {
     fetchList: fetchTalkComments,
     resetList: resetCommentList,
   } = useListData({
+    cacheNamespace: "talk-comments",
     query: commentQuery,
     fetchRows: fetchTalkCommentRows,
     errorMessage: "토크 댓글 목록 조회 중 오류가 발생했습니다.",

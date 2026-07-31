@@ -154,6 +154,7 @@ export default function HospitalsTableClient() {
     refreshing,
     fetchList: fetchHospitals,
   } = useListData({
+    cacheNamespace: "hospitals",
     query,
     fetchRows: fetchHospitalRows,
     errorMessage: "병의원 목록 조회 중 오류가 발생했습니다.",

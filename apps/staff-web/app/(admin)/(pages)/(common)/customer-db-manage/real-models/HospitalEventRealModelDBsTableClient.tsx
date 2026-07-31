@@ -83,6 +83,7 @@ export default function HospitalEventRealModelDBsTableClient() {
     refreshing,
     fetchList: fetchRealModelDBs,
   } = useListData({
+    cacheNamespace: "hospital-event-real-model-dbs",
     query,
     fetchRows: fetchRealModelDBRows,
     errorMessage: "리얼모델 신청 목록 조회 중 오류가 발생했습니다.",

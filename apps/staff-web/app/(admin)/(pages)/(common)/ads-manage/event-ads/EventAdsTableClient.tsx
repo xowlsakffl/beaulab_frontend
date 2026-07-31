@@ -116,6 +116,7 @@ export default function EventAdsTableClient() {
     refreshing,
     fetchList: fetchEventAds,
   } = useListData({
+    cacheNamespace: "hospital-event-ads",
     query,
     fetchRows: fetchEventAdRows,
     errorMessage: "이벤트 광고 목록 조회 중 오류가 발생했습니다.",

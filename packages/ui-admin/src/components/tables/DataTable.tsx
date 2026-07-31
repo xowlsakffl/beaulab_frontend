@@ -55,6 +55,117 @@ function Skeleton({ className = "h-4 w-[70%]" }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-gray-200/80 ${className}`} />;
 }
 
+type DataTableBodyContentProps<T> = {
+  columns: DataTableColumn<T>[];
+  rows: T[];
+  getRowKey: (row: T) => string | number;
+  loading: boolean;
+  loadingVariant: "skeleton" | "spinner";
+  loadingLabel: string;
+  error: string | null;
+  emptyText: string;
+  skeletonRows: number;
+  refreshing: boolean;
+  canRefresh: boolean;
+  onRefresh: () => void;
+  rowClickable: boolean;
+  onRowClick: (row: T) => void;
+  getRowClassName: (row: T) => string | undefined;
+};
+
+function DataTableBodyContentComponent<T>({
+  columns,
+  rows,
+  getRowKey,
+  loading,
+  loadingVariant,
+  loadingLabel,
+  error,
+  emptyText,
+  skeletonRows,
+  refreshing,
+  canRefresh,
+  onRefresh,
+  rowClickable,
+  onRowClick,
+  getRowClassName,
+}: DataTableBodyContentProps<T>) {
+  const colCount = Math.max(1, columns.length);
+
+  return (
+    <TableBody className="divide-y divide-gray-100">
+      {!loading && error ? (
+        <TableRow>
+          <TableCell className="px-5 py-12 text-center" colSpan={colCount}>
+            <div className="flex flex-col items-center justify-center gap-3">
+              <p className="text-theme-sm font-medium text-rose-600">{error}</p>
+              {canRefresh ? (
+                <Button type="button" variant="brand" size="sm" onClick={onRefresh} disabled={refreshing}>
+                  {refreshing ? "불러오는 중..." : "다시 불러오기"}
+                </Button>
+              ) : null}
+            </div>
+          </TableCell>
+        </TableRow>
+      ) : null}
+
+      {loading ? (
+        loadingVariant === "spinner" ? (
+          <TableRow>
+            <TableCell className="px-5 py-16" colSpan={colCount}>
+              <div className="flex items-center justify-center">
+                <Spinner className="size-8 text-brand-500" label={loadingLabel} />
+              </div>
+            </TableCell>
+          </TableRow>
+        ) : (
+          Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+            <TableRow key={`sk-${rowIndex}`}>
+              {columns.map((column, cellIndex) => (
+                <TableCell
+                  key={`${column.key}-${cellIndex}`}
+                  className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}
+                >
+                  <Skeleton className="h-4 w-[70%]" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        )
+      ) : null}
+
+      {!loading && !error && rows.length === 0 ? (
+        <TableRow>
+          <TableCell className="px-5 py-10 text-center text-theme-sm text-gray-500" colSpan={colCount}>
+            {emptyText}
+          </TableCell>
+        </TableRow>
+      ) : null}
+
+      {!loading && !error
+        ? rows.map((row) => {
+            const rowClassName =
+              [rowClickable ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName(row) ?? ""]
+                .filter(Boolean)
+                .join(" ") || undefined;
+
+            return (
+              <TableRow key={getRowKey(row)} className={rowClassName} onClick={() => onRowClick(row)}>
+                {columns.map((column) => (
+                  <TableCell key={column.key} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
+                    {column.render(row)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })
+        : null}
+    </TableBody>
+  );
+}
+
+const DataTableBodyContent = React.memo(DataTableBodyContentComponent) as typeof DataTableBodyContentComponent;
+
 export function DataTable<T>({
   title,
   description,
@@ -81,13 +192,24 @@ export function DataTable<T>({
   onRowClick,
   getRowClassName,
 }: DataTableProps<T>) {
-  const colCount = Math.max(1, columns.length);
   const totalPages = Number(meta?.last_page ?? 0);
   const shouldShowFooter =
     Boolean(meta) || footerLeft !== undefined || footerCenter !== undefined || footerRight !== undefined;
   const handlePageChange = onGoPage ?? (() => undefined);
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const getRowKeyRef = React.useRef(getRowKey);
+  const onRefreshRef = React.useRef(onRefresh);
+  const onRowClickRef = React.useRef(onRowClick);
+  const getRowClassNameRef = React.useRef(getRowClassName);
   const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
+  getRowKeyRef.current = getRowKey;
+  onRefreshRef.current = onRefresh;
+  onRowClickRef.current = onRowClick;
+  getRowClassNameRef.current = getRowClassName;
+  const resolveRowKey = React.useCallback((row: T) => getRowKeyRef.current(row), []);
+  const handleBodyRefresh = React.useCallback(() => onRefreshRef.current?.(), []);
+  const handleRowClick = React.useCallback((row: T) => onRowClickRef.current?.(row), []);
+  const resolveRowClassName = React.useCallback((row: T) => getRowClassNameRef.current?.(row), []);
   const defaultFooterSummary = meta ? (
     <div className="text-sm text-gray-500">
       총 {meta.total.toLocaleString()}개 · {meta.current_page} / {Math.max(1, totalPages)} 페이지
@@ -196,77 +318,23 @@ export function DataTable<T>({
               </TableRow>
             </TableHeader>
 
-            <TableBody className="divide-y divide-gray-100">
-              {!loading && error ? (
-                <TableRow>
-                  <TableCell className="px-5 py-12 text-center" colSpan={colCount}>
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <p className="text-theme-sm font-medium text-rose-600">{error}</p>
-                      {onRefresh ? (
-                        <Button type="button" variant="brand" size="sm" onClick={onRefresh} disabled={refreshing}>
-                          {refreshing ? "불러오는 중..." : "다시 불러오기"}
-                        </Button>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : null}
-
-              {loading ? (
-                loadingVariant === "spinner" ? (
-                  <TableRow>
-                    <TableCell className="px-5 py-16" colSpan={colCount}>
-                      <div className="flex items-center justify-center">
-                        <Spinner className="size-8 text-brand-500" label={loadingLabel} />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  Array.from({ length: skeletonRows }).map((_, rowIndex) => (
-                    <TableRow key={`sk-${rowIndex}`}>
-                      {columns.map((column, cellIndex) => (
-                        <TableCell
-                          key={`${column.key}-${cellIndex}`}
-                          className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}
-                        >
-                          <Skeleton className="h-4 w-[70%]" />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                )
-              ) : null}
-
-              {!loading && !error && rows.length === 0 ? (
-                <TableRow>
-                  <TableCell className="px-5 py-10 text-center text-theme-sm text-gray-500" colSpan={colCount}>
-                    {emptyText}
-                  </TableCell>
-                </TableRow>
-              ) : null}
-
-              {!loading && !error
-                ? rows.map((row) => {
-                    const rowClassName =
-                      [onRowClick ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName?.(row) ?? ""]
-                        .filter(Boolean)
-                        .join(" ") || undefined;
-
-                    return (
-                      <TableRow key={getRowKey(row)} className={rowClassName} onClick={() => onRowClick?.(row)}>
-                        {columns.map((column) => (
-                          <TableCell
-                            key={column.key}
-                            className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}
-                          >
-                            {column.render(row)}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    );
-                  })
-                : null}
-            </TableBody>
+            <DataTableBodyContent
+              columns={columns}
+              rows={rows}
+              getRowKey={resolveRowKey}
+              loading={loading}
+              loadingVariant={loadingVariant}
+              loadingLabel={loadingLabel}
+              error={error}
+              emptyText={emptyText}
+              skeletonRows={skeletonRows}
+              refreshing={error ? refreshing : false}
+              canRefresh={Boolean(onRefresh)}
+              onRefresh={handleBodyRefresh}
+              rowClickable={Boolean(onRowClick)}
+              onRowClick={handleRowClick}
+              getRowClassName={resolveRowClassName}
+            />
           </Table>
         </div>
       </div>

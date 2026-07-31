@@ -1,15 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CategoryBadgeList,
-  Pagination,
-  type DataTableMeta,
-} from "@beaulab/ui-admin";
+import { Card, CardContent, CardHeader, CardTitle, Pagination, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -17,27 +9,29 @@ import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
+import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
-  HOSPITAL_REVIEW_DETAIL_COMMENT_PER_PAGE_OPTIONS,
-  formatHospitalReviewDetailAuthorName,
-  formatHospitalReviewDetailDate,
-  formatHospitalReviewDetailDateTime,
-  getHospitalReviewDetailCategoryFullPaths,
-  type HospitalReviewCommentHistory,
-  type HospitalReviewDetailComment,
-  type HospitalReviewDetailResponse,
-  type HospitalReviewOperationHistory,
-} from "@/lib/hospital-review/detail";
-import { resolveHospitalReviewMediaUrl, type HospitalReviewMediaAsset } from "@/lib/hospital-review/list";
+  TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS,
+  formatTalkAuthorName,
+  formatTalkDetailCategory,
+  formatTalkDetailDateTime,
+  labelTalkVisibilityStatus,
+  type TalkCommentHistory,
+  type TalkDetailComment,
+  type TalkDetailResponse,
+  type TalkMediaAsset,
+  type TalkOperationHistory,
+  type TalkPollOption,
+} from "@/lib/talk/detail";
 
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
-const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
-const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800 ";
+const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500";
+const detailValueClass = "min-w-0 break-words text-sm leading-6 text-gray-800";
 
-export const MemberSummaryCard = React.memo(function MemberSummaryCard({
+export const TalkMemberSummaryCard = React.memo(function TalkMemberSummaryCard({
   detail,
 }: {
-  detail: HospitalReviewDetailResponse;
+  detail: TalkDetailResponse;
 }) {
   return (
     <Card as="section">
@@ -47,56 +41,35 @@ export const MemberSummaryCard = React.memo(function MemberSummaryCard({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2">
-        <DetailField label="작성자" value={formatHospitalReviewDetailAuthorName(detail.author)} />
-        <DetailField label="전화번호" value={detail.author?.phone?.trim() || "-"} />
-        <DetailField label="작성일" value={formatHospitalReviewDetailDate(detail.created_at)} />
-        <DetailField label="작성 IP" value={detail.author_ip?.trim() || "-"} />
+        <DetailField label="작성자" value={formatTalkAuthorName(detail.author)} />
+        <DetailField label="작성일" value={formatTalkDetailDateTime(detail.created_at)} />
+        <DetailField label="작성 IP" value={detail.author_ip || "-"} className="md:col-span-2" />
       </CardContent>
     </Card>
   );
 });
 
-export const HospitalSummaryCard = React.memo(function HospitalSummaryCard({
+export const TalkContentCard = React.memo(function TalkContentCard({
   detail,
-}: {
-  detail: HospitalReviewDetailResponse;
-}) {
-  return (
-    <Card as="section">
-      <CardHeader className="pb-4">
-        <CardTitle>병의원정보</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 md:grid-cols-2">
-        <DetailField label="병의원" value={detail.hospital?.name?.trim() || "-"} />
-        <DetailField label="사업자등록번호" value={detail.hospital?.business_number?.trim() || "-"} />
-        <DetailField label="의료진" value={detail.doctor?.name?.trim() || "-"} />
-        <DetailField label="직책" value={detail.doctor?.position?.trim() || "-"} />
-      </CardContent>
-    </Card>
-  );
-});
-
-export const HospitalReviewContentCard = React.memo(function HospitalReviewContentCard({
-  boardTitle,
-  detail,
-  visibilityLocked,
   visibilityUpdating,
   onChangeVisibility,
   onPreviewMedia,
 }: {
-  boardTitle: string;
-  detail: HospitalReviewDetailResponse;
-  visibilityLocked: boolean;
+  detail: TalkDetailResponse;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
   onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
+  const pollOptions = detail.poll?.options ?? [];
+  const totalPollVotes = pollOptions.reduce((sum, option) => sum + Number(option.vote_count ?? 0), 0);
+  const visibilityLocked = isVisibilityLockedByReport(detail.report);
+
   return (
     <Card as="section">
       <CardHeader className="pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <CardTitle>{boardTitle}</CardTitle>
+            <CardTitle>토크</CardTitle>
           </div>
           <VisibilityButtons
             status={detail.status}
@@ -108,15 +81,10 @@ export const HospitalReviewContentCard = React.memo(function HospitalReviewConte
 
       <CardContent className="space-y-6">
         <div className="grid gap-4">
-          <DetailField label="카테고리" value={<CategoryBadges detail={detail} />} />
-          <DetailField label="제목" value={detail.title?.trim() || "-"} />
+          <DetailField label="토크유형" value={formatTalkDetailCategory(detail.category)} />
+          <DetailField label="토크제목" value={detail.title?.trim() || "-"} />
+          <DetailField label="노출상태" value={labelTalkVisibilityStatus(detail.status)} />
         </div>
-
-        <ReviewImageGallery
-          beforeImages={detail.before_images ?? []}
-          afterImages={detail.after_images ?? []}
-          onPreviewMedia={onPreviewMedia}
-        />
 
         <section className="space-y-2">
           <p className="text-xs font-semibold text-gray-500">내용</p>
@@ -124,18 +92,40 @@ export const HospitalReviewContentCard = React.memo(function HospitalReviewConte
             {detail.content?.trim() || "-"}
           </div>
         </section>
+
+        <TalkImageGrid images={detail.images ?? []} onPreviewMedia={onPreviewMedia} />
+
+        <section className="space-y-3">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-gray-500">투표</p>
+            {detail.poll?.allow_multiple ? (
+              <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-600">
+                중복가능
+              </span>
+            ) : null}
+          </div>
+          {detail.poll ? (
+            <div className="space-y-3">
+              {pollOptions.map((option) => (
+                <PollBar key={option.id} option={option} totalVotes={totalPollVotes} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm font-semibold text-gray-800">등록된 투표가 없습니다.</p>
+          )}
+        </section>
       </CardContent>
     </Card>
   );
 });
 
-export const HospitalReviewHistoryCard = React.memo(function HospitalReviewHistoryCard({
+export const TalkHistoryCard = React.memo(function TalkHistoryCard({
   histories,
   meta,
   refreshing,
   onGoPage,
 }: {
-  histories: HospitalReviewOperationHistory[];
+  histories: TalkOperationHistory[];
   meta: DataTableMeta | null;
   refreshing: boolean;
   onGoPage: (page: number) => void;
@@ -146,12 +136,12 @@ export const HospitalReviewHistoryCard = React.memo(function HospitalReviewHisto
       meta={meta}
       loading={refreshing}
       onPageChange={onGoPage}
-      formatDateTime={formatHospitalReviewDetailDateTime}
+      formatDateTime={formatTalkDetailDateTime}
     />
   );
 });
 
-export const CommentsCard = React.memo(function CommentsCard({
+export const TalkCommentsCard = React.memo(function TalkCommentsCard({
   comments,
   commentsMeta,
   commentCount,
@@ -164,7 +154,7 @@ export const CommentsCard = React.memo(function CommentsCard({
   onToggleHistory,
   onChangeVisibility,
 }: {
-  comments: HospitalReviewDetailComment[];
+  comments: TalkDetailComment[];
   commentsMeta: DataTableMeta | null;
   commentCount: number;
   perPage: number;
@@ -187,7 +177,7 @@ export const CommentsCard = React.memo(function CommentsCard({
               onChange={(event) => onChangePerPage(Number(event.target.value))}
               className="h-9 rounded-lg border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 transition outline-none focus:border-brand-400"
             >
-              {HOSPITAL_REVIEW_DETAIL_COMMENT_PER_PAGE_OPTIONS.map((option) => (
+              {TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
@@ -231,10 +221,6 @@ export const CommentsCard = React.memo(function CommentsCard({
   );
 });
 
-function CategoryBadges({ detail }: { detail: HospitalReviewDetailResponse }) {
-  return <CategoryBadgeList values={getHospitalReviewDetailCategoryFullPaths(detail.categories)} />;
-}
-
 const CommentItem = React.memo(function CommentItem({
   comment,
   showSeparator,
@@ -243,7 +229,7 @@ const CommentItem = React.memo(function CommentItem({
   onToggleHistory,
   onChangeVisibility,
 }: {
-  comment: HospitalReviewDetailComment;
+  comment: TalkDetailComment;
   showSeparator: boolean;
   expanded: boolean;
   updating: boolean;
@@ -265,9 +251,9 @@ const CommentItem = React.memo(function CommentItem({
         .join(" ")}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm font-semibold text-gray-900">{formatHospitalReviewDetailAuthorName(comment.author)}</p>
+        <p className="text-sm font-semibold text-gray-900">{formatTalkAuthorName(comment.author)}</p>
         <p className="text-xs text-gray-500">
-          {formatHospitalReviewDetailDateTime(comment.created_at)} | {comment.author_ip?.trim() || "-"}
+          {formatTalkDetailDateTime(comment.created_at)} | {comment.author_ip?.trim() || "-"}
         </p>
       </div>
 
@@ -315,7 +301,7 @@ const CommentItem = React.memo(function CommentItem({
   );
 });
 
-function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory }) {
+function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   const historyForDisplay = {
     ...history,
     action: history.action ?? "STATE_UPDATED",
@@ -325,7 +311,7 @@ function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory 
 
   return (
     <div className="grid gap-2 text-xs text-gray-600 md:grid-cols-[9.5rem_6.5rem_7rem_minmax(0,1fr)]">
-      <span className="whitespace-nowrap text-gray-500">{formatHospitalReviewDetailDateTime(history.created_at)}</span>
+      <span className="whitespace-nowrap text-gray-500">{formatTalkDetailDateTime(history.created_at)}</span>
       <span className="truncate font-medium">{history.actor_label?.trim() || "-"}</span>
       <span>
         <OperationHistoryActionBadge history={historyForDisplay} />
@@ -337,24 +323,17 @@ function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory 
   );
 }
 
-function ReviewImageGallery({
-  beforeImages,
-  afterImages,
+function TalkImageGrid({
+  images,
   onPreviewMedia,
 }: {
-  beforeImages: HospitalReviewMediaAsset[];
-  afterImages: HospitalReviewMediaAsset[];
+  images: TalkMediaAsset[];
   onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
-  const images = [
-    ...beforeImages.map((image, index) => ({ image, label: "전", index })),
-    ...afterImages.map((image, index) => ({ image, label: "후", index })),
-  ];
-  const galleryItems: DetailImageGalleryItem[] = images.map(({ image, label, index }, imageIndex) => ({
-    id: `${label}-${image.id ?? imageIndex}`,
-    url: resolveHospitalReviewMediaUrl(image),
-    title: `${label} 이미지 ${index + 1}`,
-    badge: label,
+  const galleryItems: DetailImageGalleryItem[] = images.map((image, index) => ({
+    id: image.id ?? `talk-image-${index}`,
+    url: resolveMediaUrl(image as MediaAsset),
+    title: `이미지 ${index + 1}`,
   }));
 
   return (
@@ -362,8 +341,32 @@ function ReviewImageGallery({
       title="이미지"
       items={galleryItems}
       empty={<EmptyDetailState>등록된 이미지가 없습니다.</EmptyDetailState>}
+      layout="grid"
       onPreview={onPreviewMedia}
     />
+  );
+}
+
+function PollBar({ option, totalVotes }: { option: TalkPollOption; totalVotes: number }) {
+  const votes = Number(option.vote_count ?? 0);
+  const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+  const fillWidth = votes > 0 ? Math.max(percentage, 12) : 0;
+  const optionContent = option.content?.trim() || "-";
+
+  return (
+    <div className="relative h-10 overflow-hidden rounded-lg bg-gray-100">
+      <div className="absolute inset-0">
+        {fillWidth > 0 ? (
+          <div className="h-full rounded-lg bg-brand-500 transition-[width]" style={{ width: `${fillWidth}%` }} />
+        ) : null}
+      </div>
+      <div className="relative z-10 flex h-full items-center justify-between gap-3 px-3 text-sm font-semibold text-gray-900">
+        <span className="min-w-0 truncate">{optionContent}</span>
+        <span className="shrink-0 text-xs">
+          {votes.toLocaleString()}명 ({percentage}%)
+        </span>
+      </div>
+    </div>
   );
 }
 

@@ -137,6 +137,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     fetchList: fetchRows,
     resetList,
   } = useListData({
+    cacheNamespace: `reported-content:${activeApiPath}:${activeKind}`,
     query: listRequest,
     fetchRows: fetchReportedContentRows,
     errorMessage: "신고게시물 목록 조회 중 오류가 발생했습니다.",

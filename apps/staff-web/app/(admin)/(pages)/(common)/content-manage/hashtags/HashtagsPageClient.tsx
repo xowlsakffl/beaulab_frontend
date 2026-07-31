@@ -97,6 +97,7 @@ export default function HashtagsPageClient() {
     refreshing,
     fetchList: fetchHashtags,
   } = useListData({
+    cacheNamespace: "hashtags",
     query,
     fetchRows: fetchHashtagRows,
     errorMessage: "해시태그 목록 조회 중 오류가 발생했습니다.",

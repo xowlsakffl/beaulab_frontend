@@ -15,7 +15,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <GridShape />
             <div className="flex max-w-xs flex-col items-center">
               <Link href="/login" className="mb-4 block">
-                <Image width={231} height={48} src="/images/logo/board_logo_dark.png" alt="뷰랩 관리자" />
+                <Image
+                  width={231}
+                  height={48}
+                  src="/images/logo/board_logo_dark.png"
+                  alt="뷰랩 관리자"
+                  className="h-auto w-[231px]"
+                  priority
+                />
               </Link>
               <p className="text-center text-gray-400">병의원 운영 뷰랩 관리자입니다.</p>
             </div>

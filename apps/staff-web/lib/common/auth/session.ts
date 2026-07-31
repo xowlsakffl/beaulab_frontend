@@ -2,6 +2,8 @@ import { api } from "@/lib/common/api";
 import { tokenStorage, sessionStorage } from "@beaulab/auth";
 import type { ActorAuthorization, StaffProfile, StaffSession } from "@beaulab/types";
 import { isApiSuccess } from "@beaulab/types";
+import { invalidateListDataCache } from "@/lib/common/list-data-cache";
+import { clearNavigationBadgesCache, fetchNavigationBadges } from "@/lib/common/navigation-badges";
 
 type LoginPayload = { nickname: string; password: string; keep_logged_in?: boolean };
 type AuthFields = {
@@ -13,6 +15,7 @@ type AuthFields = {
 type LoginResponse = {
   token: string;
   profile?: StaffProfile;
+  staff?: StaffProfile;
 } & AuthFields;
 
 type StaffProfileResponse = {
@@ -42,14 +45,17 @@ export async function login(payload: LoginPayload): Promise<StaffSession> {
 
   tokenStorage.set("staff", res.data.token, { persistent });
 
-  if (res.data.profile) {
+  const profile = res.data.profile ?? res.data.staff;
+
+  if (profile) {
     const session: StaffSession = {
       actor: "staff",
-      profile: res.data.profile,
+      profile,
       auth: resolveAuth(res.data),
     };
 
     sessionStorage.set("staff", session, { persistent });
+    await fetchNavigationBadges(profile.id);
     return session;
   }
 
@@ -96,4 +102,6 @@ export async function ensureSession(): Promise<StaffSession | null> {
 export function logout() {
   tokenStorage.clear("staff");
   sessionStorage.clear("staff");
+  clearNavigationBadgesCache();
+  invalidateListDataCache();
 }

@@ -4,12 +4,12 @@ import Image from "next/image";
 import React, { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Guard } from "@/components/common/guard";
-import { api, isApiRequestCanceledError, NAVIGATION_BADGE_REFRESH_EVENT } from "@/lib/common/api";
+import { NAVIGATION_BADGE_REFRESH_EVENT } from "@/lib/common/api";
 import { getSession, logout } from "@/lib/common/auth/session";
 import {
-  normalizeNavigationBadges,
+  fetchNavigationBadges,
+  getCachedNavigationBadges,
   type NavigationBadgeMap,
-  type NavigationBadgesApiResponse,
 } from "@/lib/common/navigation-badges";
 import {
   buildStaffSidebarMenus,
@@ -19,7 +19,6 @@ import {
   type StaffSidebarDomain,
 } from "@/components/common/sidebar-menu";
 import { AppHeader, AppSidebar } from "@beaulab/ui-admin";
-import { isApiSuccess } from "@beaulab/types";
 import { resolveAdminPageByPath } from "@/lib/common/routing/admin-pages";
 import { PageHeaderExtraProvider } from "@/lib/common/routing/page-header-extra";
 
@@ -40,11 +39,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const session = React.useMemo(() => getSession(), []);
   const permissions = React.useMemo(() => session?.auth?.permissions ?? [], [session]);
-  const [navigationBadges, setNavigationBadges] = React.useState<NavigationBadgeMap>({});
-  const sidebarMenus = React.useMemo(
-    () => buildStaffSidebarMenus(permissions, navigationBadges),
-    [navigationBadges, permissions],
-  );
+  const sidebarMenus = React.useMemo(() => buildStaffSidebarMenus(permissions), [permissions]);
   const availableDomains = React.useMemo(
     () => STAFF_SIDEBAR_DOMAIN_OPTIONS.filter(({ key }) => sidebarMenus.domainMenus[key].main.length > 0),
     [sidebarMenus],
@@ -82,43 +77,6 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     };
   }, []);
 
-  React.useEffect(() => {
-    let disposed = false;
-
-    const fetchNavigationBadges = async () => {
-      try {
-        const response = await api.get<NavigationBadgesApiResponse>("/navigation-badges", undefined, {
-          latestKey: "navigation-badges",
-        });
-
-        if (disposed) return;
-
-        if (isApiSuccess(response)) {
-          setNavigationBadges(normalizeNavigationBadges(response.data));
-          return;
-        }
-
-        setNavigationBadges({});
-      } catch (error) {
-        if (isApiRequestCanceledError(error) || disposed) return;
-        setNavigationBadges({});
-      }
-    };
-
-    void fetchNavigationBadges();
-
-    const intervalId = window.setInterval(fetchNavigationBadges, 30_000);
-    window.addEventListener("focus", fetchNavigationBadges);
-    window.addEventListener(NAVIGATION_BADGE_REFRESH_EVENT, fetchNavigationBadges);
-
-    return () => {
-      disposed = true;
-      window.clearInterval(intervalId);
-      window.removeEventListener("focus", fetchNavigationBadges);
-      window.removeEventListener(NAVIGATION_BADGE_REFRESH_EVENT, fetchNavigationBadges);
-    };
-  }, []);
-
   const handleSignOut = () => {
     logout();
     router.replace("/login");
@@ -146,55 +104,16 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     }
   }, [activeDomain, availableDomains]);
 
-  const sidebarTopContent =
-    availableDomains.length > 1 ? (
-      <div className="rounded-xl bg-white/10 p-1">
-        <div className="grid grid-cols-2 gap-1">
-          {availableDomains.map((domain) => {
-            const isActive = domain.key === activeDomain;
-
-            return (
-              <button
-                key={domain.key}
-                type="button"
-                onClick={() => setActiveDomain(domain.key)}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  isActive ? "bg-white text-[#302E3F] shadow-sm" : "text-white/65 hover:text-white"
-                }`}
-              >
-                {domain.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    ) : null;
-
   return (
     <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
       <div className="h-dvh w-full overflow-hidden bg-gray-50">
-        <AppSidebar
-          menu={menuByActor}
-          topContent={sidebarTopContent}
-          sectionLabels={{
-            main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
-            others: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
-          }}
-          brand={{
-            href: brandHref,
-            expandedLogo: (
-              <div className="flex items-center">
-                <Image
-                  src="/images/logo/board_logo_dark.png"
-                  alt="뷰랩 관리자"
-                  width={160}
-                  height={36}
-                  className="block h-auto"
-                  priority
-                />
-              </div>
-            ),
-          }}
+        <AdminSidebarNavigation
+          permissions={permissions}
+          staffId={profile?.id ?? ""}
+          activeDomain={activeDomain}
+          availableDomains={availableDomains}
+          brandHref={brandHref}
+          onDomainChange={setActiveDomain}
         />
         <div className="ml-[290px] flex h-dvh min-w-0 flex-col overflow-hidden">
           <div className="flex h-full min-w-0 flex-col overflow-x-auto overflow-y-hidden">
@@ -219,6 +138,144 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
         </div>
       </div>
     </PageHeaderExtraProvider>
+  );
+}
+
+type AdminSidebarNavigationProps = {
+  permissions: string[];
+  staffId: number | string;
+  activeDomain: StaffSidebarDomain;
+  availableDomains: typeof STAFF_SIDEBAR_DOMAIN_OPTIONS;
+  brandHref: string;
+  onDomainChange: React.Dispatch<React.SetStateAction<StaffSidebarDomain>>;
+};
+
+const AdminSidebarNavigation = React.memo(function AdminSidebarNavigation({
+  permissions,
+  staffId,
+  activeDomain,
+  availableDomains,
+  brandHref,
+  onDomainChange,
+}: AdminSidebarNavigationProps) {
+  const [navigationBadges, setNavigationBadges] = React.useState<NavigationBadgeMap>(() =>
+    getCachedNavigationBadges(staffId),
+  );
+  const requestInFlightRef = React.useRef(false);
+  const refreshPendingRef = React.useRef(false);
+  const sidebarMenus = React.useMemo(
+    () => buildStaffSidebarMenus(permissions, navigationBadges),
+    [navigationBadges, permissions],
+  );
+  const menu = React.useMemo(() => mergeStaffSidebarMenu(sidebarMenus, activeDomain), [activeDomain, sidebarMenus]);
+
+  React.useEffect(() => {
+    let disposed = false;
+
+    const refreshNavigationBadges = async (force = true) => {
+      if (document.visibilityState === "hidden") return;
+
+      if (requestInFlightRef.current) {
+        refreshPendingRef.current = true;
+        return;
+      }
+
+      requestInFlightRef.current = true;
+
+      try {
+        const nextBadges = await fetchNavigationBadges(staffId, { force });
+
+        if (disposed) return;
+        setNavigationBadges((currentBadges) =>
+          areNavigationBadgesEqual(currentBadges, nextBadges) ? currentBadges : nextBadges,
+        );
+      } finally {
+        requestInFlightRef.current = false;
+
+        if (!disposed && refreshPendingRef.current) {
+          refreshPendingRef.current = false;
+          void refreshNavigationBadges(true);
+        }
+      }
+    };
+
+    const handleRefresh = () => {
+      void refreshNavigationBadges(true);
+    };
+
+    void refreshNavigationBadges(false);
+
+    const intervalId = window.setInterval(handleRefresh, 30_000);
+    window.addEventListener("focus", handleRefresh);
+    window.addEventListener(NAVIGATION_BADGE_REFRESH_EVENT, handleRefresh);
+
+    return () => {
+      disposed = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleRefresh);
+      window.removeEventListener(NAVIGATION_BADGE_REFRESH_EVENT, handleRefresh);
+    };
+  }, [staffId]);
+
+  const sidebarTopContent =
+    availableDomains.length > 1 ? (
+      <div className="rounded-xl bg-white/10 p-1">
+        <div className="grid grid-cols-2 gap-1">
+          {availableDomains.map((domain) => {
+            const isActive = domain.key === activeDomain;
+
+            return (
+              <button
+                key={domain.key}
+                type="button"
+                onClick={() => onDomainChange(domain.key)}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  isActive ? "bg-white text-[#302E3F] shadow-sm" : "text-white/65 hover:text-white"
+                }`}
+              >
+                {domain.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ) : null;
+
+  return (
+    <AppSidebar
+      menu={menu}
+      topContent={sidebarTopContent}
+      sectionLabels={{
+        main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
+        others: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
+      }}
+      brand={{
+        href: brandHref,
+        expandedLogo: (
+          <div className="flex items-center">
+            <Image
+              src="/images/logo/board_logo_dark.png"
+              alt="뷰랩 관리자"
+              width={160}
+              height={36}
+              className="block h-auto w-[160px]"
+              priority
+            />
+          </div>
+        ),
+      }}
+    />
+  );
+});
+
+function areNavigationBadgesEqual(current: NavigationBadgeMap, next: NavigationBadgeMap) {
+  const currentKeys = Object.keys(current);
+  const nextKeys = Object.keys(next);
+
+  if (currentKeys.length !== nextKeys.length) return false;
+
+  return currentKeys.every(
+    (key) => current[key]?.count === next[key]?.count && current[key]?.has_new === next[key]?.has_new,
   );
 }
 

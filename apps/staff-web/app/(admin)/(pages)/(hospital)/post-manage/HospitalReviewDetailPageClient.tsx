@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import { SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
 
-import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import {
@@ -26,6 +27,10 @@ import {
   type HospitalReviewDetailResponse,
   type HospitalReviewOperationHistory,
 } from "@/lib/hospital-review/detail";
+
+const MediaPreviewModal = dynamic(() =>
+  import("@/components/common/MediaPreviewModal").then((module) => module.MediaPreviewModal),
+);
 
 type VisibilityUpdateResponse = {
   updated_count: number;
@@ -494,7 +499,9 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         onConfirm={() => void confirmVisibilityChange()}
       />
 
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      {previewMedia ? (
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      ) : null}
     </div>
   );
 }
