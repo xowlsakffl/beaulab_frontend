@@ -223,15 +223,15 @@ FilterPanel과 DataTable에서는 API 호출, router 이동, 서버 응답 파�
 - `requestKeyRef`
 - latest request key 처리
 - 중복 fetch 방지
-- 수동 새로고침
 
 단, 도메인별 query field와 row mapper는 공통 hook 안에 넣지 않는다.
 
 ### 6.4 LoadError UI
 
 - load error는 `LoadErrorState`를 사용한다.
-- 문구와 다시 불러오기 버튼만 중앙에 배치한다.
+- 제목과 문구만 중앙에 배치한다.
 - 흰 박스, 취소 버튼, 페이지별 제각각 스타일은 만들지 않는다.
+- 사용자용 새로고침/다시 불러오기 버튼은 만들지 않는다.
 
 ## 7. 등록/수정 폼 규칙
 

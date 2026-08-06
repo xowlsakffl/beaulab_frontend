@@ -105,14 +105,7 @@ export default function AccountUsersTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchUsers,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "account-users",
     query,
     fetchRows: fetchAccountUserRows,
@@ -242,10 +235,6 @@ export default function AccountUsersTableClient() {
     setPage(1);
   }, []);
 
-  const refresh = React.useCallback(() => {
-    void Promise.all([fetchSummary(), fetchUsers(true)]);
-  }, [fetchSummary, fetchUsers]);
-
   const openDetail = React.useCallback(
     (row: AccountUserRow) => {
       const currentQueryString = searchParams.toString();
@@ -287,7 +276,7 @@ export default function AccountUsersTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={refresh}
+
         onGoPage={setPage}
         onOpenDetail={openDetail}
       />

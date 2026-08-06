@@ -237,17 +237,6 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
     [historiesPage, reviewId],
   );
 
-  const refreshReviewPage = React.useCallback(
-    async (manualRefresh = false) => {
-      await Promise.all([
-        fetchReviewDetail(manualRefresh),
-        fetchReviewComments(manualRefresh),
-        fetchReviewOperationHistories(manualRefresh),
-      ]);
-    },
-    [fetchReviewComments, fetchReviewDetail, fetchReviewOperationHistories],
-  );
-
   React.useEffect(() => {
     void fetchReviewComments(false);
   }, [fetchReviewComments]);
@@ -422,7 +411,6 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
       <LoadErrorState
         title="후기 상세 정보를 불러오지 못했습니다."
         message={loadError ?? "후기 상세 정보를 찾을 수 없습니다."}
-        onRetry={() => void refreshReviewPage(true)}
       />
     );
   }

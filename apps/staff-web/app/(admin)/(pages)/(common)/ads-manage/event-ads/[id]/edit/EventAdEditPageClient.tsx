@@ -296,11 +296,7 @@ export default function EventAdEditPageClient() {
 
   if (loadError || !readyState) {
     return (
-      <LoadErrorState
-        title="광고 정보를 불러오지 못했습니다."
-        message={loadError ?? "광고 정보를 찾을 수 없습니다."}
-        onRetry={() => void fetchDetail()}
-      />
+      <LoadErrorState title="광고 정보를 불러오지 못했습니다." message={loadError ?? "광고 정보를 찾을 수 없습니다."} />
     );
   }
 

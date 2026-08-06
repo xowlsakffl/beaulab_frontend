@@ -128,14 +128,7 @@ export default function HospitalEntriesTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchHospitalEntries,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "hospital-entries",
     query,
     fetchRows: fetchHospitalEntryRows,
@@ -293,10 +286,7 @@ export default function HospitalEntriesTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={() => {
-          void fetchHospitalEntries(true);
-          void fetchSummary();
-        }}
+
         onGoPage={setPage}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();

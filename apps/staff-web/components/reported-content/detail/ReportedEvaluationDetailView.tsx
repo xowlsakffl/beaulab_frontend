@@ -39,7 +39,7 @@ type ReportedEvaluationDetailViewProps = {
   reportedReports: ReportedContentReportsBlock | null;
   actionError: string | null;
   onActionError: (message: string | null) => void;
-  onRefresh: () => Promise<void>;
+  onSaved: () => Promise<void>;
   onReportedStatusUpdated: () => void;
   onHistoryPageChange: (page: number) => void;
 };
@@ -55,7 +55,7 @@ export function ReportedEvaluationDetailView({
   reportedReports,
   actionError,
   onActionError,
-  onRefresh,
+  onSaved,
   onReportedStatusUpdated,
   onHistoryPageChange,
 }: ReportedEvaluationDetailViewProps) {
@@ -63,7 +63,7 @@ export function ReportedEvaluationDetailView({
   const receipt = useReportedEvaluationReceipt({
     evaluation: detail,
     onBeforeSubmit: () => onActionError(null),
-    onSaved: onRefresh,
+    onSaved,
   });
   const receiptImages = detail.receipt_images ?? [];
   const receiptImage = receiptImages[0] ?? null;

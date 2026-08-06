@@ -373,7 +373,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         sortState={sortState}
         onToggleSort={toggleSort}
         onGoPage={setPage}
-        onRefresh={() => void Promise.all([fetchRows(true), fetchSummary()])}
+
         onOpenDetail={isCommentKind ? undefined : openDetail}
         onOpenReports={isCommentKind ? setReportsModalRow : undefined}
         onOpenProcess={isCommentKind ? setProcessModalRow : undefined}

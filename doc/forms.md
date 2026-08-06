@@ -68,6 +68,12 @@ validation은 side effect 없는 pure function이어야 한다.
 
 UI 컴포넌트 안에서 필수 문구를 임의 생성하지 않는다. 필수값 문구와 파일 조건은 도메인 validation이 소유한다.
 
+고정 형식 식별번호:
+
+- 입력 표시값과 API 저장값을 분리한다. 예: 사업자등록번호는 화면에서 `000-00-00000`, API에서는 숫자 10자리로 처리한다.
+- 자동 포맷, 입력 길이 제한, payload 정규화는 공통 helper를 사용한다.
+- `maxLength`는 입력 편의 기능일 뿐 검증이 아니다. 프론트 validation과 서버 validation에서 유효 자릿수를 각각 검사한다.
+
 ## 5. Field error
 
 기준:

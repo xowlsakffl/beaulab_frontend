@@ -46,12 +46,11 @@ const DOCTOR_PROFILE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 const DOCTOR_PROFILE_IMAGE_VALIDATION_MESSAGE =
-  "프로필 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하\n- 이미지 비율: 1:1";
+  "프로필 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하";
 const DOCTOR_PROFILE_IMAGE_RULE = {
   allowedExtensions: DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_EXTENSIONS,
   allowedMimeTypes: DOCTOR_PROFILE_IMAGE_ALLOWED_IMAGE_TYPES,
   maxBytes: DOCTOR_PROFILE_IMAGE_MAX_BYTES,
-  square: true,
 };
 
 export const INITIAL_DOCTOR_FORM: DoctorFormValues = {
@@ -109,7 +108,7 @@ export const DOCTOR_PROFILE_COLLECTIONS: readonly MediaCollectionConfig<"profile
     multiple: false,
     maxFiles: 1,
     emptyText: "업로드한 프로필 이미지가 없습니다.",
-    helperText: "jpg, png, webp / 최대 5MB / 1:1 비율",
+    helperText: "jpg, png, webp / 최대 5MB",
   },
 ];
 

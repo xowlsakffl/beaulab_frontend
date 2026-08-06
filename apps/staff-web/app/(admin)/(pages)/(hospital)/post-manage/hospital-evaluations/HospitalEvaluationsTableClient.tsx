@@ -105,15 +105,7 @@ export function HospitalEvaluationsTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    setRows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchEvaluations,
-  } = useListData({
+  const { rows, setRows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "hospital-evaluations",
     query,
     fetchRows: fetchEvaluationRows,
@@ -451,7 +443,7 @@ export function HospitalEvaluationsTableClient() {
         visibilityUpdatingIds={rowVisibilityUpdatingIds}
         bulkUpdating={bulkUpdating}
         onToggleSort={toggleSort}
-        onRefresh={() => void fetchEvaluations(true)}
+
         onGoPage={setPage}
         onToggleRow={toggleRow}
         onToggleAllRows={toggleAllRows}

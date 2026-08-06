@@ -18,6 +18,8 @@ interface InputProps {
   className?: string;
   min?: string;
   max?: string;
+  maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   step?: number;
   disabled?: boolean;
   success?: boolean;
@@ -41,6 +43,8 @@ export const InputField: FC<InputProps> = ({
   className = "",
   min,
   max,
+  maxLength,
+  inputMode,
   step,
   disabled = false,
   success = false,
@@ -96,6 +100,8 @@ export const InputField: FC<InputProps> = ({
         readOnly={readOnly}
         min={min}
         max={max}
+        maxLength={maxLength}
+        inputMode={inputMode}
         step={step}
         disabled={disabled}
         autoComplete={autoComplete}

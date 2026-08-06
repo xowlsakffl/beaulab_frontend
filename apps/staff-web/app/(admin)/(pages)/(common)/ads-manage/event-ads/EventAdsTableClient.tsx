@@ -108,14 +108,7 @@ export default function EventAdsTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchEventAds,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "hospital-event-ads",
     query,
     fetchRows: fetchEventAdRows,
@@ -270,10 +263,6 @@ export default function EventAdsTableClient() {
     setPage(nextPage);
   }, []);
 
-  const handleRefresh = React.useCallback(() => {
-    void fetchEventAds(true);
-  }, [fetchEventAds]);
-
   const openEventAdDetailPage = React.useCallback(
     (row: EventAdRow) => {
       const returnTo = queryString ? `${pathname}?${queryString}` : pathname;
@@ -342,7 +331,7 @@ export default function EventAdsTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={handleToggleSort}
-        onRefresh={handleRefresh}
+
         onGoPage={handleGoPage}
         onOpenDetail={openEventAdDetailPage}
       />

@@ -181,7 +181,6 @@ type NoticesDataTableProps = {
   sortState: SortState;
   perPage: number;
   onToggleSort: (field: SortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onPerPageChange: (value: number) => void;
   onRowClick: (row: NoticeRow) => void;
@@ -197,7 +196,6 @@ export function NoticesDataTable({
   sortState,
   perPage,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onPerPageChange,
   onRowClick,
@@ -221,7 +219,7 @@ export function NoticesDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onRowClick}
       rightActions={

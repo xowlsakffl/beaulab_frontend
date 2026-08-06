@@ -139,14 +139,7 @@ export default function DoctorsTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchDoctors,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "doctors",
     query,
     fetchRows: fetchDoctorRows,
@@ -450,7 +443,7 @@ export default function DoctorsTableClient() {
         highlightedRowId={highlightedRowId}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={() => fetchDoctors(true)}
+
         onGoPage={(nextPage) => setPage(nextPage)}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();

@@ -269,7 +269,6 @@ type EventAdsDataTableProps = {
   error: string | null;
   sortState: EventAdSortState;
   onToggleSort: (field: EventAdSortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onOpenDetail: (row: EventAdRow) => void;
 };
@@ -282,7 +281,6 @@ export function EventAdsDataTable({
   error,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onOpenDetail,
 }: EventAdsDataTableProps) {
@@ -290,7 +288,6 @@ export function EventAdsDataTable({
 
   return (
     <DataTable
-      refreshPlacement="left"
       tableClassName="w-[1214px] min-w-[1214px] table-fixed"
       columns={columns}
       rows={rows}
@@ -302,7 +299,7 @@ export function EventAdsDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onOpenDetail}
       footerCenter={

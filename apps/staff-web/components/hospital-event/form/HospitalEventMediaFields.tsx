@@ -7,6 +7,8 @@ import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import {
   HOSPITAL_EVENT_IMAGE_ACCEPT,
+  HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT,
+  HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT,
   validateHospitalEventImageFile,
   type HospitalEventImageFieldName,
   type HospitalEventType,
@@ -47,7 +49,7 @@ export function HospitalEventMediaCard({
     <div className="min-w-0 space-y-4">
       <SingleImagePreviewPanel
         title="썸네일"
-        helper="800px x 800px 이상, 1:1비율, 2MB 이하"
+        helper={HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT}
         objectUrl={thumbnailUrl}
         onPreview={onPreview}
         onFileChange={onThumbnailChange}
@@ -57,7 +59,7 @@ export function HospitalEventMediaCard({
       {eventType === "IMAGE" ? (
         <SingleImagePreviewPanel
           title="이벤트 페이지"
-          helper="가로 800px 이상, 5MB 이하"
+          helper={HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT}
           objectUrl={eventPageUrl}
           onPreview={onPreview}
           onFileChange={onEventPageChange}

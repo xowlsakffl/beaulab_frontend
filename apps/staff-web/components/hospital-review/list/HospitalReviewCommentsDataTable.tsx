@@ -262,7 +262,6 @@ type HospitalReviewCommentsDataTableProps = {
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
   onToggleSort: (field: HospitalReviewCommentSortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onToggleRow: (row: HospitalReviewCommentRow, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
@@ -281,7 +280,6 @@ export function HospitalReviewCommentsDataTable({
   visibilityUpdatingIds,
   bulkUpdating,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onToggleRow,
   onToggleAllRows,
@@ -334,8 +332,7 @@ export function HospitalReviewCommentsDataTable({
       error={error}
       meta={meta}
       onGoPage={onGoPage}
-      onRefresh={onRefresh}
-      refreshPlacement="left"
+
       rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button

@@ -139,7 +139,7 @@ API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 �
 
 - `guard.tsx`: 세션 복구, route permission 확인, 미인증 로그인 이동
 - `sidebar-menu.tsx`: 권한 기반 메뉴 정의/조합
-- `LoadErrorState.tsx`: 중앙 정렬 문구 + 다시 불러오기 UI
+- `LoadErrorState.tsx`: 버튼 없는 중앙 정렬 로드 오류 UI
 - `AllowStatusControls.tsx`: 신청/검수/승인/반려 계열 공통 컨트롤
 - `VisibilityActionButtons.tsx`: 노출/미노출 계열 버튼
 - `OperationHistoryCard.tsx`, `OperationHistoryDisplay.tsx`: 운영 히스토리 렌더링
@@ -237,7 +237,7 @@ API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 �
 - 검색어 입력마다 API를 호출하지 않는다.
 - table 렌더를 이미지 preload가 막지 않는다.
 - 같은 option API는 `request-cache.ts` 또는 상위 상태로 중복 호출을 줄인다.
-- load error UI는 `LoadErrorState`를 사용한다. 흰 박스/취소 버튼 없이 문구와 다시 불러오기만 중앙 배치한다.
+- load error UI는 `LoadErrorState`를 사용한다. 흰 박스/취소/다시 불러오기 버튼 없이 제목과 문구만 중앙 배치한다.
 
 ## 6. 폼 패턴
 

@@ -75,14 +75,7 @@ export default function HospitalEventRealModelDBsTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchRealModelDBs,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "hospital-event-real-model-dbs",
     query,
     fetchRows: fetchRealModelDBRows,
@@ -181,7 +174,7 @@ export default function HospitalEventRealModelDBsTableClient() {
         sortState={sortState}
         onToggleSort={toggleSort}
         onOpenDetail={(row) => router.push(`/customer-db-manage/real-models/${row.id}`)}
-        onRefresh={() => void fetchRealModelDBs(true)}
+
         onGoPage={setPage}
       />
     </div>

@@ -248,7 +248,6 @@ type TalksDataTableProps = {
   onRowVisibilityChange: (id: number, status: string) => void;
   onOpenDetail: (row: TalkRow) => void;
   onDownloadExcel: () => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
 
@@ -270,7 +269,6 @@ export function TalksDataTable({
   onRowVisibilityChange,
   onOpenDetail,
   onDownloadExcel,
-  onRefresh,
   onGoPage,
 }: TalksDataTableProps) {
   const selectedCount = selectedIds.size;
@@ -319,9 +317,9 @@ export function TalksDataTable({
       error={error}
       meta={meta}
       onGoPage={onGoPage}
-      onRefresh={onRefresh}
+
       onRowClick={onOpenDetail}
-      refreshPlacement="left"
+
       rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button

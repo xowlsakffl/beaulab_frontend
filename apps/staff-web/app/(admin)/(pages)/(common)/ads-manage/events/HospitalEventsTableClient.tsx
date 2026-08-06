@@ -536,9 +536,7 @@ export default function HospitalEventsTableClient() {
         onDuplicate={duplicateEvent}
         onOpenConsultations={openEventDBPage}
         onOpenDetail={openEventDetailPage}
-        onRefresh={() => {
-          void Promise.all([fetchEvents(true), fetchSummary()]);
-        }}
+
         onGoPage={setPage}
       />
 

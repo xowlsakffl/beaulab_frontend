@@ -146,14 +146,7 @@ export default function HospitalsTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchHospitals,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "hospitals",
     query,
     fetchRows: fetchHospitalRows,
@@ -367,10 +360,6 @@ export default function HospitalsTableClient() {
     setSortState((prev) => nextSortState(prev, field));
   }, []);
 
-  const refreshHospitals = React.useCallback(() => {
-    void Promise.all([fetchHospitals(true), fetchHospitalSummary()]);
-  }, [fetchHospitalSummary, fetchHospitals]);
-
   return (
     <div className="min-w-0 space-y-4">
       <HospitalsSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
@@ -415,7 +404,7 @@ export default function HospitalsTableClient() {
         highlightedRowId={highlightedRowId}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={refreshHospitals}
+
         onGoPage={(nextPage) => setPage(nextPage)}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();

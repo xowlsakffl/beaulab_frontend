@@ -71,18 +71,13 @@ export const VIDEO_CATEGORY_SECTIONS: CategorySelectorSection[] = [
 
 export const VIDEO_THUMBNAIL_MAX_BYTES = 5 * 1024 * 1024;
 export const VIDEO_THUMBNAIL_ACCEPT = "image/jpeg,image/png";
-export const VIDEO_THUMBNAIL_HELPER_TEXT = "16:9 비율 / jpg, jpeg, png / 최대 5MB";
-const VIDEO_THUMBNAIL_VALIDATION_MESSAGE =
-  "썸네일은 16:9 비율의 jpg, jpeg, png 파일로 최대 5MB 이하만 업로드할 수 있습니다.";
+export const VIDEO_THUMBNAIL_HELPER_TEXT = "jpg, jpeg, png / 최대 5MB";
+const VIDEO_THUMBNAIL_VALIDATION_MESSAGE = "썸네일은 jpg, jpeg, png 파일로 최대 5MB 이하만 업로드할 수 있습니다.";
 
 const VIDEO_THUMBNAIL_IMAGE_RULE: ImageFileValidationRule = {
   allowedExtensions: [".jpg", ".jpeg", ".png"],
   allowedMimeTypes: ["image/jpeg", "image/png"],
   maxBytes: VIDEO_THUMBNAIL_MAX_BYTES,
-  aspectRatio: {
-    width: 16,
-    height: 9,
-  },
 };
 
 export const VIDEO_THUMBNAIL_COLLECTIONS: readonly MediaCollectionConfig<"thumbnail_file">[] = [

@@ -26,7 +26,6 @@ type AccountUsersDataTableProps = {
   error: string | null;
   sortState: AccountUserSortState;
   onToggleSort: (field: AccountUserSortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onOpenDetail?: (row: AccountUserRow) => void;
 };
@@ -175,7 +174,6 @@ export function AccountUsersDataTable({
   error,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onOpenDetail,
 }: AccountUsersDataTableProps) {
@@ -193,8 +191,7 @@ export function AccountUsersDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
-      refreshPlacement="left"
+
       onRowClick={onOpenDetail}
       onGoPage={onGoPage}
       footerCenter={

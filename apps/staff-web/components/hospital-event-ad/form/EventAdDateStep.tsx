@@ -20,7 +20,6 @@ export function EventAdDateStep({
   isLoading,
   error,
   onMonthChange,
-  onRefresh,
   onSelectWeek,
   onBack,
 }: {
@@ -31,7 +30,6 @@ export function EventAdDateStep({
   isLoading: boolean;
   error: string | null;
   onMonthChange: (month: Date) => void;
-  onRefresh: () => void;
   onSelectWeek: (week: EventAdAvailabilityWeek) => void;
   onBack: () => void;
 }) {
@@ -85,7 +83,7 @@ export function EventAdDateStep({
 
           <section className="min-w-0">
             {error ? (
-              <LoadErrorState title="광고 예약 현황을 불러오지 못했습니다." message={error} onRetry={onRefresh} />
+              <LoadErrorState title="광고 예약 현황을 불러오지 못했습니다." message={error} />
             ) : (
               <WeeklyReservationCalendar<EventAdAvailabilityWeek>
                 month={calendarMonth}

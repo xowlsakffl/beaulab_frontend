@@ -7,6 +7,7 @@ import { AdminNotesCard as CommonAdminNotesCard } from "@/components/common/Admi
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import { HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT, HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT } from "@/lib/hospital-event/form";
 import {
   formatHospitalEventPoint,
   formatHospitalEventPrice,
@@ -204,14 +205,14 @@ export function EventMediaColumn({
     <div className="min-w-0 space-y-4">
       <MediaPreviewCard
         title="썸네일"
-        helper="800px x 800px 이상, 1:1비율, 2MB 이하"
+        helper={HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT}
         media={detail.thumbnail_image ?? null}
         onPreview={onPreview}
       />
       {detail.event_type === "IMAGE" ? (
         <MediaPreviewCard
           title="이벤트 페이지"
-          helper="가로 800px 이상, 5MB 이하"
+          helper={HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT}
           media={detail.event_page_image ?? null}
           onPreview={onPreview}
           tall

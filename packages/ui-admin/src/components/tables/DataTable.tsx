@@ -1,10 +1,8 @@
 "use client";
 
 import React from "react";
-import { RotateCw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 import { Spinner } from "../ui/spinner/Spinner";
-import { Button } from "../ui/button/Button";
 import Pagination from "./Pagination";
 
 export type DataTableColumn<T> = {
@@ -42,8 +40,6 @@ type DataTableProps<T> = {
   skeletonRows?: number;
   meta?: DataTableMeta | null;
   onGoPage?: (page: number) => void;
-  onRefresh?: () => void;
-  refreshPlacement?: "left" | "right";
   refreshing?: boolean;
   onRowClick?: (row: T) => void;
   getRowClassName?: (row: T) => string | undefined;
@@ -65,9 +61,6 @@ type DataTableBodyContentProps<T> = {
   error: string | null;
   emptyText: string;
   skeletonRows: number;
-  refreshing: boolean;
-  canRefresh: boolean;
-  onRefresh: () => void;
   rowClickable: boolean;
   onRowClick: (row: T) => void;
   getRowClassName: (row: T) => string | undefined;
@@ -83,9 +76,6 @@ function DataTableBodyContentComponent<T>({
   error,
   emptyText,
   skeletonRows,
-  refreshing,
-  canRefresh,
-  onRefresh,
   rowClickable,
   onRowClick,
   getRowClassName,
@@ -97,14 +87,7 @@ function DataTableBodyContentComponent<T>({
       {!loading && error ? (
         <TableRow>
           <TableCell className="px-5 py-12 text-center" colSpan={colCount}>
-            <div className="flex flex-col items-center justify-center gap-3">
-              <p className="text-theme-sm font-medium text-rose-600">{error}</p>
-              {canRefresh ? (
-                <Button type="button" variant="brand" size="sm" onClick={onRefresh} disabled={refreshing}>
-                  {refreshing ? "불러오는 중..." : "다시 불러오기"}
-                </Button>
-              ) : null}
-            </div>
+            <p className="text-theme-sm font-medium text-rose-600">{error}</p>
           </TableCell>
         </TableRow>
       ) : null}
@@ -186,8 +169,6 @@ export function DataTable<T>({
   skeletonRows = 6,
   meta = null,
   onGoPage,
-  onRefresh,
-  refreshPlacement = "right",
   refreshing = false,
   onRowClick,
   getRowClassName,
@@ -198,16 +179,13 @@ export function DataTable<T>({
   const handlePageChange = onGoPage ?? (() => undefined);
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const getRowKeyRef = React.useRef(getRowKey);
-  const onRefreshRef = React.useRef(onRefresh);
   const onRowClickRef = React.useRef(onRowClick);
   const getRowClassNameRef = React.useRef(getRowClassName);
   const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
   getRowKeyRef.current = getRowKey;
-  onRefreshRef.current = onRefresh;
   onRowClickRef.current = onRowClick;
   getRowClassNameRef.current = getRowClassName;
   const resolveRowKey = React.useCallback((row: T) => getRowKeyRef.current(row), []);
-  const handleBodyRefresh = React.useCallback(() => onRefreshRef.current?.(), []);
   const handleRowClick = React.useCallback((row: T) => onRowClickRef.current?.(row), []);
   const resolveRowClassName = React.useCallback((row: T) => getRowClassNameRef.current?.(row), []);
   const defaultFooterSummary = meta ? (
@@ -225,17 +203,6 @@ export function DataTable<T>({
   ) : null;
   const hasCustomFooterLayout =
     footerLeft !== undefined || footerCenter !== undefined || footerRight !== undefined || hideFooterSummary;
-  const refreshControl = onRefresh ? (
-    <button
-      type="button"
-      onClick={onRefresh}
-      disabled={refreshing}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-      title="새로고침"
-    >
-      {refreshing ? <Spinner className="h-4 w-4" /> : <RotateCw className="h-4 w-4" />}
-    </button>
-  ) : null;
 
   React.useEffect(() => {
     const container = scrollContainerRef.current;
@@ -282,10 +249,9 @@ export function DataTable<T>({
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white">
-      {(title || description || rightActions || onRefresh) && (
+      {(title || description || rightActions) && (
         <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-4">
           <div className="flex shrink-0 items-center gap-3">
-            {refreshPlacement === "left" ? refreshControl : null}
             {title || description ? (
               <div>
                 {title ? <h3 className="text-base font-semibold text-gray-800">{title}</h3> : null}
@@ -294,10 +260,7 @@ export function DataTable<T>({
             ) : null}
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-            {refreshPlacement === "right" ? refreshControl : null}
-            {rightActions}
-          </div>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">{rightActions}</div>
         </div>
       )}
 
@@ -328,9 +291,6 @@ export function DataTable<T>({
               error={error}
               emptyText={emptyText}
               skeletonRows={skeletonRows}
-              refreshing={error ? refreshing : false}
-              canRefresh={Boolean(onRefresh)}
-              onRefresh={handleBodyRefresh}
               rowClickable={Boolean(onRowClick)}
               onRowClick={handleRowClick}
               getRowClassName={resolveRowClassName}

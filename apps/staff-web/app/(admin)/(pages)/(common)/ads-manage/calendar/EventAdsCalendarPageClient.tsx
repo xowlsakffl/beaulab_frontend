@@ -203,7 +203,7 @@ export default function EventAdsCalendarPageClient() {
         </div>
 
         {loadError ? (
-          <LoadErrorState title="광고 현황을 불러오지 못했습니다." message={loadError} onRetry={fetchCalendar} />
+          <LoadErrorState title="광고 현황을 불러오지 못했습니다." message={loadError} />
         ) : (
           <EventAdStatusCalendar
             month={calendarMonth}

@@ -226,17 +226,6 @@ export default function TalkDetailPageClient() {
     [historiesPage, talkId],
   );
 
-  const refreshTalkPage = React.useCallback(
-    async (manualRefresh = false) => {
-      await Promise.all([
-        fetchTalkDetail(manualRefresh),
-        fetchTalkComments(manualRefresh),
-        fetchTalkOperationHistories(manualRefresh),
-      ]);
-    },
-    [fetchTalkComments, fetchTalkDetail, fetchTalkOperationHistories],
-  );
-
   React.useEffect(() => {
     void fetchTalkComments(false);
   }, [fetchTalkComments]);
@@ -411,7 +400,6 @@ export default function TalkDetailPageClient() {
       <LoadErrorState
         title="토크 상세 정보를 불러오지 못했습니다."
         message={loadError ?? "토크 상세 정보를 찾을 수 없습니다."}
-        onRetry={() => void refreshTalkPage(true)}
       />
     );
   }

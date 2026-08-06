@@ -29,7 +29,6 @@ type HospitalEventDBsDataTableProps = {
   error: string | null;
   sortState: HospitalEventDBSortState;
   onToggleSort: (field: HospitalEventDBSortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
 
@@ -252,7 +251,6 @@ export function HospitalEventDBsDataTable({
   error,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
 }: HospitalEventDBsDataTableProps) {
   const columns = React.useMemo(() => buildColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
@@ -269,8 +267,7 @@ export function HospitalEventDBsDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
-      refreshPlacement="left"
+
       onGoPage={onGoPage}
       footerCenter={
         meta ? (

@@ -28,6 +28,8 @@ import {
 import {
   HOSPITAL_EVENT_PROCEDURE_BENEFIT_MAX_COUNT,
   HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT,
+  HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT,
+  HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT,
   calculateHospitalEventDBBasePrice,
   formatNumberInput,
   parseNumberInput,
@@ -371,7 +373,7 @@ export function EventInfoCard({
             label="썸네일"
             target="thumbnail_image"
             required
-            helper="800px x 800px 이상, 1:1비율, 2MB 이하"
+            helper={HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT}
             file={thumbnailImage}
             existingMedia={existingThumbnailImage}
             error={errors.thumbnail_image}
@@ -383,7 +385,7 @@ export function EventInfoCard({
               label="이벤트 페이지"
               target="event_page_image"
               required
-              helper="가로 800px 이상, 5MB 이하"
+              helper={HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT}
               file={eventPageImage}
               existingMedia={existingEventPageImage}
               error={errors.event_page_image}

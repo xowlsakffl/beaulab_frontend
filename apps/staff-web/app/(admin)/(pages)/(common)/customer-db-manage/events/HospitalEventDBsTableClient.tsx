@@ -75,14 +75,7 @@ export default function HospitalEventDBsTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchEventDBs,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "hospital-event-dbs",
     query,
     fetchRows: fetchEventDBRows,
@@ -189,7 +182,7 @@ export default function HospitalEventDBsTableClient() {
         error={error}
         sortState={sortState}
         onToggleSort={toggleSort}
-        onRefresh={() => void fetchEventDBs(true)}
+
         onGoPage={setPage}
       />
     </div>

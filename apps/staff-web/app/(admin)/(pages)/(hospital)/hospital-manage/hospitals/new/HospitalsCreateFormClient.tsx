@@ -8,6 +8,7 @@ import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
 import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
 import { useHospitalFormSelections } from "@/hooks/hospital/useHospitalFormSelections";
 import { api } from "@/lib/common/api";
+import { isCompleteBusinessNumber } from "@/lib/common/business-number";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   buildCreateHospitalFormData,
@@ -166,7 +167,7 @@ export default function HospitalsCreateFormClient() {
     async (rawValue: string) => {
       const normalizedValue = normalizeBusinessNumber(rawValue);
 
-      if (!normalizedValue) {
+      if (!isCompleteBusinessNumber(rawValue)) {
         return;
       }
 

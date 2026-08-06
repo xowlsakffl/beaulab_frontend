@@ -277,7 +277,6 @@ type DoctorsDataTableProps = {
   highlightedRowId: number | null;
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onRowClick: (row: DoctorRow) => void;
 };
@@ -291,7 +290,6 @@ export function DoctorsDataTable({
   highlightedRowId,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onRowClick,
 }: DoctorsDataTableProps) {
@@ -309,7 +307,6 @@ export function DoctorsDataTable({
 
   return (
     <DataTable
-      refreshPlacement="left"
       tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
@@ -321,7 +318,7 @@ export function DoctorsDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onRowClick}
       footerCenter={

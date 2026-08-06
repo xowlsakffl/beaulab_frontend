@@ -128,14 +128,7 @@ export default function VideosTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchVideos,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "videos",
     query,
     fetchRows: fetchVideoRows,
@@ -328,10 +321,6 @@ export default function VideosTableClient() {
     setPage(nextPage);
   }, []);
 
-  const handleRefresh = React.useCallback(() => {
-    void fetchVideos(true);
-  }, [fetchVideos]);
-
   return (
     <div className="min-w-0 space-y-4">
       <VideosSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
@@ -384,7 +373,7 @@ export default function VideosTableClient() {
         highlightedRowId={highlightedRowId}
         sortState={sortState}
         onToggleSort={handleToggleSort}
-        onRefresh={handleRefresh}
+
         onGoPage={handleGoPage}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();

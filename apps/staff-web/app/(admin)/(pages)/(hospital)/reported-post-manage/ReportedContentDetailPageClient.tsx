@@ -281,7 +281,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         reportedReports={reportedReports}
         actionError={actionError}
         onActionError={setActionError}
-        onRefresh={() => refreshDetail(true)}
+        onSaved={() => refreshDetail(true)}
         onReportedStatusUpdated={() => void fetchHistories(true)}
         onHistoryPageChange={changeHistoriesPage}
       />
@@ -302,7 +302,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         reportedReports={reportedReports}
         actionError={actionError}
         onActionError={setActionError}
-        onRefresh={() => refreshDetail(true)}
+        onSaved={() => refreshDetail(true)}
         onReportedStatusUpdated={() => void fetchHistories(true)}
         onHistoryPageChange={changeHistoriesPage}
       />
@@ -322,7 +322,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         reportedReports={reportedReports}
         actionError={actionError}
         onActionError={setActionError}
-        onRefresh={() => refreshDetail(true)}
+        onSaved={() => refreshDetail(true)}
         onReportedStatusUpdated={() => void fetchHistories(true)}
         onHistoryPageChange={changeHistoriesPage}
       />

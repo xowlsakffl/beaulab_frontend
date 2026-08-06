@@ -221,7 +221,6 @@ type TalkCommentsDataTableProps = {
   onToggleAllRows: (checked: boolean) => void;
   onBulkVisibilityChange: (status: string) => void;
   onRowVisibilityChange: (id: number, status: string) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
 
@@ -240,7 +239,6 @@ export function TalkCommentsDataTable({
   onToggleAllRows,
   onBulkVisibilityChange,
   onRowVisibilityChange,
-  onRefresh,
   onGoPage,
 }: TalkCommentsDataTableProps) {
   const selectedCount = selectedIds.size;
@@ -289,8 +287,7 @@ export function TalkCommentsDataTable({
       error={error}
       meta={meta}
       onGoPage={onGoPage}
-      onRefresh={onRefresh}
-      refreshPlacement="left"
+
       rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button

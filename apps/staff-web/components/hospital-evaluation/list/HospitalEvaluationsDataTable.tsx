@@ -283,7 +283,6 @@ type HospitalEvaluationsDataTableProps = {
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
   onToggleSort: (field: HospitalEvaluationSortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onToggleRow: (row: HospitalEvaluationRow, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
@@ -303,7 +302,6 @@ export function HospitalEvaluationsDataTable({
   visibilityUpdatingIds,
   bulkUpdating,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onToggleRow,
   onToggleAllRows,
@@ -357,9 +355,9 @@ export function HospitalEvaluationsDataTable({
       error={error}
       meta={meta}
       onGoPage={onGoPage}
-      onRefresh={onRefresh}
+
       onRowClick={onOpenDetail}
-      refreshPlacement="left"
+
       rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
           <Button

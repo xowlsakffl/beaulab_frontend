@@ -318,7 +318,6 @@ type VideosDataTableProps = {
   highlightedRowId: number | null;
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onRowClick: (row: VideoRow) => void;
 };
@@ -332,7 +331,6 @@ export function VideosDataTable({
   highlightedRowId,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onRowClick,
 }: VideosDataTableProps) {
@@ -340,7 +338,6 @@ export function VideosDataTable({
 
   return (
     <DataTable
-      refreshPlacement="left"
       tableClassName="w-[1540px] min-w-[1540px] table-fixed"
       columns={columns}
       rows={rows}
@@ -354,7 +351,7 @@ export function VideosDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onRowClick}
       footerCenter={

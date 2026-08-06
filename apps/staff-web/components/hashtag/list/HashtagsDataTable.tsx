@@ -175,7 +175,6 @@ type HashtagsDataTableProps = {
   highlightedRowId: number | null;
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onRowClick: (row: HashtagRow) => void;
 };
@@ -189,7 +188,6 @@ export function HashtagsDataTable({
   highlightedRowId,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onRowClick,
 }: HashtagsDataTableProps) {
@@ -197,7 +195,6 @@ export function HashtagsDataTable({
 
   return (
     <DataTable
-      refreshPlacement="left"
       tableClassName="w-[1000px] min-w-[1000px] table-fixed"
       columns={columns}
       rows={rows}
@@ -211,7 +208,7 @@ export function HashtagsDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onRowClick}
       footerCenter={

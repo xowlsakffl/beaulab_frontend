@@ -180,7 +180,6 @@ export default function HospitalEventRealModelDBDetailPageClient() {
       <LoadErrorState
         title="리얼모델 DB 상세 정보를 불러오지 못했습니다."
         message={loadError || "리얼모델 DB 상세 정보가 없습니다."}
-        onRetry={() => void fetchDetail()}
       />
     );
   }

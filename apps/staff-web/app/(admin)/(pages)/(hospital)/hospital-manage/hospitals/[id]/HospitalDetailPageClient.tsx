@@ -384,7 +384,6 @@ export default function HospitalDetailPageClient() {
       <LoadErrorState
         title="병의원 정보를 불러오지 못했습니다."
         message={loadError ?? "병의원 정보를 찾을 수 없습니다."}
-        onRetry={() => void fetchHospital()}
       />
     );
   }

@@ -1,4 +1,9 @@
 import type { HospitalEntryDetailResponse, HospitalEntryMediaAsset } from "@/lib/hospital-entry/detail";
+import {
+  formatBusinessNumberInput,
+  isCompleteBusinessNumber,
+  normalizeBusinessNumber,
+} from "@/lib/common/business-number";
 
 export const HOSPITAL_ENTRY_EDIT_FORM_ID = "hospital-entry-edit-form";
 
@@ -64,7 +69,7 @@ export function mapHospitalEntryDetailToForm(detail: HospitalEntryDetailResponse
     hospital_phone: detail.hospital_phone?.trim() ?? "",
     address: detail.address?.trim() ?? "",
     address_detail: detail.address_detail?.trim() ?? "",
-    business_number: detail.business_number?.trim() ?? "",
+    business_number: formatBusinessNumberInput(detail.business_number?.trim() ?? ""),
     ceo_name: detail.ceo_name?.trim() ?? "",
     license_number: detail.license_number?.trim() ?? "",
     applicant_name: detail.applicant_name?.trim() ?? "",
@@ -89,6 +94,10 @@ export function validateHospitalEntryEditForm({
     if (!form[field].trim()) {
       errors[field] = `${label}을 입력해주세요.`;
     }
+  }
+
+  if (form.business_number.trim() && !isCompleteBusinessNumber(form.business_number)) {
+    errors.business_number = "사업자등록번호는 숫자 10자리로 입력해 주세요.";
   }
 
   if (!existingBusinessRegistrationFile && !businessRegistrationFile) {
@@ -118,7 +127,7 @@ export function buildHospitalEntryFormData({
   const formData = new FormData();
 
   for (const [field, value] of Object.entries(form)) {
-    formData.append(field, value);
+    formData.append(field, field === "business_number" ? normalizeBusinessNumber(value) : value);
   }
 
   if (businessRegistrationFile) {

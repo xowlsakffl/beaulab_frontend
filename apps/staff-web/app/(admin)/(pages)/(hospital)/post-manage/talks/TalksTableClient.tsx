@@ -193,7 +193,6 @@ export default function TalksTableClient() {
     setError: setTalkError,
     loading: talkLoading,
     refreshing: talkRefreshing,
-    fetchList: fetchTalks,
     resetList: resetTalkList,
   } = useListData({
     cacheNamespace: "talks",
@@ -211,7 +210,6 @@ export default function TalksTableClient() {
     setError: setCommentError,
     loading: commentLoading,
     refreshing: commentRefreshing,
-    fetchList: fetchTalkComments,
     resetList: resetCommentList,
   } = useListData({
     cacheNamespace: "talk-comments",
@@ -786,7 +784,7 @@ export default function TalksTableClient() {
           onRowVisibilityChange={handleRowVisibilityChange}
           onOpenDetail={openTalkDetail}
           onDownloadExcel={() => void handleDownloadExcel()}
-          onRefresh={() => void fetchTalks(true)}
+
           onGoPage={setPage}
         />
       ) : (
@@ -805,7 +803,7 @@ export default function TalksTableClient() {
           onToggleAllRows={handleToggleAllRows}
           onBulkVisibilityChange={requestBulkVisibilityChange}
           onRowVisibilityChange={handleCommentRowVisibilityChange}
-          onRefresh={() => void fetchTalkComments(true)}
+
           onGoPage={setPage}
         />
       )}

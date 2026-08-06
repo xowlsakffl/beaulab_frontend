@@ -262,7 +262,7 @@ export default function HashtagsPageClient() {
             setPage(1);
             setSortState((current) => nextSortState(current, field));
           }}
-          onRefresh={() => void fetchHashtags(true)}
+
           onGoPage={setPage}
           onRowClick={openEditModal}
         />

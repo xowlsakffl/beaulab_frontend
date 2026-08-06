@@ -405,13 +405,7 @@ function HospitalEventsFormClient({
   }
 
   if (loadError) {
-    return (
-      <LoadErrorState
-        title="이벤트 정보를 불러오지 못했습니다."
-        message={loadError}
-        onRetry={() => void fetchEvent()}
-      />
-    );
+    return <LoadErrorState title="이벤트 정보를 불러오지 못했습니다." message={loadError} />;
   }
 
   return (

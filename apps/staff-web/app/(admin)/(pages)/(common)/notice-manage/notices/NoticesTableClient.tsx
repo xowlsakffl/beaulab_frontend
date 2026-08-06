@@ -101,14 +101,7 @@ export default function NoticesTableClient() {
     };
   }, []);
 
-  const {
-    rows,
-    meta,
-    error,
-    loading,
-    refreshing,
-    fetchList: fetchNotices,
-  } = useListData({
+  const { rows, meta, error, loading, refreshing } = useListData({
     cacheNamespace: "notices",
     query,
     fetchRows: fetchNoticeRows,
@@ -352,7 +345,7 @@ export default function NoticesTableClient() {
         sortState={sortState}
         perPage={perPage}
         onToggleSort={handleToggleSort}
-        onRefresh={() => void fetchNotices(true)}
+
         onGoPage={setPage}
         onPerPageChange={handlePerPageChange}
         onRowClick={(row) => {

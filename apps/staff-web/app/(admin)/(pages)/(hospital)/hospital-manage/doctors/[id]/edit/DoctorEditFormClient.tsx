@@ -273,13 +273,7 @@ export default function DoctorEditFormClient() {
   }
 
   if (loadError) {
-    return (
-      <LoadErrorState
-        title="의료진 정보를 불러오지 못했습니다."
-        message={loadError}
-        onRetry={() => void fetchDoctor()}
-      />
-    );
+    return <LoadErrorState title="의료진 정보를 불러오지 못했습니다." message={loadError} />;
   }
 
   return (

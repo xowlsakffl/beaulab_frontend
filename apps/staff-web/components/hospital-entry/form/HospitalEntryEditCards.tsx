@@ -6,6 +6,7 @@ import { Button, Card, InputField, StatusBadge } from "@beaulab/ui-admin";
 import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { BUSINESS_NUMBER_FORMATTED_LENGTH, formatBusinessNumberInput } from "@/lib/common/business-number";
 import {
   getHospitalEntryMediaFilename,
   isHospitalEntryImageMedia,
@@ -231,9 +232,16 @@ function TextEditRow<K extends keyof HospitalEntryFormValues>({
         name={field}
         type={type}
         value={value}
+        placeholder={field === "business_number" ? "000-00-00000" : undefined}
+        inputMode={field === "business_number" ? "numeric" : undefined}
+        maxLength={field === "business_number" ? BUSINESS_NUMBER_FORMATTED_LENGTH : undefined}
         error={Boolean(error)}
         className="h-9 bg-white px-3 py-1.5"
-        onChange={(event) => onFieldChange(field, event.target.value as HospitalEntryFormValues[K])}
+        onChange={(event) => {
+          const value =
+            field === "business_number" ? formatBusinessNumberInput(event.target.value) : event.target.value;
+          onFieldChange(field, value as HospitalEntryFormValues[K]);
+        }}
       />
     </FormRow>
   );

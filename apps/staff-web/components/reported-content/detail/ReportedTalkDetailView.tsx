@@ -38,7 +38,7 @@ type ReportedTalkDetailViewProps = {
   reportedReports: ReportedContentReportsBlock | null;
   actionError: string | null;
   onActionError: (message: string | null) => void;
-  onRefresh: () => Promise<void>;
+  onSaved: () => Promise<void>;
   onReportedStatusUpdated: () => void;
   onHistoryPageChange: (page: number) => void;
 };
@@ -54,13 +54,13 @@ export function ReportedTalkDetailView({
   reportedReports,
   actionError,
   onActionError,
-  onRefresh,
+  onSaved,
   onReportedStatusUpdated,
   onHistoryPageChange,
 }: ReportedTalkDetailViewProps) {
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const originalVisibility = useReportedOriginalVisibility({
-    onSaved: onRefresh,
+    onSaved,
     onError: onActionError,
   });
   const pendingVisibilityMessage = originalVisibility.pendingChange

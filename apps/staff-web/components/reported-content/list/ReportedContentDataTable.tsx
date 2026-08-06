@@ -32,7 +32,6 @@ type ReportedContentDataTableProps = {
   sortState: ReportedContentSortState;
   onToggleSort: (field: ReportedContentSortField) => void;
   onGoPage: (page: number) => void;
-  onRefresh: () => void;
   onOpenDetail?: (row: ReportedContentRow) => void;
   onOpenReports?: (row: ReportedContentRow) => void;
   onOpenProcess?: (row: ReportedContentRow) => void;
@@ -552,7 +551,6 @@ export function ReportedContentDataTable({
   sortState,
   onToggleSort,
   onGoPage,
-  onRefresh,
   onOpenDetail,
   onOpenReports,
   onOpenProcess,
@@ -576,8 +574,7 @@ export function ReportedContentDataTable({
       emptyText="신고된 게시물이 없습니다."
       meta={meta}
       onGoPage={onGoPage}
-      onRefresh={onRefresh}
-      refreshPlacement="left"
+
       onRowClick={onOpenDetail}
     />
   );

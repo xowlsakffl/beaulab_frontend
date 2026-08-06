@@ -5,6 +5,7 @@ import { Button, Card, InputField, Select, StatusBadge } from "@beaulab/ui-admin
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { BUSINESS_NUMBER_FORMATTED_LENGTH, formatBusinessNumberInput } from "@/lib/common/business-number";
 import { hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
 import { getMediaFilename, isImageMedia, resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import type {
@@ -160,13 +161,17 @@ export function HospitalMainInfoEditCard({
             id="business_number"
             name="business_number"
             value={form.business_number}
-            placeholder="사업자등록번호 10자리를 입력해 주세요."
+            placeholder="000-00-00000"
+            inputMode="numeric"
+            maxLength={BUSINESS_NUMBER_FORMATTED_LENGTH}
             onChange={(event) => {
+              const value = formatBusinessNumberInput(event.target.value);
+
               if (isCreate) {
-                onBusinessNumberChange?.(event.target.value);
+                onBusinessNumberChange?.(value);
                 return;
               }
-              onFieldChange("business_number", event.target.value);
+              onFieldChange("business_number", value);
             }}
             onBlur={(event) => onBusinessNumberBlur?.(event.target.value)}
             error={Boolean(errors.business_number)}

@@ -397,13 +397,7 @@ export default function EventAdsCreateFormClient() {
   }
 
   if (placementLoadError && placementOptions.length === 0) {
-    return (
-      <LoadErrorState
-        title="광고 위치를 불러오지 못했습니다."
-        message={placementLoadError}
-        onRetry={() => void fetchPlacementOptions()}
-      />
-    );
+    return <LoadErrorState title="광고 위치를 불러오지 못했습니다." message={placementLoadError} />;
   }
 
   return (
@@ -427,7 +421,7 @@ export default function EventAdsCreateFormClient() {
             isLoading={isLoadingAvailability}
             error={availabilityError}
             onMonthChange={setCalendarMonth}
-            onRefresh={() => void fetchAvailability()}
+
             onSelectWeek={handleSelectWeek}
             onBack={() => setStep("placement")}
           />

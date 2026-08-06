@@ -305,7 +305,6 @@ type HospitalEventsDataTableProps = {
   onDuplicate: (row: HospitalEventRow) => void;
   onOpenConsultations: (row: HospitalEventRow) => void;
   onOpenDetail: (row: HospitalEventRow) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
 };
 
@@ -322,7 +321,6 @@ export function HospitalEventsDataTable({
   onDuplicate,
   onOpenConsultations,
   onOpenDetail,
-  onRefresh,
   onGoPage,
 }: HospitalEventsDataTableProps) {
   const columns = React.useMemo(
@@ -342,7 +340,6 @@ export function HospitalEventsDataTable({
 
   return (
     <DataTable
-      refreshPlacement="left"
       tableClassName="w-[1560px] min-w-[1560px] table-fixed"
       columns={columns}
       rows={rows}
@@ -354,7 +351,7 @@ export function HospitalEventsDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onOpenDetail}
       footerCenter={

@@ -1,5 +1,10 @@
 import type { CategorySelectorSection, MediaCollectionConfig } from "@beaulab/ui-admin";
 
+import {
+  formatBusinessNumberInput,
+  isCompleteBusinessNumber,
+  normalizeBusinessNumber,
+} from "@/lib/common/business-number";
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import { validateImageFileRuleMessage, validateImageFilesRuleMessage } from "@/lib/common/media-validation";
 import { REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
@@ -160,26 +165,21 @@ const HOSPITAL_LOGO_MAX_BYTES = 5 * 1024 * 1024;
 const HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 const HOSPITAL_LOGO_VALIDATION_MESSAGE =
-  "로고 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하\n- 이미지 비율: 1:1";
+  "로고 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG, WEBP\n- 파일 용량: 5MB 이하";
 const HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
 const HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 const HOSPITAL_GALLERY_MAX_BYTES = 10 * 1024 * 1024;
-const HOSPITAL_GALLERY_REQUIRED_WIDTH = 760;
-const HOSPITAL_GALLERY_REQUIRED_HEIGHT = 490;
 const HOSPITAL_GALLERY_VALIDATION_MESSAGE =
-  "병의원 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 10MB 이하\n- 이미지 크기: 760 x 490px";
+  "병의원 이미지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 10MB 이하";
 const HOSPITAL_LOGO_IMAGE_RULE = {
   allowedExtensions: HOSPITAL_LOGO_ALLOWED_IMAGE_EXTENSIONS,
   allowedMimeTypes: HOSPITAL_LOGO_ALLOWED_IMAGE_TYPES,
   maxBytes: HOSPITAL_LOGO_MAX_BYTES,
-  square: true,
 };
 const HOSPITAL_GALLERY_IMAGE_RULE = {
   allowedExtensions: HOSPITAL_GALLERY_ALLOWED_IMAGE_EXTENSIONS,
   allowedMimeTypes: HOSPITAL_GALLERY_ALLOWED_IMAGE_TYPES,
   maxBytes: HOSPITAL_GALLERY_MAX_BYTES,
-  exactWidth: HOSPITAL_GALLERY_REQUIRED_WIDTH,
-  exactHeight: HOSPITAL_GALLERY_REQUIRED_HEIGHT,
 };
 
 export const CATEGORY_SECTIONS: CategorySelectorSection[] = [
@@ -210,7 +210,7 @@ export const MEDIA_COLLECTIONS: readonly MediaCollectionConfig<HospitalMediaFiel
     multiple: true,
     maxFiles: 5,
     emptyText: "업로드한 이미지가 없습니다.",
-    helperText: "png, jpg / 10MB 이하 / 760x490px",
+    helperText: "jpg, jpeg, png / 최대 10MB",
     maxFilesText: "(최대 5장)",
   },
 ];
@@ -304,9 +304,7 @@ export function extractFieldErrors(details: unknown): HospitalFormErrors {
   return nextErrors;
 }
 
-export function normalizeBusinessNumber(value: string): string {
-  return value.replace(/\D+/g, "");
-}
+export { normalizeBusinessNumber } from "@/lib/common/business-number";
 
 export function isValidYoutubeLink(value: string): boolean {
   try {
@@ -346,7 +344,7 @@ export function mapHospitalDetailToForm(data: HospitalDetailResponse): HospitalF
     consulting_hours: data.consulting_hours ?? "",
     operation_hours: normalizeOperationHours(data.operation_hours),
     direction: data.direction ?? "",
-    business_number: businessRegistration?.business_number ?? "",
+    business_number: formatBusinessNumberInput(businessRegistration?.business_number ?? ""),
     ceo_name: businessRegistration?.ceo_name ?? "",
     business_type: businessRegistration?.business_type ?? "",
     business_item: businessRegistration?.business_item ?? "",
@@ -448,7 +446,7 @@ export function buildCreateHospitalFormData({
   formData.append("ad_reception_phone_3", form.ad_reception_phone_3.trim());
   formData.append("allow_status", form.allow_status);
   formData.append("status", form.status);
-  formData.append("business_number", form.business_number.trim());
+  formData.append("business_number", normalizeBusinessNumber(form.business_number));
   formData.append("ceo_name", form.ceo_name.trim());
   formData.append("business_type", form.business_type.trim());
   formData.append("business_item", form.business_item.trim());
@@ -688,6 +686,8 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (!form.business_number.trim()) {
     nextErrors.business_number = "사업자 등록번호는 필수 항목입니다.";
+  } else if (!isCompleteBusinessNumber(form.business_number)) {
+    nextErrors.business_number = "사업자 등록번호는 숫자 10자리로 입력해 주세요.";
   }
 
   if (!form.company_name.trim() && !form.name.trim()) {

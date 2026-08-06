@@ -189,13 +189,7 @@ export default function NoticeEditFormClient() {
   }
 
   if (loadError) {
-    return (
-      <LoadErrorState
-        title="공지사항 정보를 불러오지 못했습니다."
-        message={loadError}
-        onRetry={() => void fetchNotice()}
-      />
-    );
+    return <LoadErrorState title="공지사항 정보를 불러오지 못했습니다." message={loadError} />;
   }
 
   return (

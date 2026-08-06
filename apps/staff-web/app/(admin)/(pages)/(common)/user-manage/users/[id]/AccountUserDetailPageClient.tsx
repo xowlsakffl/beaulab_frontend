@@ -262,10 +262,6 @@ export default function AccountUserDetailPageClient() {
       <LoadErrorState
         title="회원 상세 정보를 불러오지 못했습니다."
         message={loadError || "회원 상세 정보가 없습니다."}
-        onRetry={() => {
-          void fetchUser();
-          void fetchNotes();
-        }}
       />
     );
   }

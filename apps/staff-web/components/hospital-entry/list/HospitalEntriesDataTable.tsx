@@ -185,7 +185,6 @@ type HospitalEntriesDataTableProps = {
   error: string | null;
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onRowClick: (row: HospitalEntryRow) => void;
 };
@@ -198,7 +197,6 @@ export function HospitalEntriesDataTable({
   error,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onRowClick,
 }: HospitalEntriesDataTableProps) {
@@ -209,7 +207,6 @@ export function HospitalEntriesDataTable({
 
   return (
     <DataTable
-      refreshPlacement="left"
       tableClassName="w-[1120px] min-w-[1120px] table-fixed"
       columns={columns}
       rows={rows}
@@ -221,7 +218,7 @@ export function HospitalEntriesDataTable({
       refreshing={refreshing}
       error={error}
       meta={meta}
-      onRefresh={onRefresh}
+
       onGoPage={onGoPage}
       onRowClick={onRowClick}
       footerCenter={

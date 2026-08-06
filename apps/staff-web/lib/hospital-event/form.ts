@@ -61,28 +61,26 @@ export const HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT = 5;
 export const HOSPITAL_EVENT_PROCEDURE_BENEFIT_MAX_COUNT = 6;
 export const INITIAL_HOSPITAL_EVENT_CATEGORY_SECTION_KEY = "surgery";
 export const HOSPITAL_EVENT_IMAGE_ACCEPT = ".jpg,.jpeg,.png,image/jpeg,image/png";
+export const HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT = "jpg, jpeg, png / 최대 2MB";
+export const HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT = "jpg, jpeg, png / 최대 5MB";
 
 const HOSPITAL_EVENT_IMAGE_ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
 const HOSPITAL_EVENT_IMAGE_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 const HOSPITAL_EVENT_THUMBNAIL_VALIDATION_MESSAGE =
-  "썸네일은 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 2MB 이하\n- 이미지 크기: 800 x 800px 이상\n- 이미지 비율: 1:1";
+  "썸네일은 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 2MB 이하";
 const HOSPITAL_EVENT_PAGE_VALIDATION_MESSAGE =
-  "이벤트 페이지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 5MB 이하\n- 이미지 가로: 800px 이상";
+  "이벤트 페이지는 아래 조건에 맞는 파일만 업로드할 수 있습니다.\n\n- 파일 형식: JPG, PNG\n- 파일 용량: 5MB 이하";
 const HOSPITAL_EVENT_THUMBNAIL_IMAGE_RULE = {
   allowedExtensions: HOSPITAL_EVENT_IMAGE_ALLOWED_EXTENSIONS,
   allowedMimeTypes: HOSPITAL_EVENT_IMAGE_ALLOWED_MIME_TYPES,
   typeValidationMode: "extension-or-mime",
   maxBytes: 2 * 1024 * 1024,
-  minWidth: 800,
-  minHeight: 800,
-  square: true,
 } satisfies ImageFileValidationRule;
 const HOSPITAL_EVENT_PAGE_IMAGE_RULE = {
   allowedExtensions: HOSPITAL_EVENT_IMAGE_ALLOWED_EXTENSIONS,
   allowedMimeTypes: HOSPITAL_EVENT_IMAGE_ALLOWED_MIME_TYPES,
   typeValidationMode: "extension-or-mime",
   maxBytes: 5 * 1024 * 1024,
-  minWidth: 800,
 } satisfies ImageFileValidationRule;
 
 export const HOSPITAL_EVENT_CATEGORY_SECTIONS: CategorySelectorSection[] = [

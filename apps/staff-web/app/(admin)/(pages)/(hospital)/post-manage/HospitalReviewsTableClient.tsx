@@ -221,7 +221,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     error: reviewError,
     loading: reviewLoading,
     refreshing: reviewRefreshing,
-    fetchList: fetchReviews,
     resetList: resetReviewList,
   } = useListData({
     cacheNamespace: `hospital-reviews:${type}`,
@@ -238,7 +237,6 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     error: commentError,
     loading: commentLoading,
     refreshing: commentRefreshing,
-    fetchList: fetchComments,
     resetList: resetCommentList,
   } = useListData({
     cacheNamespace: `hospital-review-comments:${type}`,
@@ -954,7 +952,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           visibilityUpdatingIds={rowVisibilityUpdatingIds}
           bulkUpdating={bulkUpdating}
           onToggleSort={toggleSort}
-          onRefresh={() => void fetchReviews(true)}
+
           onGoPage={setPage}
           onToggleRow={toggleRow}
           onToggleAllRows={toggleAllRows}
@@ -974,7 +972,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           visibilityUpdatingIds={rowVisibilityUpdatingIds}
           bulkUpdating={bulkUpdating}
           onToggleSort={toggleCommentSort}
-          onRefresh={() => void fetchComments(true)}
+
           onGoPage={setPage}
           onToggleRow={toggleCommentRow}
           onToggleAllRows={toggleAllRows}

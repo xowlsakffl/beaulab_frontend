@@ -30,7 +30,6 @@ type HospitalEventRealModelDBsDataTableProps = {
   error: string | null;
   sortState: HospitalEventRealModelDBSortState;
   onToggleSort: (field: HospitalEventRealModelDBSortField) => void;
-  onRefresh: () => void;
   onGoPage: (page: number) => void;
   onOpenDetail: (row: HospitalEventRealModelDBRow) => void;
 };
@@ -252,7 +251,6 @@ export function HospitalEventRealModelDBsDataTable({
   error,
   sortState,
   onToggleSort,
-  onRefresh,
   onGoPage,
   onOpenDetail,
 }: HospitalEventRealModelDBsDataTableProps) {
@@ -271,8 +269,7 @@ export function HospitalEventRealModelDBsDataTable({
       error={error}
       meta={meta}
       onRowClick={onOpenDetail}
-      onRefresh={onRefresh}
-      refreshPlacement="left"
+
       onGoPage={onGoPage}
       footerCenter={
         meta ? (

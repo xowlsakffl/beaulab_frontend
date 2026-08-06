@@ -281,13 +281,7 @@ export default function VideoEditFormClient() {
   }
 
   if (loadError) {
-    return (
-      <LoadErrorState
-        title="동영상 정보를 불러오지 못했습니다."
-        message={loadError}
-        onRetry={() => void fetchVideo()}
-      />
-    );
+    return <LoadErrorState title="동영상 정보를 불러오지 못했습니다." message={loadError} />;
   }
 
   return (
