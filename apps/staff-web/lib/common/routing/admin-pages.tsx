@@ -40,7 +40,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   },
   {
     slug: ["wallet-manage", "history"],
-    title: "충전금 사용내역",
+    title: "충전금 내역",
     group: "충전금",
   },
   {

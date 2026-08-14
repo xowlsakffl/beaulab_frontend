@@ -80,7 +80,7 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
       name: "충전금",
       subItems: [
         routeSubItem({ name: "충전금 현황", path: "/wallet-manage/deposits" }),
-        routeSubItem({ name: "충전금 사용내역", path: "/wallet-manage/history" }),
+        routeSubItem({ name: "충전금 내역", path: "/wallet-manage/history" }),
         routeSubItem({ name: "병의원 충전금 관리", path: "/wallet-manage/hospitals" }),
       ],
     },

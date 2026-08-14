@@ -1,7 +1,15 @@
-import { buildAdminPageMetadata, renderAdminPage } from "@/lib/common/routing/admin-pages";
+import type { Metadata } from "next";
 
-export const metadata = buildAdminPageMetadata("/wallet-manage/hospitals");
+import HospitalWalletsTableClient from "./HospitalWalletsTableClient";
 
-export default function WalletHospitalsPage() {
-  return renderAdminPage("/wallet-manage/hospitals");
+export const metadata: Metadata = {
+  title: "병의원 충전금 관리 | 뷰랩 관리자",
+};
+
+export default function HospitalWalletsPage() {
+  return (
+    <div className="space-y-6">
+      <HospitalWalletsTableClient />
+    </div>
+  );
 }
