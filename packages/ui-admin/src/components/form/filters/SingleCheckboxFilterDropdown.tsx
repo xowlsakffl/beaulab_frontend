@@ -22,7 +22,7 @@ type SingleCheckboxFilterDropdownProps = {
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
 const filterTriggerClass =
-  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700";
+  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-4 text-sm text-gray-700";
 
 export function SingleCheckboxFilterDropdown({
   label,
@@ -72,7 +72,7 @@ export function SingleCheckboxFilterDropdown({
           size="default"
           disabled={disabled}
           onClick={() => setIsOpen((current) => !current)}
-          className={[filterTriggerClass, disabled ? "cursor-not-allowed opacity-60" : "", triggerClassName]
+          className={[filterTriggerClass, disabled ? "cursor-not-allowed opacity-60" : "", triggerClassName, "h-11"]
             .filter(Boolean)
             .join(" ")}
         >

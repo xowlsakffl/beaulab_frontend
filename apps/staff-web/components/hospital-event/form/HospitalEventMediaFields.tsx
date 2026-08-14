@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Card, Label } from "@beaulab/ui-admin";
+import { Card, InlineFileSelect, Label } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
@@ -17,7 +17,6 @@ import { resolveHospitalEventMediaUrl, type HospitalEventMedia } from "@/lib/hos
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
-const fileButtonClassName = "h-8 px-3 text-xs";
 
 export function HospitalEventMediaCard({
   eventType,
@@ -93,9 +92,8 @@ export function HospitalEventInlineImageFileField({
   onChange: (file: File | null) => void;
   onUploadWarning: (message: string) => void;
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
   const existingFileName = formatHospitalEventMediaFileName(existingMedia);
-  const displayText = file?.name ?? existingFileName ?? helper;
+  const displayText = file?.name ?? existingFileName;
   const hasFile = Boolean(file || existingFileName);
 
   return (
@@ -105,43 +103,21 @@ export function HospitalEventInlineImageFileField({
         {required ? <span className="ml-0.5 text-brand-500">*</span> : null}
       </Label>
       <div className="min-w-0">
-        <div className="space-y-2">
-          <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
-            <span
-              className={[
-                "min-w-0 truncate rounded-md px-2 py-1 text-xs",
-                hasFile ? "bg-gray-50 font-medium text-gray-700" : "text-gray-500",
-              ].join(" ")}
-            >
-              {displayText}
-            </span>
-            <Button
-              type="button"
-              variant="brand"
-              size="sm"
-              className={fileButtonClassName}
-              onClick={() => inputRef.current?.click()}
-            >
-              파일선택
-            </Button>
-          </div>
-          <input
-            ref={inputRef}
-            type="file"
-            accept={HOSPITAL_EVENT_IMAGE_ACCEPT}
-            className="hidden"
-            onChange={async (event) => {
-              const selectedFile = event.target.files?.[0] ?? null;
-              event.currentTarget.value = "";
-              await applyValidatedEventImageFile({
-                file: selectedFile,
-                field: target,
-                onUploadWarning,
-                onChange,
-              });
-            }}
-          />
-        </div>
+        <InlineFileSelect
+          accept={HOSPITAL_EVENT_IMAGE_ACCEPT}
+          fileName={hasFile ? displayText : null}
+          placeholder={`${label} 파일을 선택해 주세요.`}
+          helperText={helper}
+          error={Boolean(error)}
+          onChange={(selectedFile) =>
+            applyValidatedEventImageFile({
+              file: selectedFile,
+              field: target,
+              onUploadWarning,
+              onChange,
+            })
+          }
+        />
         {error ? <p className="mt-1.5 text-xs text-error-500">{error}</p> : null}
       </div>
     </div>

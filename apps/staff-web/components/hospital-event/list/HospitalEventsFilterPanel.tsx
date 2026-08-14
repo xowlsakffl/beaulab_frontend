@@ -151,7 +151,7 @@ export function HospitalEventsFilterPanel({
                 options={majorCategoryOptions}
                 showPlaceholderOption={false}
                 onChange={onMajorCategoryChange}
-                className="h-11 px-3"
+                className="h-11 px-4"
               />
               <Select
                 value={draftFilters.middleCategoryId}
@@ -159,7 +159,7 @@ export function HospitalEventsFilterPanel({
                 showPlaceholderOption={false}
                 disabled={!draftFilters.majorCategoryId}
                 onChange={onMiddleCategoryChange}
-                className="h-11 px-3"
+                className="h-11 px-4"
               />
             </div>
           </div>
@@ -291,7 +291,7 @@ function MetricRangeFilter({
           options={metricOptions}
           showPlaceholderOption={false}
           onChange={onMetricChange}
-          className="h-11 px-3"
+          className="h-11 px-4"
         />
         <InputField
           type="number"

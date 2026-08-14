@@ -351,7 +351,7 @@ export function TalksDataTable({
           size="sm"
           disabled={excelDownloading || loading || refreshing}
           onClick={onDownloadExcel}
-          className="h-11 shrink-0 px-5"
+          className="h-9 shrink-0 px-5"
         >
           {excelDownloading ? "다운로드 중..." : "엑셀 다운로드"}
         </Button>

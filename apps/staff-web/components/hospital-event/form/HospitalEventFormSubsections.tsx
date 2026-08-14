@@ -12,7 +12,7 @@ import {
 } from "@/lib/hospital-event/form";
 
 const labelClassName = "text-xs font-semibold text-gray-500";
-const inputClassName = "h-9 bg-white px-3 text-sm";
+const inputClassName = "h-11 bg-white px-4 text-sm";
 
 export function EventOptionsSection({
   enabled,

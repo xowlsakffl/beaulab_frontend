@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { twMerge } from "tailwind-merge";
 import { ChevronDown } from "../../icons";
 
 interface Option {
@@ -52,9 +53,13 @@ export const Select: React.FC<SelectProps> = ({
       <select
         id={id}
         name={name}
-        className={`h-9 w-full cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white pr-10 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden ${
-          hasSelectedOption ? "text-gray-800" : "text-gray-400"
-        } ${disabled ? "cursor-not-allowed opacity-60" : ""} ${className}`}
+        className={twMerge(
+          "w-full cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white px-4 pr-10 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden",
+          hasSelectedOption ? "text-gray-800" : "text-gray-400",
+          disabled ? "cursor-not-allowed opacity-60" : undefined,
+          className,
+          "h-11",
+        )}
         value={selectedValue}
         onChange={handleChange}
         disabled={disabled}

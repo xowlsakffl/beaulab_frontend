@@ -75,7 +75,7 @@ function TimeSelect({
         options={options}
         onChange={onChange}
         disabled={disabled}
-        className="h-9 bg-white px-3 py-1.5 pr-8 text-xs"
+        className="h-11 bg-white px-4 py-2.5 pr-8 text-xs"
       />
     </>
   );
@@ -174,7 +174,7 @@ export function HospitalOperationEditCard({
               placeholder="병의원 분과를 선택해 주세요."
               options={HOSPITAL_DEPARTMENT_OPTIONS}
               onChange={(value) => onFieldChange("department", value)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
             {errors.department ? <p className="text-xs text-error-500">{errors.department}</p> : null}
           </div>
@@ -384,7 +384,7 @@ function HospitalCategorySelect({
           id="category_selector"
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex h-9 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700"
+          className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-700"
         >
           전체
           <ChevronDown className="size-4 text-gray-500" />
@@ -424,7 +424,7 @@ function HospitalCategorySelect({
                             onToggleCategory(categoryId, true);
                           }}
                           className={[
-                            "flex h-9 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
+                            "flex h-11 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
                             isSelected
                               ? "border-brand-200 bg-brand-50 font-semibold text-brand-700"
                               : "text-gray-700 hover:border-gray-200 hover:bg-gray-50",

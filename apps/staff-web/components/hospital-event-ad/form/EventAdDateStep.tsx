@@ -59,7 +59,7 @@ export function EventAdDateStep({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-600 transition hover:border-brand-300 hover:text-brand-500"
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-600 transition hover:border-brand-300 hover:text-brand-500"
           >
             <ArrowLeft className="size-4" />
             <span>뒤로가기</span>

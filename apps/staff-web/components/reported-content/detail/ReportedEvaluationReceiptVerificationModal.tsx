@@ -125,7 +125,7 @@ export function ReportedEvaluationReceiptVerificationModal({
                 options={[...HOSPITAL_EVALUATION_RECEIPT_REJECTION_OPTIONS]}
                 onChange={onRejectReasonChange}
                 disabled={rejectInputsDisabled}
-                className="h-11 pl-3"
+                className="h-11 pl-4"
               />
 
               {rejectReason === "OTHER" ? (

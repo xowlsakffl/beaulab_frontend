@@ -55,7 +55,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       <div className="relative z-20 inline-block w-full">
         <div className="relative flex flex-col items-center">
           <div onClick={toggleDropdown} className="w-full">
-            <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1.5 pr-3 pl-3 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring">
+            <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1 pr-3 pl-3 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring">
               <div className="flex flex-auto flex-wrap gap-2">
                 {selectedValuesText.length > 0 ? (
                   selectedValuesText.map((text, index) => (

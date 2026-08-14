@@ -236,7 +236,7 @@ function TextEditRow<K extends keyof HospitalEntryFormValues>({
         inputMode={field === "business_number" ? "numeric" : undefined}
         maxLength={field === "business_number" ? BUSINESS_NUMBER_FORMATTED_LENGTH : undefined}
         error={Boolean(error)}
-        className="h-9 bg-white px-3 py-1.5"
+        className="h-11 bg-white px-4 py-2.5"
         onChange={(event) => {
           const value =
             field === "business_number" ? formatBusinessNumberInput(event.target.value) : event.target.value;

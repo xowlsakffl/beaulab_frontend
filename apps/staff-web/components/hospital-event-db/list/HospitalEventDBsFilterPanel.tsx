@@ -224,7 +224,7 @@ function AmountRangeFilter({
           options={HOSPITAL_EVENT_DB_AMOUNT_METRIC_OPTIONS}
           showPlaceholderOption={false}
           onChange={onMetricChange}
-          className="h-11 px-3"
+          className="h-11 px-4"
         />
         <InputField
           type="number"

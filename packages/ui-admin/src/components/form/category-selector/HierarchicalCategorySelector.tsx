@@ -818,7 +818,7 @@ export function HierarchicalCategorySelector({
                 type="button"
                 variant="brand"
                 size="sm"
-                className="h-9 px-3"
+                className="h-11 px-3"
                 onClick={() => setIsSearchOpen(true)}
               >
                 검색
@@ -827,7 +827,7 @@ export function HierarchicalCategorySelector({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-9 px-3"
+                className="h-11 px-3"
                 onClick={() => {
                   setSearchQuery("");
                   setSearchResults([]);
@@ -965,7 +965,7 @@ export function HierarchicalCategorySelector({
         <div className="space-y-3">
           <div className="space-y-2">
             <p className="text-xs font-medium text-gray-500">{mergedText.selectedTitle}</p>
-            <div className="min-h-10 rounded-lg border border-gray-200 bg-white px-2 py-2">
+            <div className="min-h-11 rounded-lg border border-gray-200 bg-white px-2 py-2">
               {selectedNodes.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {selectedNodes.map((node) => {
@@ -1004,7 +1004,7 @@ export function HierarchicalCategorySelector({
                   }
                 }}
                 className={[
-                  "flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2 text-left",
+                  "flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border bg-white px-4 py-2 text-left",
                   primaryError ? "border-error-500" : "border-gray-200",
                 ].join(" ")}
               >

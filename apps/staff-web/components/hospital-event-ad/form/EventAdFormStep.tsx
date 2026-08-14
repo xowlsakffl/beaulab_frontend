@@ -69,7 +69,7 @@ export function EventAdFormStep({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-600 transition hover:border-brand-300 hover:text-brand-500"
+            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-600 transition hover:border-brand-300 hover:text-brand-500"
           >
             <ArrowLeft className="size-4" />
             <span>뒤로가기</span>
@@ -89,7 +89,7 @@ export function EventAdFormStep({
             ) : null}
             <InfoRow label="광고기간" value={formatEventAdPeriodLabel(selectedWeek)} />
             <FormRow label="금액">
-              <div className="flex h-9 items-center gap-4">
+              <div className="flex h-11 items-center gap-4">
                 <span className="text-sm font-semibold text-gray-800">
                   {isFreeAd ? "0P" : formatEventAdCost(selectedPlacement.cost)}
                 </span>
@@ -148,7 +148,7 @@ export function EventAdFormStep({
 
 const EVENT_AD_IMAGE_ACCEPT = "image/jpeg,image/png";
 const EVENT_AD_IMAGE_MAX_SIZE = 10 * 1024 * 1024;
-const eventAdInputClassName = "h-9 bg-white px-3 text-sm";
+const eventAdInputClassName = "h-11 bg-white px-4 text-sm";
 const eventAdLabelClassName = "pt-2 text-xs font-semibold text-gray-500";
 
 function AdTemporaryPreviewCard({
@@ -293,7 +293,7 @@ function EventSearchRow({
           type="button"
           disabled={disabled}
           className={[
-            "flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm transition",
+            "flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-4 text-left text-sm transition",
             disabled
               ? "cursor-not-allowed bg-gray-50 text-gray-400"
               : "text-gray-800 hover:border-brand-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 focus:outline-none",

@@ -83,7 +83,7 @@ function parseContentDispositionFileName(headerValue: string | null): string | n
 export async function downloadFile(pathOrUrl: string, fallbackFileName?: string): Promise<void> {
   const token = tokenStorage.get("staff");
   const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/staff`;
-  const url = /^https?:\/\//i.test(pathOrUrl)
+  const url = /^(?:https?:\/\/|blob:|data:)/i.test(pathOrUrl)
     ? pathOrUrl
     : `${baseURL}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
 
@@ -154,5 +154,5 @@ export async function downloadFile(pathOrUrl: string, fallbackFileName?: string)
   anchor.click();
   anchor.remove();
 
-  window.URL.revokeObjectURL(objectUrl);
+  window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 0);
 }

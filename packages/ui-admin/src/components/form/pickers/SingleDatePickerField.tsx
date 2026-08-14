@@ -113,9 +113,12 @@ export function SingleDatePickerField({
           variant="outline"
           size="default"
           onClick={() => setIsOpen((prev) => !prev)}
-          className={`flex h-11 w-full items-center justify-between rounded-lg border px-3 text-sm shadow-none ${
-            error ? "border-error-500 text-error-800" : "border-gray-300 text-gray-700"
-          } ${buttonClassName}`}
+          className={cn(
+            "flex w-full items-center justify-between rounded-lg border px-4 text-sm shadow-none",
+            error ? "border-error-500 text-error-800" : "border-gray-300 text-gray-700",
+            buttonClassName,
+            "h-11",
+          )}
         >
           <span>{value || placeholder}</span>
           <ChevronDown className="size-4" />

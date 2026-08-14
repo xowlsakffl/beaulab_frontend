@@ -32,7 +32,7 @@ export function EventAdPlacementStep({
           value={activeGroup}
           onValueChange={onGroupChange}
           className="w-fit min-w-[27rem] rounded-lg border border-gray-200 p-0.5"
-          tabClassName="h-9 min-w-24 rounded-md px-4 py-1.5 text-sm font-semibold"
+          tabClassName="h-11 min-w-24 rounded-md px-4 py-2.5 text-sm font-semibold"
           activeTabClassName="bg-brand-500 text-white shadow-sm"
           inactiveTabClassName="text-gray-500 hover:text-brand-500"
         />

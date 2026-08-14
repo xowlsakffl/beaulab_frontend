@@ -175,7 +175,7 @@ export const TalkCommentsCard = React.memo(function TalkCommentsCard({
             <select
               value={perPage}
               onChange={(event) => onChangePerPage(Number(event.target.value))}
-              className="h-9 rounded-lg border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 transition outline-none focus:border-brand-400"
+              className="h-11 rounded-lg border border-gray-200 bg-white pr-8 pl-4 text-sm text-gray-800 transition outline-none focus:border-brand-400"
             >
               {TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS.map((option) => (
                 <option key={option} value={option}>

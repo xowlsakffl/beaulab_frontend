@@ -125,7 +125,7 @@ export function VideosFilterPanel({
                 options={categoryOptions}
                 showPlaceholderOption={false}
                 onChange={onCategoryChange}
-                className="h-11 px-3"
+                className="h-11 px-4"
               />
             </div>
           </div>
@@ -253,7 +253,7 @@ function MetricRangeFilter({
           options={VIDEO_METRIC_OPTIONS}
           showPlaceholderOption={false}
           onChange={onMetricChange}
-          className="h-11 px-3"
+          className="h-11 px-4"
         />
         <InputField
           type="number"

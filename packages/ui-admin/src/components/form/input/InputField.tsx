@@ -53,7 +53,7 @@ export const InputField: FC<InputProps> = ({
   autoComplete = "off",
 }) => {
   const inputClasses = twMerge(
-    "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-hidden focus:ring-3    ",
+    "w-full appearance-none rounded-lg border px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-hidden focus:ring-3",
     disabled
       ? "text-gray-500 border-gray-300 cursor-not-allowed   "
       : error
@@ -63,6 +63,7 @@ export const InputField: FC<InputProps> = ({
           : "bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10    ",
     readOnly && !disabled ? "cursor-default" : undefined,
     className,
+    "h-11",
   );
 
   const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {

@@ -1,5 +1,7 @@
 export { InputField } from "./input/InputField";
 export { FileUploadField } from "./input/FileUploadField";
+export { InlineFileSelect } from "./input/InlineFileSelect";
+export type { InlineFileSelectProps } from "./input/InlineFileSelect";
 export { default as FormCheckbox } from "./input/Checkbox";
 export { default as FormFileInput } from "./input/FileInput";
 export { default as FormRadio } from "./input/Radio";
@@ -22,6 +24,8 @@ export { MediaUploader } from "./media/MediaUploader";
 export type { ExistingMediaItem, MediaCollectionConfig } from "./media/MediaUploader";
 export { SingleDatePickerField } from "./pickers/SingleDatePickerField";
 export { RichTextEditor } from "./RichTextEditor";
+export { TemplateVariableEditor } from "./TemplateVariableEditor";
+export type { TemplateMessagePart, TemplateVariableOption } from "./TemplateVariableEditor";
 export { Select } from "./Select";
 export { default as Switch } from "./switch/Switch";
 export { TogglePillGroup } from "./TogglePillGroup";

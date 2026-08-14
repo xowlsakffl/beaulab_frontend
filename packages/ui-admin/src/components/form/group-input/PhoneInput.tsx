@@ -52,7 +52,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           <select
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="appearance-none rounded-l-lg border-0 border-r border-gray-200 bg-transparent bg-none py-3 pr-8 pl-3.5 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden"
+            className="h-11 appearance-none rounded-l-lg border-0 border-r border-gray-200 bg-transparent bg-none py-2.5 pr-8 pl-3 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden"
           >
             {countries.map((country) => (
               <option key={country.code} value={country.code} className="text-gray-700">
@@ -89,7 +89,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
         placeholder={placeholder}
         className={`h-11 w-full ${
           selectPosition === "start" ? "pl-[84px]" : "pr-[84px]"
-        } rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden`}
+        } rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden`}
       />
 
       {/* Dropdown position: End */}
@@ -98,7 +98,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           <select
             value={selectedCountry}
             onChange={handleCountryChange}
-            className="appearance-none rounded-r-lg border-0 border-l border-gray-200 bg-transparent bg-none py-3 pr-8 pl-3.5 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden"
+            className="h-11 appearance-none rounded-r-lg border-0 border-l border-gray-200 bg-transparent bg-none py-2.5 pr-8 pl-3 leading-tight text-gray-700 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden"
           >
             {countries.map((country) => (
               <option key={country.code} value={country.code} className="text-gray-700">

@@ -43,7 +43,7 @@ type DateRangeFilterDropdownProps = {
 
 const filterFieldLabelClass = "mb-1 text-xs font-medium text-gray-500";
 const filterTriggerClass =
-  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-3 text-sm text-gray-700  ";
+  "flex h-11 w-full min-w-0 items-center justify-between rounded-lg border border-gray-300 px-4 text-sm text-gray-700";
 
 export function DateRangeFilterDropdown({
   label,
@@ -232,6 +232,7 @@ export function DateRangeFilterDropdown({
             filterTriggerClass,
             error ? "border-error-500 focus:ring-3 focus:ring-error-500/10" : undefined,
             triggerClassName,
+            "h-11",
           )}
         >
           <span className="min-w-0 flex-1 truncate text-left">{value || placeholder}</span>

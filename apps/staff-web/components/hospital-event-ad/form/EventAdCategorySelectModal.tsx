@@ -58,7 +58,7 @@ export function EventAdCategorySelectModal({
                       type="button"
                       onClick={() => onSelectCategory(category.id)}
                       className={[
-                        "h-9 min-w-18 rounded-md border px-4 text-sm font-semibold transition",
+                        "h-11 min-w-18 rounded-md border px-4 text-sm font-semibold transition",
                         selected
                           ? "border-brand-500 bg-brand-500 text-white"
                           : "border-gray-300 bg-white text-gray-700 hover:border-brand-400 hover:text-brand-500",

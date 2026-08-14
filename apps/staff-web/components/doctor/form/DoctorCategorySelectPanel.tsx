@@ -9,7 +9,7 @@ import { Card, ChevronDown, SpinnerBlock, X, type CategorySelectorItem } from "@
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const formDropdownButtonClassName =
-  "flex h-9 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700";
+  "flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-700";
 
 export type DoctorCategoryOption = CategorySelectorItem & {
   domain?: string | null;
@@ -124,7 +124,7 @@ export function CategorySelectPanel({
                             type="button"
                             onClick={() => onToggleCategory(option.id, !isSelected)}
                             className={cx(
-                              "flex h-9 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
+                              "flex h-11 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
                               isSelected
                                 ? "border-brand-200 bg-brand-50 font-semibold text-brand-700"
                                 : "text-gray-700 hover:border-gray-200 hover:bg-gray-50",

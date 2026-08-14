@@ -20,7 +20,7 @@ import type { VideoDoctorOption } from "@/lib/video/form";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
-const inputClassName = "h-9 bg-white px-3 text-sm";
+const inputClassName = "h-11 bg-white px-4 text-sm";
 
 export function HospitalPickerCard({
   selectedHospital,
@@ -65,7 +65,7 @@ export function HospitalPickerCard({
         data-field-target="hospital_id"
         tabIndex={-1}
       >
-        <Label className={`${labelClassName} flex h-9 items-center`}>
+        <Label className={`${labelClassName} flex h-11 items-center`}>
           병의원<span className="ml-0.5 text-brand-500">*</span>
         </Label>
         <div ref={containerRef} className="relative min-w-0">
@@ -202,7 +202,7 @@ export function CategoryDoctorPickerCard({
         showDirectTitle={false}
         selectionMode="leaf-click"
         selectedDisplay="input"
-        searchInputClassName="h-9"
+        searchInputClassName="h-11"
         columnHeightClassName="h-[232px]"
         headerTitle={<h3 className="text-sm font-bold text-gray-900">카테고리 설정</h3>}
         afterColumns={
@@ -240,7 +240,7 @@ export function CategoryDoctorPickerCard({
                 const matched = doctors.find((doctor) => String(doctor.id) === value) ?? null;
                 onSelectDoctor(index, matched);
               }}
-              className="h-10 px-3"
+              className="h-11 px-4"
             />
           ))}
         </div>

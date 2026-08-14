@@ -128,7 +128,7 @@ export function HospitalReviewsFilterPanel({
                 options={majorCategoryOptions}
                 showPlaceholderOption={false}
                 onChange={onMajorCategoryChange}
-                className="h-11 px-3"
+                className="h-11 px-4"
               />
               <Select
                 value={draftFilters.middleCategoryId}
@@ -136,7 +136,7 @@ export function HospitalReviewsFilterPanel({
                 showPlaceholderOption={false}
                 disabled={!draftFilters.majorCategoryId}
                 onChange={onMiddleCategoryChange}
-                className="h-11 px-3"
+                className="h-11 px-4"
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ export function HospitalReviewsFilterPanel({
                   options={HOSPITAL_REVIEW_METRIC_OPTIONS}
                   showPlaceholderOption={false}
                   onChange={onMetricFieldChange}
-                  className="h-11 px-3"
+                  className="h-11 px-4"
                 />
               </div>
               <div className="min-w-0">

@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { Button, Card, InputField, Select, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, InlineFileSelect, InputField, Select, StatusBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { BUSINESS_NUMBER_FORMATTED_LENGTH, formatBusinessNumberInput } from "@/lib/common/business-number";
+import { BANK_OPTIONS } from "@/lib/common/banks";
 import { hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";
 import { getMediaFilename, isImageMedia, resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import type {
@@ -18,18 +19,6 @@ import type {
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
 const readonlyValueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
-const fileSelectButtonClassName = "h-8 px-3 text-xs";
-const settlementBankOptions = [
-  { value: "국민은행", label: "국민은행" },
-  { value: "신한은행", label: "신한은행" },
-  { value: "우리은행", label: "우리은행" },
-  { value: "하나은행", label: "하나은행" },
-  { value: "기업은행", label: "기업은행" },
-  { value: "농협은행", label: "농협은행" },
-  { value: "카카오뱅크", label: "카카오뱅크" },
-  { value: "토스뱅크", label: "토스뱅크" },
-  { value: "기타", label: "기타" },
-];
 
 export function HospitalMainInfoEditCard({
   mode,
@@ -90,7 +79,7 @@ export function HospitalMainInfoEditCard({
               onChange={(event) => onNameChange?.(event.target.value)}
               onBlur={(event) => onNameBlur?.(event.target.value)}
               error={Boolean(errors.name)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
           ) : (
             <p id="name" className={readonlyValueClassName}>
@@ -106,7 +95,7 @@ export function HospitalMainInfoEditCard({
             placeholder="사업자등록증 기준 대표자명을 입력해 주세요."
             onChange={(event) => onFieldChange("ceo_name", event.target.value)}
             error={Boolean(errors.ceo_name)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
         <EditField label="병의원주소" required error={errors.address} className="md:col-span-2">
@@ -120,13 +109,13 @@ export function HospitalMainInfoEditCard({
                 readOnly
                 onClick={() => void onOpenAddressSearch("address", "address_detail")}
                 error={Boolean(errors.address)}
-                className="h-9 cursor-pointer bg-white px-3 py-1.5"
+                className="h-11 cursor-pointer bg-white px-4 py-2.5"
               />
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-9"
+                className="h-11"
                 onClick={() => void onOpenAddressSearch("address", "address_detail")}
               >
                 주소찾기
@@ -139,7 +128,7 @@ export function HospitalMainInfoEditCard({
               placeholder="건물명, 층수, 호수 등 상세주소를 입력해 주세요."
               onChange={(event) => onFieldChange("address_detail", event.target.value)}
               error={Boolean(errors.address_detail)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
             {errors.address_detail ? <p className="text-xs text-error-500">{errors.address_detail}</p> : null}
           </div>
@@ -152,7 +141,7 @@ export function HospitalMainInfoEditCard({
             placeholder="대표 전화번호를 입력해 주세요."
             onChange={(event) => onFieldChange("tel", event.target.value)}
             error={Boolean(errors.tel)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
         <div />
@@ -175,7 +164,7 @@ export function HospitalMainInfoEditCard({
             }}
             onBlur={(event) => onBusinessNumberBlur?.(event.target.value)}
             error={Boolean(errors.business_number)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
         <BusinessCertificateEditField
@@ -194,7 +183,7 @@ export function HospitalMainInfoEditCard({
             placeholder="사업자등록증의 업태를 입력해 주세요."
             onChange={(event) => onFieldChange("business_type", event.target.value)}
             error={Boolean(errors.business_type)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
         <EditField label="종목" required error={errors.business_item}>
@@ -205,7 +194,7 @@ export function HospitalMainInfoEditCard({
             placeholder="사업자등록증의 종목을 입력해 주세요."
             onChange={(event) => onFieldChange("business_item", event.target.value)}
             error={Boolean(errors.business_item)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
         <EditField label="유튜브 링크" error={errors.youtube_link} className="md:col-span-2">
@@ -217,7 +206,7 @@ export function HospitalMainInfoEditCard({
             placeholder="https://www.youtube.com/@..."
             onChange={(event) => onFieldChange("youtube_link", event.target.value)}
             error={Boolean(errors.youtube_link)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
       </div>
@@ -249,7 +238,7 @@ export function HospitalBusinessAccountEditCard({
             placeholder="세금계산서를 수신할 이메일을 입력해 주세요."
             onChange={(event) => onFieldChange("tax_invoice_email", event.target.value)}
             error={Boolean(errors.tax_invoice_email)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
         <EditField label="정산 계좌번호" error={errors.settlement_account_number}>
@@ -257,19 +246,19 @@ export function HospitalBusinessAccountEditCard({
             <Select
               id="settlement_bank_name"
               value={form.settlement_bank_name}
-              placeholder="정산은행을 선택해 주세요."
-              options={settlementBankOptions}
+              placeholder="정산은행"
+              options={BANK_OPTIONS}
               onChange={(value) => onFieldChange("settlement_bank_name", value)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
             <InputField
               id="settlement_account_number"
               name="settlement_account_number"
               value={form.settlement_account_number}
-              placeholder="정산받을 계좌번호를 입력해 주세요."
+              placeholder="정산받을 계좌번호"
               onChange={(event) => onFieldChange("settlement_account_number", event.target.value)}
               error={Boolean(errors.settlement_account_number)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
           </div>
         </EditField>
@@ -281,7 +270,7 @@ export function HospitalBusinessAccountEditCard({
             placeholder="계좌 예금주명을 입력해 주세요."
             onChange={(event) => onFieldChange("settlement_account_holder", event.target.value)}
             error={Boolean(errors.settlement_account_holder)}
-            className="h-9 bg-white px-3 py-1.5"
+            className="h-11 bg-white px-4 py-2.5"
           />
         </EditField>
       </div>
@@ -304,19 +293,13 @@ function BusinessCertificateEditField({
   onExistingCertificateChange?: (hasFile: boolean) => void;
   onPreview: (preview: MediaPreviewState) => void;
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(file);
   const existingUrl = resolveMediaUrl(existingCertificate);
   const previewUrl = fileUrl ?? existingUrl;
   const filename = file?.name ?? (existingCertificate ? getMediaFilename(existingCertificate) : "");
-  const hasFile = Boolean(file || existingCertificate);
   const isPreviewImage = file ? file.type.startsWith("image/") : isImageMedia(existingCertificate);
 
   const clearFile = () => {
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-
     if (file) {
       onFileChange(null);
       return;
@@ -329,59 +312,27 @@ function BusinessCertificateEditField({
 
   return (
     <EditField label="사업자등록증" required error={error}>
-      <input
+      <InlineFileSelect
         id="business_registration_file"
         name="business_registration_file"
-        ref={inputRef}
-        type="file"
         accept=".jpg,.jpeg,.png,.pdf"
-        className="hidden"
-        onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
-      />
-      <div className="min-w-0 space-y-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <Button
-            type="button"
-            variant="brand"
-            size="sm"
-            className={fileSelectButtonClassName}
-            onClick={() => inputRef.current?.click()}
-          >
-            파일선택
-          </Button>
-          {previewUrl ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className={fileSelectButtonClassName}
-              onClick={() =>
+        fileName={filename}
+        placeholder="사업자등록증 파일을 선택해 주세요."
+        helperText="JPG, JPEG, PNG, PDF / 10MB 이하"
+        error={Boolean(error)}
+        onChange={onFileChange}
+        onPreview={
+          previewUrl
+            ? () =>
                 onPreview({
                   url: previewUrl,
                   title: "사업자등록증",
                   isImage: isPreviewImage,
                 })
-              }
-            >
-              원본보기
-            </Button>
-          ) : null}
-        </div>
-        {hasFile && filename ? (
-          <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-            <span className="min-w-0 truncate text-xs font-medium text-gray-700">{filename}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs text-gray-500 hover:text-red-600"
-              onClick={clearFile}
-            >
-              삭제
-            </Button>
-          </div>
-        ) : null}
-      </div>
+            : undefined
+        }
+        onClear={filename ? clearFile : undefined}
+      />
     </EditField>
   );
 }

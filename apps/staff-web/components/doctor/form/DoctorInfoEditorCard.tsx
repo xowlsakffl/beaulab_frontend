@@ -14,8 +14,8 @@ import {
 } from "@/lib/doctor/form";
 import { doctorApprovalStatusBadgeColor, formatCareerPeriod, labelDoctorApprovalStatus } from "@/lib/doctor/list";
 import {
-  Button,
   Card,
+  InlineFileSelect,
   InputField,
   Label,
   Search,
@@ -28,8 +28,7 @@ import {
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
-const formControlClassName = "h-9 bg-white px-3 py-1.5";
-const fileSelectButtonClassName = "h-9 w-full px-3 text-xs";
+const formControlClassName = "h-11 bg-white px-4 py-2.5";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -115,7 +114,7 @@ export function DoctorInfoEditorCard({
                   type="button"
                   onClick={() => onFieldChange("gender", option.value)}
                   className={cx(
-                    "h-9 rounded-lg border text-sm font-semibold transition-colors",
+                    "h-11 rounded-lg border text-sm font-semibold transition-colors",
                     form.gender === option.value
                       ? "border-brand-500 bg-brand-500 text-white"
                       : "border-gray-200 bg-white text-gray-600 hover:border-brand-200",
@@ -137,24 +136,20 @@ export function DoctorInfoEditorCard({
 
           <EditField label="의사면허 번호" required error={errors.license_number} target="license_number">
             <div className="space-y-2">
-              <div className="grid grid-cols-[minmax(0,1fr)_4.75rem] gap-2">
-                <InputField
-                  id="license_number"
-                  value={form.license_number}
-                  onChange={(event) => onFieldChange("license_number", event.target.value.replace(/\D/g, ""))}
-                  placeholder="의사면허 번호를 숫자만 입력해 주세요."
-                  error={Boolean(errors.license_number)}
-                  className={cx(formControlClassName, "min-w-0")}
-                />
-                <FileSelectButton
-                  label="파일선택"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  onChange={onLicenseImageChange}
-                />
-              </div>
-              <SelectedFileRow
-                file={licenseImage}
-                existingFile={existingLicenseImage}
+              <InputField
+                id="license_number"
+                value={form.license_number}
+                onChange={(event) => onFieldChange("license_number", event.target.value.replace(/\D/g, ""))}
+                placeholder="의사면허 번호를 숫자만 입력해 주세요."
+                error={Boolean(errors.license_number)}
+                className={cx(formControlClassName, "min-w-0")}
+              />
+              <InlineFileSelect
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                fileName={licenseImage?.name ?? existingLicenseImage?.name ?? ""}
+                placeholder="의사면허증 파일을 선택해 주세요."
+                helperText="JPG, JPEG, PNG, WEBP, PDF / 10MB 이하"
+                onChange={onLicenseImageChange}
                 onClear={() => {
                   if (licenseImage) {
                     onLicenseImageChange(null);
@@ -169,24 +164,20 @@ export function DoctorInfoEditorCard({
 
           <EditField label="전문의" target="specialist_field">
             <div className="space-y-2">
-              <div className="grid grid-cols-[minmax(0,1fr)_4.75rem] gap-2">
-                <Select
-                  id="specialist_field"
-                  value={form.specialist_field === "NONE" ? "" : form.specialist_field}
-                  placeholder="전문의 과목을 선택해 주세요."
-                  options={DOCTOR_SPECIALIST_FIELD_OPTIONS.filter((option) => option.value !== "NONE")}
-                  onChange={(value) => onFieldChange("specialist_field", value || "NONE")}
-                  className={formControlClassName}
-                />
-                <FileSelectButton
-                  label="파일선택"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  onChange={onSpecialistCertificateImageChange}
-                />
-              </div>
-              <SelectedFileRow
-                file={specialistCertificateImage}
-                existingFile={existingSpecialistCertificateImage}
+              <Select
+                id="specialist_field"
+                value={form.specialist_field === "NONE" ? "" : form.specialist_field}
+                placeholder="전문의 과목을 선택해 주세요."
+                options={DOCTOR_SPECIALIST_FIELD_OPTIONS.filter((option) => option.value !== "NONE")}
+                onChange={(value) => onFieldChange("specialist_field", value || "NONE")}
+                className={formControlClassName}
+              />
+              <InlineFileSelect
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                fileName={specialistCertificateImage?.name ?? existingSpecialistCertificateImage?.name ?? ""}
+                placeholder="전문의 자격증 파일을 선택해 주세요."
+                helperText="JPG, JPEG, PNG, WEBP, PDF / 10MB 이하"
+                onChange={onSpecialistCertificateImageChange}
                 onClear={() => {
                   if (specialistCertificateImage) {
                     onSpecialistCertificateImageChange(null);
@@ -366,69 +357,6 @@ function EditField({
         {children}
         {error ? <p className="mt-1.5 text-xs text-error-500">{error}</p> : null}
       </div>
-    </div>
-  );
-}
-
-function FileSelectButton({
-  label,
-  accept,
-  onChange,
-}: {
-  label: string;
-  accept: string;
-  onChange: (file: File | null) => void;
-}) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
-
-  return (
-    <>
-      <input
-        ref={inputRef}
-        type="file"
-        accept={accept}
-        className="hidden"
-        onChange={(event) => {
-          onChange(event.target.files?.[0] ?? null);
-          event.currentTarget.value = "";
-        }}
-      />
-      <Button
-        type="button"
-        variant="brand"
-        size="sm"
-        className={fileSelectButtonClassName}
-        onClick={() => inputRef.current?.click()}
-      >
-        {label}
-      </Button>
-    </>
-  );
-}
-
-function SelectedFileRow({
-  file,
-  existingFile,
-  onClear,
-}: {
-  file: File | null;
-  existingFile: ExistingMediaItem | null;
-  onClear: () => void;
-}) {
-  const filename = file?.name ?? existingFile?.name ?? "";
-
-  if (!filename) return null;
-
-  return (
-    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-      <span className="min-w-0 truncate text-xs font-medium text-gray-700">{filename}</span>
-      <button
-        type="button"
-        onClick={onClear}
-        className="shrink-0 text-xs font-semibold text-gray-500 hover:text-red-600"
-      >
-        삭제
-      </button>
     </div>
   );
 }

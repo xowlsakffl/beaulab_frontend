@@ -634,16 +634,16 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (!form.ad_reception_phone_1.trim()) {
     nextErrors.ad_reception_phone_1 = "필수 담당자 전화번호를 입력해주세요.";
-  } else if (!/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_1)) {
-    nextErrors.ad_reception_phone_1 = "필수 담당자 전화번호 형식이 올바르지 않습니다.";
+  } else if (!/^(010-\d{4}-\d{4}|010\d{8})$/.test(form.ad_reception_phone_1)) {
+    nextErrors.ad_reception_phone_1 = "필수 담당자 전화번호를 010-0000-0000 형식으로 입력해주세요.";
   }
 
-  if (form.ad_reception_phone_2 && !/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_2)) {
-    nextErrors.ad_reception_phone_2 = "담당자2 전화번호 형식이 올바르지 않습니다.";
+  if (form.ad_reception_phone_2 && !/^(010-\d{4}-\d{4}|010\d{8})$/.test(form.ad_reception_phone_2)) {
+    nextErrors.ad_reception_phone_2 = "담당자2 전화번호를 010-0000-0000 형식으로 입력해주세요.";
   }
 
-  if (form.ad_reception_phone_3 && !/^[0-9+\-().\s]{6,50}$/.test(form.ad_reception_phone_3)) {
-    nextErrors.ad_reception_phone_3 = "담당자3 전화번호 형식이 올바르지 않습니다.";
+  if (form.ad_reception_phone_3 && !/^(010-\d{4}-\d{4}|010\d{8})$/.test(form.ad_reception_phone_3)) {
+    nextErrors.ad_reception_phone_3 = "담당자3 전화번호를 010-0000-0000 형식으로 입력해주세요.";
   }
 
   if (form.youtube_link.trim() && !isValidYoutubeLink(form.youtube_link.trim())) {

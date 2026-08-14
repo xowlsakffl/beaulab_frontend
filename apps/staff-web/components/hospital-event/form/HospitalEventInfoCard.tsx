@@ -53,7 +53,7 @@ const EVENT_PERIOD_PRESET_OPTIONS = [
 ] as const;
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
-const inputClassName = "h-9 bg-white px-3 text-sm";
+const inputClassName = "h-11 bg-white px-4 text-sm";
 
 export function EventInfoCard({
   form,
@@ -294,7 +294,7 @@ export function EventInfoCard({
                     onChange={(value) => onFieldChange("event_price", value)}
                     error={Boolean(errors.event_price || eventPriceError)}
                   />
-                  <div className="flex h-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-brand-500">
+                  <div className="flex h-11 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-brand-500">
                     할인율 {discountRate}%
                   </div>
                 </div>

@@ -152,7 +152,7 @@ export function HospitalEventPeriodEditModal({
           <Button
             type="button"
             variant="outline"
-            className="h-12 w-full justify-center"
+            className="h-11 w-full justify-center"
             disabled={updating}
             onClick={onClose}
           >
@@ -161,7 +161,7 @@ export function HospitalEventPeriodEditModal({
           <Button
             type="button"
             variant="brand"
-            className="h-12 w-full justify-center"
+            className="h-11 w-full justify-center"
             disabled={updating}
             onClick={() => void onSubmit()}
           >

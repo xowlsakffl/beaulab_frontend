@@ -196,7 +196,7 @@ export function DoctorsFilterPanel({
                 options={[...DOCTOR_METRIC_OPTIONS]}
                 showPlaceholderOption={false}
                 onChange={onMetricChange}
-                className="h-11 px-3"
+                className="h-11 px-4"
               />
             </div>
             <div className="min-w-0">

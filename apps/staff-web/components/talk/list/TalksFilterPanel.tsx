@@ -150,7 +150,7 @@ export function TalksFilterPanel({
                     options={TALK_METRIC_OPTIONS}
                     showPlaceholderOption={false}
                     onChange={onMetricFieldChange}
-                    className="h-11 px-3"
+                    className="h-11 px-4"
                   />
                 </div>
               )}

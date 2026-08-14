@@ -5,7 +5,7 @@ import { MAX_DOCTOR_TEXT_ITEM_COUNT, type DoctorFieldName } from "@/lib/doctor/f
 import { Card, CircleRemoveButton, InputField } from "@beaulab/ui-admin";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
-const formControlClassName = "h-9 bg-white px-3 py-1.5";
+const formControlClassName = "h-11 bg-white px-4 py-2.5";
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");

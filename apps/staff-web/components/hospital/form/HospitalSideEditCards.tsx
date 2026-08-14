@@ -160,7 +160,7 @@ function CompactPhoneField({
         placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         error={Boolean(error)}
-        className="h-9 bg-white px-3 py-1.5"
+        className="h-11 bg-white px-4 py-2.5"
       />
       {error ? <p className="col-span-2 text-xs text-error-500">{error}</p> : null}
     </div>

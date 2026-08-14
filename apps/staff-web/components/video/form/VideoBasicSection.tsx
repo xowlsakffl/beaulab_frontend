@@ -182,7 +182,7 @@ export function VideoBasicSection({
 
                 onSelectDoctorOption(matched && String(matched.id) === value ? matched : null);
               }}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
             {doctorOptionsResult.error ? <p className="text-xs text-error-500">{doctorOptionsResult.error}</p> : null}
           </EditField>
@@ -218,7 +218,7 @@ export function VideoBasicSection({
                   placeholder="0"
                   onChange={(event) => onFieldChange("view_count", event.target.value.replace(/\D/g, ""))}
                   error={Boolean(errors.view_count)}
-                  className="h-9 bg-white px-3 py-1.5"
+                  className="h-11 bg-white px-4 py-2.5"
                 />
               </EditField>
 
@@ -230,7 +230,7 @@ export function VideoBasicSection({
                   placeholder="0"
                   onChange={(event) => onFieldChange("like_count", event.target.value.replace(/\D/g, ""))}
                   error={Boolean(errors.like_count)}
-                  className="h-9 bg-white px-3 py-1.5"
+                  className="h-11 bg-white px-4 py-2.5"
                 />
               </EditField>
             </>
@@ -246,7 +246,7 @@ export function VideoBasicSection({
                 onFieldChange("duration_seconds", formatVideoDurationTypingInput(event.target.value))
               }
               error={Boolean(errors.duration_seconds)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
           </EditField>
 
@@ -259,7 +259,7 @@ export function VideoBasicSection({
               placeholder="https://www.youtube.com/watch?v=..."
               onChange={(event) => onFieldChange("external_video_url", event.target.value)}
               error={Boolean(errors.external_video_url)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
           </EditField>
 
@@ -271,7 +271,7 @@ export function VideoBasicSection({
               placeholder="동영상 제목을 입력해 주세요."
               onChange={(event) => onFieldChange("title", event.target.value)}
               error={Boolean(errors.title)}
-              className="h-9 bg-white px-3 py-1.5"
+              className="h-11 bg-white px-4 py-2.5"
             />
           </EditField>
 
@@ -453,7 +453,7 @@ function VideoHospitalPicker({
         }}
         placeholder="병의원명 또는 사업자등록번호 검색"
         error={Boolean(error)}
-        className="h-9 bg-white pr-3 pl-9"
+        className="h-11 bg-white pr-4 pl-9"
       />
 
       {isOpen ? (
@@ -589,7 +589,7 @@ function VideoCategorySelect({
                         onToggleCategory(categoryId, !isSelected);
                       }}
                       className={[
-                        "flex h-9 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
+                        "flex h-11 w-full items-center justify-between rounded-lg border border-transparent px-4 text-left text-sm transition",
                         isSelected
                           ? "border-brand-200 bg-brand-50 font-semibold text-brand-700"
                           : "text-gray-700 hover:border-gray-200 hover:bg-gray-50",
@@ -759,7 +759,7 @@ function VideoHashtagSelect({
             }
           }}
           placeholder="해시태그 검색 또는 입력"
-          className="h-9 bg-white px-3 py-1.5"
+          className="h-11 bg-white px-4 py-2.5"
         />
 
         {isOpen ? (
@@ -878,7 +878,7 @@ function DropdownTrigger({ label, onClick }: { label: string; onClick: () => voi
       <button
         type="button"
         onClick={onClick}
-        className="flex h-9 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700"
+        className="flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-700"
       >
         {label}
         <ChevronDown className="size-4 text-gray-500" />
