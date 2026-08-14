@@ -21,6 +21,13 @@
 - layout: `AppHeader`, `AppSidebar`
 - auth form: `SignInForm`, `PasswordResetRequestForm`, `PasswordResetForm`
 - form: `InputField`, `Select`, `MultiSelect`, `TogglePillGroup`, `FormSettingToggleRow`, `RichTextEditor`
+
+### 폼 컨트롤 높이
+
+- 한 줄 입력 컨트롤의 기본 높이는 `h-11`이다.
+- `InputField`, `Select`, 날짜 선택, 목록 필터, 파일 입력, 전화번호 입력은 공통 컴포넌트의 기본 높이를 사용한다.
+- 페이지에서 높이를 반복 지정하지 않는다. 공통 입력 컴포넌트는 페이지의 높이 덮어쓰기와 관계없이 `h-11`을 유지한다. 다중 행 입력, 미디어 영역, 소형 아이콘·행 액션 버튼만 별도 높이를 사용할 수 있다.
+- 인라인 파일 입력은 `InlineFileSelect`의 액션 버튼, 파일명, `helperText` 규격 안내 영역을 사용한다. 파일명과 규격을 한 줄에 강제로 넣거나 페이지에서 안내 문구를 중복 렌더링하지 않는다.
 - table: `DataTable`, `Pagination`
 - modal/button/card/badge 계열 공통 UI
 - error: `ErrorStatusPage`
