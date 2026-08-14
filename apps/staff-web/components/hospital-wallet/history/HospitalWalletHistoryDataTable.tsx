@@ -3,11 +3,8 @@
 import Link from "next/link";
 import React from "react";
 import {
-  Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
+  DataTableSortHeader,
   FormCheckbox,
   Pagination,
   Spinner,
@@ -36,25 +33,13 @@ function SortHeader({
   sortState: WalletOperationSortState;
   onToggleSort: (field: WalletOperationSortField) => void;
 }) {
-  const icon =
-    sortState.field !== field ? (
-      <ChevronsUpDown className="size-4" />
-    ) : sortState.direction === "desc" ? (
-      <ChevronDown className="size-4" />
-    ) : (
-      <ChevronUp className="size-4" />
-    );
-
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
+    <DataTableSortHeader
+      label={label}
+      active={sortState.field === field}
+      direction={sortState.direction}
       onClick={() => onToggleSort(field)}
-      className="inline-flex items-center gap-1 px-0 text-xs"
-    >
-      {label} <span className="text-gray-400">{icon}</span>
-    </Button>
+    />
   );
 }
 
@@ -117,6 +102,7 @@ function buildColumns({
   sortState,
   onToggleSort,
   canProcessRefund,
+  canViewRefundDocuments,
   onOpenRefundStatus,
   onOpenRefundDocuments,
 }: {
@@ -124,6 +110,7 @@ function buildColumns({
   sortState: WalletOperationSortState;
   onToggleSort: (field: WalletOperationSortField) => void;
   canProcessRefund: boolean;
+  canViewRefundDocuments: boolean;
   onOpenRefundStatus: (row: WalletOperationRow) => void;
   onOpenRefundDocuments: (row: WalletOperationRow) => void;
 }): DataTableColumn<WalletOperationRow>[] {
@@ -224,12 +211,18 @@ function buildColumns({
         >
           <FormCheckbox
             checked={row.hasBusinessRegistrationFile}
-            onChange={() => onOpenRefundDocuments(row)}
+            disabled={!canViewRefundDocuments}
+            onChange={() => {
+              if (canViewRefundDocuments) onOpenRefundDocuments(row);
+            }}
             ariaLabel="사업자등록증 등록 여부"
           />
           <FormCheckbox
             checked={row.hasBankbookFile}
-            onChange={() => onOpenRefundDocuments(row)}
+            disabled={!canViewRefundDocuments}
+            onChange={() => {
+              if (canViewRefundDocuments) onOpenRefundDocuments(row);
+            }}
             ariaLabel="통장 사본 등록 여부"
           />
         </span>
@@ -279,6 +272,7 @@ export function HospitalWalletHistoryDataTable({
   onToggleSort,
   onGoPage,
   canProcessRefund,
+  canViewRefundDocuments,
   onOpenRefundStatus,
   onOpenRefundDocuments,
 }: {
@@ -292,6 +286,7 @@ export function HospitalWalletHistoryDataTable({
   onToggleSort: (field: WalletOperationSortField) => void;
   onGoPage: (page: number) => void;
   canProcessRefund: boolean;
+  canViewRefundDocuments: boolean;
   onOpenRefundStatus: (row: WalletOperationRow) => void;
   onOpenRefundDocuments: (row: WalletOperationRow) => void;
 }) {
@@ -302,10 +297,11 @@ export function HospitalWalletHistoryDataTable({
         sortState,
         onToggleSort,
         canProcessRefund,
+        canViewRefundDocuments,
         onOpenRefundStatus,
         onOpenRefundDocuments,
       }),
-    [canProcessRefund, onOpenRefundDocuments, onOpenRefundStatus, onToggleSort, sortState, tab],
+    [canProcessRefund, canViewRefundDocuments, onOpenRefundDocuments, onOpenRefundStatus, onToggleSort, sortState, tab],
   );
   const tableClassName =
     tab === "REFUND"

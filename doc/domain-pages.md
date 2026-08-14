@@ -115,6 +115,7 @@
 기준:
 
 - 차트는 `ui-admin`의 TailAdmin ApexCharts 공통 컴포넌트를 사용하며 도메인 화면은 API 응답을 series로 변환한다.
+- 월별 충전금 추이는 현재 월을 포함한 최근 6개월을 TailAdmin `Double Bar Chart` 형태로 표시하고, 카테고리 비율은 `Donut Pie Chart 4` 형태의 공통 파이 차트를 사용한다.
 - 전체 현황과 기간별 상위 병의원은 별도 API로 조회해 기간 필터 변경 시 전체 차트를 다시 요청하지 않는다.
 - 내역 목록 API는 잔액 변경 원장이 아니라 신청·대기·취소를 포함하는 Operation을 조회한다.
 - 기본 탭은 `CHARGE`다.

@@ -32,6 +32,7 @@ import {
   type WalletOperationTypeGroup,
   type WalletOperationRow,
 } from "@/lib/hospital-wallet/history";
+import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 
 function cloneFilters(filters: WalletOperationFilters): WalletOperationFilters {
   return { ...filters, statuses: [...filters.statuses] };
@@ -59,8 +60,11 @@ export default function HospitalWalletHistoryTableClient() {
   const [refundStatusRow, setRefundStatusRow] = React.useState<WalletOperationRow | null>(null);
   const [refundDocumentsRow, setRefundDocumentsRow] = React.useState<WalletOperationRow | null>(null);
   const permissions = getSession()?.auth?.permissions ?? [];
-  const canProcessRefund = permissions.includes("beaulab.hospital_wallet.refund_process");
-  const canManageRefundDocuments = permissions.includes("beaulab.hospital_wallet.refund_request") || canProcessRefund;
+  const canProcessRefund = permissions.includes(HOSPITAL_WALLET_PERMISSIONS.refundProcess);
+  const canViewRefundDocuments =
+    permissions.includes(HOSPITAL_WALLET_PERMISSIONS.refundDocumentShow) || canProcessRefund;
+  const canManageRefundDocuments =
+    canViewRefundDocuments && (permissions.includes(HOSPITAL_WALLET_PERMISSIONS.refundRequest) || canProcessRefund);
 
   const query = React.useMemo(
     () => buildWalletOperationsQuery({ tab, searchKeyword, filters: appliedFilters, sortState, page }),
@@ -239,6 +243,7 @@ export default function HospitalWalletHistoryTableClient() {
         onToggleSort={toggleSort}
         onGoPage={setPage}
         canProcessRefund={canProcessRefund}
+        canViewRefundDocuments={canViewRefundDocuments}
         onOpenRefundStatus={openRefundStatus}
         onOpenRefundDocuments={setRefundDocumentsRow}
       />

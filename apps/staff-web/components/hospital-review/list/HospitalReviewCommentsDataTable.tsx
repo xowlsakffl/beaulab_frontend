@@ -221,7 +221,7 @@ function buildCommentColumns({
       key: "status",
       headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[7%]`,
-      header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <span onClick={(event) => event.stopPropagation()}>
           <Switch

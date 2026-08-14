@@ -17,6 +17,7 @@ import {
 } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
+import { usePersistentIdempotencyKeys } from "@/hooks/common/usePersistentIdempotencyKeys";
 import type { WalletOperationRow } from "@/lib/hospital-wallet/history";
 
 type RefundTargetStatus = "COMPLETED" | "REJECTED";
@@ -42,13 +43,12 @@ export function HospitalWalletRefundStatusModal({
   const [rejectionReason, setRejectionReason] = React.useState("");
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
-  const processAttemptRef = React.useRef<{ signature: string; key: string } | null>(null);
+  const processIdempotency = usePersistentIdempotencyKeys("hospital-wallet-refund-process");
 
   React.useEffect(() => {
     setTargetStatus(null);
     setRejectionReason("");
     setSubmitError(null);
-    processAttemptRef.current = null;
   }, [row?.id]);
 
   const submitProcess = async () => {
@@ -61,9 +61,7 @@ export function HospitalWalletRefundStatusModal({
     }
 
     const signature = JSON.stringify({ operationId: row.id, targetStatus, reason: trimmedReason });
-    const previousAttempt = processAttemptRef.current;
-    const idempotencyKey = previousAttempt?.signature === signature ? previousAttempt.key : window.crypto.randomUUID();
-    processAttemptRef.current = { signature, key: idempotencyKey };
+    const idempotencyKey = processIdempotency.getOrCreate(signature);
     setSubmitting(true);
     setSubmitError(null);
 
@@ -79,7 +77,7 @@ export function HospitalWalletRefundStatusModal({
         return;
       }
 
-      processAttemptRef.current = null;
+      processIdempotency.confirm(signature);
       showAlert({
         variant: "success",
         title: "환불상태 변경",

@@ -217,7 +217,7 @@ function buildColumns({
       key: "visibility",
       headerClassName: `${headerBaseClass} w-[86px]`,
       cellClassName: `${nowrapCellClass} w-[86px]`,
-      header: "노출여부",
+      header: "공개여부",
       render: (row) => (
         <span className={row.isVisible ? "font-semibold text-gray-900" : "font-semibold text-gray-500"}>
           {row.visibilityLabel}

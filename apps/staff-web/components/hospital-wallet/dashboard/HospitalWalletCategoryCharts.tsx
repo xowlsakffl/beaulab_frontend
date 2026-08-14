@@ -1,4 +1,4 @@
-import { Card, PieChartOne } from "@beaulab/ui-admin";
+import { Card, PieChartFour } from "@beaulab/ui-admin";
 
 import { WALLET_DASHBOARD_CHART_COLORS, type WalletDashboardCategoryShare } from "@/lib/hospital-wallet/dashboard";
 
@@ -14,11 +14,11 @@ function CategoryShareCard({ title, items }: CategoryShareCardProps) {
         <h2 className="text-base font-semibold text-gray-900">{title}</h2>
         <span className="text-xs text-gray-500">단위: 건</span>
       </div>
-      <PieChartOne
+      <PieChartFour
         labels={items.map((item) => item.categoryName)}
         series={items.map((item) => item.applicationCount)}
         colors={WALLET_DASHBOARD_CHART_COLORS}
-        totalLabel="신청 건수"
+        height={336}
         valueFormatter={(value) => `${Math.trunc(value).toLocaleString("ko-KR")}건`}
       />
     </Card>

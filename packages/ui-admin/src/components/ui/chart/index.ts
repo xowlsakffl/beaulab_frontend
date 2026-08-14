@@ -1,4 +1,4 @@
-export { default as BarChartOne } from "./BarChartOne";
-export type { BarChartSeries } from "./BarChartOne";
+export { default as DoubleBarChart } from "./DoubleBarChart";
+export type { BarChartSeries } from "./DoubleBarChart";
 export { default as HorizontalGroupedBarChart } from "./HorizontalGroupedBarChart";
-export { default as PieChartOne } from "./PieChartOne";
+export { default as PieChartFour } from "./PieChartFour";

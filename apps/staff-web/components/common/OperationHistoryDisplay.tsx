@@ -450,13 +450,16 @@ export function normalizeOperationHistoryFieldLabel(fieldLabel?: string | null, 
   const label = (fieldLabel || fallback || "").trim();
   if (!label) return "";
 
-  return label.endsWith(" 변경") ? label.slice(0, -" 변경".length).trim() : label;
+  const normalizedLabel = label.endsWith(" 변경") ? label.slice(0, -" 변경".length).trim() : label;
+  if (normalizedLabel === "노출여부" || normalizedLabel === "노출 여부") return "공개여부";
+
+  return normalizedLabel;
 }
 
 function defaultFieldLabel(field?: string | null) {
   switch (field) {
     case "status":
-      return "노출여부";
+      return "공개여부";
     case "allow_status":
       return "검수상태";
     case "admin_status":

@@ -142,10 +142,10 @@ export function HospitalReviewsFilterPanel({
           </div>
 
           <div className={`${filterRowClass} col-span-2 max-[1800px]:col-span-4`}>
-            <span className={inlineLabelClass}>노출여부</span>
+            <span className={inlineLabelClass}>공개여부</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
-                label="노출여부"
+                label="공개여부"
                 hideLabel
                 value={draftFilters.visibilityStatus}
                 options={HOSPITAL_REVIEW_VISIBILITY_OPTIONS}

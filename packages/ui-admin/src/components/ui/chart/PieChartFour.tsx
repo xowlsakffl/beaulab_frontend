@@ -3,76 +3,49 @@
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 
+import { buildChartTooltip, CHART_TOOLTIP_STYLES } from "./chartTooltip";
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-type PieChartOneProps = {
+type PieChartFourProps = {
   labels: string[];
   series: number[];
   colors?: string[];
   height?: number;
-  totalLabel?: string;
   valueFormatter?: (value: number) => string;
   ratioFormatter?: (value: number) => string;
 };
 
-export default function PieChartOne({
+export default function PieChartFour({
   labels,
   series,
-  colors = ["#7592FF", "#7CD4FD", "#BDB4FE"],
-  height = 320,
-  totalLabel = "전체",
+  colors = ["#C2D6FF", "#9CB9FF", "#465FFF", "#2D3282"],
+  height = 304,
   valueFormatter = (value) => `${value}`,
   ratioFormatter = (value) => `${value.toFixed(1)}%`,
-}: PieChartOneProps) {
+}: PieChartFourProps) {
   const total = series.reduce((sum, value) => sum + value, 0);
   const options: ApexOptions = {
     chart: {
-      type: "donut",
+      type: "pie",
       height,
       toolbar: {
         show: false,
       },
+      animations: {
+        enabled: false,
+      },
       fontFamily: "Outfit, sans-serif",
     },
-    series,
-    labels,
-    colors,
     plotOptions: {
       pie: {
-        donut: {
-          size: "70%",
-          background: "transparent",
-          labels: {
-            show: true,
-            name: {
-              show: true,
-              fontSize: "13px",
-              fontWeight: "400",
-              color: "#667085",
-              offsetY: 20,
-            },
-            value: {
-              show: true,
-              fontSize: "28px",
-              fontWeight: "700",
-              color: "#101828",
-              offsetY: -16,
-              formatter: (value) => valueFormatter(Number(value)),
-            },
-            total: {
-              show: true,
-              label: totalLabel,
-              fontSize: "13px",
-              fontWeight: "400",
-              color: "#667085",
-              formatter: () => valueFormatter(total),
-            },
-          },
-        },
+        expandOnClick: false,
       },
     },
+    labels,
+    colors,
     dataLabels: {
       enabled: false,
     },
@@ -91,20 +64,43 @@ export default function PieChartOne({
         strokeWidth: 0,
       },
       itemMargin: {
-        horizontal: 10,
+        horizontal: 12,
         vertical: 4,
       },
       labels: {
         colors: "#344054",
       },
-      fontSize: "13px",
+      fontSize: "14px",
       formatter: (seriesName, options) => {
         const value = series[options.seriesIndex] ?? 0;
         return `${seriesName} ${ratioFormatter(total > 0 ? (value / total) * 100 : 0)}`;
       },
     },
     tooltip: {
-      enabled: false,
+      followCursor: true,
+      shared: false,
+      intersect: true,
+      custom: ({ series: chartSeries, seriesIndex, w }) => {
+        const value = Number(chartSeries[seriesIndex] ?? 0);
+
+        return buildChartTooltip({
+          color: String(w.globals.colors[seriesIndex] ?? colors[seriesIndex] ?? "#F580AB"),
+          label: String(w.globals.labels[seriesIndex] ?? labels[seriesIndex] ?? ""),
+          value: valueFormatter(value),
+        });
+      },
+    },
+    states: {
+      hover: {
+        filter: {
+          type: "none",
+        },
+      },
+      active: {
+        filter: {
+          type: "none",
+        },
+      },
     },
   };
 
@@ -116,5 +112,10 @@ export default function PieChartOne({
     );
   }
 
-  return <ReactApexChart options={options} series={series} type="donut" height={height} />;
+  return (
+    <div className="tailadmin-chart-with-static-tooltip flex justify-center">
+      <style>{CHART_TOOLTIP_STYLES}</style>
+      <ReactApexChart options={options} series={series} type="pie" height={height} />
+    </div>
+  );
 }

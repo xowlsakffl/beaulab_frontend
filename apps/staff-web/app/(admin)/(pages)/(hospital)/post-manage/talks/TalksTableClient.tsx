@@ -601,7 +601,7 @@ export default function TalksTableClient() {
       if (!isApiSuccess(response)) {
         setBoardError(
           board,
-          response.error.message || `${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경에 실패했습니다.`,
+          response.error.message || `${isCommentChange ? "토크 댓글" : "토크"} 공개여부 변경에 실패했습니다.`,
         );
         return;
       }
@@ -619,7 +619,7 @@ export default function TalksTableClient() {
         setRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
       }
     } catch {
-      setBoardError(board, `${isCommentChange ? "토크 댓글" : "토크"} 노출여부 변경 중 오류가 발생했습니다.`);
+      setBoardError(board, `${isCommentChange ? "토크 댓글" : "토크"} 공개여부 변경 중 오류가 발생했습니다.`);
     } finally {
       if (isBulkChange) {
         setBulkUpdating(false);

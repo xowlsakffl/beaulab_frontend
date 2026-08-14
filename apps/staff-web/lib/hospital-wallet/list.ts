@@ -5,6 +5,7 @@ export type HospitalWalletApiItem = {
   hospital?: {
     id: number;
     name?: string | null;
+    is_deleted?: boolean | null;
   } | null;
   total_balance?: number | null;
   paid_balance?: number | null;
@@ -20,6 +21,7 @@ export type HospitalWalletRow = {
   id: number;
   hospitalId: number;
   hospitalName: string;
+  hospitalDeleted: boolean;
   totalBalance: number;
   paidBalance: number;
   ownedPaidBalance: number;
@@ -176,6 +178,7 @@ export function normalizeHospitalWallet(item: HospitalWalletApiItem): HospitalWa
     id: item.id,
     hospitalId: Number(item.hospital?.id ?? 0),
     hospitalName: item.hospital?.name?.trim() || "-",
+    hospitalDeleted: Boolean(item.hospital?.is_deleted),
     totalBalance: toNonNegativeInteger(item.total_balance),
     paidBalance: toNonNegativeInteger(item.paid_balance),
     ownedPaidBalance: toNonNegativeInteger(item.owned_paid_balance ?? item.paid_balance),
@@ -189,6 +192,23 @@ export function normalizeHospitalWallet(item: HospitalWalletApiItem): HospitalWa
 
 export function formatPoint(value: number) {
   return `${Math.trunc(value).toLocaleString("ko-KR")} P`;
+}
+
+const REFUND_VAT_PERCENT = 10;
+
+export function calculateRefundAmount(points: number) {
+  const supplyAmount = Math.max(0, Math.trunc(points));
+  const vatAmount = Math.round((supplyAmount * REFUND_VAT_PERCENT) / 100);
+
+  return {
+    supplyAmount,
+    vatAmount,
+    totalAmount: supplyAmount + vatAmount,
+  };
+}
+
+export function calculateRefundPoints(totalAmount: number) {
+  return Math.max(0, Math.round(totalAmount / (1 + REFUND_VAT_PERCENT / 100)));
 }
 
 export function smsByteLength(value: string) {

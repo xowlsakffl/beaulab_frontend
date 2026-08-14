@@ -178,7 +178,7 @@ function buildCommentColumns({
       key: "status",
       headerClassName: `${headerBaseClass} lg:w-[90px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[90px] xl:w-[7%]`,
-      header: <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} />,
+      header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
         <Switch
           ariaLabel={`토크 댓글 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}

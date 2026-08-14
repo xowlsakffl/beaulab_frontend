@@ -262,7 +262,7 @@ function buildHospitalReviewColumns({
       headerClassName: `${headerBaseClass} lg:w-[62px] xl:w-[5%]`,
       cellClassName: `${nowrapCellClass} lg:w-[62px] xl:w-[5%]`,
       header: (
-        <SortHeader field="status" label="노출여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
+        <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
       ),
       render: (row) => (
         <span onClick={(event) => event.stopPropagation()}>

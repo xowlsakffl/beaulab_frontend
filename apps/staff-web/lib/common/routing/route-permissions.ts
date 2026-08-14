@@ -1,3 +1,5 @@
+import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
+
 export type RoutePermissionRule = {
   path: string;
   requiredPermissions: string[];
@@ -14,9 +16,9 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/hospital-manage/hospitals": ["beaulab.hospital.show"],
   "/hospital-manage/doctors": ["beaulab.doctor.show"],
   "/hospital-manage/hospital-entries": ["beaulab.hospital_entry.show"],
-  "/wallet-manage/deposits": ["beaulab.hospital_wallet.show"],
-  "/wallet-manage/hospitals": ["beaulab.hospital_wallet.show"],
-  "/wallet-manage/history": ["beaulab.hospital_wallet.history_show"],
+  "/wallet-manage/deposits": [HOSPITAL_WALLET_PERMISSIONS.show],
+  "/wallet-manage/hospitals": [HOSPITAL_WALLET_PERMISSIONS.show],
+  "/wallet-manage/history": [HOSPITAL_WALLET_PERMISSIONS.historyShow],
   "/customer-db-manage/events": ["beaulab.hospital_event_db.show"],
   "/customer-db-manage/real-models": ["beaulab.hospital_event_real_model_db.show"],
   "/ads-manage/events": ["beaulab.hospital_event.show"],

@@ -153,10 +153,10 @@ export function ReportedContentFilterPanel({
   ) : null;
   const visibilityFilter = showVisibilityFilter ? (
     <div className={filterRowClass}>
-      <span className={inlineLabelClass}>노출여부</span>
+      <span className={inlineLabelClass}>공개여부</span>
       <div className="min-w-0 flex-1">
         <SingleCheckboxFilterDropdown
-          label="노출여부"
+          label="공개여부"
           hideLabel
           value={draftFilters.visibilityStatus}
           options={REPORTED_CONTENT_VISIBILITY_OPTIONS}

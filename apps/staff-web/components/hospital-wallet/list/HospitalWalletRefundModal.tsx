@@ -22,7 +22,12 @@ import {
   REFUND_DOCUMENT_HELP_TEXT,
   validateRefundDocumentFile,
 } from "@/lib/hospital-wallet/refund-documents";
-import type { HospitalWalletRefundSubmitPayload, HospitalWalletRow } from "@/lib/hospital-wallet/list";
+import {
+  calculateRefundAmount,
+  calculateRefundPoints,
+  type HospitalWalletRefundSubmitPayload,
+  type HospitalWalletRow,
+} from "@/lib/hospital-wallet/list";
 
 type FieldErrors = Partial<
   Record<"points" | "reason" | "bankName" | "accountNumber" | "businessRegistrationFile" | "bankbookFile", string>
@@ -71,24 +76,27 @@ export function HospitalWalletRefundModal({
   }, [isOpen, hospital?.hospitalId]);
 
   const points = Number(pointsInput || 0);
-  const refundAmount = points > 0 ? Math.round(points * 1.1) : 0;
-  const vatAmount = refundAmount - points;
+  const refundAmounts = calculateRefundAmount(points);
+  const refundAmount = refundAmounts.totalAmount;
+  const vatAmount = refundAmounts.vatAmount;
   const exceedsBalance = Boolean(hospital && points > hospital.paidBalance);
   const actionLabel = directProcess ? "충전금 환불" : "충전금 환불 신청";
 
   const handlePointsChange = (value: string) => {
     const next = digitsOnly(value);
     const nextPoints = Number(next || 0);
+    const nextAmounts = calculateRefundAmount(nextPoints);
     setPointsInput(next);
-    setMoneyInput(nextPoints > 0 ? String(Math.round(nextPoints * 1.1)) : "");
+    setMoneyInput(nextPoints > 0 ? String(nextAmounts.totalAmount) : "");
     setErrors((current) => ({ ...current, points: undefined }));
   };
 
   const handleMoneyChange = (value: string) => {
     const next = digitsOnly(value);
     const nextMoney = Number(next || 0);
-    const nextPoints = nextMoney > 0 ? Math.round(nextMoney / 1.1) : 0;
-    setMoneyInput(next);
+    const nextPoints = nextMoney > 0 ? calculateRefundPoints(nextMoney) : 0;
+    const canonicalAmount = calculateRefundAmount(nextPoints).totalAmount;
+    setMoneyInput(nextPoints > 0 ? String(canonicalAmount) : "");
     setPointsInput(nextPoints > 0 ? String(nextPoints) : "");
     setErrors((current) => ({ ...current, points: undefined }));
   };

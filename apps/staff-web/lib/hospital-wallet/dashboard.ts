@@ -103,18 +103,16 @@ export const WALLET_DASHBOARD_DATE_PRESETS = [
 export type WalletDashboardDatePresetKey = (typeof WALLET_DASHBOARD_DATE_PRESETS)[number]["key"];
 
 export const WALLET_DASHBOARD_CHART_COLORS = [
-  "#70BFA1",
-  "#7F9CF5",
-  "#F3B66F",
-  "#EE8D87",
-  "#A58BE2",
-  "#78BDD1",
-  "#E992BC",
-  "#91A8DD",
-  "#83B892",
-  "#D9A06D",
-  "#D98383",
-  "#9C8BC7",
+  "#FFDBe7",
+  "#FFBCD3",
+  "#F580AB",
+  "#E04A82",
+  "#A12C56",
+  "#FF8FB5",
+  "#FF6095",
+  "#C23365",
+  "#86294A",
+  "#52132A",
 ];
 
 function nonNegativeInteger(value: unknown) {

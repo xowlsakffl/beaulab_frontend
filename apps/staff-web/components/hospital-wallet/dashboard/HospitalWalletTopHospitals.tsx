@@ -8,6 +8,7 @@ import { Button, Card, DateRangeFilterDropdown, HorizontalGroupedBarChart, Spinn
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   WALLET_DASHBOARD_BALANCE_TYPES,
+  WALLET_DASHBOARD_CHART_COLORS,
   WALLET_DASHBOARD_DATE_PRESETS,
   buildWalletDashboardDateRange,
   formatWalletDashboardCompactPoints,
@@ -21,10 +22,9 @@ import {
 } from "@/lib/hospital-wallet/dashboard";
 
 export function HospitalWalletTopHospitals() {
-  const initialDateRange = React.useMemo(() => buildWalletDashboardDateRange("recent30"), []);
   const [balanceType, setBalanceType] = React.useState<WalletDashboardBalanceType>("ALL");
-  const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialDateRange);
-  const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | undefined>(initialDateRange);
+  const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>();
+  const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | undefined>();
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
   const [rows, setRows] = React.useState<WalletDashboardTopHospital[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -146,9 +146,10 @@ export function HospitalWalletTopHospitals() {
         <HorizontalGroupedBarChart
           categories={rows.map((row) => `${row.rank}. ${row.hospitalName}`)}
           series={[{ name: "소진 포인트", data: rows.map((row) => row.usedPoints) }]}
-          colors={["#E985B0"]}
+          colors={[WALLET_DASHBOARD_CHART_COLORS[3]]}
           height={320}
           minWidth={720}
+          barHeight="28%"
           valueFormatter={formatWalletDashboardPoints}
           axisValueFormatter={formatWalletDashboardCompactPoints}
         />

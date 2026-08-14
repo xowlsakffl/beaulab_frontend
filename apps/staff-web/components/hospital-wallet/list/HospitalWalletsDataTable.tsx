@@ -7,12 +7,11 @@ import {
   Button,
   ArrowDown,
   ArrowUp,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
+  DataTableSortHeader,
   FormCheckbox,
   Pagination,
+  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
@@ -25,11 +24,7 @@ import {
   type SortField,
   type SortState,
 } from "@/lib/hospital-wallet/list";
-
-function renderSortMark(field: SortField, sortState: SortState) {
-  if (sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
+import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 
 function SortHeader({
   field,
@@ -43,15 +38,12 @@ function SortHeader({
   onToggleSort: (field: SortField) => void;
 }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
+    <DataTableSortHeader
+      label={label}
+      active={sortState.field === field}
+      direction={sortState.direction}
       onClick={() => onToggleSort(field)}
-      className="inline-flex items-center gap-1 px-0 text-xs"
-    >
-      {label} <span className="text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
-    </Button>
+    />
   );
 }
 
@@ -113,7 +105,7 @@ function buildColumns({
         <SelectionCheckbox
           label={row.hospitalName + " 선택"}
           checked={selectedHospitalIds.has(row.hospitalId)}
-          disabled={controlsDisabled || row.hospitalId <= 0}
+          disabled={controlsDisabled || row.hospitalId <= 0 || row.hospitalDeleted}
           onChange={(checked) => onToggleRow(row.hospitalId, checked)}
         />
       ),
@@ -131,9 +123,16 @@ function buildColumns({
       cellClassName: cellClass + " min-w-56",
       header: <SortHeader field="hospital_name" label="병의원" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.hospitalName}>
-          {row.hospitalName}
-        </span>
+        <div className="flex items-start gap-2">
+          <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.hospitalName}>
+            {row.hospitalName}
+          </span>
+          {row.hospitalDeleted ? (
+            <StatusBadge size="sm" color="gray" className="shrink-0">
+              삭제됨
+            </StatusBadge>
+          ) : null}
+        </div>
       ),
     },
     {
@@ -261,7 +260,7 @@ export function HospitalWalletsDataTable({
   onGoPage,
 }: HospitalWalletsDataTableProps) {
   const selectedCount = selectedHospitalIds.size;
-  const selectableRows = React.useMemo(() => rows.filter((row) => row.hospitalId > 0), [rows]);
+  const selectableRows = React.useMemo(() => rows.filter((row) => row.hospitalId > 0 && !row.hospitalDeleted), [rows]);
   const allPageRowsSelected =
     selectableRows.length > 0 && selectableRows.every((row) => selectedHospitalIds.has(row.hospitalId));
   const controlsDisabled = loading || refreshing || submitting;
@@ -321,7 +320,7 @@ export function HospitalWalletsDataTable({
       emptyText="조건에 맞는 병의원 충전금 정보가 없습니다."
       rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">
-          <Can permission="beaulab.hospital_wallet.service_grant">
+          <Can permission={HOSPITAL_WALLET_PERMISSIONS.serviceGrant}>
             <Button
               type="button"
               variant="brand"
@@ -333,7 +332,7 @@ export function HospitalWalletsDataTable({
               서비스 지급
             </Button>
           </Can>
-          <Can permission="beaulab.hospital_wallet.service_reclaim">
+          <Can permission={HOSPITAL_WALLET_PERMISSIONS.serviceReclaim}>
             <Button
               type="button"
               variant="brandOutline"
@@ -345,7 +344,7 @@ export function HospitalWalletsDataTable({
               서비스 회수
             </Button>
           </Can>
-          <Can permission="beaulab.hospital_wallet.refund_request">
+          <Can permission={HOSPITAL_WALLET_PERMISSIONS.refundRequest}>
             <Button
               type="button"
               variant="outline"
@@ -357,7 +356,7 @@ export function HospitalWalletsDataTable({
               {directRefund ? "충전금 환불" : "충전금 환불 신청"}
             </Button>
           </Can>
-          <Can permission="beaulab.hospital_wallet.notice_send">
+          <Can permission={HOSPITAL_WALLET_PERMISSIONS.noticeSend}>
             <Button
               type="button"
               variant="outline"

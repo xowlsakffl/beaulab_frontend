@@ -251,7 +251,7 @@ export function DoctorVisibilitySection({
             의료진 선택에서 의료진을 선택하면 노출 항목을 설정할 수 있습니다.
           </div>
         ) : null}
-        <p className="text-xs text-gray-500">* 노출여부 체크시 원장님 경력 / 활동 사항은 자동 입력 됩니다.</p>
+        <p className="text-xs text-gray-500">* 공개여부 체크 시 원장님 경력 / 활동 사항은 자동 입력됩니다.</p>
       </div>
     </div>
   );

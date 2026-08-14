@@ -94,7 +94,7 @@ export function VisibilityConfirmModal({
     <Modal isOpen={isOpen} onClose={onClose} showCloseButton={false} className="mx-4 w-full max-w-md">
       <ModalPanel>
         <ModalHeader className="pr-0">
-          <ModalTitle>노출여부 변경</ModalTitle>
+          <ModalTitle>공개여부 변경</ModalTitle>
         </ModalHeader>
 
         <ModalBody className="mt-5">
