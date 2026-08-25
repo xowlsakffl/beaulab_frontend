@@ -113,9 +113,9 @@ export default function PieChartFour({
   }
 
   return (
-    <div className="tailadmin-chart-with-static-tooltip flex justify-center">
+    <div className="tailadmin-chart-with-static-tooltip mx-auto w-full px-2">
       <style>{CHART_TOOLTIP_STYLES}</style>
-      <ReactApexChart options={options} series={series} type="pie" height={height} />
+      <ReactApexChart options={options} series={series} type="pie" width="100%" height={height} />
     </div>
   );
 }
