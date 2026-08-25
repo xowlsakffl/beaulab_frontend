@@ -12,6 +12,7 @@
 beaulab_frontend/
 ├─ apps/
 │  ├─ staff-web
+│  ├─ hospital-web
 │  └─ user-web
 ├─ packages/
 │  ├─ api-client
@@ -48,6 +49,11 @@ pnpm --filter staff-web dev
 pnpm --filter staff-web lint
 pnpm --filter staff-web typecheck
 pnpm --filter staff-web build
+
+pnpm --filter hospital-web dev
+pnpm --filter hospital-web lint
+pnpm --filter hospital-web typecheck
+pnpm --filter hospital-web build
 
 pnpm --filter user-web dev
 
@@ -95,9 +101,11 @@ pnpm build
 ## 4. 환경 변수
 
 `apps/staff-web`는 staff API base URL로 `NEXT_PUBLIC_API_URL`을 사용한다.
+`apps/hospital-web`도 같은 origin을 사용하고 내부적으로 `/api/v1/hospital`을 붙인다.
 
 ```text
 NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_HOSPITAL_IDENTITY_VERIFICATION_URL=
 ```
 
 staff API client는 내부적으로 `/api/v1/staff`를 붙인다. 화면 코드에서 API host를 직접 조합하지 않는다.

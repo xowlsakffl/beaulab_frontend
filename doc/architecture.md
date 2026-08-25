@@ -6,12 +6,13 @@
 
 ## 1. 범위
 
-현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/user-web`은 앱 사용자 로그인, 채팅, 알림, Reverb 이벤트를 브라우저에서 수동 검증하기 위한 테스트 앱이다.
+현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/hospital-web`은 병의원 계정 생성 링크 화면을 소유하며, `apps/user-web`은 앱 사용자 로그인, 채팅, 알림, Reverb 이벤트를 브라우저에서 수동 검증하기 위한 테스트 앱이다.
 
 ```text
 beaulab_frontend/
 ├─ apps/
 │  ├─ staff-web/
+│  ├─ hospital-web/
 │  └─ user-web/
 ├─ packages/
 │  ├─ api-client/
@@ -25,6 +26,7 @@ beaulab_frontend/
 
 - `packages/*`는 앱/도메인 비의존 레이어다.
 - 관리자 제품 로직은 `apps/staff-web`가 소유한다.
+- 병의원 계정 생성 링크와 이후 병의원 관리자 화면은 `apps/hospital-web`가 소유한다.
 - `apps/user-web`은 관리자 shell, 메뉴, `ui-admin` 스타일을 공유하지 않는다.
 - 서버 권한 검증은 Laravel API가 최종 책임을 가진다. 프론트 권한은 UX 제어다.
 
@@ -39,6 +41,9 @@ packages/*
 
 apps/staff-web
   -> 관리자 앱 화면, 라우트, 메뉴, 권한 매핑, feature 흐름
+
+apps/hospital-web
+  -> 병의원 계정 초대 검증과 계정 생성 흐름
 
 apps/user-web
   -> 앱 사용자 로그인/채팅/알림 API 수동 검증
