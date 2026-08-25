@@ -2,7 +2,7 @@ import type { CategorySelectorSection, ExistingMediaItem, MediaCollectionConfig 
 
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import { validateImageFileRuleMessage } from "@/lib/common/media-validation";
-import { REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
+import { REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS } from "@/lib/common/review-status";
 import {
   getDoctorMediaFilename,
   resolveDoctorMediaUrl,
@@ -97,7 +97,7 @@ export const DOCTOR_STATUS_OPTIONS = [
   { value: "INACTIVE", label: "비활성" },
 ] as const;
 
-export const DOCTOR_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_OPTIONS;
+export const DOCTOR_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS;
 
 export const DOCTOR_PROFILE_COLLECTIONS: readonly MediaCollectionConfig<"profile_image">[] = [
   {

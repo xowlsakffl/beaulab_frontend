@@ -32,6 +32,8 @@ export type HospitalEntryDetailResponse = {
   applicant_phone?: string | null;
   applicant_email?: string | null;
   allow_status?: HospitalEntryAllowStatusValue | null;
+  hospital_id?: number | null;
+  converted_at?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 };

@@ -57,7 +57,8 @@ type HospitalFormLayoutProps = {
   businessRegistrationFile: File | null;
   existingCertificate?: MediaAsset | null;
   accountHospital?: AccountHospitalAsset | null;
-  pointBalance?: number | string | null;
+  walletBalance?: number | string | null;
+  showWalletBalance?: boolean;
   selectedCategoryItems?: HospitalCategoryItem[];
   hospitalFeatures: HospitalFeatureItem[];
   isHospitalFeaturesLoading: boolean;
@@ -78,6 +79,7 @@ type HospitalFormLayoutProps = {
   loadCategories: (params: CategorySelectorLoadParams) => Promise<CategorySelectorItem[]>;
   onToggleCategory: (categoryId: number, checked: boolean) => void;
   onToggleFeature: (featureId: number, checked: boolean) => void;
+  onOpenAccountInvitation?: () => void;
 };
 
 export function HospitalFormLayout({
@@ -93,7 +95,8 @@ export function HospitalFormLayout({
   businessRegistrationFile,
   existingCertificate = null,
   accountHospital = null,
-  pointBalance = null,
+  walletBalance = null,
+  showWalletBalance = false,
   selectedCategoryItems,
   hospitalFeatures,
   isHospitalFeaturesLoading,
@@ -114,6 +117,7 @@ export function HospitalFormLayout({
   loadCategories,
   onToggleCategory,
   onToggleFeature,
+  onOpenAccountInvitation,
 }: HospitalFormLayoutProps) {
   const isCreate = mode === "create";
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
@@ -162,12 +166,13 @@ export function HospitalFormLayout({
           {isCreate ? null : (
             <HospitalVerifiedAccountContactEditCard
               accountHospital={accountHospital}
+              onOpenAccountInvitation={onOpenAccountInvitation}
               className="h-full xl:col-start-2 xl:row-start-3"
             />
           )}
 
           <div className="flex min-w-0 flex-col gap-4 xl:col-start-3 xl:row-span-2 xl:row-start-1 xl:h-full">
-            <HospitalPointEditCard pointBalance={pointBalance} />
+            {showWalletBalance ? <HospitalPointEditCard walletBalance={walletBalance} /> : null}
             <HospitalAdReceptionEditCard form={form} errors={errors} onFieldChange={onFieldChange} />
           </div>
 

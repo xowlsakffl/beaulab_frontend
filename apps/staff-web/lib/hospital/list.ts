@@ -4,7 +4,7 @@ import type { DateRange } from "react-day-picker";
 import {
   labelReviewAllowStatus,
   reviewAllowStatusColor,
-  REVIEW_ALLOW_STATUS_OPTIONS,
+  REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS,
 } from "@/lib/common/review-status";
 import { resolveMediaUrl, type MediaAsset } from "./detail";
 
@@ -38,7 +38,6 @@ export type HospitalApiItem = {
   account?: {
     id?: number;
     nickname?: string | null;
-    email?: string | null;
     status?: string | null;
     last_login_at?: string | null;
     lastLoginAt?: string | null;
@@ -59,7 +58,6 @@ export type HospitalRow = {
   department: string;
   departmentLabel: string;
   loginId: string;
-  accountEmail: string;
   tel: string;
   viewCount: number;
   eventCount: number;
@@ -147,9 +145,11 @@ export const HOSPITAL_STATUS_OPTIONS: CheckboxFilterOption[] = [
   { value: "WITHDRAWN", label: "탈퇴" },
 ];
 
-export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({
-  ...option,
-}));
+export const ALLOW_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS.map(
+  (option) => ({
+    ...option,
+  }),
+);
 
 export const HOSPITAL_DEPARTMENT_OPTIONS: CheckboxFilterOption[] = [
   { value: "PLASTIC_SURGERY", label: "성형외과" },
@@ -386,7 +386,6 @@ export function normalizeHospital(item: HospitalApiItem): HospitalRow {
     departmentLabel:
       item.departmentLabel ?? item.department_label ?? labelHospitalDepartment(item.department ?? "UNKNOWN"),
     loginId: item.account?.nickname || "-",
-    accountEmail: item.account?.email || "-",
     tel: item.tel,
     viewCount: item.viewCount ?? item.view_count ?? 0,
     eventCount: item.eventCount ?? item.event_count ?? 0,

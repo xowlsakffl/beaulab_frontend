@@ -7,7 +7,7 @@ import {
 } from "@/lib/common/business-number";
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import { validateImageFileRuleMessage, validateImageFilesRuleMessage } from "@/lib/common/media-validation";
-import { REVIEW_ALLOW_STATUS_OPTIONS } from "@/lib/common/review-status";
+import { REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS } from "@/lib/common/review-status";
 import {
   getMediaFilename,
   isImageMedia,
@@ -221,7 +221,7 @@ export const HOSPITAL_STATUS_OPTIONS = [
   { value: "WITHDRAWN", label: "탈퇴" },
 ] as const;
 
-export const HOSPITAL_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_OPTIONS;
+export const HOSPITAL_ALLOW_STATUS_OPTIONS = REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS;
 
 export const FIELD_FOCUS_ORDER: readonly HospitalFieldName[] = [
   "name",

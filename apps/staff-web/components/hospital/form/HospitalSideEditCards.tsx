@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, InputField, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, InputField, Mail, StatusBadge } from "@beaulab/ui-admin";
 
 import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import { labelReviewStatus } from "@/lib/hospital/list";
-import { formatHospitalPointBalance, type AccountHospitalAsset } from "@/lib/hospital/detail";
+import { formatHospitalWalletBalance, type AccountHospitalAsset } from "@/lib/hospital/detail";
 import type { HospitalFormErrors, HospitalFormValues } from "@/lib/hospital/form";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -13,17 +13,26 @@ const readonlyValueClassName = "min-w-0 break-words text-sm leading-6 text-gray-
 
 export function HospitalVerifiedAccountContactEditCard({
   accountHospital,
+  onOpenAccountInvitation,
   className,
 }: {
   accountHospital: AccountHospitalAsset | null;
+  onOpenAccountInvitation?: () => void;
   className?: string;
 }) {
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
-      <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
+      <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
+        <h3 className="text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
+        {onOpenAccountInvitation ? (
+          <Button type="button" variant="brand" size="sm" onClick={onOpenAccountInvitation}>
+            <Mail className="size-4" />
+            계정 생성 이메일
+          </Button>
+        ) : null}
+      </div>
       <div className="space-y-3">
         <ReadonlyInfoField label="전화번호" value={accountHospital?.phone} compact />
-        <ReadonlyInfoField label="이메일" value={accountHospital?.email} compact />
       </div>
     </Card>
   );
@@ -76,12 +85,12 @@ function ReadonlyInfoField({
   );
 }
 
-export function HospitalPointEditCard({ pointBalance }: { pointBalance?: number | string | null }) {
+export function HospitalPointEditCard({ walletBalance }: { walletBalance?: number | string | null }) {
   return (
     <Card className={cardClassName}>
       <div className="flex min-h-[6.25rem] flex-col justify-between gap-3">
-        <h3 className="text-sm font-bold text-gray-900">현재 포인트 잔액</h3>
-        <p className="text-right text-sm font-bold text-gray-900">{formatHospitalPointBalance(pointBalance)}</p>
+        <h3 className="text-sm font-bold text-gray-900">현재 충전금 잔액</h3>
+        <p className="text-right text-base font-bold text-gray-900">{formatHospitalWalletBalance(walletBalance)}</p>
       </div>
     </Card>
   );

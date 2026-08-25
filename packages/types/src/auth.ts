@@ -32,7 +32,6 @@ export type StaffProfile = {
 export type HospitalProfile = {
   id: number | string;
   name: string;
-  email?: string;
   nickname?: string;
   status?: string;
   hospital_id?: number | string | null;

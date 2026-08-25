@@ -4,7 +4,7 @@ import type { DateRange } from "react-day-picker";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
 import {
   labelReviewAllowStatus,
-  REVIEW_ALLOW_STATUS_OPTIONS,
+  REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS,
   reviewAllowStatusColor,
 } from "@/lib/common/review-status";
 
@@ -131,9 +131,11 @@ export const DEFAULT_FILTERS: Filters = {
 
 export const DOCTORS_PER_PAGE = 10;
 
-export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_OPTIONS.map((option) => ({
-  ...option,
-}));
+export const DOCTOR_APPROVAL_STATUS_OPTIONS: CheckboxFilterOption[] = REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS.map(
+  (option) => ({
+    ...option,
+  }),
+);
 
 export const DOCTOR_POSITION_OPTIONS: CheckboxFilterOption[] = [
   { value: "대표원장", label: "대표원장" },

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 
 import { AdminNoteCreateModal } from "@/components/common/AdminNoteCreateModal";
@@ -26,8 +27,10 @@ import {
   type HospitalOperationHistoryItem,
 } from "@/components/hospital/detail/HospitalDetailSections";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { type HospitalDetailResponse } from "@/lib/hospital/detail";
+import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 import { labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
 import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -46,6 +49,7 @@ export default function HospitalDetailPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const canViewWallet = hasPermission(getSession()?.auth, HOSPITAL_WALLET_PERMISSIONS.show);
 
   const rawHospitalId = Array.isArray(params.id) ? params.id[0] : params.id;
   const hospitalId = Number(rawHospitalId);
@@ -119,7 +123,15 @@ export default function HospitalDetailPageClient() {
 
     try {
       const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}`, {
-        include: "business_registration,categories,features,account_hospital",
+        include: [
+          "business_registration",
+          "categories",
+          "features",
+          "account_hospital",
+          canViewWallet ? "wallet" : null,
+        ]
+          .filter(Boolean)
+          .join(","),
       });
 
       if (!isApiSuccess(response)) {
@@ -133,7 +145,7 @@ export default function HospitalDetailPageClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [hospitalId]);
+  }, [canViewWallet, hospitalId]);
 
   const fetchNotes = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
@@ -246,7 +258,16 @@ export default function HospitalDetailPageClient() {
         return;
       }
 
-      setDetail(response.data);
+      setDetail((current) =>
+        current
+          ? {
+              ...current,
+              ...response.data,
+              wallet: response.data.wallet ?? current.wallet,
+              account_hospital: response.data.account_hospital ?? current.account_hospital,
+            }
+          : response.data,
+      );
       setIsSuspendModalOpen(false);
       setSuspendReason("");
       await refreshHistoriesFromFirstPage();
@@ -273,7 +294,16 @@ export default function HospitalDetailPageClient() {
         return;
       }
 
-      setDetail(response.data);
+      setDetail((current) =>
+        current
+          ? {
+              ...current,
+              ...response.data,
+              wallet: response.data.wallet ?? current.wallet,
+              account_hospital: response.data.account_hospital ?? current.account_hospital,
+            }
+          : response.data,
+      );
       setIsActivateModalOpen(false);
       await refreshHistoriesFromFirstPage();
     } catch {

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Card, InputField, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, InputField, Mail, StatusBadge } from "@beaulab/ui-admin";
 
 import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -193,16 +193,30 @@ export function HospitalEntryApplicantEditCard({
   );
 }
 
-export function HospitalEntryAllowStatusReadonlyCard({ detail }: { detail: HospitalEntryDetailResponse }) {
+export function HospitalEntryAllowStatusReadonlyCard({
+  detail,
+  onOpenAccountInvitation,
+}: {
+  detail: HospitalEntryDetailResponse;
+  onOpenAccountInvitation?: () => void;
+}) {
   const status = resolveAllowStatusValue(detail.allow_status);
 
   return (
     <Card className={infoCardClassName}>
-      <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
-        <h2 className="text-sm font-bold text-gray-900">검수상태</h2>
-        <StatusBadge size="sm" color={hospitalEntryAllowStatusColor(status)}>
-          {labelHospitalEntryAllowStatus(status)}
-        </StatusBadge>
+      <div className="flex min-h-[3.5rem] flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+          <h2 className="text-sm font-bold text-gray-900">검수상태</h2>
+          <StatusBadge size="sm" color={hospitalEntryAllowStatusColor(status)}>
+            {labelHospitalEntryAllowStatus(status)}
+          </StatusBadge>
+        </div>
+        {onOpenAccountInvitation ? (
+          <Button type="button" variant="brand" size="sm" onClick={onOpenAccountInvitation}>
+            <Mail className="size-4" />
+            계정 생성 이메일
+          </Button>
+        ) : null}
       </div>
     </Card>
   );

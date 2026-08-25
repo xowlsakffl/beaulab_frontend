@@ -45,7 +45,6 @@ export type HospitalEventApiItem = {
       id?: number | null;
       name?: string | null;
       nickname?: string | null;
-      email?: string | null;
     } | null;
   } | null;
   categories?: HospitalEventCategory[] | null;

@@ -6,6 +6,8 @@ import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import { HospitalAccountInvitationModal } from "@/components/account-hospital/HospitalAccountInvitationModal";
+import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
 import {
   HospitalEntryAllowStatusReadonlyCard,
   HospitalEntryApplicantEditCard,
@@ -13,6 +15,8 @@ import {
 } from "@/components/hospital-entry/form/HospitalEntryEditCards";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS } from "@/lib/account-hospital/invitation";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { type HospitalEntryDetailResponse, type HospitalEntryMediaAsset } from "@/lib/hospital-entry/detail";
@@ -28,12 +32,16 @@ import {
   type HospitalEntryFormErrors,
   type HospitalEntryFormValues,
 } from "@/lib/hospital-entry/form";
+import { hasPermission } from "@beaulab/auth";
 
 export default function HospitalEntryEditFormClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const sessionAuth = getSession()?.auth;
+  const canViewAccountInvitation = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS.show);
+  const canSendAccountInvitation = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS.update);
 
   const rawEntryId = Array.isArray(params.id) ? params.id[0] : params.id;
   const entryId = Number(rawEntryId);
@@ -53,6 +61,7 @@ export default function HospitalEntryEditFormClient() {
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
+  const [isAccountInvitationOpen, setIsAccountInvitationOpen] = React.useState(false);
 
   const detailPath = React.useMemo(() => {
     if (!Number.isFinite(entryId) || entryId <= 0) return "/hospital-manage/hospital-entries";
@@ -229,44 +238,63 @@ export default function HospitalEntryEditFormClient() {
     );
   }
 
+  const allowStatus = resolveAllowStatusValue(detail.allow_status);
+  const isConverted = Boolean(detail.hospital_id || detail.converted_at);
+  const canViewInvitationForEntry = !isConverted && allowStatus === "APPROVED" && canViewAccountInvitation;
+  const canSendInvitationForEntry = !isConverted && allowStatus === "APPROVED" && canSendAccountInvitation;
+
   return (
-    <form id={HOSPITAL_ENTRY_EDIT_FORM_ID} className="min-w-0 space-y-4" onSubmit={handleSubmit}>
-      <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
-        <HospitalEntryHospitalEditCard
-          form={form}
-          errors={errors}
-          businessRegistrationMedia={existingBusinessRegistrationFile}
-          licenseMedia={existingLicenseFile}
-          businessRegistrationFile={businessRegistrationFile}
-          licenseFile={licenseFile}
-          businessFileInputRef={businessFileInputRef}
-          licenseFileInputRef={licenseFileInputRef}
-          onFieldChange={setField}
-          onBusinessFileChange={(file) => {
-            setBusinessRegistrationFile(file);
-            clearError("business_registration_file");
-          }}
-          onLicenseFileChange={(file) => {
-            setLicenseFile(file);
-            clearError("license_file");
-          }}
-          onExistingBusinessFileChange={(hasFile) => {
-            setExistingBusinessRegistrationFile(hasFile ? existingBusinessRegistrationFile : null);
-            clearError("business_registration_file");
-          }}
-          onExistingLicenseFileChange={(hasFile) => {
-            setExistingLicenseFile(hasFile ? existingLicenseFile : null);
-            clearError("license_file");
-          }}
-          onPreview={setPreviewMedia}
+    <>
+      <form id={HOSPITAL_ENTRY_EDIT_FORM_ID} className="min-w-0 space-y-4" onSubmit={handleSubmit}>
+        <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+          <HospitalEntryHospitalEditCard
+            form={form}
+            errors={errors}
+            businessRegistrationMedia={existingBusinessRegistrationFile}
+            licenseMedia={existingLicenseFile}
+            businessRegistrationFile={businessRegistrationFile}
+            licenseFile={licenseFile}
+            businessFileInputRef={businessFileInputRef}
+            licenseFileInputRef={licenseFileInputRef}
+            onFieldChange={setField}
+            onBusinessFileChange={(file) => {
+              setBusinessRegistrationFile(file);
+              clearError("business_registration_file");
+            }}
+            onLicenseFileChange={(file) => {
+              setLicenseFile(file);
+              clearError("license_file");
+            }}
+            onExistingBusinessFileChange={(hasFile) => {
+              setExistingBusinessRegistrationFile(hasFile ? existingBusinessRegistrationFile : null);
+              clearError("business_registration_file");
+            }}
+            onExistingLicenseFileChange={(hasFile) => {
+              setExistingLicenseFile(hasFile ? existingLicenseFile : null);
+              clearError("license_file");
+            }}
+            onPreview={setPreviewMedia}
+          />
+          <HospitalEntryApplicantEditCard form={form} errors={errors} onFieldChange={setField} />
+        </section>
+
+        <HospitalEntryAllowStatusReadonlyCard
+          detail={detail}
+          onOpenAccountInvitation={canViewInvitationForEntry ? () => setIsAccountInvitationOpen(true) : undefined}
         />
-        <HospitalEntryApplicantEditCard form={form} errors={errors} onFieldChange={setField} />
-      </section>
 
-      <HospitalEntryAllowStatusReadonlyCard detail={detail} />
-
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-    </form>
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      </form>
+      <HospitalAccountInvitationModal
+        isOpen={isAccountInvitationOpen}
+        sourceType="HOSPITAL_ENTRY"
+        sourceId={entryId}
+        hospitalName={form.hospital_name}
+        initialEmail={form.applicant_email}
+        canSend={canSendInvitationForEntry}
+        onClose={() => setIsAccountInvitationOpen(false)}
+      />
+    </>
   );
 }
 

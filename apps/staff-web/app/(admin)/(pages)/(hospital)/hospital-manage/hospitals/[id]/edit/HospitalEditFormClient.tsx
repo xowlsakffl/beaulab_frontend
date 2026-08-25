@@ -1,6 +1,7 @@
 "use client";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
+import { HospitalAccountInvitationModal } from "@/components/account-hospital/HospitalAccountInvitationModal";
 import { HospitalFormLayout } from "@/components/hospital/form/HospitalFormLayout";
 import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
 import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSearch";
@@ -9,6 +10,7 @@ import { useHospitalFieldFocus } from "@/hooks/hospital/useHospitalFieldFocus";
 import { useHospitalFeatureList } from "@/hooks/hospital/useHospitalFeatureList";
 import { useHospitalFormSelections } from "@/hooks/hospital/useHospitalFormSelections";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import type { HospitalCategoryItem, HospitalDetailResponse, MediaAsset } from "@/lib/hospital/detail";
 import {
@@ -24,6 +26,9 @@ import {
   type HospitalFormValues,
 } from "@/lib/hospital/form";
 import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
+import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
+import { HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS } from "@/lib/account-hospital/invitation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -36,6 +41,10 @@ export default function HospitalEditFormClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const sessionAuth = getSession()?.auth;
+  const canViewWallet = hasPermission(sessionAuth, HOSPITAL_WALLET_PERMISSIONS.show);
+  const canViewAccountInvitation = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS.show);
+  const canSendAccountInvitation = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS.update);
   const { openPostcode, geocodeAddress } = useDaumPostcode();
   const { focusFirstErrorField } = useHospitalFieldFocus();
   const loadCategories = useHospitalCategorySelectorLoader();
@@ -77,7 +86,7 @@ export default function HospitalEditFormClient() {
   const [galleryOrder, setGalleryOrder] = React.useState<string[]>([]);
   const [existingCertificate, setExistingCertificate] = React.useState<MediaAsset | null>(null);
   const [accountHospital, setAccountHospital] = React.useState<HospitalDetailResponse["account_hospital"]>(null);
-  const [pointBalance, setPointBalance] = React.useState<HospitalDetailResponse["point_balance"]>(null);
+  const [walletBalance, setWalletBalance] = React.useState<number | null>(null);
   const [initialLogoId, setInitialLogoId] = React.useState<string | null>(null);
   const [initialCertificateId, setInitialCertificateId] = React.useState<string | null>(null);
   const [initialGalleryOrder, setInitialGalleryOrder] = React.useState<string[]>([]);
@@ -86,6 +95,7 @@ export default function HospitalEditFormClient() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isAccountInvitationOpen, setIsAccountInvitationOpen] = React.useState(false);
 
   const clearError = React.useCallback((field: HospitalFieldName) => {
     setErrors((prev) => {
@@ -129,7 +139,15 @@ export default function HospitalEditFormClient() {
 
     try {
       const response = await api.get<HospitalDetailResponse>(`/hospitals/${hospitalId}`, {
-        include: "business_registration,categories,features,account_hospital",
+        include: [
+          "business_registration",
+          "categories",
+          "features",
+          "account_hospital",
+          canViewWallet ? "wallet" : null,
+        ]
+          .filter(Boolean)
+          .join(","),
       });
 
       if (!isApiSuccess(response)) {
@@ -155,7 +173,7 @@ export default function HospitalEditFormClient() {
       setInitialGalleryOrder(nextGalleryOrder);
       setExistingCertificate(data.business_registration?.certificate_media ?? null);
       setAccountHospital(data.account_hospital ?? null);
-      setPointBalance(data.point_balance ?? null);
+      setWalletBalance(data.wallet?.total_balance ?? null);
       setInitialLogoId(hospitalMediaId(data.logo));
       setInitialCertificateId(hospitalMediaId(data.business_registration?.certificate_media ?? null));
     } catch {
@@ -163,7 +181,7 @@ export default function HospitalEditFormClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [hospitalId]);
+  }, [canViewWallet, hospitalId]);
 
   React.useEffect(() => {
     void fetchHospital();
@@ -283,63 +301,77 @@ export default function HospitalEditFormClient() {
   }
 
   return (
-    <HospitalFormLayout
-      mode="edit"
-      formId={HOSPITAL_EDIT_FORM_ID}
-      form={form}
-      errors={errors}
-      logo={logo}
-      gallery={gallery}
-      existingLogo={existingLogo}
-      existingMediaByCollection={existingMediaByCollection}
-      galleryOrder={galleryOrder}
-      businessRegistrationFile={businessRegistrationFile}
-      existingCertificate={existingCertificate}
-      accountHospital={accountHospital}
-      pointBalance={pointBalance}
-      selectedCategoryItems={selectedCategoryItems}
-      hospitalFeatures={hospitalFeatures}
-      isHospitalFeaturesLoading={isHospitalFeaturesLoading}
-      hospitalFeaturesError={hospitalFeaturesError}
-      onSubmit={handleSubmit}
-      onFieldChange={setField}
-      onLogoChange={(file) => {
-        setLogo(file);
-        clearError("logo");
-      }}
-      onGalleryChange={(files) => {
-        setGallery(files);
-        clearError("gallery");
-      }}
-      onExistingItemsChange={(key, items) => {
-        if (key !== "gallery") return;
+    <>
+      <HospitalFormLayout
+        mode="edit"
+        formId={HOSPITAL_EDIT_FORM_ID}
+        form={form}
+        errors={errors}
+        logo={logo}
+        gallery={gallery}
+        existingLogo={existingLogo}
+        existingMediaByCollection={existingMediaByCollection}
+        galleryOrder={galleryOrder}
+        businessRegistrationFile={businessRegistrationFile}
+        existingCertificate={existingCertificate}
+        accountHospital={accountHospital}
+        walletBalance={walletBalance}
+        showWalletBalance={canViewWallet}
+        selectedCategoryItems={selectedCategoryItems}
+        hospitalFeatures={hospitalFeatures}
+        isHospitalFeaturesLoading={isHospitalFeaturesLoading}
+        hospitalFeaturesError={hospitalFeaturesError}
+        onSubmit={handleSubmit}
+        onFieldChange={setField}
+        onLogoChange={(file) => {
+          setLogo(file);
+          clearError("logo");
+        }}
+        onGalleryChange={(files) => {
+          setGallery(files);
+          clearError("gallery");
+        }}
+        onExistingItemsChange={(key, items) => {
+          if (key !== "gallery") return;
 
-        const galleryById = new Map(
-          existingGallery.map((media, index) => [String(media.id ?? `gallery-${index}`), media]),
-        );
-        const nextGallery = items
-          .map((item) => galleryById.get(String(item.id)))
-          .filter((media): media is MediaAsset => Boolean(media));
+          const galleryById = new Map(
+            existingGallery.map((media, index) => [String(media.id ?? `gallery-${index}`), media]),
+          );
+          const nextGallery = items
+            .map((item) => galleryById.get(String(item.id)))
+            .filter((media): media is MediaAsset => Boolean(media));
 
-        setExistingGallery(nextGallery);
-        clearError("gallery");
-      }}
-      onGalleryOrderChange={(order) => {
-        setGalleryOrder(order);
-        clearError("gallery");
-      }}
-      onBusinessRegistrationFileChange={(file) => {
-        setBusinessRegistrationFile(file);
-        clearError("business_registration_file");
-      }}
-      onExistingCertificateChange={(hasFile) => {
-        setExistingCertificate(hasFile ? existingCertificate : null);
-        clearError("business_registration_file");
-      }}
-      onOpenAddressSearch={openAddressSearch}
-      loadCategories={loadCategories}
-      onToggleCategory={toggleCategory}
-      onToggleFeature={toggleFeature}
-    />
+          setExistingGallery(nextGallery);
+          clearError("gallery");
+        }}
+        onGalleryOrderChange={(order) => {
+          setGalleryOrder(order);
+          clearError("gallery");
+        }}
+        onBusinessRegistrationFileChange={(file) => {
+          setBusinessRegistrationFile(file);
+          clearError("business_registration_file");
+        }}
+        onExistingCertificateChange={(hasFile) => {
+          setExistingCertificate(hasFile ? existingCertificate : null);
+          clearError("business_registration_file");
+        }}
+        onOpenAddressSearch={openAddressSearch}
+        loadCategories={loadCategories}
+        onToggleCategory={toggleCategory}
+        onToggleFeature={toggleFeature}
+        onOpenAccountInvitation={
+          canViewAccountInvitation && !accountHospital ? () => setIsAccountInvitationOpen(true) : undefined
+        }
+      />
+      <HospitalAccountInvitationModal
+        isOpen={isAccountInvitationOpen}
+        sourceType="HOSPITAL"
+        sourceId={hospitalId}
+        hospitalName={form.name}
+        canSend={canSendAccountInvitation && !accountHospital}
+        onClose={() => setIsAccountInvitationOpen(false)}
+      />
+    </>
   );
 }

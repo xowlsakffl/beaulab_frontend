@@ -7,7 +7,7 @@ import { Can } from "@/components/common/guard";
 import { MediaPreviewItem, MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import {
-  formatHospitalPointBalance,
+  formatHospitalWalletBalance,
   getMediaFilename,
   isImageMedia,
   resolveMediaUrl,
@@ -229,7 +229,6 @@ export function VerifiedAccountContactCard({
       <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
       <div className="space-y-3">
         <InfoField label="전화번호" value={detail.account_hospital?.phone} compact />
-        <InfoField label="이메일" value={detail.account_hospital?.email} compact />
       </div>
     </Card>
   );
@@ -274,12 +273,14 @@ export function PointCard({
     <Card className={[hospitalDetailCardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[5rem] flex-col justify-between gap-3">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-bold text-gray-900">현재 포인트 잔액</h3>
+          <h3 className="text-sm font-bold text-gray-900">현재 충전금 잔액</h3>
           <Button type="button" variant="brand" size="sm" onClick={onOpenNewEventDBs} className="h-8 px-3 text-xs">
             미확인 DB {newEventDBCount.toLocaleString()}건
           </Button>
         </div>
-        <p className="text-right text-sm font-bold text-gray-900">{formatHospitalPointBalance(detail.point_balance)}</p>
+        <p className="text-right text-base font-bold text-gray-900">
+          {formatHospitalWalletBalance(detail.wallet?.total_balance)}
+        </p>
       </div>
     </Card>
   );

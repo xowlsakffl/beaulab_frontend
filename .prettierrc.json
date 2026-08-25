@@ -22,6 +22,12 @@
       }
     },
     {
+      "files": "apps/hospital-web/**/*.{js,jsx,ts,tsx}",
+      "options": {
+        "tailwindStylesheet": "./apps/hospital-web/app/globals.css"
+      }
+    },
+    {
       "files": ["*.yml", "*.yaml"],
       "options": {
         "tabWidth": 2

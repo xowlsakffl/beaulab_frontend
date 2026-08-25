@@ -44,7 +44,6 @@ export type AccountHospitalAsset = {
   id?: number | null;
   name?: string | null;
   nickname?: string | null;
-  email?: string | null;
   phone?: string | null;
   status?: string | null;
   last_login_at?: string | null;
@@ -79,6 +78,16 @@ export type HospitalStatusHistory = {
   created_at?: string | null;
 };
 
+export type HospitalWalletAsset = {
+  id: number;
+  total_balance: number;
+  paid_balance: number;
+  owned_paid_balance: number;
+  reserved_paid_balance: number;
+  service_balance: number;
+  last_transaction_at?: string | null;
+};
+
 export type HospitalDetailResponse = {
   id: number;
   name: string;
@@ -103,7 +112,7 @@ export type HospitalDetailResponse = {
   status?: string | null;
   latest_status_history?: HospitalStatusHistory | null;
   new_event_db_count?: number | null;
-  point_balance?: number | string | null;
+  wallet?: HospitalWalletAsset | null;
   logo?: MediaAsset | null;
   gallery?: MediaAsset[] | null;
   categories?: HospitalCategoryItem[] | null;
@@ -156,7 +165,7 @@ export function getMediaFilename(media?: MediaAsset | null) {
   return `media-${media.id ?? "file"}`;
 }
 
-export function formatHospitalPointBalance(value?: number | string | null) {
+export function formatHospitalWalletBalance(value?: number | string | null) {
   if (value === null || value === undefined || value === "") return "-";
 
   const numericValue = typeof value === "number" ? value : Number(String(value).replace(/,/g, ""));
