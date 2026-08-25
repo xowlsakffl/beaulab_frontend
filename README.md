@@ -1,303 +1,144 @@
-# 뷰랩 - 성형·뷰티 중개 플랫폼 프론트엔드
+# 뷰랩 프론트엔드
 
-뷰랩은 성형·시술 병원 중개와 뷰티·라이프스타일 업체 추천을 분리해 운영하는 뷰랩 플랫폼의 프론트엔드 모노레포입니다. 병원 영역은 성형외과/피부과의 시술·수술 정보, 의료진, 가격, 이벤트, 상담, 예약, 후기 흐름을 다루고, 뷰티 영역은 미용실, 필라테스, 피부샵, 네일샵 등 비의료 뷰티 업체의 추천, 정보 탐색, 예약, 후기 흐름을 다룹니다.
+성형·뷰티 플랫폼 뷰랩의 관리자 프론트엔드 모노레포입니다. 기존 관리자와 운영 프로세스를 분석한 뒤 화면 흐름, 권한, API 계약과 공통 UI 기준을 재정의하고 Next.js 기반으로 리뉴얼했습니다.
 
-현재 실제 운영 중심 앱은 `apps/staff-web` 관리자 웹입니다. 현재 `apps/user-web`은 앱 사용자 간 1:1 채팅과 Reverb 실시간 이벤트를 브라우저에서 수동 검증하기 위한 기능만 있습니다. 공통 HTTP, 인증, 타입, 관리자 UI는 `packages/*` 워크스페이스 패키지로 분리합니다.
+현재 제품 구현의 중심은 내부 운영자용 `staff-web`입니다. `user-web`은 향후 서비스 앱과 같은 사용자 기능을 제공할 웹 버전이며, 현재는 인증과 1:1 채팅·알림, Reverb 실시간 통신부터 구현돼 있습니다. `hospital-web`과 `beauty-web`은 각각 병원·뷰티 파트너가 사용하는 관리자 페이지로 구분하며 현재는 구현 예정 단계입니다. 서버 API와 도메인 규칙은 별도 [뷰랩 백엔드 저장소](https://github.com/xowlsakffl/beaulab_backend)에서 관리합니다.
 
-이 저장소는 뷰랩 플랫폼의 관리자 화면, 공통 UI 시스템, Actor별 세션/권한 처리, API client, 채팅 테스트 화면을 담당합니다. 현재 프론트 코드 기준으로 실제 앱은 `apps/staff-web`와 `apps/user-web`뿐이며, Hospital/Beauty 파트너 웹은 별도 앱으로 구현되어 있지 않습니다.
+## 담당 범위
 
-## 문서
+- 기존 관리자 화면, 사용자별 운영 동선과 API 분석
+- 요구사항, Information Architecture, 화면 흐름과 API 계약 정리
+- Next.js 모노레포와 관리자 애플리케이션 구조 설계
+- 병의원·의료진·이벤트·콘텐츠·신고·지갑 등 운영 화면 구현
+- 공통 인증, API client, 타입과 관리자 UI 패키지 구성
+- 백엔드 권한·상태 정의와 프론트 화면 동작의 기준 통일
+- 배포 이후 실제 운영 피드백과 오류를 반영한 화면 개선
 
-프론트엔드 구조와 구현 규칙은 [doc/README.md](/root/beaulab_frontend/doc/README.md)를 기준으로 관리합니다.
+## 현재 앱 구성
 
-주요 문서:
+| App | 경로 | 역할 | 현재 상태 |
+| --- | --- | --- | --- |
+| Staff Web | `apps/staff-web` | 내부 운영자 관리자 페이지 | 주요 운영 기능 구현 |
+| User Web | `apps/user-web` | 사용자 서비스 앱의 웹 버전 | 인증·채팅·알림 우선 구현 |
+| Hospital Web | `apps/hospital-web` 예정 | 병원 파트너 관리자 페이지 | 구현 예정 |
+| Beauty Web | `apps/beauty-web` 예정 | 뷰티 파트너 관리자 페이지 | 구현 예정 |
 
-- [architecture.md](/root/beaulab_frontend/doc/architecture.md)
-- [staff-web-rules.md](/root/beaulab_frontend/doc/staff-web-rules.md)
-- [api.md](/root/beaulab_frontend/doc/api.md)
-- [routing.md](/root/beaulab_frontend/doc/routing.md)
-- [list-pages.md](/root/beaulab_frontend/doc/list-pages.md)
-- [forms.md](/root/beaulab_frontend/doc/forms.md)
-- [media.md](/root/beaulab_frontend/doc/media.md)
-- [ui-components.md](/root/beaulab_frontend/doc/ui-components.md)
-- [status-badges.md](/root/beaulab_frontend/doc/status-badges.md)
-- [domain-pages.md](/root/beaulab_frontend/doc/domain-pages.md)
-- [performance.md](/root/beaulab_frontend/doc/performance.md)
-- [development.md](/root/beaulab_frontend/doc/development.md)
+라우트가 존재하더라도 내용이 placeholder인 Staff 화면은 아래 구현 범위에 포함하지 않습니다. Hospital Web과 Beauty Web은 제품 역할과 API 경계만 정의된 상태이며 현재 저장소에는 앱 디렉터리가 없습니다.
 
-## 서비스 범위
-
-이 README의 서비스 범위는 현재 코드에 존재하는 앱과 화면을 먼저 적고, 아직 구현되지 않은 확장 예정 영역은 아래 `확장 예정 범위`에 분리합니다.
-
-- Staff Web
-  - Staff 로그인, 세션 복구, 로그아웃, 프로필 관리
-  - 병의원/뷰티 도메인 토글 기반 관리자 shell
-  - 병의원 대시보드
-  - 성형/시술 병원 관리
-  - 병원 의료진 관리
-  - 병원 동영상 관리
-  - 병원 이벤트 관리
-  - 병원 이벤트 DB, 리얼모델 DB 관리
-  - 병원 토크/댓글, 성형후기/시술후기/댓글, 병의원 평가 관리
-  - 신고 콘텐츠 관리(토크, 후기, 평가, 채팅)
-  - 공지사항 관리
-  - 일반 회원 관리
-  - 해시태그 관리
-  - 메뉴/placeholder만 있는 영역: 뷰티 대시보드, 뷰티샵/전문가, 충전금, 광고/상품/캘린더, FAQ, 1:1 문의, 카테고리, 배너/팝업/상단 타이틀, 통계, 유해성 단어, 닉네임, 직원 설정
-- User Web
-  - 일반 사용자 로그인 테스트
-  - 유저 간 1:1 채팅방 목록 조회
-  - 첫 메시지 기반 채팅방 생성
-  - 텍스트/이미지/파일 메시지 전송 테스트
-  - 메시지 목록 조회와 읽음 처리
-  - 채팅방별 알림 on/off 확인
-  - 사용자 알림함, 미읽음 수, 단건/전체 읽음 처리 확인
-  - Laravel Reverb private channel 기반 실시간 메시지/읽음/알림 이벤트 확인
-- 공통 프론트엔드 인프라
-  - pnpm workspace + Turborepo 기반 모노레포
-  - Next.js App Router 기반 앱 구성
-  - Actor별 token/session storage
-  - Staff API client와 공통 ApiResponse 타입
-  - 메뉴 권한과 라우트 권한 매핑
-  - 관리자 공통 UI 컴포넌트
-  - form, table, modal, editor, uploader, spinner, global alert 패턴
-
-## 앱 구조
-
-| App       | 경로             | 상태      | 역할                              |
-| --------- | ---------------- | --------- | --------------------------------- |
-| Staff Web | `apps/staff-web` | 운영 중심 | 내부 운영자 관리자 웹             |
-| User Web  | `apps/user-web`  | 테스트 앱 | 앱 사용자 채팅/알림 API 수동 검증 |
-
-`apps/staff-web`는 관리자 제품 로직을 소유합니다. 메뉴, 권한, 라우트, 병원/뷰티 도메인 토글, 목록/상세/등록/수정 흐름은 이 앱 안에 둡니다.
-
-`apps/user-web`는 실제 사용자 프로덕션 웹이 아니라 채팅 API와 Reverb 이벤트를 브라우저에서 확인하기 위한 임시 검증 앱입니다. Staff 관리자 shell이나 `ui-admin` 스타일을 공유하지 않습니다.
-
-## 도메인 기반 프론트 설계
-
-프론트엔드는 백엔드 DDD 구조와 맞춰 Actor 경계와 도메인 경계를 분리합니다. Actor는 어떤 사용자가 접근하는지에 대한 경계이고, 도메인은 화면과 비즈니스 기능의 책임 경계입니다.
-
-### 계층 구조
-
-| 계층               | 위치                                                            | 책임                                                                   |
-| ------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| App Route          | `apps/*/app`                                                    | Next.js App Router 페이지, layout, route group                         |
-| Page Client        | `apps/staff-web/app/**/**/*Client.tsx`                          | 페이지 단위 상태, fetch, submit, redirect, error state                 |
-| Domain Components  | `apps/staff-web/components/{domain}`                            | 도메인 전용 section, table, filter, modal                              |
-| Domain Hooks       | `apps/staff-web/hooks/{domain}`                                 | endpoint, field name, DOM target에 묶인 도메인 훅                      |
-| Domain Lib         | `apps/staff-web/lib/{domain}`                                   | form/list 상수, validation, mapper, query helper                       |
-| Staff Common       | `apps/staff-web/components/common`, `apps/staff-web/lib/common` | staff 관리자 앱 전용 guard, sidebar, auth session, routing, navigation |
-| Workspace Packages | `packages/*`                                                    | 앱 비의존 공통 UI, auth, API client, type                              |
-
-### 도메인 경계
-
-| 영역               | 포함 기능                                                                                         | 설명                                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Hospital Admin     | `hospitals`, `doctors`, `videos`, `events`, `customer-db`, `talks`, `reviews`, `reported-content` | 병원, 의료진, 영상, 이벤트, 이벤트 DB/리얼모델 DB, 병원 토크, 성형후기, 시술후기, 병의원 평가, 신고 콘텐츠 운영 |
-| Beauty Admin       | `beauty-*` placeholder pages                                                                      | 현재 프론트에는 뷰티 도메인 메뉴/placeholder 화면만 있고, 뷰티 CRUD 전용 화면은 구현되어 있지 않음              |
-| Common Admin       | `notices`, `users`, `hashtags`, `profile`                                                         | 현재 구현된 공통 운영 화면                                                                                      |
-| Common Placeholder | `faqs`, `inquiries`, `categories`, `content`, `statistics`, `settings`                            | 메뉴와 placeholder만 존재하는 공통 운영 예정 화면                                                               |
-| Communication Test | `apps/user-web`                                                                                   | 유저 간 채팅, 읽음, 알림, Reverb 이벤트 검증                                                                    |
-| Shared UI          | `packages/ui-admin`                                                                               | 제품 비의존 관리자 UI 컴포넌트와 layout                                                                         |
-| Shared Runtime     | `packages/api-client`, `packages/auth`, `packages/types`                                          | API 요청, token/session storage, 공통 타입                                                                      |
-
-### 요청 처리 흐름
-
-```text
-Page
-  -> *Client.tsx
-  -> domain lib mapper / validator
-  -> @beaulab/api-client or app local api client
-  -> Laravel API
-  -> ApiResponse
-  -> domain row/form mapper
-  -> UI state
-```
-
-목록 화면은 URL query를 상태의 단일 기준으로 사용합니다. 상세 진입 시 `returnTo`를 유지하고, 등록/수정 후 목록으로 돌아오면 `highlight` query로 변경된 행을 강조합니다.
-
-### 설계 원칙
-
-- `packages/*`는 특정 actor, route, 도메인 업무 규칙을 알면 안 됩니다.
-- `apps/staff-web`의 `common`은 staff 관리자 앱 전체 공통을 뜻합니다.
-- 병원/의료진/공지/동영상처럼 field name과 endpoint에 묶인 코드는 도메인 폴더에 둡니다.
-- 폼 컴포넌트는 섹션 단위까지만 분리합니다.
-- 목록은 toolbar, filter, table 정도까지만 분리합니다.
-- 브라우저 `alert()` 대신 하단 전역 alert를 사용합니다.
-- 로딩은 spinner 패턴을 사용합니다.
-- 메뉴 노출과 라우트 보호는 같은 permission source를 공유합니다.
-- 프론트 권한은 UX 제어 목적이며, 최종 권한 검증은 서버가 담당합니다.
-
-## 주요 기능
+## 현재 구현 범위
 
 ### Staff Web
 
-- Staff 인증
-  - `POST /api/v1/staff/auth/login`
-  - token 저장
-  - `GET /api/v1/staff/profile`
-  - roles/permissions 기반 세션 복구
-  - 보호 라우트 진입
-- 관리자 shell
-  - 병의원/뷰티 도메인 토글
-  - 도메인 메뉴와 공통 메뉴 분리
-  - permission 기반 메뉴 필터링
-  - route permission 기반 guard
-- 병의원 관리
-  - 목록, 검색, 필터, 정렬, 페이지네이션
-  - 상세 조회
-  - 생성/수정
-  - 사업자 정보, 주소 검색, 병의원 특징, 미디어 업로드
-- 의료진 관리
-  - 목록, 상세, 생성, 수정
-  - 병의원 옵션 조회
-  - 시술 분야 카테고리 선택
-  - 의료진 프로필/증빙 정보 입력
-- 동영상 관리
-  - 목록, 상세, 생성, 수정
-  - 병원/의사 옵션 조회
-  - 게시기간, 카테고리, 썸네일, 영상 파일 처리
-  - 영상 파일 다운로드
-- 병원 이벤트 관리
-  - 목록, 상세, 생성, 수정
-  - 병원/의료진/카테고리 연결
-  - 이벤트 기간, 이미지, 옵션, 상태 관리
-- 고객 DB 관리
-  - 이벤트 DB 목록과 상태 변경
-  - 리얼모델 DB 목록/상세와 상태 변경
-- 공지사항 관리
-  - 목록, 상세, 생성, 수정
-  - RichTextEditor 기반 본문 작성
-  - 에디터 이미지 업로드/정리
-  - 첨부파일 업로드
-  - 채널, 상태, 게시기간, 상단 고정, 중요 팝업 설정
-- 해시태그 관리
-  - 목록, 필터, 생성/수정 모달
-- 토크 관리
-  - 게시글/댓글 탭 목록, 필터, 테이블 조회
-  - 게시글 상세, 투표, 이미지, 댓글, 댓글 처리 이력 조회
-  - 게시글/댓글 노출 상태 변경
-  - 토크 엑셀 다운로드
-- 병의원 후기 관리
-  - 성형후기/시술후기 게시판 분리
-  - 게시글/댓글 탭 목록, 필터, 테이블 조회
-  - 카테고리, 이미지, 병의원, 의료진, 비용, 평점, 베스트, 좋아요/저장/댓글/조회수, 게시상태 조회
-  - 게시글/댓글 노출 상태 변경
-- 병의원 평가 관리
-  - 병의원 평가 목록/상세 조회
-  - 평점 평균, 비용, 조회수, 영수증 상태 조회
-  - 영수증 인증/부적합 처리
-- 신고 콘텐츠 관리
-  - 토크, 후기, 평가, 채팅 신고 목록/상세 조회
-  - 신고 상태와 경고/무시 처리
-- 일반 회원 관리
-  - 목록, 상세 조회
-  - 회원 상태 수정
-- 현재 placeholder 화면
-  - 뷰티 대시보드
-  - 뷰티샵, 뷰티전문가
-  - 뷰티 충전금
-  - 뷰티 고객 DB
-  - 뷰티 광고/상품
-  - 뷰티 후기/리뷰/토크
-  - 뷰티 신고 콘텐츠
-  - FAQ, 1:1 문의
-  - 카테고리
-  - 배너, 팝업, 상단 타이틀
-  - 통계
-  - 유해성 단어, 닉네임, 직원 설정
+| 영역 | 주요 기능 |
+| --- | --- |
+| 인증·관리자 Shell | 로그인, 세션 복구, 로그아웃, 프로필, 권한 기반 메뉴·route guard, 병의원·뷰티 도메인 전환 |
+| 병의원 운영 | 병의원·입점 신청, 의료진, 동영상 목록·상세·등록·수정, 검수·운영 상태 관리 |
+| 이벤트·광고 | 이벤트 목록·상세·등록·수정, 이벤트 광고, 배치 캘린더, 신청 DB와 리얼모델 DB |
+| 콘텐츠 운영 | 토크·댓글, 성형·시술 후기와 댓글, 병의원 평가, 영수증 검수 |
+| 신고 운영 | 토크·후기·평가·채팅 신고 조회, 노출·경고·처리 상태 관리 |
+| 공통 운영 | 공지사항, 일반 회원, 카테고리, 해시태그, 관리자 메모 |
+| 지갑 | 병원별 잔액, 거래 내역, 환불·서비스 포인트와 알림 현황 |
+
+관리자 화면은 목록에서 조건을 좁히고 상세에서 판단 근거와 이력을 확인한 뒤 수정·처리 결과를 남기는 실제 운영 순서를 기준으로 구현했습니다.
 
 ### User Web
 
-- 두 사용자 슬롯 기반 로그인 테스트
-- 앱 사용자 채팅방 목록 조회
-- 첫 메시지 전송으로 채팅방 생성
-- 기존 채팅방 메시지 전송
-- 첨부파일 전송
-- 읽음 처리
-- 채팅방 알림 상태 확인
-- 알림 목록과 미읽음 수 확인
-- `private-chat.{chatId}` 채널 구독
-- `.chat.message.created` 이벤트 수신
-- `.chat.read.updated` 이벤트 수신
-- `private-user.{userId}` 채널 구독
-- `.notification.inbox.updated` 이벤트 수신
+- 일반 사용자 로그인과 세션 확인
+- 사용자 간 1:1 채팅방·메시지 조회
+- 텍스트·이미지·파일 메시지 전송
+- 메시지 읽음 처리와 채팅방별 알림 설정
+- 사용자 알림함, 미읽음 수, 단건·전체 읽음 처리
+- Laravel Echo/Pusher를 이용한 Reverb private channel 이벤트 확인
 
-## 주요 패키지
+`user-web`은 사용자 서비스 앱의 기능을 웹에서도 제공하기 위한 애플리케이션입니다. 현재는 서비스 전체 화면보다 로그인, 채팅, 읽음과 알림 같은 공통 커뮤니케이션 기능을 먼저 구현한 상태입니다.
 
-| Package               | 경로                  | 책임                                                                   |
-| --------------------- | --------------------- | ---------------------------------------------------------------------- |
-| `@beaulab/api-client` | `packages/api-client` | Actor별 token을 붙이는 fetch wrapper, query builder, ApiResponse 처리  |
-| `@beaulab/auth`       | `packages/auth`       | Actor별 token/session localStorage, permission helper                  |
-| `@beaulab/types`      | `packages/types`      | Actor, session, profile, ApiResponse 공통 타입                         |
-| `@beaulab/ui-admin`   | `packages/ui-admin`   | 관리자 layout, form, table, modal, editor, uploader, alert, spinner UI |
+## 프론트엔드 구조
 
-## 권한과 세션
+### 앱과 공통 패키지 분리
 
-- token은 `beaulab.token.{actor}` key로 localStorage에 저장합니다.
-- session은 `beaulab.session.{actor}` key로 localStorage에 저장합니다.
-- Staff Web은 `staff` actor token만 사용합니다.
-- 메뉴와 라우트 guard는 `roles`, `permissions`를 UX 제어에 사용합니다.
-- 라우트 권한 단일 소스는 `apps/staff-web/lib/common/routing/route-permissions.ts`입니다.
-- 사이드바 메뉴는 정적 path별 permission helper를 참조합니다.
-- 신규 관리자 route는 fail-closed가 기본이며, route permission 매핑이 없으면 접근 불가로 처리합니다.
-- 서버 권한 검증은 프론트 권한 처리로 대체하지 않습니다.
-
-## UI 정책
-
-- 관리자 shell과 사이드바 조합은 `apps/staff-web`가 소유합니다.
-- `packages/ui-admin`은 앱 전용 도메인 개념 없이 렌더링 가능한 UI만 제공합니다.
-- 브라우저 `alert()`는 사용하지 않고 전역 하단 alert를 사용합니다.
-- 페이지/섹션 로딩은 spinner를 우선 사용합니다.
-- status, allow_status, approval 류 선택은 기존 `Select` 패턴을 우선 재사용합니다.
-- 설명이 붙는 boolean 설정은 `FormSettingToggleRow`를 우선 재사용합니다.
-- HTML 본문 편집은 `RichTextEditor`를 우선 재사용합니다.
-- 업로드는 `MediaUploader`를 우선 재사용합니다.
-- 반복되는 modal panel/header/footer 구조는 `ui-admin`의 modal 조합 컴포넌트를 우선 재사용합니다.
-
-## 개발 명령
-
-```bash
-pnpm format
-pnpm format:check
-pnpm lint
-pnpm typecheck
-pnpm build
+```text
+Page Route
+  -> *Client.tsx
+  -> domain mapper / validator / hook
+  -> @beaulab/api-client
+  -> Laravel API
+  -> ApiResponse
+  -> page state
 ```
 
-포맷은 Prettier와 `prettier-plugin-tailwindcss`를 사용합니다. 구조/규칙 변경 시 [Frontend Architecture](doc/architecture.md), [Staff Web Rules](doc/staff-web-rules.md)를 함께 갱신합니다.
+- `apps/staff-web`: 관리자 제품 로직, route, 화면 상태와 도메인 UI
+- `apps/user-web`: 사용자 서비스 웹, 현재 인증·채팅·알림 기능 구현
+- `packages/api-client`: fetch wrapper, 인증 헤더, 공통 오류 처리
+- `packages/auth`: Actor별 token·session과 permission helper
+- `packages/types`: API와 공통 모델 타입
+- `packages/ui-admin`: 앱·도메인에 의존하지 않는 관리자 UI
 
-## 미디어 처리
+`packages/*`는 특정 Actor, route나 업무 도메인을 알지 않도록 유지합니다. 병원, 이벤트, 후기처럼 endpoint와 field에 묶인 로직은 `staff-web`의 도메인 폴더가 소유합니다.
 
-- 수정 폼의 미디어 payload는 최종 상태 기준으로 전송합니다.
-- 단일 파일은 `existing_*_id`와 선택적인 새 파일을 함께 사용합니다.
-- 다중 파일은 `existing_*_ids[]`와 새 파일 배열을 함께 사용합니다.
-- 기존/신규 다중 파일을 섞어 정렬해야 하면 `gallery_order[]` 같은 명시적 순서 payload를 사용합니다.
-- 병의원 갤러리는 `existing:{id}` / `new:{index}` 토큰 기반 `gallery_order[]`를 사용합니다.
-- 동영상 원본 파일은 staff가 교체하지 않고 삭제만 할 수 있으므로 `remove_video_file`을 사용합니다.
+### 화면 책임 분리
+
+| 계층 | 책임 |
+| --- | --- |
+| App Route | App Router page, layout과 route group |
+| Page Client | fetch, submit, redirect, loading·error state |
+| Domain Component | section, table, filter, form, modal |
+| Domain Hook·Lib | endpoint, validation, mapper, query helper |
+| Staff Common | 인증 session, sidebar, guard, routing과 navigation |
+| Workspace Package | 앱에 독립적인 HTTP, auth, type과 UI |
+
+## 핵심 구현
+
+### 1. 권한과 세션
+
+- Actor별 token과 session key 분리
+- API 요청 시 Bearer token 자동 첨부
+- `401`, `419` 응답 시 인증 상태 정리와 로그인 흐름 연결
+- 메뉴 노출과 route guard가 같은 permission source 사용
+- 프론트 권한은 화면 UX만 제어하고 최종 접근 검증은 서버에서 수행
+
+### 2. 목록과 화면 이동 상태
+
+- 검색, 필터, 정렬과 페이지를 URL query로 관리
+- 새로고침·링크 공유 후에도 같은 목록 조건 복원
+- 상세 진입 시 `returnTo`를 유지해 이전 검색 조건으로 복귀
+- 등록·수정 후 `highlight` query로 변경된 행 강조
+- 값이 없는 query는 제거해 URL 상태를 단순하게 유지
+
+### 3. API 요청 안정성
+
+- 공통 API client에서 응답·오류 형식 처리
+- `AbortController`로 화면 이동이나 검색 조건 변경 전의 오래된 요청 취소
+- 이전 응답이 최신 화면 상태를 덮는 문제 방지
+- 공통 타입과 도메인 mapper로 API 응답과 화면 모델의 경계 유지
+
+### 4. 반복 운영 UI 표준화
+
+- 목록·상세·등록·수정 흐름과 상태 badge 규칙 통일
+- Table, filter, modal, form, uploader, spinner, global alert 재사용
+- TipTap 기반 공지사항 본문과 에디터 이미지 처리
+- 단일·다중 미디어의 기존 파일 유지, 교체, 삭제와 정렬 payload 분리
+- 운영 판단에 필요한 상태, 이력과 연관 정보를 상세 화면에 함께 배치
+
+### 5. 실시간 통신
+
+- Laravel Echo와 Pusher JS로 Reverb private channel 구독
+- 인증 API를 통한 채널 참여 권한 확인
+- 메시지 생성·읽음·알림 이벤트 수신 상태 확인
+- 모바일 네트워크 재시도와 중복 요청 처리는 백엔드 멱등성 규칙과 함께 검증
 
 ## 기술 스택
 
-![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-10-F69220?style=for-the-badge&logo=pnpm&logoColor=white)
-![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
-![Laravel Echo](https://img.shields.io/badge/Laravel%20Echo-Reverb-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 
-- Next.js 16 App Router
-- React 19
-- TypeScript 5
-- Tailwind CSS 4
-- pnpm workspace
-- Turborepo
-- ESLint 9
-- Laravel Echo
-- Pusher JS
-- TipTap RichTextEditor
-- React Day Picker
-- lucide-react
+- Next.js 16 App Router, React 19, TypeScript 5
+- Tailwind CSS 4, lucide-react
+- pnpm 10 workspace, Turborepo 2
+- TipTap, ApexCharts, React Day Picker
+- Laravel Echo, Pusher JS
+- ESLint 9, Prettier 3
 
 ## 프로젝트 구조
 
@@ -305,149 +146,72 @@ pnpm build
 beaulab_frontend/
 ├── apps/
 │   ├── staff-web/
-│   │   ├── app/
-│   │   │   ├── (admin)/              # 관리자 보호 영역
-│   │   │   └── (auth)/               # 로그인/회원가입 영역
-│   │   ├── components/
-│   │   │   ├── account-user/         # 일반 회원 목록/상세 컴포넌트
-│   │   │   ├── common/               # staff-web 전용 공통 adapter
-│   │   │   ├── doctor/               # 의료진 폼/목록 컴포넌트
-│   │   │   ├── hashtag/              # 해시태그 목록/모달
-│   │   │   ├── hospital/             # 병의원 폼/목록 컴포넌트
-│   │   │   ├── hospital-evaluation/  # 병의원 평가 목록/상세 컴포넌트
-│   │   │   ├── hospital-event/       # 병원 이벤트 폼/목록/상세 컴포넌트
-│   │   │   ├── hospital-event-db/    # 이벤트 DB 목록 컴포넌트
-│   │   │   ├── hospital-event-real-model-db/ # 리얼모델 DB 목록/상세 컴포넌트
-│   │   │   ├── hospital-review/      # 병의원 후기 목록/상세 컴포넌트
-│   │   │   ├── notice/               # 공지사항 폼/목록 컴포넌트
-│   │   │   ├── reported-content/     # 신고 콘텐츠 목록/상세 컴포넌트
-│   │   │   ├── talk/                 # 토크 목록/상세 컴포넌트
-│   │   │   └── video/                # 동영상 폼/목록 컴포넌트
-│   │   ├── hooks/
-│   │   │   ├── common/               # 도메인 비의존 훅
-│   │   │   ├── hospital/
-│   │   │   ├── doctor/
-│   │   │   ├── video/
-│   │   │   └── notice/
-│   │   └── lib/
-│   │       ├── account-user/
-│   │       ├── common/               # API, auth, routing, navigation
-│   │       ├── doctor/
-│   │       ├── hashtag/
-│   │       ├── hospital/
-│   │       ├── hospital-evaluation/
-│   │       ├── hospital-event/
-│   │       ├── hospital-event-db/
-│   │       ├── hospital-event-real-model-db/
-│   │       ├── hospital-review/
-│   │       ├── notice/
-│   │       ├── reported-content/
-│   │       ├── talk/
-│   │       └── video/
-│   └── user-web/
-│       └── app/                      # 채팅/Reverb 수동 검증 화면
+│   │   ├── app/                 # 인증·관리자 route와 page client
+│   │   ├── components/          # 공통·도메인별 UI
+│   │   ├── hooks/               # 공통·도메인별 hook
+│   │   └── lib/                 # API, mapper, validation, route helper
+│   └── user-web/                # 사용자 서비스 웹, 현재 채팅·알림 구현
 ├── packages/
-│   ├── api-client/                   # fetch wrapper, query builder
-│   ├── auth/                         # token/session storage, permission helper
-│   ├── types/                        # 공통 타입
-│   └── ui-admin/                     # 관리자 UI, layout, form, table, modal
-├── doc/
-│   ├── architecture.md
-│   └── staff-web-rules.md
+│   ├── api-client/
+│   ├── auth/
+│   ├── types/
+│   └── ui-admin/
+├── doc/                         # 구조와 구현 규칙
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── tsconfig.base.json
 ```
 
-## 실행 준비
+## 실행 방법
 
-의존성 설치:
+Node.js와 pnpm 10이 필요합니다.
 
 ```bash
 pnpm install
 ```
 
-Staff Web 개발 서버:
+개발 서버:
 
 ```bash
-pnpm --filter staff-web dev
-```
-
-User Web 채팅 테스트 서버:
-
-```bash
-pnpm --filter user-web dev
+pnpm --filter staff-web dev  # http://localhost:3000
+pnpm --filter user-web dev   # http://localhost:3001
 ```
 
 전체 검증:
 
 ```bash
+pnpm format:check
 pnpm typecheck
 pnpm lint
 pnpm build
 ```
 
-개별 앱 검증:
-
-```bash
-pnpm --filter staff-web typecheck
-pnpm --filter staff-web lint
-pnpm --filter staff-web build
-```
-
-## 주요 환경변수
-
-| 변수                               | 앱                      | 설명                                              |
-| ---------------------------------- | ----------------------- | ------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`              | `staff-web`, `user-web` | Laravel API base URL. 예: `http://localhost:8000` |
-| `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` | `staff-web`             | Daum/Kakao 주소 검색 연동용 JavaScript key        |
-| `NEXT_PUBLIC_REVERB_APP_KEY`       | `user-web`              | Laravel Reverb app key                            |
-| `NEXT_PUBLIC_REVERB_HOST`          | `user-web`              | Reverb host                                       |
-| `NEXT_PUBLIC_REVERB_PORT`          | `user-web`              | Reverb port                                       |
-| `NEXT_PUBLIC_REVERB_SCHEME`        | `user-web`              | Reverb scheme (`http`, `https`)                   |
-
-예시:
+주요 환경변수:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY=
-NEXT_PUBLIC_REVERB_APP_KEY=beaulab-local-key
+NEXT_PUBLIC_REVERB_APP_KEY=
 NEXT_PUBLIC_REVERB_HOST=127.0.0.1
 NEXT_PUBLIC_REVERB_PORT=8080
 NEXT_PUBLIC_REVERB_SCHEME=http
 ```
 
-## 확장 예정 범위
+## 문서
 
-아래 항목은 뷰랩 서비스 범위에는 포함하지만, 현재 프론트 코드와 문서 기준으로 추가 설계와 구현이 필요한 영역입니다.
-
-- User 앱/웹
-  - 병원 검색, 시술/수술 상세, 이벤트, 후기, 예약, 견적
-  - 미용실, 필라테스, 피부샵, 네일샵 추천/탐색/예약
-  - 유저 간 채팅의 실제 앱 UI
-  - 알림함, 마이페이지, 즐겨찾기, 최근 본 항목
-- Hospital 파트너 웹
-  - 병원 정보, 의료진, 상품/이벤트, 상담, 예약, 후기 관리
-- Beauty 파트너 웹
-  - 뷰티 업체 정보, 전문가, 서비스 상품, 예약, 후기 관리
-- Staff Web 확장
-  - 신고/제재 처리 화면
-  - 성형/뷰티 후기 검수
-  - 상담/예약/견적 운영 화면
-  - 검색/추천/랭킹/기획전 운영 화면
-  - 광고 상품/상위 노출 정책 관리
-
-## 참고 문서
-
-- [아키텍처 문서](/root/beaulab_frontend/doc/architecture.md)
-- [Staff Web 규칙 문서](/root/beaulab_frontend/doc/staff-web-rules.md)
-- [레포 AGENTS 규칙](/root/beaulab_frontend/AGENTS.md)
-
-`README.md`는 사람 기준 진입 문서이고, `AGENTS.md`는 에이전트가 자동으로 읽는 규칙 진입 파일입니다. 구조나 구현 규칙이 바뀌면 `doc/architecture.md`, `doc/staff-web-rules.md`를 먼저 갱신합니다.
+- [프론트엔드 문서 목록](doc/README.md)
+- [아키텍처](doc/architecture.md)
+- [Staff Web 구현 규칙](doc/staff-web-rules.md)
+- [API 연동](doc/api.md)
+- [라우팅](doc/routing.md)
+- [목록 화면](doc/list-pages.md)
+- [폼](doc/forms.md)
+- [미디어](doc/media.md)
+- [UI 컴포넌트](doc/ui-components.md)
+- [성능](doc/performance.md)
 
 ## 관련 저장소
 
-- 프론트엔드 원격 저장소: `https://github.com/beaulab/beaulab_new_frontend.git`
-- 프론트엔드 push 대상: `https://github.com/xowlsakffl/beaulab_frontend.git`
-- 백엔드 저장소: `https://github.com/xowlsakffl/beaulab_backend.git`
+- 프론트엔드: [xowlsakffl/beaulab_frontend](https://github.com/xowlsakffl/beaulab_frontend)
+- 백엔드: [xowlsakffl/beaulab_backend](https://github.com/xowlsakffl/beaulab_backend)
