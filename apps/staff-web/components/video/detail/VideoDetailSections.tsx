@@ -18,7 +18,6 @@ import {
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
-import { Can } from "@/components/common/guard";
 import { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
 import {
@@ -33,6 +32,7 @@ import {
   labelVideoAdminStatus,
   labelVideoHospitalStatus,
   labelVideoReportStatus,
+  videoAdminStatusColor,
   videoHospitalStatusColor,
   videoReportStatusColor,
 } from "@/lib/video/list";
@@ -100,12 +100,16 @@ export function VideoInfoCard({
 
 export function VideoOperationInfoCard({
   detail,
+  canUpdateAdminStatus,
+  canUpdateReportStatus,
   updatingAdminStatus,
   updatingReportStatus,
   onAdminStatusChange,
   onReportStatusChange,
 }: {
   detail: VideoDetailResponse;
+  canUpdateAdminStatus: boolean;
+  canUpdateReportStatus: boolean;
   updatingAdminStatus: boolean;
   updatingReportStatus: ReportActionStatus | null;
   onAdminStatusChange: (status: "NORMAL" | "FORCED_STOPPED") => void;
@@ -117,7 +121,7 @@ export function VideoOperationInfoCard({
     <Card className={videoDetailCardClassName}>
       <div className="mb-5 flex items-start justify-between gap-4">
         <h3 className="text-sm font-bold text-gray-900">운영정보</h3>
-        <Can permission="beaulab.video.update">
+        {canUpdateAdminStatus ? (
           <Button
             type="button"
             variant="outline"
@@ -128,7 +132,11 @@ export function VideoOperationInfoCard({
           >
             {isForcedStopped ? "정상노출" : "강제중지"}
           </Button>
-        </Can>
+        ) : (
+          <StatusBadge size="sm" color={videoAdminStatusColor(detail.admin_status)}>
+            {labelVideoAdminStatus(detail.admin_status)}
+          </StatusBadge>
+        )}
         <span className="sr-only">현재 강제중지 상태: {labelVideoAdminStatus(detail.admin_status)}</span>
       </div>
       <div className="space-y-3">
@@ -144,6 +152,7 @@ export function VideoOperationInfoCard({
         <ReportCountInfoField videoId={detail.id} reportCount={Number(detail.report_state?.report_count ?? 0)} />
         <ReportStatusActionField
           status={detail.report_state?.status ?? "NONE"}
+          canUpdate={canUpdateReportStatus}
           updating={updatingReportStatus}
           onChange={onReportStatusChange}
         />
@@ -539,10 +548,12 @@ function StatusInfoField({
 
 function ReportStatusActionField({
   status,
+  canUpdate,
   updating,
   onChange,
 }: {
   status?: string | null;
+  canUpdate: boolean;
   updating: ReportActionStatus | null;
   onChange: (status: ReportActionStatus) => void;
 }) {
@@ -555,30 +566,36 @@ function ReportStatusActionField({
     <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3">
       <p className={labelClassName}>신고상태</p>
       <div className="flex min-h-[1.5rem] flex-wrap items-center gap-2">
-        <Can permission="beaulab.reported_video.update">
-          <Button
-            type="button"
-            variant={isAdminHidden ? "brand" : "outline"}
-            size="sm"
-            disabled={!hasReportState || isAdminHidden || updating !== null}
-            title={!hasReportState ? "신고 접수 내역이 있어야 변경할 수 있습니다." : undefined}
-            className={reportActionButtonClassName(isAdminHidden)}
-            onClick={() => onChange("ADMIN_HIDDEN")}
-          >
-            {updating === "ADMIN_HIDDEN" ? "처리 중" : "삭제처리"}
-          </Button>
-          <Button
-            type="button"
-            variant={isNormalVisible ? "brand" : "outline"}
-            size="sm"
-            disabled={!hasReportState || isNormalVisible || updating !== null}
-            title={!hasReportState ? "신고 접수 내역이 있어야 변경할 수 있습니다." : undefined}
-            className={reportActionButtonClassName(isNormalVisible)}
-            onClick={() => onChange("NORMAL_VISIBLE")}
-          >
-            {updating === "NORMAL_VISIBLE" ? "처리 중" : "신고오류"}
-          </Button>
-        </Can>
+        {canUpdate ? (
+          <>
+            <Button
+              type="button"
+              variant={isAdminHidden ? "brand" : "outline"}
+              size="sm"
+              disabled={!hasReportState || isAdminHidden || updating !== null}
+              title={!hasReportState ? "신고 접수 내역이 있어야 변경할 수 있습니다." : undefined}
+              className={reportActionButtonClassName(isAdminHidden)}
+              onClick={() => onChange("ADMIN_HIDDEN")}
+            >
+              {updating === "ADMIN_HIDDEN" ? "처리 중" : "삭제처리"}
+            </Button>
+            <Button
+              type="button"
+              variant={isNormalVisible ? "brand" : "outline"}
+              size="sm"
+              disabled={!hasReportState || isNormalVisible || updating !== null}
+              title={!hasReportState ? "신고 접수 내역이 있어야 변경할 수 있습니다." : undefined}
+              className={reportActionButtonClassName(isNormalVisible)}
+              onClick={() => onChange("NORMAL_VISIBLE")}
+            >
+              {updating === "NORMAL_VISIBLE" ? "처리 중" : "신고오류"}
+            </Button>
+          </>
+        ) : (
+          <StatusBadge size="sm" color={videoReportStatusColor(currentStatus)}>
+            {labelVideoReportStatus(currentStatus)}
+          </StatusBadge>
+        )}
       </div>
     </div>
   );

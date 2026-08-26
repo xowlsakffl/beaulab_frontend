@@ -85,17 +85,25 @@ export function DateRangeFilterDropdown({
     const rect = trigger.getBoundingClientRect();
     const margin = 16;
     const popupWidth = popupRef.current?.offsetWidth ?? 360;
+    const popupHeight = popupRef.current?.scrollHeight ?? popupRef.current?.offsetHeight ?? 520;
+    const maxPopupHeight = Math.max(240, window.innerHeight - margin * 2);
+    const renderedPopupHeight = Math.min(popupHeight, maxPopupHeight);
     const left = Math.min(
       Math.max(margin, rect.right - popupWidth),
       Math.max(margin, window.innerWidth - popupWidth - margin),
     );
+    const belowTop = rect.bottom + 4;
+    const fitsBelow = belowTop + renderedPopupHeight <= window.innerHeight - margin;
+    const top = fitsBelow ? belowTop : Math.max(margin, rect.top - renderedPopupHeight - 4);
 
     setPopupStyle({
       position: "fixed",
-      top: rect.bottom + 4,
+      top,
       left,
       zIndex: 100002,
       maxWidth: `calc(100vw - ${margin * 2}px)`,
+      maxHeight: maxPopupHeight,
+      overflowY: "auto",
     });
     setIsPopupPositioned(true);
   }, []);
@@ -166,6 +174,8 @@ export function DateRangeFilterDropdown({
       left: 0,
       zIndex: 100002,
       maxWidth: "calc(100vw - 32px)",
+      maxHeight: "calc(100vh - 32px)",
+      overflowY: "auto",
     }),
     visibility: isPopupPositioned ? "visible" : "hidden",
   };
@@ -174,7 +184,7 @@ export function DateRangeFilterDropdown({
     <div
       ref={popupRef}
       style={resolvedPopupStyle}
-      className="z-[100002]"
+      className="z-[100002] overscroll-contain"
       onMouseDown={(event) => event.stopPropagation()}
     >
       <Card className="rounded-lg p-3 shadow-lg">

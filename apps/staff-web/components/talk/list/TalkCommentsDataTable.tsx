@@ -7,12 +7,14 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
+  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
 import { type TalkCommentRow, type TalkCommentSortField, type TalkCommentSortState } from "@/lib/talk/comment-list";
+import { labelTalkVisibilityStatus } from "@/lib/talk/detail";
 import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 function renderSortMark(field: TalkCommentSortField, sortState: TalkCommentSortState) {
@@ -71,6 +73,7 @@ function buildCommentColumns({
   hasSelectableRows,
   visibilityUpdatingIds,
   visibilityControlsDisabled,
+  canUpdateStatus,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
@@ -82,6 +85,7 @@ function buildCommentColumns({
   hasSelectableRows: boolean;
   visibilityUpdatingIds: Set<number>;
   visibilityControlsDisabled: boolean;
+  canUpdateStatus: boolean;
   onToggleSort: (field: TalkCommentSortField) => void;
   onToggleRow: (id: number, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
@@ -97,28 +101,30 @@ function buildCommentColumns({
     overflow: "hidden",
   };
 
+  const selectionColumn: DataTableColumn<TalkCommentRow> = {
+    key: "select",
+    headerClassName: `${headerBaseClass} lg:w-[40px] xl:w-[4%]`,
+    cellClassName: `${nowrapCellClass} lg:w-[40px] xl:w-[4%]`,
+    header: (
+      <SelectionCheckbox
+        label="현재 페이지 토크 댓글 전체 선택"
+        checked={hasSelectableRows && allPageRowsSelected}
+        disabled={!hasSelectableRows || visibilityControlsDisabled}
+        onChange={onToggleAllRows}
+      />
+    ),
+    render: (row) => (
+      <SelectionCheckbox
+        label={`토크 댓글 ${row.id} 선택`}
+        checked={selectedIds.has(row.id)}
+        disabled={visibilityControlsDisabled || row.visibilityChangeLocked}
+        onChange={(checked) => onToggleRow(row.id, checked)}
+      />
+    ),
+  };
+
   return [
-    {
-      key: "select",
-      headerClassName: `${headerBaseClass} lg:w-[40px] xl:w-[4%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[40px] xl:w-[4%]`,
-      header: (
-        <SelectionCheckbox
-          label="현재 페이지 토크 댓글 전체 선택"
-          checked={hasSelectableRows && allPageRowsSelected}
-          disabled={!hasSelectableRows || visibilityControlsDisabled}
-          onChange={onToggleAllRows}
-        />
-      ),
-      render: (row) => (
-        <SelectionCheckbox
-          label={`토크 댓글 ${row.id} 선택`}
-          checked={selectedIds.has(row.id)}
-          disabled={visibilityControlsDisabled || row.visibilityChangeLocked}
-          onChange={(checked) => onToggleRow(row.id, checked)}
-        />
-      ),
-    },
+    ...(canUpdateStatus ? [selectionColumn] : []),
     {
       key: "id",
       headerClassName: `${headerBaseClass} lg:w-[72px] xl:w-[6%]`,
@@ -179,15 +185,20 @@ function buildCommentColumns({
       headerClassName: `${headerBaseClass} lg:w-[90px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[90px] xl:w-[7%]`,
       header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => (
-        <Switch
-          ariaLabel={`토크 댓글 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
-          checked={row.isVisible}
-          color="gray"
-          disabled={visibilityControlsDisabled || row.visibilityChangeLocked || visibilityUpdatingIds.has(row.id)}
-          onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
-        />
-      ),
+      render: (row) =>
+        canUpdateStatus ? (
+          <Switch
+            ariaLabel={`토크 댓글 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
+            checked={row.isVisible}
+            color="gray"
+            disabled={visibilityControlsDisabled || row.visibilityChangeLocked || visibilityUpdatingIds.has(row.id)}
+            onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
+          />
+        ) : (
+          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
+            {labelTalkVisibilityStatus(row.status)}
+          </StatusBadge>
+        ),
     },
     {
       key: "likeCount",
@@ -216,6 +227,7 @@ type TalkCommentsDataTableProps = {
   selectedIds: Set<number>;
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
+  canUpdateStatus: boolean;
   onToggleSort: (field: TalkCommentSortField) => void;
   onToggleRow: (id: number, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
@@ -234,6 +246,7 @@ export function TalkCommentsDataTable({
   selectedIds,
   visibilityUpdatingIds,
   bulkUpdating,
+  canUpdateStatus,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
@@ -253,6 +266,7 @@ export function TalkCommentsDataTable({
         hasSelectableRows: selectableRows.length > 0,
         visibilityUpdatingIds,
         visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        canUpdateStatus,
         onToggleSort,
         onToggleRow,
         onToggleAllRows,
@@ -261,6 +275,7 @@ export function TalkCommentsDataTable({
     [
       allPageRowsSelected,
       bulkUpdating,
+      canUpdateStatus,
       loading,
       onRowVisibilityChange,
       onToggleAllRows,
@@ -289,28 +304,30 @@ export function TalkCommentsDataTable({
       onGoPage={onGoPage}
 
       rightActions={
-        <div className="flex w-full flex-wrap items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
-            onClick={() => onBulkVisibilityChange("ACTIVE")}
-            className="h-9 min-w-16 px-3 text-sm"
-          >
-            노출
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
-            onClick={() => onBulkVisibilityChange("INACTIVE")}
-            className="h-9 min-w-16 px-3 text-sm"
-          >
-            미노출
-          </Button>
-        </div>
+        canUpdateStatus ? (
+          <div className="flex w-full flex-wrap items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
+              onClick={() => onBulkVisibilityChange("ACTIVE")}
+              className="h-9 min-w-16 px-3 text-sm"
+            >
+              노출
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
+              onClick={() => onBulkVisibilityChange("INACTIVE")}
+              className="h-9 min-w-16 px-3 text-sm"
+            >
+              미노출
+            </Button>
+          </div>
+        ) : undefined
       }
       emptyText="조건에 맞는 토크 댓글이 없습니다."
     />

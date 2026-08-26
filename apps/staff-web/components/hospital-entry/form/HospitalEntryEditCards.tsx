@@ -211,12 +211,16 @@ export function HospitalEntryAllowStatusReadonlyCard({
             {labelHospitalEntryAllowStatus(status)}
           </StatusBadge>
         </div>
-        {onOpenAccountInvitation ? (
-          <Button type="button" variant="brand" size="sm" onClick={onOpenAccountInvitation}>
-            <Mail className="size-4" />
-            계정 생성 이메일
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="brand"
+          size="sm"
+          disabled={!onOpenAccountInvitation}
+          onClick={onOpenAccountInvitation}
+        >
+          <Mail className="size-4" />
+          계정 생성 이메일
+        </Button>
       </div>
     </Card>
   );

@@ -42,6 +42,8 @@ type ReportedEvaluationDetailViewProps = {
   onSaved: () => Promise<void>;
   onReportedStatusUpdated: () => void;
   onHistoryPageChange: (page: number) => void;
+  canUpdateReportedStatus: boolean;
+  canUpdateReceiptStatus: boolean;
 };
 
 export function ReportedEvaluationDetailView({
@@ -58,6 +60,8 @@ export function ReportedEvaluationDetailView({
   onSaved,
   onReportedStatusUpdated,
   onHistoryPageChange,
+  canUpdateReportedStatus,
+  canUpdateReceiptStatus,
 }: ReportedEvaluationDetailViewProps) {
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const receipt = useReportedEvaluationReceipt({
@@ -86,6 +90,7 @@ export function ReportedEvaluationDetailView({
           receiptButtonVerified={receiptStatus === REPORTED_EVALUATION_RECEIPT_STATUS_VERIFIED}
           hasReceiptImages={receiptImages.length > 0}
           receiptButtonDisabled={receipt.updating}
+          canUpdateReceiptStatus={canUpdateReceiptStatus}
           onOpenReceiptModal={receipt.openModal}
           onPreviewMedia={setPreviewMedia}
         />
@@ -106,26 +111,29 @@ export function ReportedEvaluationDetailView({
       reportedDetail={reportedDetail}
       reportedReports={reportedReports}
       onReportedStatusUpdated={onReportedStatusUpdated}
+      canUpdateReportedStatus={canUpdateReportedStatus}
       previewMedia={previewMedia}
       onPreviewMediaChange={setPreviewMedia}
       onPreviewMediaClose={() => setPreviewMedia(null)}
       modals={
-        <ReportedEvaluationReceiptVerificationModal
-          isOpen={receipt.isOpen}
-          image={receiptImage}
-          currentStatus={receiptStatus}
-          decision={receipt.decision}
-          rejectReason={receipt.rejectReason}
-          rejectReasonText={receipt.rejectReasonText}
-          error={receipt.error}
-          updating={receipt.updating}
-          onClose={receipt.closeModal}
-          onDecisionChange={receipt.setDecision}
-          onRejectReasonChange={receipt.changeRejectReason}
-          onRejectReasonTextChange={receipt.setRejectReasonText}
-          onSubmit={() => void receipt.submit()}
-          onPreviewMedia={setPreviewMedia}
-        />
+        canUpdateReceiptStatus ? (
+          <ReportedEvaluationReceiptVerificationModal
+            isOpen={receipt.isOpen}
+            image={receiptImage}
+            currentStatus={receiptStatus}
+            decision={receipt.decision}
+            rejectReason={receipt.rejectReason}
+            rejectReasonText={receipt.rejectReasonText}
+            error={receipt.error}
+            updating={receipt.updating}
+            onClose={receipt.closeModal}
+            onDecisionChange={receipt.setDecision}
+            onRejectReasonChange={receipt.changeRejectReason}
+            onRejectReasonTextChange={receipt.setRejectReasonText}
+            onSubmit={() => void receipt.submit()}
+            onPreviewMedia={setPreviewMedia}
+          />
+        ) : null
       }
     />
   );

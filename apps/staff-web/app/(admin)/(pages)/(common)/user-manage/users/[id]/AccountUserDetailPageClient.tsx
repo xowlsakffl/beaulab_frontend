@@ -22,6 +22,7 @@ import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { SummaryCountCard } from "@/components/common/SummaryCountCard";
 import { api } from "@/lib/common/api";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
 import {
   ACCOUNT_USER_ADMIN_NOTE_TARGET_TYPE,
@@ -337,7 +338,7 @@ function MemberInfoCard({
 }) {
   const status = user.status ?? "";
   const statusHistoryText = buildStatusHistoryText(user);
-  const shouldShowStatus = Boolean(status && status !== "ACTIVE");
+  const shouldShowStatus = Boolean(status);
   const cannotBlock = status === "BLOCKED" || status === "WITHDRAWN";
 
   return (
@@ -357,7 +358,7 @@ function MemberInfoCard({
           </div>
         </div>
 
-        <Can permission="beaulab.user.status.update">
+        <Can permission={STAFF_STATUS_PERMISSIONS.user}>
           <div className="relative">
             <button
               type="button"

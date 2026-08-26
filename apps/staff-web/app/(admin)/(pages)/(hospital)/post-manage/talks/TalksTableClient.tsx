@@ -2,6 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
+import { hasPermission } from "@beaulab/auth";
 
 import { isApiSuccess } from "@beaulab/types";
 import {
@@ -23,8 +24,10 @@ import { TalksFilterPanel } from "@/components/talk/list/TalksFilterPanel";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api, downloadFile } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   DEFAULT_TALK_COMMENT_SORT,
   buildTalkCommentsQuery,
@@ -89,6 +92,7 @@ export default function TalksTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.talk);
   const [initialState] = React.useState(() => {
     const initialSearchParams = new URLSearchParams(searchParams.toString());
 
@@ -777,6 +781,7 @@ export default function TalksTableClient() {
           visibilityUpdatingIds={rowVisibilityUpdatingIds}
           bulkUpdating={bulkUpdating}
           excelDownloading={excelDownloading}
+          canUpdateStatus={canUpdateStatus}
           onToggleSort={handleToggleSort}
           onToggleRow={handleToggleRow}
           onToggleAllRows={handleToggleAllRows}
@@ -798,6 +803,7 @@ export default function TalksTableClient() {
           selectedIds={selectedIds}
           visibilityUpdatingIds={rowVisibilityUpdatingIds}
           bulkUpdating={bulkUpdating}
+          canUpdateStatus={canUpdateStatus}
           onToggleSort={handleToggleCommentSort}
           onToggleRow={handleToggleRow}
           onToggleAllRows={handleToggleAllRows}
@@ -854,18 +860,20 @@ export default function TalksTableClient() {
         </ModalPanel>
       </Modal>
 
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="visibility-hidden-reason"
-        showReasonInput={pendingVisibilityChange?.source === "row" && pendingVisibilityChange.status === "INACTIVE"}
-        onHiddenReasonChange={updatePendingHiddenReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
-      />
+      {canUpdateStatus ? (
+        <VisibilityConfirmModal
+          isOpen={Boolean(pendingVisibilityChange)}
+          status={pendingVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="visibility-hidden-reason"
+          showReasonInput={pendingVisibilityChange?.source === "row" && pendingVisibilityChange.status === "INACTIVE"}
+          onHiddenReasonChange={updatePendingHiddenReason}
+          onClose={closeVisibilityConfirmModal}
+          onConfirm={() => void confirmVisibilityChange()}
+        />
+      ) : null}
     </div>
   );
 }

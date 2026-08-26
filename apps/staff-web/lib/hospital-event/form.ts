@@ -396,7 +396,6 @@ export type BuildHospitalEventFormDataParams = {
   thumbnailImage: File | null;
   eventPageImage: File | null;
   selectedCategoryUsage: HospitalEventCategoryUsage | null;
-  includeDefaultStatuses?: boolean;
 };
 
 export function buildHospitalEventFormData({
@@ -404,13 +403,10 @@ export function buildHospitalEventFormData({
   thumbnailImage,
   eventPageImage,
   selectedCategoryUsage,
-  includeDefaultStatuses,
 }: BuildHospitalEventFormDataParams): FormData {
   const formData = new FormData();
 
-  appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
-    includeDefaultStatuses,
-  });
+  appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage);
 
   return formData;
 }
@@ -421,9 +417,6 @@ function appendHospitalEventFormData(
   thumbnailImage: File | null,
   eventPageImage: File | null,
   selectedCategoryUsage: HospitalEventCategoryUsage | null,
-  options: {
-    includeDefaultStatuses?: boolean;
-  } = {},
 ) {
   formData.append("hospital_id", String(form.hospital_id ?? ""));
   formData.append("event_type", form.event_type);
@@ -441,11 +434,6 @@ function appendHospitalEventFormData(
   const consultationPrice =
     parseNumberInput(form.consultation_price) || calculateHospitalEventDBBasePrice(parseNumberInput(form.event_price));
   formData.append("consultation_price", String(consultationPrice));
-  if (options.includeDefaultStatuses ?? true) {
-    formData.append("allow_status", "PENDING");
-    formData.append("hospital_status", "PUBLIC");
-    formData.append("admin_status", "NORMAL");
-  }
   formData.append("side_effect_notice", form.side_effect_notice.trim());
 
   form.category_ids.forEach((categoryId) => {

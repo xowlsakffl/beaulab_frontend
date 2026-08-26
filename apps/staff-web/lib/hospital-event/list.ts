@@ -41,11 +41,11 @@ export type HospitalEventApiItem = {
     id?: number | null;
     name?: string | null;
     business_number?: string | null;
-    manager?: {
-      id?: number | null;
-      name?: string | null;
-      nickname?: string | null;
-    } | null;
+  } | null;
+  manager_staff?: {
+    id?: number | null;
+    name?: string | null;
+    email?: string | null;
   } | null;
   categories?: HospitalEventCategory[] | null;
   thumbnail_image?: HospitalEventMedia | null;
@@ -422,7 +422,7 @@ export function normalizeHospitalEvent(item: HospitalEventApiItem): HospitalEven
     adminStatus,
     allowStatus,
     viewCount: Number(item.view_count ?? 0),
-    managerName: item.hospital?.manager?.name?.trim() || item.hospital?.manager?.nickname?.trim() || "-",
+    managerName: item.manager_staff?.name?.trim() || "-",
     createdAt: formatHospitalEventDateTime(item.created_at),
     updatedAt: formatHospitalEventDateTime(item.updated_at),
   };

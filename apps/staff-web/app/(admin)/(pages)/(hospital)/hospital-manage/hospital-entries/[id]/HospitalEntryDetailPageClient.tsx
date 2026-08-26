@@ -2,8 +2,9 @@
 
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, StatusBadge, useGlobalAlert } from "@beaulab/ui-admin";
 
 import {
   AllowStatusActionButtons,
@@ -15,6 +16,8 @@ import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   formatHospitalEntryBytes,
@@ -24,7 +27,7 @@ import {
   type HospitalEntryDetailResponse,
   type HospitalEntryMediaAsset,
 } from "@/lib/hospital-entry/detail";
-import { labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
+import { hospitalEntryAllowStatusColor, labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const cardTitleClassName = "text-sm font-semibold text-gray-800";
@@ -46,6 +49,7 @@ export default function HospitalEntryDetailPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEntry);
 
   const rawEntryId = Array.isArray(params.id) ? params.id[0] : params.id;
   const entryId = Number(rawEntryId);
@@ -208,23 +212,30 @@ export default function HospitalEntryDetailPageClient() {
         <HospitalEntryApplicantInfoCard detail={detail} />
       </section>
 
-      <HospitalEntryAllowStatusCard detail={detail} updating={updatingStatus} onChange={requestAllowStatus} />
+      <HospitalEntryAllowStatusCard
+        detail={detail}
+        canUpdate={canUpdateStatus}
+        updating={updatingStatus}
+        onChange={requestAllowStatus}
+      />
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <AllowStatusConfirmModal
-        pending={pendingAllowStatusChange}
-        title="검수상태 변경"
-        subjectLabel="해당 입점신청을"
-        labelStatus={labelHospitalEntryAllowStatus}
-        updating={updatingStatus}
-        error={pendingAllowStatusError}
-        reasonInputId="hospital-entry-rejected-reason"
-        reasonLabel="반려 사유"
-        reasonPlaceholder="반려 사유를 입력해주세요."
-        onReasonChange={updatePendingAllowStatusReason}
-        onClose={closeAllowStatusConfirmModal}
-        onConfirm={() => void confirmAllowStatusChange()}
-      />
+      {canUpdateStatus ? (
+        <AllowStatusConfirmModal
+          pending={pendingAllowStatusChange}
+          title="검수상태 변경"
+          subjectLabel="해당 입점신청을"
+          labelStatus={labelHospitalEntryAllowStatus}
+          updating={updatingStatus}
+          error={pendingAllowStatusError}
+          reasonInputId="hospital-entry-rejected-reason"
+          reasonLabel="반려 사유"
+          reasonPlaceholder="반려 사유를 입력해주세요."
+          onReasonChange={updatePendingAllowStatusReason}
+          onClose={closeAllowStatusConfirmModal}
+          onConfirm={() => void confirmAllowStatusChange()}
+        />
+      ) : null}
     </div>
   );
 }
@@ -274,10 +285,12 @@ function HospitalEntryApplicantInfoCard({ detail }: { detail: HospitalEntryDetai
 
 function HospitalEntryAllowStatusCard({
   detail,
+  canUpdate,
   updating,
   onChange,
 }: {
   detail: HospitalEntryDetailResponse;
+  canUpdate: boolean;
   updating: boolean;
   onChange: (status: string) => void;
 }) {
@@ -285,7 +298,13 @@ function HospitalEntryAllowStatusCard({
     <Card className={infoCardClassName}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h2 className="text-sm font-bold text-gray-900">검수상태</h2>
-        <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
+        {canUpdate ? (
+          <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
+        ) : (
+          <StatusBadge size="sm" color={hospitalEntryAllowStatusColor(resolveAllowStatusValue(detail.allow_status))}>
+            {labelHospitalEntryAllowStatus(resolveAllowStatusValue(detail.allow_status))}
+          </StatusBadge>
+        )}
       </div>
     </Card>
   );

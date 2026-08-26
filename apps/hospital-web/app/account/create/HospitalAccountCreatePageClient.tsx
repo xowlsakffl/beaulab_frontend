@@ -21,24 +21,21 @@ import { type FormEvent, useEffect, useState } from "react";
 import {
   completeHospitalAccountInvitation,
   getHospitalAccountInvitation,
+  sendHospitalAccountPhoneVerification,
   type HospitalAccountInvitation,
+  verifyHospitalAccountPhoneVerification,
 } from "@/lib/account-hospital/invitation";
 
 type HospitalAccountCreatePageClientProps = {
   invitationToken: string;
-  initialIdentityVerificationToken: string;
 };
 
-type FieldName = "nickname" | "password" | "password_confirmation" | "identity_verification_token";
+type FieldName = "nickname" | "password" | "password_confirmation" | "phone" | "code" | "phone_verification_token";
 type FieldErrors = Partial<Record<FieldName, string>>;
 
-const IDENTITY_VERIFICATION_TOKEN_PATTERN = /^[A-Za-z0-9]{64}$/;
-const IDENTITY_VERIFICATION_URL = process.env.NEXT_PUBLIC_HOSPITAL_IDENTITY_VERIFICATION_URL?.trim() || "";
+const PHONE_VERIFICATION_TOKEN_PATTERN = /^[A-Za-z0-9]{64}$/;
 
-export default function HospitalAccountCreatePageClient({
-  invitationToken,
-  initialIdentityVerificationToken,
-}: HospitalAccountCreatePageClientProps) {
+export default function HospitalAccountCreatePageClient({ invitationToken }: HospitalAccountCreatePageClientProps) {
   const router = useRouter();
   const [invitation, setInvitation] = useState<HospitalAccountInvitation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,24 +43,30 @@ export default function HospitalAccountCreatePageClient({
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
-  const [identityVerificationToken] = useState(initialIdentityVerificationToken);
+  const [phone, setPhone] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [phoneVerificationId, setPhoneVerificationId] = useState<number | null>(null);
+  const [phoneVerificationToken, setPhoneVerificationToken] = useState("");
+  const [resendRemainingSeconds, setResendRemainingSeconds] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [identityVerificationError, setIdentityVerificationError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const isIdentityVerified = IDENTITY_VERIFICATION_TOKEN_PATTERN.test(identityVerificationToken);
-
+  const isPhoneVerified = PHONE_VERIFICATION_TOKEN_PATTERN.test(phoneVerificationToken);
   useEffect(() => {
-    if (!initialIdentityVerificationToken) return;
+    if (resendRemainingSeconds <= 0) return;
 
-    const url = new URL(window.location.href);
-    url.searchParams.delete("identity_verification_token");
-    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [initialIdentityVerificationToken]);
+    const timer = window.setTimeout(() => {
+      setResendRemainingSeconds((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [resendRemainingSeconds]);
 
   useEffect(() => {
     let active = true;
@@ -107,22 +110,85 @@ export default function HospitalAccountCreatePageClient({
     };
   }, [invitationToken, router]);
 
-  const startIdentityVerification = () => {
-    setIdentityVerificationError(null);
+  const sendVerificationCode = async () => {
     setFormError(null);
+    clearFieldError("phone", setFieldErrors);
 
-    if (!IDENTITY_VERIFICATION_URL) {
-      setIdentityVerificationError("휴대폰 본인인증 연동이 아직 설정되지 않았습니다.");
+    if (!isValidPhone(phone)) {
+      setFieldErrors((current) => ({ ...current, phone: "휴대폰 번호를 정확히 입력해 주세요." }));
       return;
     }
 
-    const returnUrl = new URL(window.location.href);
-    returnUrl.searchParams.delete("identity_verification_token");
+    setIsSendingCode(true);
+    try {
+      const result = await sendHospitalAccountPhoneVerification(invitationToken, phone);
+      if (!isApiSuccess(result.payload)) {
+        if (result.status === 419 || result.payload.error.code === "TOKEN_ERROR") {
+          router.replace("/error/419");
+          return;
+        }
 
-    const verificationUrl = new URL(IDENTITY_VERIFICATION_URL, window.location.origin);
-    verificationUrl.searchParams.set("invitation_token", invitationToken);
-    verificationUrl.searchParams.set("return_url", returnUrl.toString());
-    window.location.assign(verificationUrl.toString());
+        const errorMessage = result.payload.error.message;
+        setFieldErrors((current) => ({
+          ...current,
+          phone: errorMessage || "인증번호를 발송하지 못했습니다.",
+        }));
+        return;
+      }
+
+      setPhoneVerificationId(result.payload.data.verification_id);
+      setPhoneVerificationToken("");
+      setVerificationCode("");
+      setResendRemainingSeconds(result.payload.data.resend_after_seconds);
+    } catch {
+      setFieldErrors((current) => ({ ...current, phone: "인증번호를 발송하지 못했습니다." }));
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  const verifyCode = async () => {
+    setFormError(null);
+    clearFieldError("code", setFieldErrors);
+
+    if (phoneVerificationId === null || !/^\d{6}$/.test(verificationCode)) {
+      setFieldErrors((current) => ({ ...current, code: "6자리 인증번호를 입력해 주세요." }));
+      return;
+    }
+
+    setIsVerifyingCode(true);
+    try {
+      const result = await verifyHospitalAccountPhoneVerification(
+        invitationToken,
+        phoneVerificationId,
+        verificationCode,
+      );
+      if (!isApiSuccess(result.payload)) {
+        if (result.status === 419 || result.payload.error.code === "TOKEN_ERROR") {
+          router.replace("/error/419");
+          return;
+        }
+
+        const errorMessage = result.payload.error.message;
+        setFieldErrors((current) => ({
+          ...current,
+          code: errorMessage || "인증번호를 확인하지 못했습니다.",
+        }));
+        return;
+      }
+
+      setPhoneVerificationToken(result.payload.data.phone_verification_token);
+      setFieldErrors((current) => {
+        const next = { ...current };
+        delete next.code;
+        delete next.phone_verification_token;
+        return next;
+      });
+    } catch {
+      setFieldErrors((current) => ({ ...current, code: "인증번호를 확인하지 못했습니다." }));
+    } finally {
+      setIsVerifyingCode(false);
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -132,7 +198,8 @@ export default function HospitalAccountCreatePageClient({
       nickname,
       password,
       passwordConfirmation,
-      identityVerificationToken,
+      phone,
+      phoneVerificationToken,
     });
 
     if (Object.keys(nextErrors).length > 0) {
@@ -142,7 +209,6 @@ export default function HospitalAccountCreatePageClient({
     }
 
     setFieldErrors({});
-    setIdentityVerificationError(null);
     setFormError(null);
     setIsSubmitting(true);
 
@@ -151,7 +217,7 @@ export default function HospitalAccountCreatePageClient({
         nickname: nickname.trim(),
         password,
         password_confirmation: passwordConfirmation,
-        identity_verification_token: identityVerificationToken,
+        phone_verification_token: phoneVerificationToken,
       });
 
       if (!isApiSuccess(result.payload)) {
@@ -196,7 +262,10 @@ export default function HospitalAccountCreatePageClient({
               <p className="mt-3 text-sm leading-6 text-gray-500">{loadError}</p>
             </div>
           ) : isCompleted ? (
-            <AccountCreateCompleted hospitalName={invitation?.hospital_name ?? ""} />
+            <AccountCreateCompleted
+              hospitalName={invitation?.hospital_name ?? ""}
+              onLogin={() => router.push("/login")}
+            />
           ) : (
             <>
               <div className="mb-8">
@@ -259,33 +328,98 @@ export default function HospitalAccountCreatePageClient({
                   />
 
                   <div>
-                    <RequiredLabel>휴대폰 본인인증</RequiredLabel>
-                    <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-gray-300 px-4 py-2">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <ShieldCheck
-                          className={isIdentityVerified ? "size-4 text-success-600" : "size-4 text-gray-400"}
+                    <RequiredLabel htmlFor="phone">휴대폰 번호</RequiredLabel>
+                    <div className="flex items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <InputField
+                          id="phone"
+                          name="phone"
+                          value={phone}
+                          onChange={(event) => {
+                            setPhone(formatPhoneInput(event.target.value));
+                            setPhoneVerificationId(null);
+                            setPhoneVerificationToken("");
+                            setVerificationCode("");
+                            setResendRemainingSeconds(0);
+                            clearFieldError("phone", setFieldErrors);
+                            clearFieldError("code", setFieldErrors);
+                            clearFieldError("phone_verification_token", setFieldErrors);
+                          }}
+                          placeholder="휴대폰 번호를 입력하세요."
+                          inputMode="numeric"
+                          autoComplete="tel"
+                          maxLength={13}
+                          disabled={isPhoneVerified}
+                          error={Boolean(fieldErrors.phone)}
+                          hint={fieldErrors.phone}
                         />
-                        <span className="truncate text-sm text-gray-700">
-                          {isIdentityVerified ? "본인인증이 완료되었습니다." : "본인인증이 필요합니다."}
-                        </span>
                       </div>
-                      {isIdentityVerified ? (
-                        <StatusBadge color="success" size="sm">
-                          완료
-                        </StatusBadge>
-                      ) : (
-                        <Button type="button" variant="brandOutline" size="sm" onClick={startIdentityVerification}>
-                          본인인증
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        variant="brandOutline"
+                        className="h-11 shrink-0 px-4"
+                        disabled={isPhoneVerified || isSendingCode || resendRemainingSeconds > 0}
+                        onClick={() => void sendVerificationCode()}
+                      >
+                        {isSendingCode
+                          ? "발송 중"
+                          : resendRemainingSeconds > 0
+                            ? `${resendRemainingSeconds}초 후 재발송`
+                            : phoneVerificationId === null
+                              ? "인증번호 발송"
+                              : "재발송"}
+                      </Button>
                     </div>
-                    {fieldErrors.identity_verification_token ? (
-                      <p className="mt-1 text-xs leading-4 text-error-500">{fieldErrors.identity_verification_token}</p>
-                    ) : null}
-                    {identityVerificationError ? (
-                      <p className="mt-1 text-xs leading-5 text-error-500">{identityVerificationError}</p>
-                    ) : null}
                   </div>
+
+                  {phoneVerificationId !== null ? (
+                    <div>
+                      <RequiredLabel htmlFor="verification-code">인증번호</RequiredLabel>
+                      {isPhoneVerified ? (
+                        <div className="border-success-200 flex h-11 items-center justify-between rounded-lg border bg-success-50 px-4">
+                          <div className="flex items-center gap-2 text-sm text-success-700">
+                            <ShieldCheck className="size-4" />
+                            휴대폰 인증이 완료되었습니다.
+                          </div>
+                          <StatusBadge color="success" size="sm">
+                            완료
+                          </StatusBadge>
+                        </div>
+                      ) : (
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <InputField
+                              id="verification-code"
+                              name="code"
+                              value={verificationCode}
+                              onChange={(event) => {
+                                setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6));
+                                clearFieldError("code", setFieldErrors);
+                              }}
+                              placeholder="6자리 인증번호"
+                              inputMode="numeric"
+                              autoComplete="one-time-code"
+                              maxLength={6}
+                              error={Boolean(fieldErrors.code)}
+                              hint={fieldErrors.code}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="brand"
+                            className="h-11 shrink-0 px-4"
+                            disabled={isVerifyingCode || verificationCode.length !== 6}
+                            onClick={() => void verifyCode()}
+                          >
+                            {isVerifyingCode ? "확인 중" : "인증하기"}
+                          </Button>
+                        </div>
+                      )}
+                      {fieldErrors.phone_verification_token ? (
+                        <p className="mt-1 text-xs leading-4 text-error-500">{fieldErrors.phone_verification_token}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   <div>
                     {formError ? <p className="mb-1 text-xs leading-5 text-error-500">{formError}</p> : null}
@@ -294,7 +428,7 @@ export default function HospitalAccountCreatePageClient({
                       variant="brand"
                       size="auth"
                       className="w-full"
-                      disabled={isSubmitting || !isIdentityVerified}
+                      disabled={isSubmitting || !isPhoneVerified}
                     >
                       {isSubmitting ? "생성 중..." : "계정 생성"}
                     </Button>
@@ -375,7 +509,7 @@ function PasswordField({ id, label, value, visible, error, autoComplete, onChang
   );
 }
 
-function AccountCreateCompleted({ hospitalName }: { hospitalName: string }) {
+function AccountCreateCompleted({ hospitalName, onLogin }: { hospitalName: string; onLogin: () => void }) {
   return (
     <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
       <div className="flex size-14 items-center justify-center rounded-full bg-success-50 text-success-600">
@@ -383,8 +517,11 @@ function AccountCreateCompleted({ hospitalName }: { hospitalName: string }) {
       </div>
       <h1 className="mt-5 text-2xl font-semibold text-gray-900">계정 생성이 완료되었습니다.</h1>
       <p className="mt-3 text-sm leading-6 text-gray-500">
-        <span className="font-medium text-gray-700">{hospitalName}</span> 병의원 계정이 정상적으로 생성되었습니다.
+        <span className="font-medium text-gray-700">{hospitalName}</span> 계정이 정상적으로 생성되었습니다.
       </p>
+      <Button type="button" variant="brand" className="mt-7 h-11 w-full max-w-xs" onClick={onLogin}>
+        로그인하러 가기
+      </Button>
     </div>
   );
 }
@@ -393,12 +530,14 @@ function validateForm({
   nickname,
   password,
   passwordConfirmation,
-  identityVerificationToken,
+  phone,
+  phoneVerificationToken,
 }: {
   nickname: string;
   password: string;
   passwordConfirmation: string;
-  identityVerificationToken: string;
+  phone: string;
+  phoneVerificationToken: string;
 }): FieldErrors {
   const errors: FieldErrors = {};
   const trimmedNickname = nickname.trim();
@@ -423,8 +562,12 @@ function validateForm({
     errors.password_confirmation = "비밀번호 확인이 일치하지 않습니다.";
   }
 
-  if (!IDENTITY_VERIFICATION_TOKEN_PATTERN.test(identityVerificationToken)) {
-    errors.identity_verification_token = "휴대폰 본인인증을 완료해 주세요.";
+  if (!isValidPhone(phone)) {
+    errors.phone = "휴대폰 번호를 정확히 입력해 주세요.";
+  }
+
+  if (!PHONE_VERIFICATION_TOKEN_PATTERN.test(phoneVerificationToken)) {
+    errors.phone_verification_token = "휴대폰 인증을 완료해 주세요.";
   }
 
   return errors;
@@ -440,7 +583,14 @@ function extractFieldErrors(details: unknown): FieldErrors {
       : detailsRecord;
   const result: FieldErrors = {};
 
-  for (const field of ["nickname", "password", "password_confirmation", "identity_verification_token"] as const) {
+  for (const field of [
+    "nickname",
+    "password",
+    "password_confirmation",
+    "phone",
+    "code",
+    "phone_verification_token",
+  ] as const) {
     const value = source[field];
     if (typeof value === "string") {
       result[field] = value;
@@ -450,6 +600,19 @@ function extractFieldErrors(details: unknown): FieldErrors {
   }
 
   return result;
+}
+
+function formatPhoneInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
+function isValidPhone(value: string) {
+  return /^01[016789]-?\d{3,4}-?\d{4}$/.test(value);
 }
 
 function clearFieldError(field: FieldName, setErrors: React.Dispatch<React.SetStateAction<FieldErrors>>) {

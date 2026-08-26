@@ -324,7 +324,6 @@ function HospitalEventsFormClient({
       thumbnailImage,
       eventPageImage,
       selectedCategoryUsage,
-      includeDefaultStatuses: mode !== "edit",
     });
     setIsSubmitting(true);
 

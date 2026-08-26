@@ -45,6 +45,8 @@ type ReportedReviewDetailViewProps = {
   onSaved: () => Promise<void>;
   onReportedStatusUpdated: () => void;
   onHistoryPageChange: (page: number) => void;
+  canUpdateReportedStatus: boolean;
+  canUpdateOriginalStatus: boolean;
 };
 
 export function ReportedReviewDetailView({
@@ -62,6 +64,8 @@ export function ReportedReviewDetailView({
   onSaved,
   onReportedStatusUpdated,
   onHistoryPageChange,
+  canUpdateReportedStatus,
+  canUpdateOriginalStatus,
 }: ReportedReviewDetailViewProps) {
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const originalVisibility = useReportedOriginalVisibility({
@@ -84,6 +88,7 @@ export function ReportedReviewDetailView({
             boardTitle={boardTitle}
             detail={detail}
             visibilityUpdating={originalVisibility.updating}
+            canUpdateStatus={canUpdateOriginalStatus}
             onChangeVisibility={(status) => originalVisibility.requestChange("review", detail.id, status)}
             onPreviewMedia={setPreviewMedia}
           />
@@ -100,21 +105,24 @@ export function ReportedReviewDetailView({
       reportedDetail={reportedDetail}
       reportedReports={reportedReports}
       onReportedStatusUpdated={onReportedStatusUpdated}
+      canUpdateReportedStatus={canUpdateReportedStatus}
       previewMedia={previewMedia}
       onPreviewMediaChange={setPreviewMedia}
       onPreviewMediaClose={() => setPreviewMedia(null)}
       modals={
-        <VisibilityConfirmModal
-          isOpen={Boolean(originalVisibility.pendingChange)}
-          status={originalVisibility.pendingChange?.status}
-          message={pendingVisibilityMessage}
-          hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
-          updating={pendingVisibilityUpdating}
-          reasonInputId="reported-hospital-review-detail-hidden-reason"
-          onHiddenReasonChange={originalVisibility.updateHiddenReason}
-          onClose={originalVisibility.closeModal}
-          onConfirm={() => void originalVisibility.confirmChange()}
-        />
+        canUpdateOriginalStatus ? (
+          <VisibilityConfirmModal
+            isOpen={Boolean(originalVisibility.pendingChange)}
+            status={originalVisibility.pendingChange?.status}
+            message={pendingVisibilityMessage}
+            hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
+            updating={pendingVisibilityUpdating}
+            reasonInputId="reported-hospital-review-detail-hidden-reason"
+            onHiddenReasonChange={originalVisibility.updateHiddenReason}
+            onClose={originalVisibility.closeModal}
+            onConfirm={() => void originalVisibility.confirmChange()}
+          />
+        ) : null
       }
     />
   );
@@ -158,12 +166,14 @@ function ReportedReviewContentCard({
   boardTitle,
   detail,
   visibilityUpdating,
+  canUpdateStatus,
   onChangeVisibility,
   onPreviewMedia,
 }: {
   boardTitle: string;
   detail: HospitalReviewDetailResponse;
   visibilityUpdating: boolean;
+  canUpdateStatus: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
   onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
@@ -177,6 +187,7 @@ function ReportedReviewContentCard({
           <ReportedOriginalVisibilityButtons
             status={detail.status}
             disabled={visibilityUpdating}
+            canUpdate={canUpdateStatus}
             onChange={onChangeVisibility}
           />
         </div>

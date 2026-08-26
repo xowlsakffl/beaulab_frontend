@@ -444,8 +444,6 @@ export function buildCreateHospitalFormData({
   formData.append("ad_reception_phone_1", form.ad_reception_phone_1.trim());
   formData.append("ad_reception_phone_2", form.ad_reception_phone_2.trim());
   formData.append("ad_reception_phone_3", form.ad_reception_phone_3.trim());
-  formData.append("allow_status", form.allow_status);
-  formData.append("status", form.status);
   formData.append("business_number", normalizeBusinessNumber(form.business_number));
   formData.append("ceo_name", form.ceo_name.trim());
   formData.append("business_type", form.business_type.trim());
@@ -541,8 +539,6 @@ export function buildUpdateHospitalFormData({
     form.ad_reception_phone_3.trim(),
     baseForm.ad_reception_phone_3.trim(),
   );
-  appendChangedField(formData, "allow_status", form.allow_status, baseForm.allow_status);
-  appendChangedField(formData, "status", form.status, baseForm.status);
   appendChangedField(
     formData,
     "business_number",
@@ -660,10 +656,6 @@ function validateCommonHospitalForm(form: HospitalFormValues): HospitalFormError
 
   if (!form.status) {
     nextErrors.status = "상태는 필수 항목입니다.";
-  }
-
-  if (!form.allow_status) {
-    nextErrors.allow_status = "검수 상태는 필수 항목입니다.";
   }
 
   if (!form.address.trim()) {

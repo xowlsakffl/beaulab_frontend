@@ -3,6 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -17,7 +18,9 @@ import {
   MemberSummaryCard,
 } from "@/components/hospital-review/detail/HospitalReviewDetailSections";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { HOSPITAL_REVIEW_BOARD_CONFIGS, type HospitalReviewBoardType } from "@/lib/hospital-review/list";
 import {
   HOSPITAL_REVIEW_DETAIL_COMMENT_PER_PAGE_OPTIONS,
@@ -65,6 +68,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalReview);
   const rawReviewId = Array.isArray(params.id) ? params.id[0] : params.id;
   const reviewId = Number(rawReviewId);
 
@@ -444,6 +448,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
           <HospitalReviewContentCard
             boardTitle={config.title}
             detail={detail}
+            canUpdateStatus={canUpdateStatus}
             visibilityLocked={reviewVisibilityLocked}
             visibilityUpdating={reviewVisibilityUpdating}
             onChangeVisibility={requestReviewVisibility}
@@ -461,6 +466,7 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
           <HospitalSummaryCard detail={detail} />
           <CommentsCard
             comments={commentItems}
+            canUpdateStatus={canUpdateStatus}
             commentsMeta={commentsMeta}
             commentCount={Number(detail.comment_count ?? commentsMeta?.total ?? 0)}
             perPage={commentsPerPage}
@@ -475,17 +481,19 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
         </div>
       </div>
 
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="hospital-review-detail-hidden-reason"
-        onHiddenReasonChange={updatePendingHiddenReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
-      />
+      {canUpdateStatus ? (
+        <VisibilityConfirmModal
+          isOpen={Boolean(pendingVisibilityChange)}
+          status={pendingVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="hospital-review-detail-hidden-reason"
+          onHiddenReasonChange={updatePendingHiddenReason}
+          onClose={closeVisibilityConfirmModal}
+          onConfirm={() => void confirmVisibilityChange()}
+        />
+      ) : null}
 
       {previewMedia ? (
         <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />

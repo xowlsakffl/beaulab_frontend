@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
@@ -14,6 +15,7 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
+  StatusBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -23,12 +25,15 @@ import {
 } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   normalizeHospitalEventRealModelDBDetail,
   type HospitalEventRealModelDBDetail,
 } from "@/lib/hospital-event-real-model-db/detail";
 import {
   labelHospitalEventRealModelDBStatus,
+  hospitalEventRealModelDBStatusColor,
   resolveHospitalEventRealModelDBMediaUrl,
   type HospitalEventRealModelDBApiItem,
   type HospitalEventRealModelDBMediaAsset,
@@ -51,6 +56,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
   const params = useParams<{ id: string }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const applicationId = Number(rawId);
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEventRealModelDb);
 
   const [detail, setDetail] = React.useState<HospitalEventRealModelDBDetail | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -189,6 +195,7 @@ export default function HospitalEventRealModelDBDetailPageClient() {
       <div className="space-y-4">
         <MemberInfoCard
           detail={detail}
+          canUpdateStatus={canUpdateStatus}
           updatingStatus={updatingStatus}
           statusError={statusError}
           onStatusChange={requestStatusChange}
@@ -211,23 +218,27 @@ export default function HospitalEventRealModelDBDetailPageClient() {
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
 
-      <StatusConfirmModal
-        status={pendingStatus}
-        updatingStatus={updatingStatus}
-        onClose={closeStatusConfirmModal}
-        onConfirm={() => void confirmStatusChange()}
-      />
+      {canUpdateStatus ? (
+        <StatusConfirmModal
+          status={pendingStatus}
+          updatingStatus={updatingStatus}
+          onClose={closeStatusConfirmModal}
+          onConfirm={() => void confirmStatusChange()}
+        />
+      ) : null}
     </>
   );
 }
 
 function MemberInfoCard({
   detail,
+  canUpdateStatus,
   updatingStatus,
   statusError,
   onStatusChange,
 }: {
   detail: HospitalEventRealModelDBDetail;
+  canUpdateStatus: boolean;
   updatingStatus: HospitalEventRealModelDBStatus | null;
   statusError: string | null;
   onStatusChange: (status: HospitalEventRealModelDBStatus) => void;
@@ -237,7 +248,8 @@ function MemberInfoCard({
       <div className="mb-6 flex items-center justify-between gap-4">
         <h2 className={cardTitleClassName}>회원정보</h2>
 
-        <div className="flex shrink-0 items-center gap-2">
+        {canUpdateStatus ? (
+          <div className="flex shrink-0 items-center gap-2">
           <StatusButton
             label="승인"
             value="APPROVED"
@@ -252,7 +264,12 @@ function MemberInfoCard({
             updatingStatus={updatingStatus}
             onStatusChange={onStatusChange}
           />
-        </div>
+          </div>
+        ) : (
+          <StatusBadge size="sm" color={hospitalEventRealModelDBStatusColor(detail.status)}>
+            {labelHospitalEventRealModelDBStatus(detail.status)}
+          </StatusBadge>
+        )}
       </div>
 
       <div className="grid min-w-0 grid-cols-[minmax(18rem,0.9fr)_minmax(0,2.2fr)] gap-x-10">

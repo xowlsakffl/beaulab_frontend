@@ -1,7 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { Card } from "@beaulab/ui-admin";
 
 type SummaryCountCardLayout = "horizontal" | "center";
@@ -13,14 +11,13 @@ type SummaryCountCardProps = {
   layout?: SummaryCountCardLayout;
   className?: string;
   labelClassName?: string;
+  loading?: boolean;
   pressed?: boolean;
   onClick?: () => void;
 };
 
-function formatSummaryValue(value: number | string, unit?: string): ReactNode {
-  const formatted = typeof value === "number" ? value.toLocaleString() : value;
-
-  return unit ? `${formatted}${unit}` : formatted;
+function formatSummaryValue(value: number | string) {
+  return typeof value === "number" ? value.toLocaleString() : value;
 }
 
 export function SummaryCountCard({
@@ -30,11 +27,13 @@ export function SummaryCountCard({
   layout = "horizontal",
   className,
   labelClassName,
+  loading = false,
   pressed,
   onClick,
 }: SummaryCountCardProps) {
-  const displayValue = formatSummaryValue(value, unit);
-  const summaryLabelClassName = labelClassName ?? "text-sm font-medium text-gray-700";
+  const displayValue = formatSummaryValue(value);
+  const summaryLabelClassName =
+    labelClassName ?? (layout === "center" ? "text-sm font-medium text-gray-700" : "text-sm font-semibold text-gray-700");
 
   if (layout === "center") {
     const centerClassName = onClick
@@ -47,7 +46,10 @@ export function SummaryCountCard({
       return (
         <button type="button" onClick={onClick} aria-pressed={pressed} className={centerClassName}>
           <p className={summaryLabelClassName}>{label}</p>
-          <p className="mt-1 text-base font-semibold text-gray-900">{displayValue}</p>
+          <p className="mt-1 text-base font-semibold text-gray-900">
+            {displayValue}
+            {unit}
+          </p>
         </button>
       );
     }
@@ -55,12 +57,30 @@ export function SummaryCountCard({
     return (
       <div className={centerClassName}>
         <p className={summaryLabelClassName}>{label}</p>
-        <p className="mt-1 text-base font-semibold text-gray-900">{displayValue}</p>
+        <p className="mt-1 text-base font-semibold text-gray-900">
+          {displayValue}
+          {unit}
+        </p>
       </div>
     );
   }
 
-  const horizontalClassName = className ?? "rounded-xl bg-white px-5 py-4";
+  const horizontalClassName = className ?? "min-h-20 rounded-lg px-5 py-4";
+  const horizontalContent = (
+    <div className="flex w-full items-center justify-between gap-4">
+      <span className={summaryLabelClassName}>{label}</span>
+      <span className="flex min-h-7 shrink-0 items-center justify-end gap-1.5">
+        {loading ? (
+          <span className="h-6 w-12 animate-pulse rounded bg-gray-100" />
+        ) : (
+          <>
+            <strong className="text-xl font-semibold leading-none text-gray-950">{displayValue}</strong>
+            {unit ? <span className="text-xs font-medium text-gray-500">{unit}</span> : null}
+          </>
+        )}
+      </span>
+    </div>
+  );
 
   if (onClick) {
     return (
@@ -68,24 +88,14 @@ export function SummaryCountCard({
         type="button"
         onClick={onClick}
         aria-pressed={pressed}
-        className={`w-full border text-left transition-colors ${
-          pressed ? "!border-brand-300 !bg-brand-50" : "border-gray-200 hover:border-brand-300 hover:bg-brand-50"
+        className={`flex w-full items-center border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 ${
+          pressed ? "border-brand-300 bg-brand-50" : "border-gray-200 bg-white hover:border-brand-300 hover:bg-gray-50"
         } ${horizontalClassName}`}
       >
-        <div className="flex items-center justify-between gap-3">
-          <span className={summaryLabelClassName}>{label}</span>
-          <span className="text-base font-semibold text-gray-900">{displayValue}</span>
-        </div>
+        {horizontalContent}
       </button>
     );
   }
 
-  return (
-    <Card className={horizontalClassName}>
-      <div className="flex items-center justify-between gap-3">
-        <span className={summaryLabelClassName}>{label}</span>
-        <span className="text-base font-semibold text-gray-900">{displayValue}</span>
-      </div>
-    </Card>
-  );
+  return <Card className={`flex items-center border border-gray-200 bg-white ${horizontalClassName}`}>{horizontalContent}</Card>;
 }

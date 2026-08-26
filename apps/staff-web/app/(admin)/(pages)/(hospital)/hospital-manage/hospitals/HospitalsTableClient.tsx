@@ -111,6 +111,7 @@ export default function HospitalsTableClient() {
   const [page, setPage] = React.useState(initialTableState.page);
 
   const [summary, setSummary] = React.useState<HospitalSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = React.useState(true);
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
 
   const query = React.useMemo(
@@ -154,6 +155,8 @@ export default function HospitalsTableClient() {
   });
 
   const fetchHospitalSummary = React.useCallback(async () => {
+    setSummaryLoading(true);
+
     try {
       const response = await api.get<HospitalSummary>("/hospitals/summary", undefined, {
         latestKey: "hospitals:summary",
@@ -165,6 +168,8 @@ export default function HospitalsTableClient() {
       if (isApiRequestCanceledError(error)) return;
 
       setSummary(null);
+    } finally {
+      setSummaryLoading(false);
     }
   }, []);
 
@@ -362,7 +367,12 @@ export default function HospitalsTableClient() {
 
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalsSummaryCards summary={summary} activeKey={activeSummaryKey} onSelect={applySummaryFilter} />
+      <HospitalsSummaryCards
+        summary={summary}
+        loading={summaryLoading}
+        activeKey={activeSummaryKey}
+        onSelect={applySummaryFilter}
+      />
 
       <HospitalsFilterPanel
         draftFilters={draftFilters}

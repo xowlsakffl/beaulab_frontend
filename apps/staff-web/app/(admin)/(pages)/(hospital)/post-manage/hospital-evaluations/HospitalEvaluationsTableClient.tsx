@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
 import { type CheckboxFilterOption, type DataTableMeta } from "@beaulab/ui-admin";
@@ -11,8 +12,10 @@ import { HospitalEvaluationsFilterPanel } from "@/components/hospital-evaluation
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   DEFAULT_HOSPITAL_EVALUATION_FILTERS,
   DEFAULT_HOSPITAL_EVALUATION_SORT,
@@ -55,6 +58,7 @@ export function HospitalEvaluationsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEvaluation);
   const [initialTableState] = React.useState(() =>
     parseHospitalEvaluationsTableState(new URLSearchParams(searchParams.toString())),
   );
@@ -442,6 +446,7 @@ export function HospitalEvaluationsTableClient() {
         selectedIds={selectedIds}
         visibilityUpdatingIds={rowVisibilityUpdatingIds}
         bulkUpdating={bulkUpdating}
+        canUpdateStatus={canUpdateStatus}
         onToggleSort={toggleSort}
 
         onGoPage={setPage}
@@ -452,17 +457,19 @@ export function HospitalEvaluationsTableClient() {
         onOpenDetail={openEvaluationDetail}
       />
 
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="hospital-evaluation-hidden-reason"
-        onHiddenReasonChange={updatePendingHiddenReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
-      />
+      {canUpdateStatus ? (
+        <VisibilityConfirmModal
+          isOpen={Boolean(pendingVisibilityChange)}
+          status={pendingVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="hospital-evaluation-hidden-reason"
+          onHiddenReasonChange={updatePendingHiddenReason}
+          onClose={closeVisibilityConfirmModal}
+          onConfirm={() => void confirmVisibilityChange()}
+        />
+      ) : null}
     </div>
   );
 }

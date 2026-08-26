@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { hasPermission } from "@beaulab/auth";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
@@ -11,6 +12,8 @@ import { NoticeMainSection } from "@/components/notice/form/NoticeMainSection";
 import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempImages";
 import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import type { NoticeAttachment, NoticeDetailResponse } from "@/lib/notice/detail";
 import {
   buildUpdateNoticeFormData,
@@ -29,6 +32,7 @@ export default function NoticeEditFormClient() {
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
   const { focusFirstErrorField } = useNoticeFieldFocus();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.notice);
   const { uploadImage, cleanupRemovedTempImages, cleanupAllTempImages, clearTrackedTempImages } =
     useNoticeEditorTempImages();
 
@@ -143,6 +147,7 @@ export default function NoticeEditFormClient() {
       form,
       attachments,
       existingAttachmentIds: existingAttachments.map((attachment) => attachment.id),
+      includeStatus: canUpdateStatus,
     });
 
     setIsSubmitting(true);
@@ -199,6 +204,7 @@ export default function NoticeEditFormClient() {
     >
       <div className="min-w-0">
         <NoticeMainSection
+          canUpdateStatus={canUpdateStatus}
           form={form}
           errors={errors}
           onFieldChange={setField}

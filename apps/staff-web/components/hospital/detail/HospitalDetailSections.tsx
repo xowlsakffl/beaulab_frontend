@@ -3,9 +3,9 @@
 import React from "react";
 
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
-import { Can } from "@/components/common/guard";
 import { MediaPreviewItem, MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
   formatHospitalWalletBalance,
   getMediaFilename,
@@ -123,6 +123,7 @@ export function HospitalInfoCard({
   onOpenSuspendModal,
   onOpenActivateModal,
   statusUpdating,
+  statusActionMode,
   onPreview,
 }: {
   detail: HospitalDetailResponse;
@@ -133,12 +134,23 @@ export function HospitalInfoCard({
   onOpenSuspendModal: () => void;
   onOpenActivateModal: () => void;
   statusUpdating: boolean;
+  statusActionMode: "DIRECT" | "REQUEST" | null;
   onPreview: (preview: MediaPreviewState) => void;
 }) {
   const statusHistoryText = buildStatusHistoryText(detail);
   const isSuspended = detail.status === "SUSPENDED";
-  const cannotChangeStatus = detail.status === "WITHDRAWN" || statusUpdating;
-  const statusActionLabel = isSuspended ? "정상노출" : "운영중지";
+  const isRequestMode = statusActionMode === "REQUEST";
+  const pendingRequest = detail.pending_status_change_request;
+  const canShowStatusAction = statusActionMode === "DIRECT" || (isRequestMode && !isSuspended);
+  const cannotChangeStatus =
+    detail.status === "WITHDRAWN" || statusUpdating || (isRequestMode && Boolean(pendingRequest));
+  const statusActionLabel = pendingRequest && isRequestMode
+    ? "운영중지 신청중"
+    : isRequestMode
+      ? "운영중지 신청"
+      : isSuspended
+        ? "정상노출"
+        : "운영중지";
   const handleStatusAction = isSuspended ? onOpenActivateModal : onOpenSuspendModal;
 
   return (
@@ -155,7 +167,7 @@ export function HospitalInfoCard({
             <span className="text-xs text-gray-700">[{statusHistoryText}]</span>
           ) : null}
         </div>
-        <Can permission="beaulab.hospital.update">
+        {canShowStatusAction ? (
           <div className="relative">
             <button
               type="button"
@@ -184,7 +196,7 @@ export function HospitalInfoCard({
               </DropdownItem>
             </Dropdown>
           </div>
-        </Can>
+        ) : null}
       </div>
 
       <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
@@ -236,12 +248,14 @@ export function VerifiedAccountContactCard({
 
 export function AllowStatusCard({
   detail,
+  canUpdate,
   updating,
   error,
   onChange,
   className,
 }: {
   detail: HospitalDetailResponse;
+  canUpdate: boolean;
   updating: boolean;
   error: string | null;
   onChange: (status: string) => void;
@@ -251,9 +265,15 @@ export function AllowStatusCard({
     <Card className={[hospitalDetailCardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
-        <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
+        {canUpdate ? (
+          <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
+        ) : (
+          <StatusBadge size="sm" color={reviewAllowStatusColor(detail.allow_status)}>
+            {labelReviewStatus(detail.allow_status ?? "")}
+          </StatusBadge>
+        )}
       </div>
-      {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
+      {canUpdate && error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
     </Card>
   );
 }

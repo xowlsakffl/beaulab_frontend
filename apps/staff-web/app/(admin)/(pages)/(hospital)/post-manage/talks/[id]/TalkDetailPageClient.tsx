@@ -3,10 +3,13 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
@@ -59,6 +62,7 @@ export default function TalkDetailPageClient() {
   const searchParams = useSearchParams();
   const rawTalkId = Array.isArray(params.id) ? params.id[0] : params.id;
   const talkId = Number(rawTalkId);
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.talk);
 
   const [detail, setDetail] = React.useState<TalkDetailResponse | null>(null);
   const [commentsBlock, setCommentsBlock] = React.useState<PaginatedBlock<TalkDetailComment> | null>(null);
@@ -432,6 +436,7 @@ export default function TalkDetailPageClient() {
           <TalkContentCard
             detail={detail}
             visibilityUpdating={talkVisibilityUpdating}
+            canUpdateStatus={canUpdateStatus}
             onChangeVisibility={requestTalkVisibility}
             onPreviewMedia={setPreviewMedia}
           />
@@ -451,6 +456,7 @@ export default function TalkDetailPageClient() {
           refreshing={isRefreshing}
           expandedHistoryIds={expandedCommentHistoryIds}
           updatingIds={commentVisibilityUpdatingIds}
+          canUpdateStatus={canUpdateStatus}
           onChangePage={changeCommentsPage}
           onChangePerPage={changeCommentsPerPage}
           onToggleHistory={toggleCommentHistory}
@@ -458,17 +464,19 @@ export default function TalkDetailPageClient() {
         />
       </div>
 
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="detail-visibility-hidden-reason"
-        onHiddenReasonChange={updatePendingHiddenReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
-      />
+      {canUpdateStatus ? (
+        <VisibilityConfirmModal
+          isOpen={Boolean(pendingVisibilityChange)}
+          status={pendingVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="detail-visibility-hidden-reason"
+          onHiddenReasonChange={updatePendingHiddenReason}
+          onClose={closeVisibilityConfirmModal}
+          onConfirm={() => void confirmVisibilityChange()}
+        />
+      ) : null}
 
       {previewMedia ? (
         <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />

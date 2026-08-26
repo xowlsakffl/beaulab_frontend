@@ -29,7 +29,8 @@ import {
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
-import { type HospitalDetailResponse } from "@/lib/hospital/detail";
+import { type HospitalDetailResponse, type HospitalStatusChangeRequestAsset } from "@/lib/hospital/detail";
+import { HOSPITAL_PERMISSIONS, HOSPITAL_STATUS_PERMISSIONS } from "@/lib/hospital/permissions";
 import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 import { labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
 import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
@@ -44,12 +45,21 @@ type AdminNoteItem = {
   created_at?: string | null;
 };
 
+type HospitalStatusChangeRequestCreateResponse = {
+  request: HospitalStatusChangeRequestAsset;
+  message: string;
+};
+
 export default function HospitalDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
-  const canViewWallet = hasPermission(getSession()?.auth, HOSPITAL_WALLET_PERMISSIONS.show);
+  const sessionAuth = getSession()?.auth;
+  const canViewWallet = hasPermission(sessionAuth, HOSPITAL_WALLET_PERMISSIONS.show);
+  const canUpdateHospitalStatus = hasPermission(sessionAuth, HOSPITAL_STATUS_PERMISSIONS.update);
+  const canRequestHospitalStatus = hasPermission(sessionAuth, HOSPITAL_STATUS_PERMISSIONS.requestCreate);
+  const statusActionMode = canUpdateHospitalStatus ? "DIRECT" : canRequestHospitalStatus ? "REQUEST" : null;
 
   const rawHospitalId = Array.isArray(params.id) ? params.id[0] : params.id;
   const hospitalId = Number(rawHospitalId);
@@ -97,7 +107,7 @@ export default function HospitalDetailPageClient() {
     }
 
     return (
-      <Can permission="beaulab.hospital.update">
+      <Can permission={HOSPITAL_PERMISSIONS.update}>
         <Button type="button" variant="brand" size="sm" onClick={() => router.push(editPath)}>
           수정하기
         </Button>
@@ -243,11 +253,49 @@ export default function HospitalDetailPageClient() {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
 
     const reason = suspendReason.trim();
+    if (!reason) {
+      setHospitalStatusError(
+        canUpdateHospitalStatus ? "운영중지 사유를 입력해주세요." : "운영중지 요청사유를 입력해주세요.",
+      );
+      return;
+    }
 
     setUpdatingHospitalStatus(true);
     setHospitalStatusError(null);
 
     try {
+      if (!canUpdateHospitalStatus) {
+        const response = await api.post<HospitalStatusChangeRequestCreateResponse>(
+          `/hospitals/${hospitalId}/status-change-requests`,
+          {
+            target_status: "SUSPENDED",
+            reason,
+          },
+        );
+
+        if (!isApiSuccess(response)) {
+          setHospitalStatusError(response.error.message || "운영중지 신청에 실패했습니다.");
+          return;
+        }
+
+        setDetail((current) =>
+          current
+            ? {
+                ...current,
+                pending_status_change_request: response.data.request,
+              }
+            : current,
+        );
+        setIsSuspendModalOpen(false);
+        setSuspendReason("");
+        showAlert({
+          variant: "success",
+          title: "운영중지 신청 완료",
+          message: response.data.message || "운영중지 신청이 접수되었습니다.",
+        });
+        return;
+      }
+
       const response = await api.patch<HospitalDetailResponse>(`/hospitals/${hospitalId}/status`, {
         status: "SUSPENDED",
         ...(reason ? { reason } : {}),
@@ -272,11 +320,13 @@ export default function HospitalDetailPageClient() {
       setSuspendReason("");
       await refreshHistoriesFromFirstPage();
     } catch {
-      setHospitalStatusError("운영중지 등록 중 오류가 발생했습니다.");
+      setHospitalStatusError(
+        canUpdateHospitalStatus ? "운영중지 등록 중 오류가 발생했습니다." : "운영중지 신청 중 오류가 발생했습니다.",
+      );
     } finally {
       setUpdatingHospitalStatus(false);
     }
-  }, [hospitalId, refreshHistoriesFromFirstPage, suspendReason]);
+  }, [canUpdateHospitalStatus, hospitalId, refreshHistoriesFromFirstPage, showAlert, suspendReason]);
 
   const submitActivate = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
@@ -437,6 +487,7 @@ export default function HospitalDetailPageClient() {
           onOpenSuspendModal={openSuspendModal}
           onOpenActivateModal={openActivateModal}
           statusUpdating={updatingHospitalStatus}
+          statusActionMode={statusActionMode}
           onPreview={setPreviewMedia}
         />
 
@@ -451,6 +502,7 @@ export default function HospitalDetailPageClient() {
 
         <AllowStatusCard
           detail={detail}
+          canUpdate={canUpdateHospitalStatus}
           updating={updatingAllowStatus}
           error={allowStatusError}
           onChange={requestAllowStatusChange}
@@ -476,19 +528,21 @@ export default function HospitalDetailPageClient() {
         />
       </section>
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <AllowStatusConfirmModal
-        pending={pendingAllowStatusChange}
-        subjectLabel="해당 병의원을"
-        messageAction="상태로 변경"
-        labelStatus={labelReviewStatus}
-        updating={updatingAllowStatus}
-        error={allowStatusError}
-        reasonInputId="hospital-rejected-reason"
-        processingText="변경 중"
-        onReasonChange={updateAllowStatusReason}
-        onClose={closeAllowStatusModal}
-        onConfirm={() => void confirmAllowStatusChange()}
-      />
+      {canUpdateHospitalStatus ? (
+        <AllowStatusConfirmModal
+          pending={pendingAllowStatusChange}
+          subjectLabel="해당 병의원을"
+          messageAction="상태로 변경"
+          labelStatus={labelReviewStatus}
+          updating={updatingAllowStatus}
+          error={allowStatusError}
+          reasonInputId="hospital-rejected-reason"
+          processingText="변경 중"
+          onReasonChange={updateAllowStatusReason}
+          onClose={closeAllowStatusModal}
+          onConfirm={() => void confirmAllowStatusChange()}
+        />
+      ) : null}
       <AdminNoteCreateModal
         isOpen={isNoteModalOpen}
         value={noteInput}
@@ -502,18 +556,20 @@ export default function HospitalDetailPageClient() {
       />
       <AllowStatusConfirmModal
         pending={isSuspendModalOpen ? { allowStatus: "SUSPENDED", reason: suspendReason } : null}
-        title="운영중지 처리"
+        title={canUpdateHospitalStatus ? "운영중지 처리" : "운영중지 신청"}
         subjectLabel="해당 병의원을"
-        messageAction="등록"
+        messageAction={canUpdateHospitalStatus ? "등록" : "신청"}
         labelStatus={labelApprovalStatus}
         updating={updatingHospitalStatus}
         error={hospitalStatusError}
         rejectStatus="SUSPENDED"
         reasonInputId="hospital-suspend-reason"
-        reasonLabel="운영중지 사유"
-        reasonPlaceholder="운영중지 사유를 입력해주세요."
-        processingText="등록 중"
-        confirmText="등록"
+        reasonLabel={canUpdateHospitalStatus ? "운영중지 사유" : "운영중지 요청사유"}
+        reasonPlaceholder={
+          canUpdateHospitalStatus ? "운영중지 사유를 입력해주세요." : "운영중지 요청사유를 입력해주세요."
+        }
+        processingText={canUpdateHospitalStatus ? "등록 중" : "신청 중"}
+        confirmText={canUpdateHospitalStatus ? "등록" : "신청"}
         onReasonChange={setSuspendReason}
         onClose={closeSuspendModal}
         onConfirm={() => void submitSuspend()}

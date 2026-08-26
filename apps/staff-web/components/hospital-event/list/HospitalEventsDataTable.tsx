@@ -62,7 +62,7 @@ function EventInlineActionButton({
         event.stopPropagation();
         onClick?.(event);
       }}
-      className="h-8 min-w-12 border-gray-200 bg-white px-3 text-xs font-medium text-gray-500 disabled:opacity-60"
+      className="h-8 min-w-12 border-gray-300 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-600 focus-visible:border-brand-400 focus-visible:ring-2 focus-visible:ring-brand-500/20 disabled:opacity-60"
     >
       {children}
     </Button>

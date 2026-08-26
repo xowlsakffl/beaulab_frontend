@@ -8,6 +8,7 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
+  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
@@ -19,7 +20,7 @@ import {
   type HospitalReviewCommentSortField,
   type HospitalReviewCommentSortState,
 } from "@/lib/hospital-review/comment-list";
-import { resolveHospitalReviewMediaUrl } from "@/lib/hospital-review/list";
+import { labelHospitalReviewVisibilityStatus, resolveHospitalReviewMediaUrl } from "@/lib/hospital-review/list";
 import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
 
 function renderSortMark(field: HospitalReviewCommentSortField, sortState: HospitalReviewCommentSortState) {
@@ -117,6 +118,7 @@ function buildCommentColumns({
   hasSelectableRows,
   visibilityUpdatingIds,
   visibilityControlsDisabled,
+  canUpdateStatus,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
@@ -128,6 +130,7 @@ function buildCommentColumns({
   hasSelectableRows: boolean;
   visibilityUpdatingIds: Set<number>;
   visibilityControlsDisabled: boolean;
+  canUpdateStatus: boolean;
   onToggleSort: (field: HospitalReviewCommentSortField) => void;
   onToggleRow: (row: HospitalReviewCommentRow, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
@@ -145,28 +148,30 @@ function buildCommentColumns({
     overflow: "hidden",
   };
 
+  const selectionColumn: DataTableColumn<HospitalReviewCommentRow> = {
+    key: "select",
+    headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[4%]`,
+    cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[4%]`,
+    header: (
+      <SelectionCheckbox
+        label="현재 페이지 후기 댓글 전체 선택"
+        checked={allPageRowsSelected}
+        disabled={!hasSelectableRows || visibilityControlsDisabled}
+        onChange={onToggleAllRows}
+      />
+    ),
+    render: (row) => (
+      <SelectionCheckbox
+        label={`후기 댓글 ${row.id} 선택`}
+        checked={selectedIds.has(row.id)}
+        disabled={row.visibilityChangeLocked || visibilityControlsDisabled}
+        onChange={(checked) => onToggleRow(row, checked)}
+      />
+    ),
+  };
+
   return [
-    {
-      key: "select",
-      headerClassName: `${headerBaseClass} lg:w-[42px] xl:w-[4%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[42px] xl:w-[4%]`,
-      header: (
-        <SelectionCheckbox
-          label="현재 페이지 후기 댓글 전체 선택"
-          checked={allPageRowsSelected}
-          disabled={!hasSelectableRows || visibilityControlsDisabled}
-          onChange={onToggleAllRows}
-        />
-      ),
-      render: (row) => (
-        <SelectionCheckbox
-          label={`후기 댓글 ${row.id} 선택`}
-          checked={selectedIds.has(row.id)}
-          disabled={row.visibilityChangeLocked || visibilityControlsDisabled}
-          onChange={(checked) => onToggleRow(row, checked)}
-        />
-      ),
-    },
+    ...(canUpdateStatus ? [selectionColumn] : []),
     {
       key: "id",
       headerClassName: `${headerBaseClass} lg:w-[76px] xl:w-[7%]`,
@@ -222,17 +227,22 @@ function buildCommentColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[7%]`,
       header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => (
-        <span onClick={(event) => event.stopPropagation()}>
-          <Switch
-            checked={row.isVisible}
-            disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
-            ariaLabel={`후기 댓글 ${row.id} 노출 상태 변경`}
-            color="gray"
-            onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
-          />
-        </span>
-      ),
+      render: (row) =>
+        canUpdateStatus ? (
+          <span onClick={(event) => event.stopPropagation()}>
+            <Switch
+              checked={row.isVisible}
+              disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
+              ariaLabel={`후기 댓글 ${row.id} 노출 상태 변경`}
+              color="gray"
+              onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
+            />
+          </span>
+        ) : (
+          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
+            {labelHospitalReviewVisibilityStatus(row.status)}
+          </StatusBadge>
+        ),
     },
     {
       key: "likeCount",
@@ -261,6 +271,7 @@ type HospitalReviewCommentsDataTableProps = {
   selectedIds: Set<number>;
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
+  canUpdateStatus: boolean;
   onToggleSort: (field: HospitalReviewCommentSortField) => void;
   onGoPage: (page: number) => void;
   onToggleRow: (row: HospitalReviewCommentRow, checked: boolean) => void;
@@ -279,6 +290,7 @@ export function HospitalReviewCommentsDataTable({
   selectedIds,
   visibilityUpdatingIds,
   bulkUpdating,
+  canUpdateStatus,
   onToggleSort,
   onGoPage,
   onToggleRow,
@@ -298,6 +310,7 @@ export function HospitalReviewCommentsDataTable({
         hasSelectableRows: selectableRows.length > 0,
         visibilityUpdatingIds,
         visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        canUpdateStatus,
         onToggleSort,
         onToggleRow,
         onToggleAllRows,
@@ -306,6 +319,7 @@ export function HospitalReviewCommentsDataTable({
     [
       allPageRowsSelected,
       bulkUpdating,
+      canUpdateStatus,
       loading,
       onRowVisibilityChange,
       onToggleAllRows,
@@ -334,28 +348,30 @@ export function HospitalReviewCommentsDataTable({
       onGoPage={onGoPage}
 
       rightActions={
-        <div className="flex w-full flex-wrap items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
-            onClick={() => onBulkVisibilityChange("ACTIVE")}
-            className="h-9 min-w-16 px-3 text-sm"
-          >
-            노출
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
-            onClick={() => onBulkVisibilityChange("INACTIVE")}
-            className="h-9 min-w-16 px-3 text-sm"
-          >
-            미노출
-          </Button>
-        </div>
+        canUpdateStatus ? (
+          <div className="flex w-full flex-wrap items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
+              onClick={() => onBulkVisibilityChange("ACTIVE")}
+              className="h-9 min-w-16 px-3 text-sm"
+            >
+              노출
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
+              onClick={() => onBulkVisibilityChange("INACTIVE")}
+              className="h-9 min-w-16 px-3 text-sm"
+            >
+              미노출
+            </Button>
+          </div>
+        ) : undefined
       }
       emptyText="조건에 맞는 후기 댓글이 없습니다."
     />

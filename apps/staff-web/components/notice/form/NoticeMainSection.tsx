@@ -12,6 +12,7 @@ import {
   Label,
   RichTextEditor,
   Select,
+  StatusBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -20,6 +21,7 @@ import {
   type NoticeFormErrors,
   type NoticeFormValues,
 } from "@/lib/notice/form";
+import { labelNoticeStatus } from "@/lib/notice/list";
 
 type NoticeMainSectionProps = {
   form: NoticeFormValues;
@@ -27,6 +29,7 @@ type NoticeMainSectionProps = {
   onFieldChange: (key: keyof NoticeFormValues, value: NoticeFormValues[keyof NoticeFormValues]) => void;
   onContentChange: (value: string) => void;
   onUploadEditorImage: (file: File) => Promise<{ url: string }>;
+  canUpdateStatus: boolean;
 };
 
 export function NoticeMainSection({
@@ -35,6 +38,7 @@ export function NoticeMainSection({
   onFieldChange,
   onContentChange,
   onUploadEditorImage,
+  canUpdateStatus,
 }: NoticeMainSectionProps) {
   return (
     <Card as="section">
@@ -75,15 +79,23 @@ export function NoticeMainSection({
 
             <div className="space-y-2">
               <Label htmlFor="status">운영 상태 *</Label>
-              <Select
-                id="status"
-                name="status"
-                value={form.status}
-                options={[...NOTICE_STATUS_OPTIONS]}
-                placeholder="운영 상태를 선택해 주세요."
-                onChange={(value) => onFieldChange("status", value)}
-                className="h-11 w-full px-4"
-              />
+              {canUpdateStatus ? (
+                <Select
+                  id="status"
+                  name="status"
+                  value={form.status}
+                  options={[...NOTICE_STATUS_OPTIONS]}
+                  placeholder="운영 상태를 선택해 주세요."
+                  onChange={(value) => onFieldChange("status", value)}
+                  className="h-11 w-full px-4"
+                />
+              ) : (
+                <div className="flex h-11 items-center">
+                  <StatusBadge size="sm" color={form.status === "ACTIVE" ? "success" : "error"}>
+                    {labelNoticeStatus(form.status)}
+                  </StatusBadge>
+                </div>
+              )}
               {errors.status ? <p className="text-xs text-error-500">{errors.status}</p> : null}
             </div>
           </div>

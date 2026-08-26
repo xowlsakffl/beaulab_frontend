@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -10,6 +11,8 @@ import { HashtagsDataTable } from "@/components/hashtag/list/HashtagsDataTable";
 import { HashtagsFilterPanel } from "@/components/hashtag/list/HashtagsFilterPanel";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   DEFAULT_FILTERS,
   HASHTAG_STATUS_OPTIONS,
@@ -31,6 +34,7 @@ export default function HashtagsPageClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hashtag);
   const [initialTableState] = React.useState(() =>
     parseHashtagsTableState(new URLSearchParams(searchParams.toString())),
   );
@@ -198,9 +202,10 @@ export default function HashtagsPageClient() {
       setSubmitError(null);
 
       try {
+        const payload = canUpdateStatus ? { name: sanitizedName, status } : { name: sanitizedName };
         const response = isEditMode
-          ? await api.patch<HashtagApiItem>(`/hashtags/${selectedRow.id}`, { name: sanitizedName, status })
-          : await api.post<HashtagApiItem>("/hashtags", { name: sanitizedName, status });
+          ? await api.patch<HashtagApiItem>(`/hashtags/${selectedRow.id}`, payload)
+          : await api.post<HashtagApiItem>("/hashtags", payload);
 
         if (!isApiSuccess(response)) {
           setSubmitError(
@@ -230,7 +235,7 @@ export default function HashtagsPageClient() {
         setIsSubmitting(false);
       }
     },
-    [fetchHashtags, selectedRow, showAlert, upsertMode],
+    [canUpdateStatus, fetchHashtags, selectedRow, showAlert, upsertMode],
   );
 
   return (
@@ -275,6 +280,7 @@ export default function HashtagsPageClient() {
         initialStatus={selectedRow?.status ?? "ACTIVE"}
         submitting={isSubmitting}
         submitError={submitError}
+        canUpdateStatus={canUpdateStatus}
         onClose={closeUpsertModal}
         onSubmit={(name, status) => void handleSubmitHashtag(name, status)}
       />

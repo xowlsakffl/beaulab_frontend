@@ -63,10 +63,12 @@ const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
 
 export function EventMainCard({
   detail,
+  canUpdateStatus,
   updating,
   onAdminStatusChange,
 }: {
   detail: HospitalEventApiItem;
+  canUpdateStatus: boolean;
   updating: boolean;
   onAdminStatusChange: (status: "NORMAL" | "FORCED_STOPPED") => void;
 }) {
@@ -81,16 +83,22 @@ export function EventMainCard({
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-sm font-bold text-gray-900">{eventTypeLabel} 이벤트</h2>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={updating}
-          className="h-9 min-w-24 shrink-0 px-4 text-sm"
-          onClick={() => onAdminStatusChange(isForcedStopped ? "NORMAL" : "FORCED_STOPPED")}
-        >
-          {isForcedStopped ? "정상노출" : "강제중지"}
-        </Button>
+        {canUpdateStatus ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={updating}
+            className="h-9 min-w-24 shrink-0 px-4 text-sm"
+            onClick={() => onAdminStatusChange(isForcedStopped ? "NORMAL" : "FORCED_STOPPED")}
+          >
+            {isForcedStopped ? "정상노출" : "강제중지"}
+          </Button>
+        ) : (
+          <StatusBadge size="sm" color={hospitalEventAdminStatusColor(detail.admin_status)}>
+            {labelHospitalEventAdminStatus(detail.admin_status)}
+          </StatusBadge>
+        )}
         <span className="sr-only">현재 강제중지 상태: {labelHospitalEventAdminStatus(detail.admin_status)}</span>
       </div>
 
@@ -131,10 +139,12 @@ export function EventInfoSummaryCard({ detail }: { detail: HospitalEventApiItem 
 
 export function AllowStatusCard({
   detail,
+  canUpdateStatus,
   updating,
   onChange,
 }: {
   detail: HospitalEventApiItem;
+  canUpdateStatus: boolean;
   updating: boolean;
   onChange: (status: string) => void;
 }) {
@@ -144,7 +154,13 @@ export function AllowStatusCard({
         <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
       </div>
       <div className="mt-4">
-        <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
+        {canUpdateStatus ? (
+          <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
+        ) : (
+          <StatusBadge size="sm" color={hospitalEventAllowStatusColor(detail.allow_status)}>
+            {labelHospitalEventAllowStatus(detail.allow_status)}
+          </StatusBadge>
+        )}
       </div>
     </Card>
   );

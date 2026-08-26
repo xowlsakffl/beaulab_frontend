@@ -3,6 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
 import {
@@ -22,9 +23,11 @@ import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/Ho
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
 import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
 import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
   buildHospitalReviewCommentsQuery,
@@ -108,6 +111,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalReview);
   const [initialState] = React.useState(() => {
     const initialSearchParams = new URLSearchParams(searchParams.toString());
 
@@ -951,6 +955,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           selectedIds={selectedIds}
           visibilityUpdatingIds={rowVisibilityUpdatingIds}
           bulkUpdating={bulkUpdating}
+          canUpdateStatus={canUpdateStatus}
           onToggleSort={toggleSort}
 
           onGoPage={setPage}
@@ -971,6 +976,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           selectedIds={selectedIds}
           visibilityUpdatingIds={rowVisibilityUpdatingIds}
           bulkUpdating={bulkUpdating}
+          canUpdateStatus={canUpdateStatus}
           onToggleSort={toggleCommentSort}
 
           onGoPage={setPage}
@@ -1004,17 +1010,19 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
         </ModalPanel>
       </Modal>
 
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
-        updating={pendingVisibilityUpdating}
-        reasonInputId="hospital-review-hidden-reason"
-        onHiddenReasonChange={updatePendingHiddenReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
-      />
+      {canUpdateStatus ? (
+        <VisibilityConfirmModal
+          isOpen={Boolean(pendingVisibilityChange)}
+          status={pendingVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+          updating={pendingVisibilityUpdating}
+          reasonInputId="hospital-review-hidden-reason"
+          onHiddenReasonChange={updatePendingHiddenReason}
+          onClose={closeVisibilityConfirmModal}
+          onConfirm={() => void confirmVisibilityChange()}
+        />
+      ) : null}
     </div>
   );
 }

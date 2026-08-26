@@ -14,10 +14,12 @@ import {
   ModalPanel,
   ModalTitle,
   Select,
+  StatusBadge,
 } from "@beaulab/ui-admin";
 
 import {
   HASHTAG_STATUS_OPTIONS,
+  labelHashtagStatus,
   normalizeHashtagName,
   sanitizeHashtagName,
   validateHashtagName,
@@ -30,6 +32,7 @@ type HashtagUpsertModalProps = {
   initialStatus: string;
   submitting: boolean;
   submitError: string | null;
+  canUpdateStatus: boolean;
   onClose: () => void;
   onSubmit: (name: string, status: string) => void;
 };
@@ -41,6 +44,7 @@ export function HashtagUpsertModal({
   initialStatus,
   submitting,
   submitError,
+  canUpdateStatus,
   onClose,
   onSubmit,
 }: HashtagUpsertModalProps) {
@@ -108,14 +112,22 @@ export function HashtagUpsertModal({
 
             <div>
               <Label htmlFor="hashtag-status">운영상태</Label>
-              <Select
-                id="hashtag-status"
-                value={statusInput || "ACTIVE"}
-                options={HASHTAG_STATUS_OPTIONS}
-                showPlaceholderOption={false}
-                onChange={setStatusInput}
-                className="h-11 w-full px-4"
-              />
+              {canUpdateStatus ? (
+                <Select
+                  id="hashtag-status"
+                  value={statusInput || "ACTIVE"}
+                  options={HASHTAG_STATUS_OPTIONS}
+                  showPlaceholderOption={false}
+                  onChange={setStatusInput}
+                  className="h-11 w-full px-4"
+                />
+              ) : (
+                <div className="flex h-11 items-center">
+                  <StatusBadge size="sm" color={statusInput === "ACTIVE" ? "success" : "error"}>
+                    {labelHashtagStatus(statusInput)}
+                  </StatusBadge>
+                </div>
+              )}
             </div>
           </ModalBody>
 

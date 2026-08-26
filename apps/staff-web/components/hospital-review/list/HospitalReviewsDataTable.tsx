@@ -8,6 +8,7 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
+  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
@@ -17,6 +18,7 @@ import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   formatHospitalReviewCost,
   formatHospitalReviewRating,
+  labelHospitalReviewVisibilityStatus,
   resolveHospitalReviewMediaUrl,
   type HospitalReviewRow,
   type HospitalReviewSortField,
@@ -145,6 +147,7 @@ function buildHospitalReviewColumns({
   hasSelectableRows,
   visibilityUpdatingIds,
   visibilityControlsDisabled,
+  canUpdateStatus,
   onToggleSort,
   onToggleRow,
   onToggleAllRows,
@@ -156,6 +159,7 @@ function buildHospitalReviewColumns({
   hasSelectableRows: boolean;
   visibilityUpdatingIds: Set<number>;
   visibilityControlsDisabled: boolean;
+  canUpdateStatus: boolean;
   onToggleSort: (field: HospitalReviewSortField) => void;
   onToggleRow: (row: HospitalReviewRow, checked: boolean) => void;
   onToggleAllRows: (checked: boolean) => void;
@@ -169,28 +173,30 @@ function buildHospitalReviewColumns({
   const metricHeaderClass = "px-1.5 py-3 text-center font-semibold text-theme-xs text-gray-600 ";
   const metricCellClass = "px-1.5 py-4 text-center align-top whitespace-nowrap ";
 
+  const selectionColumn: DataTableColumn<HospitalReviewRow> = {
+    key: "select",
+    headerClassName: `${headerBaseClass} lg:w-[34px] xl:w-[3%]`,
+    cellClassName: `${nowrapCellClass} lg:w-[34px] xl:w-[3%]`,
+    header: (
+      <SelectionCheckbox
+        label="현재 페이지 후기 전체 선택"
+        checked={allPageRowsSelected}
+        disabled={!hasSelectableRows || visibilityControlsDisabled}
+        onChange={onToggleAllRows}
+      />
+    ),
+    render: (row) => (
+      <SelectionCheckbox
+        label={`후기 ${row.id} 선택`}
+        checked={selectedIds.has(row.id)}
+        disabled={row.visibilityChangeLocked || visibilityControlsDisabled}
+        onChange={(checked) => onToggleRow(row, checked)}
+      />
+    ),
+  };
+
   return [
-    {
-      key: "select",
-      headerClassName: `${headerBaseClass} lg:w-[34px] xl:w-[3%]`,
-      cellClassName: `${nowrapCellClass} lg:w-[34px] xl:w-[3%]`,
-      header: (
-        <SelectionCheckbox
-          label="현재 페이지 후기 전체 선택"
-          checked={allPageRowsSelected}
-          disabled={!hasSelectableRows || visibilityControlsDisabled}
-          onChange={onToggleAllRows}
-        />
-      ),
-      render: (row) => (
-        <SelectionCheckbox
-          label={`후기 ${row.id} 선택`}
-          checked={selectedIds.has(row.id)}
-          disabled={row.visibilityChangeLocked || visibilityControlsDisabled}
-          onChange={(checked) => onToggleRow(row, checked)}
-        />
-      ),
-    },
+    ...(canUpdateStatus ? [selectionColumn] : []),
     {
       key: "id",
       headerClassName: `${headerBaseClass} lg:w-[44px] xl:w-[3.5%]`,
@@ -264,17 +270,22 @@ function buildHospitalReviewColumns({
       header: (
         <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
       ),
-      render: (row) => (
-        <span onClick={(event) => event.stopPropagation()}>
-          <Switch
-            checked={row.isVisible}
-            disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
-            ariaLabel={`후기 ${row.id} 노출 상태 변경`}
-            color="gray"
-            onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
-          />
-        </span>
-      ),
+      render: (row) =>
+        canUpdateStatus ? (
+          <span onClick={(event) => event.stopPropagation()}>
+            <Switch
+              checked={row.isVisible}
+              disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
+              ariaLabel={`후기 ${row.id} 노출 상태 변경`}
+              color="gray"
+              onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
+            />
+          </span>
+        ) : (
+          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
+            {labelHospitalReviewVisibilityStatus(row.status)}
+          </StatusBadge>
+        ),
     },
     {
       key: "featured",
@@ -363,6 +374,7 @@ type HospitalReviewsDataTableProps = {
   selectedIds: Set<number>;
   visibilityUpdatingIds: Set<number>;
   bulkUpdating: boolean;
+  canUpdateStatus: boolean;
   onToggleSort: (field: HospitalReviewSortField) => void;
   onGoPage: (page: number) => void;
   onToggleRow: (row: HospitalReviewRow, checked: boolean) => void;
@@ -382,6 +394,7 @@ export function HospitalReviewsDataTable({
   selectedIds,
   visibilityUpdatingIds,
   bulkUpdating,
+  canUpdateStatus,
   onToggleSort,
   onGoPage,
   onToggleRow,
@@ -402,6 +415,7 @@ export function HospitalReviewsDataTable({
         hasSelectableRows: selectableRows.length > 0,
         visibilityUpdatingIds,
         visibilityControlsDisabled: bulkUpdating || loading || refreshing,
+        canUpdateStatus,
         onToggleSort,
         onToggleRow,
         onToggleAllRows,
@@ -410,6 +424,7 @@ export function HospitalReviewsDataTable({
     [
       allPageRowsSelected,
       bulkUpdating,
+      canUpdateStatus,
       loading,
       onRowVisibilityChange,
       onToggleAllRows,
@@ -440,28 +455,30 @@ export function HospitalReviewsDataTable({
       onRowClick={onOpenDetail}
 
       rightActions={
-        <div className="flex w-full flex-wrap items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
-            onClick={() => onBulkVisibilityChange("ACTIVE")}
-            className="h-9 min-w-16 px-3 text-sm"
-          >
-            노출
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
-            onClick={() => onBulkVisibilityChange("INACTIVE")}
-            className="h-9 min-w-16 px-3 text-sm"
-          >
-            미노출
-          </Button>
-        </div>
+        canUpdateStatus ? (
+          <div className="flex w-full flex-wrap items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
+              onClick={() => onBulkVisibilityChange("ACTIVE")}
+              className="h-9 min-w-16 px-3 text-sm"
+            >
+              노출
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={selectedCount === 0 || bulkUpdating || loading || refreshing}
+              onClick={() => onBulkVisibilityChange("INACTIVE")}
+              className="h-9 min-w-16 px-3 text-sm"
+            >
+              미노출
+            </Button>
+          </div>
+        ) : undefined
       }
       emptyText="조건에 맞는 후기가 없습니다."
     />

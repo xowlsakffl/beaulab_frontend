@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, Card, SpinnerBlock, StatusBadge, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -15,6 +16,8 @@ import { OperationHistoryCard, type OperationHistoryListItem } from "@/component
 import type { OperationHistoryChangeLike } from "@/components/common/OperationHistoryDisplay";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   eventAdAllowStatusColor,
@@ -52,6 +55,7 @@ export default function EventAdDetailPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEventAd);
 
   const rawAdId = Array.isArray(params.id) ? params.id[0] : params.id;
   const adId = Number(rawAdId);
@@ -290,6 +294,7 @@ export default function EventAdDetailPageClient() {
         <div className="min-w-0 space-y-4">
           <EventAdMainCard
             detail={detail}
+            canUpdateStatus={canUpdateStatus}
             updating={updatingAllowStatus}
             onAllowStatusChange={requestAllowStatus}
             onPreview={setPreviewMedia}
@@ -318,17 +323,19 @@ export default function EventAdDetailPageClient() {
       </section>
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <AllowStatusConfirmModal
-        pending={pendingAllowStatusChange}
-        subjectLabel="해당 광고를"
-        labelStatus={labelEventAdAllowStatus}
-        updating={updatingAllowStatus}
-        error={pendingAllowStatusError}
-        reasonInputId="hospital-event-ad-rejected-reason"
-        onReasonChange={updatePendingAllowStatusReason}
-        onClose={closeAllowStatusConfirmModal}
-        onConfirm={() => void confirmAllowStatusChange()}
-      />
+      {canUpdateStatus ? (
+        <AllowStatusConfirmModal
+          pending={pendingAllowStatusChange}
+          subjectLabel="해당 광고를"
+          labelStatus={labelEventAdAllowStatus}
+          updating={updatingAllowStatus}
+          error={pendingAllowStatusError}
+          reasonInputId="hospital-event-ad-rejected-reason"
+          onReasonChange={updatePendingAllowStatusReason}
+          onClose={closeAllowStatusConfirmModal}
+          onConfirm={() => void confirmAllowStatusChange()}
+        />
+      ) : null}
       <AdminNoteCreateModal
         isOpen={isNoteModalOpen}
         value={noteInput}
@@ -346,11 +353,13 @@ export default function EventAdDetailPageClient() {
 
 function EventAdMainCard({
   detail,
+  canUpdateStatus,
   updating,
   onAllowStatusChange,
   onPreview,
 }: {
   detail: EventAdApiItem;
+  canUpdateStatus: boolean;
   updating: boolean;
   onAllowStatusChange: (status: string) => void;
   onPreview: (preview: MediaPreviewState) => void;
@@ -406,13 +415,17 @@ function EventAdMainCard({
               label="검수상태"
               customValue={
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <Can permission="beaulab.hospital_event_ad.update">
+                  {canUpdateStatus ? (
                     <AllowStatusActionButtons
                       currentStatus={detail.allow_status}
                       disabled={updating}
                       onChange={onAllowStatusChange}
                     />
-                  </Can>
+                  ) : (
+                    <StatusBadge size="sm" color={eventAdAllowStatusColor(detail.allow_status)}>
+                      {labelEventAdAllowStatus(detail.allow_status)}
+                    </StatusBadge>
+                  )}
                 </div>
               }
             />

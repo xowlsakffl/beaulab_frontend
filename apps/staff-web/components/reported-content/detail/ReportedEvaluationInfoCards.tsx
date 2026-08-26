@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck } from "@beaulab/ui-admin";
+import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck, StatusBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import {
@@ -56,6 +56,7 @@ export function ReportedEvaluationContentCard({
   receiptButtonVerified,
   hasReceiptImages,
   receiptButtonDisabled,
+  canUpdateReceiptStatus,
   onOpenReceiptModal,
   onPreviewMedia,
 }: {
@@ -64,6 +65,7 @@ export function ReportedEvaluationContentCard({
   receiptButtonVerified: boolean;
   hasReceiptImages: boolean;
   receiptButtonDisabled: boolean;
+  canUpdateReceiptStatus: boolean;
   onOpenReceiptModal: () => void;
   onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
@@ -74,7 +76,7 @@ export function ReportedEvaluationContentCard({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <CardTitle>{titleHospitalEvaluationDetailReviewType(detail.categories)}</CardTitle>
           </div>
-          {hasReceiptImages ? (
+          {hasReceiptImages && canUpdateReceiptStatus ? (
             <Button
               type="button"
               variant="brand"
@@ -86,6 +88,10 @@ export function ReportedEvaluationContentCard({
               {receiptButtonVerified ? <CircleCheck className="size-4" aria-hidden="true" /> : null}
               {receiptButtonLabel}
             </Button>
+          ) : hasReceiptImages ? (
+            <StatusBadge size="sm" color={receiptButtonVerified ? "success" : "gray"}>
+              {receiptButtonLabel}
+            </StatusBadge>
           ) : null}
         </div>
       </CardHeader>

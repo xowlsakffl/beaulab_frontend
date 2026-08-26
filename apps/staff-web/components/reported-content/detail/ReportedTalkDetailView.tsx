@@ -41,6 +41,8 @@ type ReportedTalkDetailViewProps = {
   onSaved: () => Promise<void>;
   onReportedStatusUpdated: () => void;
   onHistoryPageChange: (page: number) => void;
+  canUpdateReportedStatus: boolean;
+  canUpdateOriginalStatus: boolean;
 };
 
 export function ReportedTalkDetailView({
@@ -57,6 +59,8 @@ export function ReportedTalkDetailView({
   onSaved,
   onReportedStatusUpdated,
   onHistoryPageChange,
+  canUpdateReportedStatus,
+  canUpdateOriginalStatus,
 }: ReportedTalkDetailViewProps) {
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
   const originalVisibility = useReportedOriginalVisibility({
@@ -77,6 +81,7 @@ export function ReportedTalkDetailView({
           <ReportedTalkContentCard
             detail={detail}
             visibilityUpdating={originalVisibility.updating}
+            canUpdateStatus={canUpdateOriginalStatus}
             onChangeVisibility={(status) => originalVisibility.requestChange("talk", detail.id, status)}
             onPreviewMedia={setPreviewMedia}
           />
@@ -92,21 +97,24 @@ export function ReportedTalkDetailView({
       reportedDetail={reportedDetail}
       reportedReports={reportedReports}
       onReportedStatusUpdated={onReportedStatusUpdated}
+      canUpdateReportedStatus={canUpdateReportedStatus}
       previewMedia={previewMedia}
       onPreviewMediaChange={setPreviewMedia}
       onPreviewMediaClose={() => setPreviewMedia(null)}
       modals={
-        <VisibilityConfirmModal
-          isOpen={Boolean(originalVisibility.pendingChange)}
-          status={originalVisibility.pendingChange?.status}
-          message={pendingVisibilityMessage}
-          hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
-          updating={pendingVisibilityUpdating}
-          reasonInputId="reported-talk-detail-hidden-reason"
-          onHiddenReasonChange={originalVisibility.updateHiddenReason}
-          onClose={originalVisibility.closeModal}
-          onConfirm={() => void originalVisibility.confirmChange()}
-        />
+        canUpdateOriginalStatus ? (
+          <VisibilityConfirmModal
+            isOpen={Boolean(originalVisibility.pendingChange)}
+            status={originalVisibility.pendingChange?.status}
+            message={pendingVisibilityMessage}
+            hiddenReasonValue={originalVisibility.pendingChange?.hiddenReason ?? ""}
+            updating={pendingVisibilityUpdating}
+            reasonInputId="reported-talk-detail-hidden-reason"
+            onHiddenReasonChange={originalVisibility.updateHiddenReason}
+            onClose={originalVisibility.closeModal}
+            onConfirm={() => void originalVisibility.confirmChange()}
+          />
+        ) : null
       }
     />
   );
@@ -132,11 +140,13 @@ function ReportedTalkMemberSummaryCard({ detail }: { detail: TalkDetailResponse 
 function ReportedTalkContentCard({
   detail,
   visibilityUpdating,
+  canUpdateStatus,
   onChangeVisibility,
   onPreviewMedia,
 }: {
   detail: TalkDetailResponse;
   visibilityUpdating: boolean;
+  canUpdateStatus: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
   onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
@@ -153,6 +163,7 @@ function ReportedTalkContentCard({
           <ReportedOriginalVisibilityButtons
             status={detail.status}
             disabled={visibilityUpdating}
+            canUpdate={canUpdateStatus}
             onChange={onChangeVisibility}
           />
         </div>

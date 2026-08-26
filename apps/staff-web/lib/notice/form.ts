@@ -186,12 +186,13 @@ export function validateNoticeForm(form: NoticeFormValues): NoticeFormErrors {
 export type BuildCreateNoticeFormDataParams = {
   form: NoticeFormValues;
   attachments: File[];
+  includeStatus: boolean;
 };
 
-export function buildCreateNoticeFormData({ form, attachments }: BuildCreateNoticeFormDataParams): FormData {
+export function buildCreateNoticeFormData({ form, attachments, includeStatus }: BuildCreateNoticeFormDataParams): FormData {
   const formData = new FormData();
 
-  appendNoticeFormData(formData, form, attachments);
+  appendNoticeFormData(formData, form, attachments, undefined, includeStatus);
 
   return formData;
 }
@@ -200,17 +201,25 @@ export type BuildUpdateNoticeFormDataParams = {
   form: NoticeFormValues;
   attachments: File[];
   existingAttachmentIds: Array<number | string>;
+  includeStatus: boolean;
 };
 
 export function buildUpdateNoticeFormData({
   form,
   attachments,
   existingAttachmentIds,
+  includeStatus,
 }: BuildUpdateNoticeFormDataParams): FormData {
   const formData = new FormData();
 
   formData.append("_method", "PATCH");
-  appendNoticeFormData(formData, form, attachments.length > 0 ? attachments : null, existingAttachmentIds);
+  appendNoticeFormData(
+    formData,
+    form,
+    attachments.length > 0 ? attachments : null,
+    existingAttachmentIds,
+    includeStatus,
+  );
 
   return formData;
 }
@@ -220,11 +229,14 @@ function appendNoticeFormData(
   form: NoticeFormValues,
   attachments: File[] | null,
   existingAttachmentIds?: Array<number | string>,
+  includeStatus = false,
 ) {
   formData.append("channel", form.channel);
   formData.append("title", form.title.trim());
   formData.append("content", form.content.trim());
-  formData.append("status", form.status);
+  if (includeStatus) {
+    formData.append("status", form.status);
+  }
   formData.append("is_pinned", form.is_pinned ? "1" : "0");
   formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
   formData.append("is_important", form.is_important ? "1" : "0");

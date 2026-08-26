@@ -376,8 +376,6 @@ function appendDoctorFormFields(
   formData.append("name", form.name.trim());
   formData.append("gender", form.gender);
   formData.append("position", form.position);
-  formData.append("status", form.status);
-  formData.append("allow_status", form.allow_status);
   formData.append("career_started_at", form.career_started_at);
   formData.append("license_number", form.license_number.replace(/\D/g, ""));
   formData.append("specialist_field", form.specialist_field);
@@ -410,14 +408,6 @@ export function validateCreateDoctorForm({
 }): DoctorFormErrors {
   const nextErrors = validateDoctorBaseForm(form);
 
-  if (!form.status) {
-    nextErrors.status = "운영 상태를 선택해 주세요.";
-  }
-
-  if (!form.allow_status) {
-    nextErrors.allow_status = "검수 상태를 선택해 주세요.";
-  }
-
   if (!profileImage) {
     nextErrors.profile_image = "프로필 사진을 등록해 주세요.";
   }
@@ -435,14 +425,6 @@ export function validateUpdateDoctorForm({
   existingProfileImage?: ExistingMediaItem | null;
 }): DoctorFormErrors {
   const nextErrors = validateDoctorBaseForm(form);
-
-  if (!form.status) {
-    nextErrors.status = "운영 상태를 선택해 주세요.";
-  }
-
-  if (!form.allow_status) {
-    nextErrors.allow_status = "검수 상태를 선택해 주세요.";
-  }
 
   if (!profileImage && !existingProfileImage) {
     nextErrors.profile_image = "프로필 사진을 등록해 주세요.";

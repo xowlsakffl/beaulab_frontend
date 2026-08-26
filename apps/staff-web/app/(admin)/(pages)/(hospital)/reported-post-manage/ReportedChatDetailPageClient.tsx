@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
@@ -16,12 +17,15 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
+  StatusBadge,
 } from "@beaulab/ui-admin";
 
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   formatReportedContentAuthorName,
   formatReportedContentDetailDate,
@@ -66,6 +70,7 @@ export default function ReportedChatDetailPageClient() {
   const params = useParams<{ id: string }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.reportedChatMessage);
   const [detail, setDetail] = React.useState<ReportedChatDetailResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -281,107 +286,112 @@ export default function ReportedChatDetailPageClient() {
             warningStatus={warningStatus}
             updatingStatus={updatingStatus}
             updatingWarningStatus={updatingWarningStatus}
+            canUpdateStatus={canUpdateStatus}
             onOpenStatusModal={openStatusModal}
             onOpenWarningModal={openWarningModal}
           />
         </div>
       </div>
 
-      <Modal
-        isOpen={pendingStatus !== null}
-        onClose={closeStatusModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>조치유형</ModalTitle>
-          </ModalHeader>
+      {canUpdateStatus ? (
+        <>
+          <Modal
+            isOpen={pendingStatus !== null}
+            onClose={closeStatusModal}
+            showCloseButton={false}
+            className="mx-4 w-full max-w-md"
+          >
+            <ModalPanel>
+              <ModalHeader className="pr-0">
+                <ModalTitle>조치유형</ModalTitle>
+              </ModalHeader>
 
-          <ModalBody className="mt-5 space-y-4">
-            <p className="text-sm font-medium text-gray-800">{statusModalMessage}</p>
-            {modalError ? <p className="text-sm font-medium text-rose-600">{modalError}</p> : null}
-          </ModalBody>
+              <ModalBody className="mt-5 space-y-4">
+                <p className="text-sm font-medium text-gray-800">{statusModalMessage}</p>
+                {modalError ? <p className="text-sm font-medium text-rose-600">{modalError}</p> : null}
+              </ModalBody>
 
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={closeStatusModal} disabled={updatingStatus !== null}>
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => (pendingStatus ? void updateReportStatus(pendingStatus) : undefined)}
-              disabled={updatingStatus !== null}
-            >
-              {updatingStatus !== null ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+              <ModalFooter>
+                <Button type="button" variant="outline" onClick={closeStatusModal} disabled={updatingStatus !== null}>
+                  취소
+                </Button>
+                <Button
+                  type="button"
+                  variant="brand"
+                  onClick={() => (pendingStatus ? void updateReportStatus(pendingStatus) : undefined)}
+                  disabled={updatingStatus !== null}
+                >
+                  {updatingStatus !== null ? "처리 중..." : "확인"}
+                </Button>
+              </ModalFooter>
+            </ModalPanel>
+          </Modal>
 
-      <Modal
-        isOpen={isWarningUnavailableModalOpen}
-        onClose={() => setIsWarningUnavailableModalOpen(false)}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-sm"
-      >
-        <ModalPanel>
-          <ModalBody className="mt-2">
-            <p className="text-sm font-medium text-gray-800">해당 상태에서는 경고여부를 선택할 수 없습니다.</p>
-          </ModalBody>
+          <Modal
+            isOpen={isWarningUnavailableModalOpen}
+            onClose={() => setIsWarningUnavailableModalOpen(false)}
+            showCloseButton={false}
+            className="mx-4 w-full max-w-sm"
+          >
+            <ModalPanel>
+              <ModalBody className="mt-2">
+                <p className="text-sm font-medium text-gray-800">해당 상태에서는 경고여부를 선택할 수 없습니다.</p>
+              </ModalBody>
 
-          <ModalFooter>
-            <Button type="button" variant="brand" onClick={() => setIsWarningUnavailableModalOpen(false)}>
-              확인
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+              <ModalFooter>
+                <Button type="button" variant="brand" onClick={() => setIsWarningUnavailableModalOpen(false)}>
+                  확인
+                </Button>
+              </ModalFooter>
+            </ModalPanel>
+          </Modal>
 
-      <Modal
-        isOpen={pendingWarningStatus !== null}
-        onClose={closeWarningModal}
-        showCloseButton={false}
-        className="mx-4 w-full max-w-md"
-      >
-        <ModalPanel>
-          <ModalHeader className="pr-0">
-            <ModalTitle>경고 처리</ModalTitle>
-          </ModalHeader>
+          <Modal
+            isOpen={pendingWarningStatus !== null}
+            onClose={closeWarningModal}
+            showCloseButton={false}
+            className="mx-4 w-full max-w-md"
+          >
+            <ModalPanel>
+              <ModalHeader className="pr-0">
+                <ModalTitle>경고 처리</ModalTitle>
+              </ModalHeader>
 
-          <ModalBody className="mt-5 space-y-3">
-            <p className="text-sm font-medium text-gray-800">{warningModalMessage}</p>
-            {pendingWarningStatus === "WARNED" ? (
-              <div className="space-y-1 text-sm text-gray-500">
-                <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
-                <p>
-                  현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
-                </p>
-              </div>
-            ) : null}
-            {warningModalError ? <p className="text-sm font-medium text-rose-600">{warningModalError}</p> : null}
-          </ModalBody>
+              <ModalBody className="mt-5 space-y-3">
+                <p className="text-sm font-medium text-gray-800">{warningModalMessage}</p>
+                {pendingWarningStatus === "WARNED" ? (
+                  <div className="space-y-1 text-sm text-gray-500">
+                    <p>경고가 누적 10회가 되면 해당 회원은 차단됩니다.</p>
+                    <p>
+                      현재누적 <span className="font-semibold text-red-500">{warningCount.toLocaleString()}</span>건
+                    </p>
+                  </div>
+                ) : null}
+                {warningModalError ? <p className="text-sm font-medium text-rose-600">{warningModalError}</p> : null}
+              </ModalBody>
 
-          <ModalFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={closeWarningModal}
-              disabled={updatingWarningStatus !== null}
-            >
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="brand"
-              onClick={() => (pendingWarningStatus ? void updateWarningStatus(pendingWarningStatus) : undefined)}
-              disabled={updatingWarningStatus !== null}
-            >
-              {updatingWarningStatus !== null ? "처리 중..." : "확인"}
-            </Button>
-          </ModalFooter>
-        </ModalPanel>
-      </Modal>
+              <ModalFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeWarningModal}
+                  disabled={updatingWarningStatus !== null}
+                >
+                  취소
+                </Button>
+                <Button
+                  type="button"
+                  variant="brand"
+                  onClick={() => (pendingWarningStatus ? void updateWarningStatus(pendingWarningStatus) : undefined)}
+                  disabled={updatingWarningStatus !== null}
+                >
+                  {updatingWarningStatus !== null ? "처리 중..." : "확인"}
+                </Button>
+              </ModalFooter>
+            </ModalPanel>
+          </Modal>
+        </>
+      ) : null}
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
     </div>
@@ -575,6 +585,7 @@ function ChatReportActionCard({
   warningStatus,
   updatingStatus,
   updatingWarningStatus,
+  canUpdateStatus,
   onOpenStatusModal,
   onOpenWarningModal,
 }: {
@@ -583,6 +594,7 @@ function ChatReportActionCard({
   warningStatus: string;
   updatingStatus: ReportActionStatus | null;
   updatingWarningStatus: WarningActionStatus | null;
+  canUpdateStatus: boolean;
   onOpenStatusModal: (status: ReportActionStatus) => void;
   onOpenWarningModal: (status: WarningActionStatus) => void;
 }) {
@@ -592,52 +604,70 @@ function ChatReportActionCard({
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900">조치유형</h3>
           <div className="flex flex-wrap gap-3">
-            <Button
-              type="button"
-              variant={isReported ? "brand" : "outline"}
-              disabled={updatingStatus !== null}
-              onClick={() => onOpenStatusModal("ADMIN_HIDDEN")}
-              className={["h-12 px-6 text-base font-semibold", isReported ? "" : "text-gray-500"].join(" ")}
-            >
-              {updatingStatus === "ADMIN_HIDDEN" ? "처리 중" : "신고"}
-            </Button>
-            <Button
-              type="button"
-              variant={isIgnoredReport ? "brand" : "outline"}
-              disabled={updatingStatus !== null}
-              onClick={() => onOpenStatusModal("NORMAL_VISIBLE")}
-              className={["h-12 px-6 text-base font-semibold", isIgnoredReport ? "" : "text-gray-500"].join(" ")}
-            >
-              {updatingStatus === "NORMAL_VISIBLE" ? "처리 중" : "무시"}
-            </Button>
+            {canUpdateStatus ? (
+              <>
+                <Button
+                  type="button"
+                  variant={isReported ? "brand" : "outline"}
+                  disabled={updatingStatus !== null}
+                  onClick={() => onOpenStatusModal("ADMIN_HIDDEN")}
+                  className={["h-12 px-6 text-base font-semibold", isReported ? "" : "text-gray-500"].join(" ")}
+                >
+                  {updatingStatus === "ADMIN_HIDDEN" ? "처리 중" : "신고"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={isIgnoredReport ? "brand" : "outline"}
+                  disabled={updatingStatus !== null}
+                  onClick={() => onOpenStatusModal("NORMAL_VISIBLE")}
+                  className={["h-12 px-6 text-base font-semibold", isIgnoredReport ? "" : "text-gray-500"].join(" ")}
+                >
+                  {updatingStatus === "NORMAL_VISIBLE" ? "처리 중" : "무시"}
+                </Button>
+              </>
+            ) : (
+              <StatusBadge size="sm" color={isReported ? "error" : isIgnoredReport ? "success" : "gray"}>
+                {isReported ? "신고" : isIgnoredReport ? "무시" : "미처리"}
+              </StatusBadge>
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900">경고여부</h3>
           <div className="flex flex-wrap gap-3">
-            <Button
-              type="button"
-              variant={warningStatus === "WARNED" ? "brand" : "outline"}
-              disabled={warningStatus === "WARNED" || updatingWarningStatus !== null}
-              onClick={() => onOpenWarningModal("WARNED")}
-              className={["h-12 px-6 text-base font-semibold", warningStatus === "WARNED" ? "" : "text-gray-500"].join(
-                " ",
-              )}
-            >
-              {updatingWarningStatus === "WARNED" ? "처리 중" : "경고"}
-            </Button>
-            <Button
-              type="button"
-              variant={warningStatus === "IGNORED" ? "brand" : "outline"}
-              disabled={warningStatus === "IGNORED" || updatingWarningStatus !== null}
-              onClick={() => onOpenWarningModal("IGNORED")}
-              className={["h-12 px-6 text-base font-semibold", warningStatus === "IGNORED" ? "" : "text-gray-500"].join(
-                " ",
-              )}
-            >
-              {updatingWarningStatus === "IGNORED" ? "처리 중" : "무시"}
-            </Button>
+            {canUpdateStatus ? (
+              <>
+                <Button
+                  type="button"
+                  variant={warningStatus === "WARNED" ? "brand" : "outline"}
+                  disabled={warningStatus === "WARNED" || updatingWarningStatus !== null}
+                  onClick={() => onOpenWarningModal("WARNED")}
+                  className={[
+                    "h-12 px-6 text-base font-semibold",
+                    warningStatus === "WARNED" ? "" : "text-gray-500",
+                  ].join(" ")}
+                >
+                  {updatingWarningStatus === "WARNED" ? "처리 중" : "경고"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={warningStatus === "IGNORED" ? "brand" : "outline"}
+                  disabled={warningStatus === "IGNORED" || updatingWarningStatus !== null}
+                  onClick={() => onOpenWarningModal("IGNORED")}
+                  className={[
+                    "h-12 px-6 text-base font-semibold",
+                    warningStatus === "IGNORED" ? "" : "text-gray-500",
+                  ].join(" ")}
+                >
+                  {updatingWarningStatus === "IGNORED" ? "처리 중" : "무시"}
+                </Button>
+              </>
+            ) : (
+              <StatusBadge size="sm" color={warningStatus === "WARNED" ? "red" : "gray"}>
+                {warningStatus === "WARNED" ? "경고" : warningStatus === "IGNORED" ? "무시" : "미처리"}
+              </StatusBadge>
+            )}
           </div>
         </div>
       </CardContent>

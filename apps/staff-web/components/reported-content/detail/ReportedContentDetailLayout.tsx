@@ -35,6 +35,7 @@ type ReportedContentDetailLayoutProps<THistory extends ReportedContentDetailLayo
   reportedDetail: ReportedContentDetailResponse | null;
   reportedReports: ReportedContentReportsBlock | null;
   onReportedStatusUpdated: () => void;
+  canUpdateReportedStatus: boolean;
   previewMedia: MediaPreviewState | null;
   onPreviewMediaChange: (preview: MediaPreviewState) => void;
   onPreviewMediaClose: () => void;
@@ -57,6 +58,7 @@ export function ReportedContentDetailLayout<THistory extends ReportedContentDeta
   reportedDetail,
   reportedReports,
   onReportedStatusUpdated,
+  canUpdateReportedStatus,
   previewMedia,
   onPreviewMediaChange,
   onPreviewMediaClose,
@@ -92,6 +94,7 @@ export function ReportedContentDetailLayout<THistory extends ReportedContentDeta
             initialDetail={reportedDetail}
             initialReports={reportedReports}
             onStatusUpdated={onReportedStatusUpdated}
+            canUpdateStatus={canUpdateReportedStatus}
           />
         </div>
       </div>

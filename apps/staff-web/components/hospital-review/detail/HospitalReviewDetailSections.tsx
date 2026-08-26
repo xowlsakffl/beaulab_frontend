@@ -8,6 +8,7 @@ import {
   CardTitle,
   CategoryBadgeList,
   Pagination,
+  StatusBadge,
   type DataTableMeta,
 } from "@beaulab/ui-admin";
 
@@ -28,7 +29,11 @@ import {
   type HospitalReviewDetailResponse,
   type HospitalReviewOperationHistory,
 } from "@/lib/hospital-review/detail";
-import { resolveHospitalReviewMediaUrl, type HospitalReviewMediaAsset } from "@/lib/hospital-review/list";
+import {
+  labelHospitalReviewVisibilityStatus,
+  resolveHospitalReviewMediaUrl,
+  type HospitalReviewMediaAsset,
+} from "@/lib/hospital-review/list";
 
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
@@ -79,6 +84,7 @@ export const HospitalSummaryCard = React.memo(function HospitalSummaryCard({
 export const HospitalReviewContentCard = React.memo(function HospitalReviewContentCard({
   boardTitle,
   detail,
+  canUpdateStatus,
   visibilityLocked,
   visibilityUpdating,
   onChangeVisibility,
@@ -86,6 +92,7 @@ export const HospitalReviewContentCard = React.memo(function HospitalReviewConte
 }: {
   boardTitle: string;
   detail: HospitalReviewDetailResponse;
+  canUpdateStatus: boolean;
   visibilityLocked: boolean;
   visibilityUpdating: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
@@ -98,11 +105,15 @@ export const HospitalReviewContentCard = React.memo(function HospitalReviewConte
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <CardTitle>{boardTitle}</CardTitle>
           </div>
-          <VisibilityButtons
-            status={detail.status}
-            disabled={visibilityLocked || visibilityUpdating}
-            onChange={onChangeVisibility}
-          />
+          {canUpdateStatus ? (
+            <VisibilityButtons
+              status={detail.status}
+              disabled={visibilityLocked || visibilityUpdating}
+              onChange={onChangeVisibility}
+            />
+          ) : (
+            <VisibilityStatusBadge status={detail.status} />
+          )}
         </div>
       </CardHeader>
 
@@ -153,6 +164,7 @@ export const HospitalReviewHistoryCard = React.memo(function HospitalReviewHisto
 
 export const CommentsCard = React.memo(function CommentsCard({
   comments,
+  canUpdateStatus,
   commentsMeta,
   commentCount,
   perPage,
@@ -165,6 +177,7 @@ export const CommentsCard = React.memo(function CommentsCard({
   onChangeVisibility,
 }: {
   comments: HospitalReviewDetailComment[];
+  canUpdateStatus: boolean;
   commentsMeta: DataTableMeta | null;
   commentCount: number;
   perPage: number;
@@ -204,6 +217,7 @@ export const CommentsCard = React.memo(function CommentsCard({
               <CommentItem
                 key={comment.id}
                 comment={comment}
+                canUpdateStatus={canUpdateStatus}
                 showSeparator={index > 0 && !comment.is_reply}
                 expanded={expandedHistoryIds.has(comment.id)}
                 updating={updatingIds.has(comment.id)}
@@ -237,6 +251,7 @@ function CategoryBadges({ detail }: { detail: HospitalReviewDetailResponse }) {
 
 const CommentItem = React.memo(function CommentItem({
   comment,
+  canUpdateStatus,
   showSeparator,
   expanded,
   updating,
@@ -244,6 +259,7 @@ const CommentItem = React.memo(function CommentItem({
   onChangeVisibility,
 }: {
   comment: HospitalReviewDetailComment;
+  canUpdateStatus: boolean;
   showSeparator: boolean;
   expanded: boolean;
   updating: boolean;
@@ -282,11 +298,15 @@ const CommentItem = React.memo(function CommentItem({
           <p className="text-sm text-gray-700">
             좋아요 <span className="font-semibold">{Number(comment.like_count ?? 0).toLocaleString()}</span>
           </p>
-          <VisibilityButtons
-            status={comment.status}
-            disabled={visibilityLocked || updating}
-            onChange={(status) => onChangeVisibility(comment.id, status)}
-          />
+          {canUpdateStatus ? (
+            <VisibilityButtons
+              status={comment.status}
+              disabled={visibilityLocked || updating}
+              onChange={(status) => onChangeVisibility(comment.id, status)}
+            />
+          ) : (
+            <VisibilityStatusBadge status={comment.status} />
+          )}
         </div>
       </div>
 
@@ -314,6 +334,16 @@ const CommentItem = React.memo(function CommentItem({
     </article>
   );
 });
+
+function VisibilityStatusBadge({ status }: { status?: string | null }) {
+  const normalizedStatus = status === "INACTIVE" ? "INACTIVE" : "ACTIVE";
+
+  return (
+    <StatusBadge size="sm" color={normalizedStatus === "ACTIVE" ? "success" : "error"}>
+      {labelHospitalReviewVisibilityStatus(normalizedStatus)}
+    </StatusBadge>
+  );
+}
 
 function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory }) {
   const historyForDisplay = {

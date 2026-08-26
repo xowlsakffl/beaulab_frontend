@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { hasPermission } from "@beaulab/auth";
 import { useRouter } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, useGlobalAlert } from "@beaulab/ui-admin";
@@ -10,6 +11,8 @@ import { NoticeMainSection } from "@/components/notice/form/NoticeMainSection";
 import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempImages";
 import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import type { NoticeDetailResponse } from "@/lib/notice/detail";
 import {
   buildCreateNoticeFormData,
@@ -25,6 +28,7 @@ export default function NoticesCreateFormClient() {
   const router = useRouter();
   const { showAlert } = useGlobalAlert();
   const { focusFirstErrorField } = useNoticeFieldFocus();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.notice);
   const { uploadImage, cleanupRemovedTempImages, cleanupAllTempImages, clearTrackedTempImages } =
     useNoticeEditorTempImages();
 
@@ -90,7 +94,7 @@ export default function NoticesCreateFormClient() {
     event.preventDefault();
     if (!validate()) return;
 
-    const formData = buildCreateNoticeFormData({ form, attachments });
+    const formData = buildCreateNoticeFormData({ form, attachments, includeStatus: canUpdateStatus });
 
     setIsSubmitting(true);
 
@@ -138,6 +142,7 @@ export default function NoticesCreateFormClient() {
     >
       <div className="min-w-0">
         <NoticeMainSection
+          canUpdateStatus={canUpdateStatus}
           form={form}
           errors={errors}
           onFieldChange={setField}

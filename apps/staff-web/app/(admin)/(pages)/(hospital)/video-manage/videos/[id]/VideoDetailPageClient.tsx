@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -18,6 +19,8 @@ import {
   type VideoOperationHistoryItem,
 } from "@/components/video/detail/VideoDetailSections";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { type VideoDetailResponse } from "@/lib/video/detail";
 import { labelVideoAdminStatus, labelVideoReportStatus } from "@/lib/video/list";
@@ -36,6 +39,8 @@ export default function VideoDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canUpdateAdminStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.video);
+  const canUpdateReportStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.reportedVideo);
 
   const rawVideoId = Array.isArray(params.id) ? params.id[0] : params.id;
   const videoId = Number(rawVideoId);
@@ -332,6 +337,8 @@ export default function VideoDetailPageClient() {
       <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
         <VideoOperationInfoCard
           detail={detail}
+          canUpdateAdminStatus={canUpdateAdminStatus}
+          canUpdateReportStatus={canUpdateReportStatus}
           updatingAdminStatus={updatingAdminStatus}
           updatingReportStatus={updatingReportStatus}
           onAdminStatusChange={requestAdminStatusChange}
@@ -346,54 +353,60 @@ export default function VideoDetailPageClient() {
       </section>
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <AllowStatusConfirmModal
-        pending={isForcedStopModalOpen ? { allowStatus: "FORCED_STOPPED", reason: adminStatusReason } : null}
-        title="강제중지 처리"
-        subjectLabel="해당 동영상을"
-        messageAction="처리"
-        labelStatus={labelVideoAdminStatus}
-        updating={updatingAdminStatus}
-        error={adminStatusError}
-        rejectStatus="FORCED_STOPPED"
-        reasonInputId="video-forced-stop-reason"
-        reasonLabel="강제중지 사유"
-        reasonPlaceholder="강제중지 사유를 입력해주세요."
-        processingText="처리 중"
-        confirmText="등록"
-        onReasonChange={setAdminStatusReason}
-        onClose={closeForcedStopModal}
-        onConfirm={() => void submitAdminStatus("FORCED_STOPPED")}
-      />
-      <AllowStatusConfirmModal
-        pending={isNormalizeModalOpen ? { allowStatus: "NORMAL", reason: "" } : null}
-        title="정상 처리"
-        subjectLabel="해당 동영상을"
-        messageAction="처리"
-        labelStatus={labelVideoAdminStatus}
-        updating={updatingAdminStatus}
-        error={adminStatusError}
-        rejectStatus="FORCED_STOPPED"
-        reasonInputId="video-normal-reason"
-        processingText="처리 중"
-        confirmText="확인"
-        onReasonChange={() => undefined}
-        onClose={closeNormalizeModal}
-        onConfirm={() => void submitAdminStatus("NORMAL")}
-      />
-      <ReportStatusConfirmModal
-        pendingStatus={pendingReportStatus}
-        reason={reportStatusReason}
-        reasonError={reportStatusReasonError}
-        error={reportStatusError}
-        updating={updatingReportStatus !== null}
-        onReasonChange={(value) => {
-          setReportStatusReason(value);
-          if (reportStatusReasonError) setReportStatusReasonError(null);
-          if (reportStatusError) setReportStatusError(null);
-        }}
-        onClose={closeReportStatusModal}
-        onConfirm={() => void submitReportStatus()}
-      />
+      {canUpdateAdminStatus ? (
+        <>
+          <AllowStatusConfirmModal
+            pending={isForcedStopModalOpen ? { allowStatus: "FORCED_STOPPED", reason: adminStatusReason } : null}
+            title="강제중지 처리"
+            subjectLabel="해당 동영상을"
+            messageAction="처리"
+            labelStatus={labelVideoAdminStatus}
+            updating={updatingAdminStatus}
+            error={adminStatusError}
+            rejectStatus="FORCED_STOPPED"
+            reasonInputId="video-forced-stop-reason"
+            reasonLabel="강제중지 사유"
+            reasonPlaceholder="강제중지 사유를 입력해주세요."
+            processingText="처리 중"
+            confirmText="등록"
+            onReasonChange={setAdminStatusReason}
+            onClose={closeForcedStopModal}
+            onConfirm={() => void submitAdminStatus("FORCED_STOPPED")}
+          />
+          <AllowStatusConfirmModal
+            pending={isNormalizeModalOpen ? { allowStatus: "NORMAL", reason: "" } : null}
+            title="정상 처리"
+            subjectLabel="해당 동영상을"
+            messageAction="처리"
+            labelStatus={labelVideoAdminStatus}
+            updating={updatingAdminStatus}
+            error={adminStatusError}
+            rejectStatus="FORCED_STOPPED"
+            reasonInputId="video-normal-reason"
+            processingText="처리 중"
+            confirmText="확인"
+            onReasonChange={() => undefined}
+            onClose={closeNormalizeModal}
+            onConfirm={() => void submitAdminStatus("NORMAL")}
+          />
+        </>
+      ) : null}
+      {canUpdateReportStatus ? (
+        <ReportStatusConfirmModal
+          pendingStatus={pendingReportStatus}
+          reason={reportStatusReason}
+          reasonError={reportStatusReasonError}
+          error={reportStatusError}
+          updating={updatingReportStatus !== null}
+          onReasonChange={(value) => {
+            setReportStatusReason(value);
+            if (reportStatusReasonError) setReportStatusReasonError(null);
+            if (reportStatusError) setReportStatusError(null);
+          }}
+          onClose={closeReportStatusModal}
+          onConfirm={() => void submitReportStatus()}
+        />
+      ) : null}
     </div>
   );
 }

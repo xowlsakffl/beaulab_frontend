@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -21,6 +22,8 @@ import {
   type OperationHistoryItem,
 } from "@/components/hospital-event/detail/HospitalEventDetailSections";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { labelHospitalEventAllowStatus, type HospitalEventApiItem } from "@/lib/hospital-event/list";
 
@@ -42,6 +45,7 @@ export default function HospitalEventDetailPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEvent);
 
   const rawEventId = Array.isArray(params.id) ? params.id[0] : params.id;
   const eventId = Number(rawEventId);
@@ -365,11 +369,21 @@ export default function HospitalEventDetailPageClient() {
   return (
     <div className="min-w-0 space-y-4">
       <section className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(420px,1fr)_minmax(360px,0.85fr)_minmax(280px,0.55fr)]">
-        <EventMainCard detail={detail} updating={updatingStatus} onAdminStatusChange={requestAdminStatusChange} />
+        <EventMainCard
+          detail={detail}
+          canUpdateStatus={canUpdateStatus}
+          updating={updatingStatus}
+          onAdminStatusChange={requestAdminStatusChange}
+        />
 
         <div className="min-w-0 space-y-4">
           <EventInfoSummaryCard detail={detail} />
-          <AllowStatusCard detail={detail} updating={updatingStatus} onChange={requestAllowStatus} />
+          <AllowStatusCard
+            detail={detail}
+            canUpdateStatus={canUpdateStatus}
+            updating={updatingStatus}
+            onChange={requestAllowStatus}
+          />
           <AdminNotesCard notes={notes} loading={notesLoading} onAdd={() => setIsNoteModalOpen(true)} />
           <OperationHistoryCard
             histories={histories}
@@ -383,33 +397,37 @@ export default function HospitalEventDetailPageClient() {
       </section>
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <AllowStatusConfirmModal
-        pending={pendingAdminStatusChange}
-        title={pendingAdminStatusChange?.allowStatus === "NORMAL" ? "정상 전환" : "강제중지"}
-        subjectLabel="해당 이벤트를"
-        labelStatus={(status) => (status === "NORMAL" ? "정상" : "강제중지")}
-        messageAction="처리"
-        updating={updatingStatus}
-        error={pendingAdminStatusError}
-        rejectStatus="FORCED_STOPPED"
-        reasonInputId="hospital-event-force-stop-reason"
-        reasonLabel="강제중지 사유"
-        reasonPlaceholder="강제중지 사유를 입력해주세요."
-        onReasonChange={updatePendingAdminStatusReason}
-        onClose={closeAdminStatusConfirmModal}
-        onConfirm={() => void confirmAdminStatusChange()}
-      />
-      <AllowStatusConfirmModal
-        pending={pendingAllowStatusChange}
-        subjectLabel="해당 이벤트를"
-        labelStatus={labelHospitalEventAllowStatus}
-        updating={updatingStatus}
-        error={pendingAllowStatusError}
-        reasonInputId="hospital-event-rejected-reason"
-        onReasonChange={updatePendingAllowStatusReason}
-        onClose={closeAllowStatusConfirmModal}
-        onConfirm={() => void confirmAllowStatusChange()}
-      />
+      {canUpdateStatus ? (
+        <>
+          <AllowStatusConfirmModal
+            pending={pendingAdminStatusChange}
+            title={pendingAdminStatusChange?.allowStatus === "NORMAL" ? "정상 전환" : "강제중지"}
+            subjectLabel="해당 이벤트를"
+            labelStatus={(status) => (status === "NORMAL" ? "정상" : "강제중지")}
+            messageAction="처리"
+            updating={updatingStatus}
+            error={pendingAdminStatusError}
+            rejectStatus="FORCED_STOPPED"
+            reasonInputId="hospital-event-force-stop-reason"
+            reasonLabel="강제중지 사유"
+            reasonPlaceholder="강제중지 사유를 입력해주세요."
+            onReasonChange={updatePendingAdminStatusReason}
+            onClose={closeAdminStatusConfirmModal}
+            onConfirm={() => void confirmAdminStatusChange()}
+          />
+          <AllowStatusConfirmModal
+            pending={pendingAllowStatusChange}
+            subjectLabel="해당 이벤트를"
+            labelStatus={labelHospitalEventAllowStatus}
+            updating={updatingStatus}
+            error={pendingAllowStatusError}
+            reasonInputId="hospital-event-rejected-reason"
+            onReasonChange={updatePendingAllowStatusReason}
+            onClose={closeAllowStatusConfirmModal}
+            onConfirm={() => void confirmAllowStatusChange()}
+          />
+        </>
+      ) : null}
       <NoteCreateModal
         isOpen={isNoteModalOpen}
         value={noteInput}

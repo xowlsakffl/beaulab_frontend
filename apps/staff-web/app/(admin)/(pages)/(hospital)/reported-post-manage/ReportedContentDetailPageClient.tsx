@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Card, CardContent, SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -9,6 +10,8 @@ import { ReportedEvaluationDetailView } from "@/components/reported-content/deta
 import { ReportedReviewDetailView } from "@/components/reported-content/detail/ReportedReviewDetailView";
 import { ReportedTalkDetailView } from "@/components/reported-content/detail/ReportedTalkDetailView";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { reportedContentStatusPermission, STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE,
   type HospitalEvaluationDetailResponse,
@@ -102,6 +105,15 @@ const DETAIL_CONFIGS: Record<ReportedContentDetailBoardType, ReportedContentDeta
 
 export default function ReportedContentDetailPageClient({ type }: ReportedContentDetailPageClientProps) {
   const config = DETAIL_CONFIGS[type];
+  const auth = getSession()?.auth;
+  const canUpdateReportedStatus = hasPermission(auth, reportedContentStatusPermission(config.targetType));
+  const originalStatusPermission =
+    config.kind === "talk"
+      ? STAFF_STATUS_PERMISSIONS.talk
+      : config.kind === "review"
+        ? STAFF_STATUS_PERMISSIONS.hospitalReview
+        : STAFF_STATUS_PERMISSIONS.hospitalEvaluation;
+  const canUpdateOriginalStatus = hasPermission(auth, originalStatusPermission);
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
   const router = useRouter();
@@ -284,6 +296,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         onSaved={() => refreshDetail(true)}
         onReportedStatusUpdated={() => void fetchHistories(true)}
         onHistoryPageChange={changeHistoriesPage}
+        canUpdateReportedStatus={canUpdateReportedStatus}
+        canUpdateOriginalStatus={canUpdateOriginalStatus}
       />
     );
   }
@@ -305,6 +319,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         onSaved={() => refreshDetail(true)}
         onReportedStatusUpdated={() => void fetchHistories(true)}
         onHistoryPageChange={changeHistoriesPage}
+        canUpdateReportedStatus={canUpdateReportedStatus}
+        canUpdateOriginalStatus={canUpdateOriginalStatus}
       />
     );
   }
@@ -325,6 +341,8 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         onSaved={() => refreshDetail(true)}
         onReportedStatusUpdated={() => void fetchHistories(true)}
         onHistoryPageChange={changeHistoriesPage}
+        canUpdateReportedStatus={canUpdateReportedStatus}
+        canUpdateReceiptStatus={canUpdateOriginalStatus}
       />
     );
   }

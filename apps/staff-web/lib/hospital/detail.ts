@@ -42,7 +42,6 @@ export type HospitalOperationHours = Record<
 
 export type AccountHospitalAsset = {
   id?: number | null;
-  name?: string | null;
   nickname?: string | null;
   phone?: string | null;
   status?: string | null;
@@ -78,6 +77,22 @@ export type HospitalStatusHistory = {
   created_at?: string | null;
 };
 
+export type HospitalStatusChangeRequestAsset = {
+  id: number;
+  hospital_id: number;
+  hospital_name?: string | null;
+  previous_status: { code: string; label: string };
+  target_status: { code: string; label: string };
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | string;
+  reason: string;
+  decision_reason?: string | null;
+  requester?: { id: number; name: string } | null;
+  processor?: { id: number; name: string } | null;
+  processed_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
 export type HospitalWalletAsset = {
   id: number;
   total_balance: number;
@@ -111,6 +126,7 @@ export type HospitalDetailResponse = {
   allow_status?: string | null;
   status?: string | null;
   latest_status_history?: HospitalStatusHistory | null;
+  pending_status_change_request?: HospitalStatusChangeRequestAsset | null;
   new_event_db_count?: number | null;
   wallet?: HospitalWalletAsset | null;
   logo?: MediaAsset | null;

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, type DataTableMeta } from "@beaulab/ui-admin";
@@ -13,6 +14,8 @@ import { ReportedContentReportsModal } from "@/components/reported-content/list/
 import { ReportedContentSummaryCards } from "@/components/reported-content/list/ReportedContentSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { reportedContentKindStatusPermission } from "@/lib/common/status-permissions";
 import {
   DEFAULT_REPORTED_CONTENT_SORT,
   REPORTED_CONTENT_BOARD_CONFIGS,
@@ -68,6 +71,7 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   const [reportsModalRow, setReportsModalRow] = React.useState<ReportedContentRow | null>(null);
   const [processModalRow, setProcessModalRow] = React.useState<ReportedContentRow | null>(null);
   const activeKind = activeBoard === "comments" ? (config.commentKind ?? config.kind) : config.kind;
+  const canUpdateStatus = hasPermission(getSession()?.auth, reportedContentKindStatusPermission(activeKind));
   const activeApiPath = activeBoard === "comments" ? (config.commentApiPath ?? config.apiPath) : config.apiPath;
   const showSummaryCards = config.showSummaryCards !== false;
   const activeSummaryKey = appliedFilters.summaryFilter || null;
@@ -376,14 +380,16 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
 
         onOpenDetail={isCommentKind ? undefined : openDetail}
         onOpenReports={isCommentKind ? setReportsModalRow : undefined}
-        onOpenProcess={isCommentKind ? setProcessModalRow : undefined}
+        onOpenProcess={isCommentKind && canUpdateStatus ? setProcessModalRow : undefined}
       />
       <ReportedContentReportsModal row={reportsModalRow} onClose={() => setReportsModalRow(null)} />
-      <ReportedContentProcessModal
-        row={processModalRow}
-        onClose={() => setProcessModalRow(null)}
-        onProcessed={refreshAfterProcess}
-      />
+      {canUpdateStatus ? (
+        <ReportedContentProcessModal
+          row={processModalRow}
+          onClose={() => setProcessModalRow(null)}
+          onProcessed={refreshAfterProcess}
+        />
+      ) : null}
     </div>
   );
 }

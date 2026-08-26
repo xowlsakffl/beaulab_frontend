@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { hasPermission } from "@beaulab/auth";
 
 import { CategoryBadgeList } from "@beaulab/ui-admin";
 import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
@@ -8,16 +9,19 @@ import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { resolveDoctorMediaUrl, type DoctorDetailResponse, type DoctorMediaAsset } from "@/lib/doctor/detail";
 import {
   formatCareerPeriod,
+  doctorApprovalStatusBadgeColor,
   labelDoctorApprovalStatus,
   labelDoctorGender,
   labelDoctorSpecialistField,
 } from "@/lib/doctor/list";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, SpinnerBlock } from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, StatusBadge } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -34,6 +38,7 @@ export default function DoctorDetailPageClient() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.doctor);
 
   const rawDoctorId = Array.isArray(params.id) ? params.id[0] : params.id;
   const doctorId = Number(rawDoctorId);
@@ -175,6 +180,7 @@ export default function DoctorDetailPageClient() {
         <DoctorBasicInfoCard detail={detail} onPreview={setPreviewMedia} />
         <DoctorAllowStatusCard
           detail={detail}
+          canUpdate={canUpdateStatus}
           updating={updatingAllowStatus}
           error={allowStatusError}
           onChange={requestAllowStatusChange}
@@ -197,30 +203,34 @@ export default function DoctorDetailPageClient() {
       </section>
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
-      <AllowStatusConfirmModal
-        pending={pendingAllowStatusChange}
-        subjectLabel="해당 의료진을"
-        messageAction="상태로 변경"
-        labelStatus={labelDoctorApprovalStatus}
-        updating={updatingAllowStatus}
-        error={allowStatusError}
-        reasonInputId="doctor-rejected-reason"
-        processingText="변경 중"
-        onReasonChange={updateAllowStatusReason}
-        onClose={closeAllowStatusModal}
-        onConfirm={() => void confirmAllowStatusChange()}
-      />
+      {canUpdateStatus ? (
+        <AllowStatusConfirmModal
+          pending={pendingAllowStatusChange}
+          subjectLabel="해당 의료진을"
+          messageAction="상태로 변경"
+          labelStatus={labelDoctorApprovalStatus}
+          updating={updatingAllowStatus}
+          error={allowStatusError}
+          reasonInputId="doctor-rejected-reason"
+          processingText="변경 중"
+          onReasonChange={updateAllowStatusReason}
+          onClose={closeAllowStatusModal}
+          onConfirm={() => void confirmAllowStatusChange()}
+        />
+      ) : null}
     </div>
   );
 }
 
 function DoctorAllowStatusCard({
   detail,
+  canUpdate,
   updating,
   error,
   onChange,
 }: {
   detail: DoctorDetailResponse;
+  canUpdate: boolean;
   updating: boolean;
   error: string | null;
   onChange: (status: string) => void;
@@ -229,9 +239,13 @@ function DoctorAllowStatusCard({
     <Card className={`${infoCardClassName} xl:col-start-2`}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className={cardTitleClassName}>검수상태</h3>
-        <Can permission="beaulab.doctor.update">
+        {canUpdate ? (
           <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
-        </Can>
+        ) : (
+          <StatusBadge size="sm" color={doctorApprovalStatusBadgeColor(detail.allow_status ?? "")}>
+            {labelDoctorApprovalStatus(detail.allow_status ?? "")}
+          </StatusBadge>
+        )}
       </div>
       {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
     </Card>

@@ -3,8 +3,9 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
+import { SpinnerBlock, StatusBadge, type DataTableMeta } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
@@ -21,7 +22,9 @@ import {
   HospitalEvaluationRatingScoreCard,
 } from "@/components/hospital-evaluation/detail/HospitalEvaluationDetailSections";
 import { api } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
+import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
   HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE,
@@ -30,6 +33,7 @@ import {
   type HospitalEvaluationReceiptDecision,
   type PaginatedBlock,
 } from "@/lib/hospital-evaluation/detail";
+import { labelHospitalEvaluationVisibilityStatus } from "@/lib/hospital-evaluation/list";
 
 const MediaPreviewModal = dynamic(() =>
   import("@/components/common/MediaPreviewModal").then((module) => module.MediaPreviewModal),
@@ -106,6 +110,7 @@ export default function HospitalEvaluationDetailPageClient() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEvaluation);
   const rawEvaluationId = Array.isArray(params.id) ? params.id[0] : params.id;
   const evaluationId = Number(rawEvaluationId);
 
@@ -288,14 +293,18 @@ export default function HospitalEvaluationDetailPageClient() {
   const headerActions = React.useMemo(() => {
     if (!detail || loadError) return null;
 
-    return (
+    return canUpdateStatus ? (
       <VisibilityButtons
         status={detail.status}
         disabled={visibilityUpdating || isVisibilityLockedByReport(detail.report)}
         onChange={requestVisibilityChange}
       />
+    ) : (
+      <StatusBadge size="sm" color={detail.status === "INACTIVE" ? "error" : "success"}>
+        {labelHospitalEvaluationVisibilityStatus(detail.status)}
+      </StatusBadge>
     );
-  }, [detail, loadError, requestVisibilityChange, visibilityUpdating]);
+  }, [canUpdateStatus, detail, loadError, requestVisibilityChange, visibilityUpdating]);
 
   usePageHeaderExtra(headerActions);
 
@@ -415,6 +424,7 @@ export default function HospitalEvaluationDetailPageClient() {
             receiptButtonLabel={receiptButtonLabel}
             receiptButtonVerified={receiptStatus === RECEIPT_STATUS_VERIFIED}
             hasReceiptImages={receiptImages.length > 0}
+            canUpdateReceiptStatus={canUpdateStatus}
             receiptButtonDisabled={receiptUpdating}
             onOpenReceiptModal={openReceiptModal}
             onPreviewMedia={setPreviewMedia}
@@ -435,7 +445,7 @@ export default function HospitalEvaluationDetailPageClient() {
         </div>
       </div>
 
-      {isReceiptModalOpen ? (
+      {canUpdateStatus && isReceiptModalOpen ? (
         <HospitalEvaluationReceiptModal
           isOpen
           image={receiptImage}
@@ -457,17 +467,19 @@ export default function HospitalEvaluationDetailPageClient() {
         />
       ) : null}
 
-      <VisibilityConfirmModal
-        isOpen={Boolean(pendingVisibilityChange)}
-        status={pendingVisibilityChange?.status}
-        message={pendingVisibilityMessage}
-        hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
-        updating={visibilityUpdating}
-        reasonInputId="hospital-evaluation-detail-hidden-reason"
-        onHiddenReasonChange={updatePendingHiddenReason}
-        onClose={closeVisibilityConfirmModal}
-        onConfirm={() => void confirmVisibilityChange()}
-      />
+      {canUpdateStatus ? (
+        <VisibilityConfirmModal
+          isOpen={Boolean(pendingVisibilityChange)}
+          status={pendingVisibilityChange?.status}
+          message={pendingVisibilityMessage}
+          hiddenReasonValue={pendingVisibilityChange?.hiddenReason ?? ""}
+          updating={visibilityUpdating}
+          reasonInputId="hospital-evaluation-detail-hidden-reason"
+          onHiddenReasonChange={updatePendingHiddenReason}
+          onClose={closeVisibilityConfirmModal}
+          onConfirm={() => void confirmVisibilityChange()}
+        />
+      ) : null}
 
       {previewMedia ? (
         <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />

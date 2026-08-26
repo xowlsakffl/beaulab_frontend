@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { StatusBadge } from "@beaulab/ui-admin";
 
 import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
 
@@ -36,11 +37,23 @@ export function EmptyDetailState({ children }: { children: React.ReactNode }) {
 export function ReportedOriginalVisibilityButtons({
   status,
   disabled,
+  canUpdate,
   onChange,
 }: {
   status?: string | null;
   disabled: boolean;
+  canUpdate: boolean;
   onChange: (status: "ACTIVE" | "INACTIVE") => void;
 }) {
-  return <VisibilityActionButtons status={status} disabled={disabled} onChange={onChange} />;
+  if (canUpdate) {
+    return <VisibilityActionButtons status={status} disabled={disabled} onChange={onChange} />;
+  }
+
+  const visible = status !== "INACTIVE";
+
+  return (
+    <StatusBadge size="sm" color={visible ? "success" : "error"}>
+      {visible ? "노출" : "미노출"}
+    </StatusBadge>
+  );
 }

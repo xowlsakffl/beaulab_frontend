@@ -5,7 +5,20 @@ import { hospitalApi } from "@/lib/common/api";
 export type HospitalAccountInvitation = {
   hospital_name: string;
   expires_at: string | null;
-  identity_verification_required: boolean;
+  phone_verification_required: boolean;
+};
+
+export type HospitalAccountPhoneVerification = {
+  verification_id: number;
+  phone: string;
+  code_expires_at: string | null;
+  resend_after_seconds: number;
+};
+
+export type HospitalAccountPhoneVerificationResult = {
+  phone_verification_token: string;
+  phone: string;
+  expires_at: string | null;
 };
 
 export type HospitalAccountInvitationCompletion = {
@@ -18,7 +31,7 @@ export type HospitalAccountInvitationPayload = {
   nickname: string;
   password: string;
   password_confirmation: string;
-  identity_verification_token: string;
+  phone_verification_token: string;
 };
 
 type ApiResultWithStatus<T> = {
@@ -52,6 +65,38 @@ export async function completeHospitalAccountInvitation(
     {
       method: "POST",
       body: payload,
+      skipUnauthorizedHandler: true,
+    },
+  );
+
+  return {
+    status: result.response.status,
+    payload: result.payload,
+  };
+}
+
+export async function sendHospitalAccountPhoneVerification(token: string, phone: string) {
+  const result = await hospitalApi.rawWithResponse<HospitalAccountPhoneVerification>(
+    `/auth/account-invitations/${encodeURIComponent(token)}/phone-verifications`,
+    {
+      method: "POST",
+      body: { phone },
+      skipUnauthorizedHandler: true,
+    },
+  );
+
+  return {
+    status: result.response.status,
+    payload: result.payload,
+  };
+}
+
+export async function verifyHospitalAccountPhoneVerification(token: string, verificationId: number, code: string) {
+  const result = await hospitalApi.rawWithResponse<HospitalAccountPhoneVerificationResult>(
+    `/auth/account-invitations/${encodeURIComponent(token)}/phone-verifications/${verificationId}/verify`,
+    {
+      method: "POST",
+      body: { code },
       skipUnauthorizedHandler: true,
     },
   );

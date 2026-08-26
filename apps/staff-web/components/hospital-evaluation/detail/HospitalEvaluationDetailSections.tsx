@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck, type DataTableMeta } from "@beaulab/ui-admin";
+import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck, StatusBadge, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -12,6 +12,7 @@ import {
   formatHospitalEvaluationDetailDate,
   formatHospitalEvaluationDetailDateTime,
   formatHospitalEvaluationDetailRating,
+  labelHospitalEvaluationReceiptStatus,
   resolveHospitalEvaluationMediaUrl,
   titleHospitalEvaluationDetailReviewType,
   type HospitalEvaluationAssessment,
@@ -71,6 +72,7 @@ export const HospitalEvaluationContentCard = React.memo(function HospitalEvaluat
   receiptButtonLabel,
   receiptButtonVerified,
   hasReceiptImages,
+  canUpdateReceiptStatus,
   receiptButtonDisabled,
   onOpenReceiptModal,
   onPreviewMedia,
@@ -79,6 +81,7 @@ export const HospitalEvaluationContentCard = React.memo(function HospitalEvaluat
   receiptButtonLabel: string;
   receiptButtonVerified: boolean;
   hasReceiptImages: boolean;
+  canUpdateReceiptStatus: boolean;
   receiptButtonDisabled: boolean;
   onOpenReceiptModal: () => void;
   onPreviewMedia: (preview: MediaPreviewState) => void;
@@ -90,7 +93,7 @@ export const HospitalEvaluationContentCard = React.memo(function HospitalEvaluat
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <CardTitle>{titleHospitalEvaluationDetailReviewType(detail.categories)}</CardTitle>
           </div>
-          {hasReceiptImages ? (
+          {hasReceiptImages && canUpdateReceiptStatus ? (
             <Button
               type="button"
               variant="brand"
@@ -102,6 +105,13 @@ export const HospitalEvaluationContentCard = React.memo(function HospitalEvaluat
               {receiptButtonVerified ? <CircleCheck className="size-4" aria-hidden="true" /> : null}
               {receiptButtonLabel}
             </Button>
+          ) : hasReceiptImages ? (
+            <StatusBadge
+              size="sm"
+              color={detail.receipt?.status === "VERIFIED" ? "success" : detail.receipt?.status === "REJECTED" ? "error" : "light"}
+            >
+              {labelHospitalEvaluationReceiptStatus(detail.receipt?.status)}
+            </StatusBadge>
           ) : null}
         </div>
       </CardHeader>

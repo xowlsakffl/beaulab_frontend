@@ -24,12 +24,16 @@ export function HospitalVerifiedAccountContactEditCard({
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
-        {onOpenAccountInvitation ? (
-          <Button type="button" variant="brand" size="sm" onClick={onOpenAccountInvitation}>
-            <Mail className="size-4" />
-            계정 생성 이메일
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="brand"
+          size="sm"
+          disabled={!onOpenAccountInvitation}
+          onClick={onOpenAccountInvitation}
+        >
+          <Mail className="size-4" />
+          계정 생성 이메일
+        </Button>
       </div>
       <div className="space-y-3">
         <ReadonlyInfoField label="전화번호" value={accountHospital?.phone} compact />

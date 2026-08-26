@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, Pagination, type DataTableMeta } from "@beaulab/ui-admin";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Pagination,
+  StatusBadge,
+  type DataTableMeta,
+} from "@beaulab/ui-admin";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -52,11 +60,13 @@ export const TalkMemberSummaryCard = React.memo(function TalkMemberSummaryCard({
 export const TalkContentCard = React.memo(function TalkContentCard({
   detail,
   visibilityUpdating,
+  canUpdateStatus,
   onChangeVisibility,
   onPreviewMedia,
 }: {
   detail: TalkDetailResponse;
   visibilityUpdating: boolean;
+  canUpdateStatus: boolean;
   onChangeVisibility: (status: "ACTIVE" | "INACTIVE") => void;
   onPreviewMedia: (preview: MediaPreviewState) => void;
 }) {
@@ -71,11 +81,15 @@ export const TalkContentCard = React.memo(function TalkContentCard({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <CardTitle>토크</CardTitle>
           </div>
-          <VisibilityButtons
-            status={detail.status}
-            disabled={visibilityLocked || visibilityUpdating}
-            onChange={onChangeVisibility}
-          />
+          {canUpdateStatus ? (
+            <VisibilityButtons
+              status={detail.status}
+              disabled={visibilityLocked || visibilityUpdating}
+              onChange={onChangeVisibility}
+            />
+          ) : (
+            <VisibilityStatusBadge status={detail.status} />
+          )}
         </div>
       </CardHeader>
 
@@ -149,6 +163,7 @@ export const TalkCommentsCard = React.memo(function TalkCommentsCard({
   refreshing,
   expandedHistoryIds,
   updatingIds,
+  canUpdateStatus,
   onChangePage,
   onChangePerPage,
   onToggleHistory,
@@ -161,6 +176,7 @@ export const TalkCommentsCard = React.memo(function TalkCommentsCard({
   refreshing: boolean;
   expandedHistoryIds: Set<number>;
   updatingIds: Set<number>;
+  canUpdateStatus: boolean;
   onChangePage: (page: number) => void;
   onChangePerPage: (value: number) => void;
   onToggleHistory: (commentId: number) => void;
@@ -197,6 +213,7 @@ export const TalkCommentsCard = React.memo(function TalkCommentsCard({
                 showSeparator={index > 0 && !comment.is_reply}
                 expanded={expandedHistoryIds.has(comment.id)}
                 updating={updatingIds.has(comment.id)}
+                canUpdateStatus={canUpdateStatus}
                 onToggleHistory={onToggleHistory}
                 onChangeVisibility={onChangeVisibility}
               />
@@ -226,6 +243,7 @@ const CommentItem = React.memo(function CommentItem({
   showSeparator,
   expanded,
   updating,
+  canUpdateStatus,
   onToggleHistory,
   onChangeVisibility,
 }: {
@@ -233,6 +251,7 @@ const CommentItem = React.memo(function CommentItem({
   showSeparator: boolean;
   expanded: boolean;
   updating: boolean;
+  canUpdateStatus: boolean;
   onToggleHistory: (commentId: number) => void;
   onChangeVisibility: (commentId: number, status: "ACTIVE" | "INACTIVE") => void;
 }) {
@@ -268,11 +287,15 @@ const CommentItem = React.memo(function CommentItem({
           <p className="text-sm text-gray-700">
             좋아요 <span className="font-semibold">{Number(comment.like_count ?? 0).toLocaleString()}</span>
           </p>
-          <VisibilityButtons
-            status={comment.status}
-            disabled={visibilityLocked || updating}
-            onChange={(status) => onChangeVisibility(comment.id, status)}
-          />
+          {canUpdateStatus ? (
+            <VisibilityButtons
+              status={comment.status}
+              disabled={visibilityLocked || updating}
+              onChange={(status) => onChangeVisibility(comment.id, status)}
+            />
+          ) : (
+            <VisibilityStatusBadge status={comment.status} />
+          )}
         </div>
       </div>
 
@@ -300,6 +323,16 @@ const CommentItem = React.memo(function CommentItem({
     </article>
   );
 });
+
+function VisibilityStatusBadge({ status }: { status?: string | null }) {
+  const visible = status !== "INACTIVE";
+
+  return (
+    <StatusBadge size="sm" color={visible ? "success" : "error"}>
+      {labelTalkVisibilityStatus(status)}
+    </StatusBadge>
+  );
+}
 
 function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   const historyForDisplay = {
