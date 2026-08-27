@@ -3,12 +3,21 @@
 import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, CardDescription, CardHeader, CardTitle, SpinnerBlock, StatusBadge } from "@beaulab/ui-admin";
+import {
+  Button,
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  SpinnerBlock,
+  StatusValueBadge,
+} from "@beaulab/ui-admin";
 
 import { Can } from "@/components/common/guard";
 import { DetailCompactMediaCard, DetailEmptyState } from "@/components/common/DetailMediaCard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { api } from "@/lib/common/api";
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 import {
   formatBytes,
   formatLocalDateTime,
@@ -214,15 +223,12 @@ function DetailField({
 
 function StatusField({ label, value }: { label: string; value?: string | null }) {
   const status = value?.trim() || "";
-  const color = status ? (status === "ACTIVE" ? "success" : "error") : "light";
 
   return (
     <div className={detailItemClass}>
       <p className={detailLabelClass}>{label}</p>
       <div className="flex min-h-[28px] min-w-0 items-center">
-        <StatusBadge size="sm" color={color}>
-          {labelNoticeStatus(status)}
-        </StatusBadge>
+        <StatusValueBadge label={labelNoticeStatus(status)} color={ownerVisibilityStatusColor(status)} />
       </div>
     </div>
   );

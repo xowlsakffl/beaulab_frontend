@@ -47,21 +47,26 @@ export function HospitalEventRealModelDBsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEventRealModelDBsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const isBirthYearRangeInvalid =
+    draftFilters.birthYearMin !== "" &&
+    draftFilters.birthYearMax !== "" &&
+    Number(draftFilters.birthYearMax) < Number(draftFilters.birthYearMin);
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter") return;
 
     event.preventDefault();
+    if (isBirthYearRangeInvalid) return;
     onApplyFilters();
   };
 
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1.45fr)_minmax(0,0.65fr)_minmax(0,0.8fr)_minmax(0,1.45fr)] gap-x-3 gap-y-3">
-          <div className={filterRowClass}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-6">
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>신청일</span>
             <div className="min-w-0 flex-1">
               <DateRangeFilterDropdown
@@ -111,15 +116,16 @@ export function HospitalEventRealModelDBsFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} md:col-span-2 xl:col-span-2`}>
             <span className={inlineLabelClass}>출생연도</span>
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <InputField
                 value={draftFilters.birthYearMin}
                 onChange={(event) => onBirthYearMinChange(event.target.value.replace(/\D/g, "").slice(0, 4))}
                 onKeyDown={handleEnterToSearch}
                 placeholder="1990"
                 className="w-full bg-white"
+                error={isBirthYearRangeInvalid}
               />
               <span className="shrink-0 text-sm text-gray-400">~</span>
               <InputField
@@ -128,12 +134,13 @@ export function HospitalEventRealModelDBsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="2000"
                 className="w-full bg-white"
+                error={isBirthYearRangeInvalid}
               />
             </div>
           </div>
 
-          <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="col-span-full flex min-w-0 flex-col gap-3 py-1.5 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField
@@ -147,7 +154,14 @@ export function HospitalEventRealModelDBsFilterPanel({
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" size="filter" onClick={onApplyFilters} className="shrink-0">
+              <Button
+                type="button"
+                variant="brand"
+                size="filter"
+                onClick={onApplyFilters}
+                className="shrink-0"
+                disabled={isBirthYearRangeInvalid}
+              >
                 검색
               </Button>
               <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -155,6 +169,11 @@ export function HospitalEventRealModelDBsFilterPanel({
               </Button>
             </div>
           </div>
+          {isBirthYearRangeInvalid ? (
+            <p className="col-span-full text-right text-xs text-error-500">
+              출생연도 최대값은 최소값 이상이어야 합니다.
+            </p>
+          ) : null}
         </div>
       </div>
     </Card>

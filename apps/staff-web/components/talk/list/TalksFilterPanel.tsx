@@ -73,11 +73,16 @@ export function TalksFilterPanel({
   onResetFilters,
 }: TalksFilterPanelProps) {
   const isCommentBoard = board === "comments";
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const isMetricRangeInvalid =
+    draftFilters.metricMin !== "" &&
+    draftFilters.metricMax !== "" &&
+    Number(draftFilters.metricMax) < Number(draftFilters.metricMin);
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      if (isMetricRangeInvalid) return;
       onApplyFilters();
     }
   };
@@ -85,8 +90,8 @@ export function TalksFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.65fr)_minmax(0,1.35fr)_minmax(0,0.75fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,0.95fr)_minmax(0,0.8fr)_minmax(0,0.7fr)]">
-          <div className={filterRowClass}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-8">
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
               label="작성일"
@@ -107,7 +112,7 @@ export function TalksFilterPanel({
               onConfirm={onToggleDatePicker}
             />
           </div>
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>토크유형</span>
             <CheckboxFilterDropdown
               label="토크유형"
@@ -122,7 +127,7 @@ export function TalksFilterPanel({
               emptyLabel="전체"
             />
           </div>
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>공개여부</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -134,7 +139,20 @@ export function TalksFilterPanel({
               />
             </div>
           </div>
-          <div className={`${filterRowClass} max-[1800px]:col-span-2`}>
+          <div className={`${filterRowClass} xl:order-4 xl:col-span-2`}>
+            <span className={inlineLabelClass}>상태</span>
+            <div className="min-w-0 flex-1">
+              <SingleCheckboxFilterDropdown
+                label="상태"
+                hideLabel
+                value={draftFilters.reportStatus}
+                options={TALK_REPORT_STATUS_OPTIONS}
+                onChange={onReportStatusChange}
+              />
+            </div>
+          </div>
+
+          <div className={`${filterRowClass} xl:order-5 md:col-span-2 xl:col-span-3`}>
             <span className={inlineLabelClass}>{isCommentBoard ? "좋아요 수" : "지표"}</span>
             <div
               className={
@@ -163,6 +181,7 @@ export function TalksFilterPanel({
                   onKeyDown={handleEnterToSearch}
                   placeholder="1"
                   className="bg-white px-3"
+                  error={isMetricRangeInvalid}
                 />
               </div>
               <span className="text-sm text-gray-400">~</span>
@@ -175,28 +194,13 @@ export function TalksFilterPanel({
                   onKeyDown={handleEnterToSearch}
                   placeholder="500"
                   className="bg-white px-3"
+                  error={isMetricRangeInvalid}
                 />
               </div>
             </div>
           </div>
-
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>상태</span>
-            <div className="min-w-0 flex-1">
-              <SingleCheckboxFilterDropdown
-                label="상태"
-                hideLabel
-                value={draftFilters.reportStatus}
-                options={TALK_REPORT_STATUS_OPTIONS}
-                onChange={onReportStatusChange}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3">
-          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-3 py-1.5 xl:order-6 md:col-span-2 xl:col-span-5 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField
@@ -210,7 +214,14 @@ export function TalksFilterPanel({
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
+              <Button
+                type="button"
+                variant="brand"
+                onClick={onApplyFilters}
+                size="filter"
+                className="shrink-0"
+                disabled={isMetricRangeInvalid}
+              >
                 검색
               </Button>
               <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -219,6 +230,9 @@ export function TalksFilterPanel({
             </div>
           </div>
         </div>
+        {isMetricRangeInvalid ? (
+          <p className="text-right text-xs text-error-500">지표 최대값은 최소값 이상이어야 합니다.</p>
+        ) : null}
       </div>
     </Card>
   );

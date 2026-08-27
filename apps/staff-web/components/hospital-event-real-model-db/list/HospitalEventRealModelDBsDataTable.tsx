@@ -9,9 +9,9 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -235,9 +235,7 @@ function buildColumns({
       cellClassName: `${nowrapCellClass} w-[100px]`,
       header: <SortHeader label="승인상태" field="status" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventRealModelDBStatusColor(row.status)}>
-          {row.statusLabel}
-        </StatusBadge>
+        <StatusValueBadge label={row.statusLabel} color={hospitalEventRealModelDBStatusColor(row.status)} />
       ),
     },
   ];

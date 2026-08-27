@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, StatusBadge } from "@beaulab/ui-admin";
+import { ArrowRight, StatusValueBadge } from "@beaulab/ui-admin";
 import type { BadgeColor } from "@beaulab/ui-admin";
 
-import { reportStatusBadgeColor } from "@/components/common/ReportStatusBadge";
+import { reportStatusBadgeColor } from "@/lib/common/report-status";
 import { labelReviewAllowStatus, reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
   adminStatusColor,
@@ -326,24 +326,20 @@ function HistoryStatusValueBadge({
 
   if (transition.field === "report_status") {
     return (
-      <StatusBadge
-        size="sm"
+      <StatusValueBadge
+        label={statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
         color={reportStatusBadgeColor(stringifyHistoryValue(rawValue))}
         className="h-5 px-2 text-xs leading-none"
-      >
-        {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
-      </StatusBadge>
+      />
     );
   }
 
   return (
-    <StatusBadge
-      size="sm"
+    <StatusValueBadge
+      label={statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
       color={statusColor(transition.field, rawValue, statusBadgeColor)}
       className="h-5 px-2 text-xs leading-none"
-    >
-      {statusDisplayLabel(transition.field, rawValue, label, statusLabel, allowStatusLabel)}
-    </StatusBadge>
+    />
   );
 }
 
@@ -428,14 +424,6 @@ function statusColor(
   if (field === "warning_status") {
     if (normalized === "WARNED") return "error";
     if (normalized === "IGNORED") return "light";
-    return "light";
-  }
-
-  if (field === "report_status") {
-    if (normalized === "NORMAL_VISIBLE" || normalized === "REEXPOSED" || normalized === "VALID") return "success";
-    if (normalized === "AUTO_BLOCKED" || normalized === "INVALID") return "error";
-    if (normalized === "ADMIN_HIDDEN") return "orange";
-    if (normalized === "REPORTED" || normalized === "RECEIVED") return "yellow";
     return "light";
   }
 

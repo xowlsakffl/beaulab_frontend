@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import {
   Card,
@@ -12,7 +13,7 @@ import {
   DropdownItem,
   MoreVertical,
   SpinnerBlock,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { AdminNoteCreateModal } from "@/components/common/AdminNoteCreateModal";
@@ -22,6 +23,8 @@ import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { SummaryCountCard } from "@/components/common/SummaryCountCard";
 import { api } from "@/lib/common/api";
+import { ADMIN_NOTE_WRITE_PERMISSION } from "@/lib/common/admin-note-permissions";
+import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { formatAccountUserStatusColor } from "@/lib/account-user/list";
 import {
@@ -84,6 +87,7 @@ export default function AccountUserDetailPageClient() {
   const params = useParams<{ id: string }>();
   const rawUserId = Array.isArray(params.id) ? params.id[0] : params.id;
   const userId = Number(rawUserId);
+  const canWriteAdminNote = hasPermission(getSession()?.auth, ADMIN_NOTE_WRITE_PERMISSION);
 
   const [user, setUser] = React.useState<AccountUserDetail | null>(null);
   const [notes, setNotes] = React.useState<AdminNoteItem[]>([]);
@@ -280,7 +284,11 @@ export default function AccountUserDetailPageClient() {
           />
           <ConsultationInfoCard user={user} />
           <NotificationSettingsCard user={user} />
-          <AdminNotesCard notes={notes} onAdd={openNoteModal} formatDateTime={formatAccountUserDetailDateTime} />
+          <AdminNotesCard
+            notes={notes}
+            onAdd={canWriteAdminNote ? openNoteModal : undefined}
+            formatDateTime={formatAccountUserDetailDateTime}
+          />
         </div>
 
         <div className="min-w-0 space-y-5">
@@ -308,17 +316,19 @@ export default function AccountUserDetailPageClient() {
         onConfirm={() => void submitBlock()}
       />
 
-      <AdminNoteCreateModal
-        isOpen={isNoteModalOpen}
-        value={noteInput}
-        saving={savingNote}
-        onChange={setNoteInput}
-        onClose={closeNoteModal}
-        onSave={submitNote}
-        title="관리자 메모"
-        placeholder="관리자 메모를 입력해 주세요."
-        errorMessage={noteError}
-      />
+      {canWriteAdminNote ? (
+        <AdminNoteCreateModal
+          isOpen={isNoteModalOpen}
+          value={noteInput}
+          saving={savingNote}
+          onChange={setNoteInput}
+          onClose={closeNoteModal}
+          onSave={submitNote}
+          title="관리자 메모"
+          placeholder="관리자 메모를 입력해 주세요."
+          errorMessage={noteError}
+        />
+      ) : null}
     </div>
   );
 }
@@ -348,9 +358,7 @@ function MemberInfoCard({
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle>회원정보</CardTitle>
             {shouldShowStatus ? (
-              <StatusBadge size="sm" color={formatAccountUserStatusColor(status)}>
-                {user.status_label ?? status}
-              </StatusBadge>
+              <StatusValueBadge label={user.status_label ?? status} color={formatAccountUserStatusColor(status)} />
             ) : null}
             {shouldShowStatus && statusHistoryText ? (
               <span className="text-xs text-gray-700">[{statusHistoryText}]</span>

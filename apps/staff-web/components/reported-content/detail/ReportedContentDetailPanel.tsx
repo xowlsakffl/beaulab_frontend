@@ -15,10 +15,16 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { useReportedContentDetailPanel } from "@/hooks/reported-content/useReportedContentDetailPanel";
+import {
+  reportStatusBadgeColor,
+  reportStatusBadgeLabel,
+  reportWarningBadgeColor,
+  reportWarningBadgeLabel,
+} from "@/lib/common/report-status";
 import {
   type ReportedContentDetailResponse,
   type ReportedContentReportsBlock,
@@ -164,9 +170,10 @@ export function ReportedContentDetailPanel({
                         </Button>
                       </>
                     ) : (
-                      <StatusBadge size="sm" color={reportStatus === "ADMIN_HIDDEN" ? "error" : "success"}>
-                        {reportStatus === "ADMIN_HIDDEN" ? "노출중지" : "정상노출"}
-                      </StatusBadge>
+                      <StatusValueBadge
+                        label={reportStatusBadgeLabel(reportStatus)}
+                        color={reportStatusBadgeColor(reportStatus)}
+                      />
                     )}
                   </div>
                 </div>
@@ -204,9 +211,10 @@ export function ReportedContentDetailPanel({
                         </Button>
                       </>
                     ) : (
-                      <StatusBadge size="sm" color={warningStatus === "WARNED" ? "red" : "gray"}>
-                        {warningStatus === "WARNED" ? "경고" : warningStatus === "IGNORED" ? "무시" : "미처리"}
-                      </StatusBadge>
+                      <StatusValueBadge
+                        label={reportWarningBadgeLabel(warningStatus)}
+                        color={reportWarningBadgeColor(warningStatus)}
+                      />
                     )}
                   </div>
                 </div>

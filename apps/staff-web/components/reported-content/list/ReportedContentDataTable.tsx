@@ -7,12 +7,12 @@ import {
   ChevronUp,
   ChevronsUpDown,
   DataTable,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
+  CategoryBadgeList,
 } from "@beaulab/ui-admin";
 
-import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   resolveReportedReviewImageUrl,
   type ReportedContentKind,
@@ -20,7 +20,13 @@ import {
   type ReportedContentSortField,
   type ReportedContentSortState,
 } from "@/lib/reported-content/list";
-import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
+import {
+  reportStatusBadgeColor,
+  reportStatusBadgeLabel,
+  reportWarningBadgeColor,
+  reportWarningBadgeLabel,
+} from "@/lib/common/report-status";
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 
 type ReportedContentDataTableProps = {
   kind: ReportedContentKind;
@@ -150,7 +156,12 @@ function buildColumns({
     );
   };
   const renderReportStatus = (row: ReportedContentRow) => {
-    const badge = <ReportStatusBadge label={row.statusLabel} status={row.status} />;
+    const badge = (
+      <StatusValueBadge
+        label={row.statusLabel || reportStatusBadgeLabel(row.status)}
+        color={reportStatusBadgeColor(row.status)}
+      />
+    );
 
     if (!onOpenProcess) return badge;
 
@@ -173,20 +184,14 @@ function buildColumns({
     cellClassName: `${nowrapCellClass} w-[70px]`,
     header: "경고",
     render: (row) => {
-      if (row.hasWarning)
-        return (
-          <StatusBadge size="sm" color="red">
-            경고
-          </StatusBadge>
-        );
-      if (row.hasIgnoredWarning)
-        return (
-          <StatusBadge size="sm" color="gray">
-            무시
-          </StatusBadge>
-        );
+      const warningStatus = row.hasWarning ? "WARNED" : row.hasIgnoredWarning ? "IGNORED" : row.warningStatus;
 
-      return "-";
+      return (
+        <StatusValueBadge
+          label={reportWarningBadgeLabel(warningStatus)}
+          color={reportWarningBadgeColor(warningStatus)}
+        />
+      );
     },
   };
   const commonReportColumns: DataTableColumn<ReportedContentRow>[] = [
@@ -219,9 +224,10 @@ function buildColumns({
       cellClassName: `${nowrapCellClass} w-[86px]`,
       header: "공개여부",
       render: (row) => (
-        <span className={row.isVisible ? "font-semibold text-gray-900" : "font-semibold text-gray-500"}>
-          {row.visibilityLabel}
-        </span>
+        <StatusValueBadge
+          label={row.isVisible ? "노출" : "미노출"}
+          color={ownerVisibilityStatusColor(row.isVisible ? "ACTIVE" : "INACTIVE")}
+        />
       ),
     },
     {

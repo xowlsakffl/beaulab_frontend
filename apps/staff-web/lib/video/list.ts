@@ -3,12 +3,7 @@ import type { DateRange } from "react-day-picker";
 
 import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
-import {
-  adminStatusColor,
-  labelAdminStatus,
-  labelOwnerVisibilityStatus,
-  ownerVisibilityStatusColor,
-} from "@/lib/common/status-labels";
+import { labelAdminStatus, labelOwnerVisibilityStatus, ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 
 type MediaAsset = {
   path?: string | null;
@@ -99,7 +94,7 @@ export type VideoSortField =
 export type SortField = VideoSortField;
 export type VideoSortDirection = "asc" | "desc";
 export type SortDirection = VideoSortDirection;
-export type VideoMetric = "all" | "report_count" | "view_count" | "like_count";
+export type VideoMetric = "report_count" | "view_count" | "like_count";
 export type VideoSummaryFilter = "normal" | "limited" | "reported";
 
 export type VideoSummary = {
@@ -167,7 +162,7 @@ export const DEFAULT_FILTERS: Filters = {
   categoryId: "",
   hospitalStatus: "",
   reportStatuses: [],
-  metric: "all",
+  metric: "report_count",
   metricMin: "",
   metricMax: "",
   adminStatus: "",
@@ -194,7 +189,6 @@ export const VIDEO_REPORT_STATUS_OPTIONS: CheckboxFilterOption[] = [
 ];
 
 export const VIDEO_METRIC_OPTIONS: { value: VideoMetric; label: string }[] = [
-  { value: "all", label: "전체" },
   { value: "report_count", label: "신고횟수" },
   { value: "view_count", label: "조회수" },
   { value: "like_count", label: "좋아요수" },
@@ -361,10 +355,6 @@ export function labelVideoAdminStatus(status?: string | null, fallbackLabel = "-
   return labelAdminStatus(status, fallbackLabel);
 }
 
-export function videoAdminStatusColor(status?: string | null): BadgeColor {
-  return adminStatusColor(status);
-}
-
 export function labelVideoReportStatus(status?: string | null, fallbackLabel = "-") {
   if (status === "NONE") return "-";
   if (status === "REPORTED") return "신고접수";
@@ -374,16 +364,6 @@ export function labelVideoReportStatus(status?: string | null, fallbackLabel = "
   if (status === "REEXPOSED") return "신고오류";
 
   return status?.trim() || fallbackLabel;
-}
-
-export function videoReportStatusColor(status?: string | null): BadgeColor {
-  if (status === "REPORTED") return "yellow";
-  if (status === "AUTO_BLOCKED") return "yellow";
-  if (status === "ADMIN_HIDDEN") return "orange";
-  if (status === "NORMAL_VISIBLE") return "green";
-  if (status === "REEXPOSED") return "blue";
-
-  return "gray";
 }
 
 export function labelVideoOperatingStatus(status?: string | null) {
@@ -530,8 +510,8 @@ export function parseVideosTableState(searchParams: URLSearchParams) {
       hospitalStatus: VIDEO_HOSPITAL_STATUS_VALUE_SET.has(hospitalStatus) ? hospitalStatus : "",
       reportStatuses,
       metric,
-      metricMin: metric === "all" ? "" : normalizeNumberBound(searchParams.get(`${metric}_min`)),
-      metricMax: metric === "all" ? "" : normalizeNumberBound(searchParams.get(`${metric}_max`)),
+      metricMin: normalizeNumberBound(searchParams.get(`${metric}_min`)),
+      metricMax: normalizeNumberBound(searchParams.get(`${metric}_max`)),
       adminStatus: VIDEO_ADMIN_STATUS_VALUE_SET.has(adminStatus) ? adminStatus : "",
     },
     draftDateRange: dateState.range,
@@ -576,7 +556,7 @@ export function buildVideosQuery({
 
   const metricMin = normalizeNumberBound(appliedFilters.metricMin);
   const metricMax = normalizeNumberBound(appliedFilters.metricMax);
-  if (appliedFilters.metric !== "all" && (metricMin || metricMax)) {
+  if (metricMin || metricMax) {
     query[`${appliedFilters.metric}_min`] = metricMin || undefined;
     query[`${appliedFilters.metric}_max`] = metricMax || undefined;
   }
@@ -642,5 +622,5 @@ function resolveMetricFromParams(searchParams: URLSearchParams): VideoMetric {
   if (searchParams.has("view_count_min") || searchParams.has("view_count_max")) return "view_count";
   if (searchParams.has("like_count_min") || searchParams.has("like_count_max")) return "like_count";
 
-  return "all";
+  return DEFAULT_FILTERS.metric;
 }

@@ -8,8 +8,8 @@ import {
   CardTitle,
   CategoryBadgeList,
   Pagination,
-  StatusBadge,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
@@ -18,6 +18,7 @@ import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
+import { labelOwnerVisibilityStatus, ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 import {
   HOSPITAL_REVIEW_DETAIL_COMMENT_PER_PAGE_OPTIONS,
   formatHospitalReviewDetailAuthorName,
@@ -29,11 +30,7 @@ import {
   type HospitalReviewDetailResponse,
   type HospitalReviewOperationHistory,
 } from "@/lib/hospital-review/detail";
-import {
-  labelHospitalReviewVisibilityStatus,
-  resolveHospitalReviewMediaUrl,
-  type HospitalReviewMediaAsset,
-} from "@/lib/hospital-review/list";
+import { resolveHospitalReviewMediaUrl, type HospitalReviewMediaAsset } from "@/lib/hospital-review/list";
 
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
@@ -112,7 +109,10 @@ export const HospitalReviewContentCard = React.memo(function HospitalReviewConte
               onChange={onChangeVisibility}
             />
           ) : (
-            <VisibilityStatusBadge status={detail.status} />
+            <StatusValueBadge
+              label={labelOwnerVisibilityStatus(detail.status)}
+              color={ownerVisibilityStatusColor(detail.status)}
+            />
           )}
         </div>
       </CardHeader>
@@ -305,7 +305,10 @@ const CommentItem = React.memo(function CommentItem({
               onChange={(status) => onChangeVisibility(comment.id, status)}
             />
           ) : (
-            <VisibilityStatusBadge status={comment.status} />
+            <StatusValueBadge
+              label={labelOwnerVisibilityStatus(comment.status)}
+              color={ownerVisibilityStatusColor(comment.status)}
+            />
           )}
         </div>
       </div>
@@ -334,16 +337,6 @@ const CommentItem = React.memo(function CommentItem({
     </article>
   );
 });
-
-function VisibilityStatusBadge({ status }: { status?: string | null }) {
-  const normalizedStatus = status === "INACTIVE" ? "INACTIVE" : "ACTIVE";
-
-  return (
-    <StatusBadge size="sm" color={normalizedStatus === "ACTIVE" ? "success" : "error"}>
-      {labelHospitalReviewVisibilityStatus(normalizedStatus)}
-    </StatusBadge>
-  );
-}
 
 function CommentHistoryRow({ history }: { history: HospitalReviewCommentHistory }) {
   const historyForDisplay = {

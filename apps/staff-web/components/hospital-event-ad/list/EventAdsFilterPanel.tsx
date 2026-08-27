@@ -84,8 +84,8 @@ export function EventAdsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: EventAdsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -97,8 +97,8 @@ export function EventAdsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,2.2fr)_minmax(0,1.15fr)_minmax(0,0.95fr)_minmax(0,0.95fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className={filterRowClass}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-5">
+          <div className={`${filterRowClass} md:col-span-2 xl:col-span-2`}>
             <span className={inlineLabelClass}>기간</span>
             <div className="flex min-w-0 flex-1 flex-row items-center gap-2">
               <DateRangeFilterDropdown
@@ -184,8 +184,8 @@ export function EventAdsFilterPanel({
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-3 py-1.5 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField

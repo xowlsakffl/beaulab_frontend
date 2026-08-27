@@ -12,7 +12,8 @@ import {
   type DoctorFormValues,
   type DoctorHospitalOption,
 } from "@/lib/doctor/form";
-import { doctorApprovalStatusBadgeColor, formatCareerPeriod, labelDoctorApprovalStatus } from "@/lib/doctor/list";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
+import { formatCareerPeriod, labelDoctorApprovalStatus } from "@/lib/doctor/list";
 import {
   Card,
   InlineFileSelect,
@@ -22,8 +23,8 @@ import {
   Select,
   SingleDatePickerField,
   SpinnerBlock,
-  StatusBadge,
   type ExistingMediaItem,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -191,9 +192,10 @@ export function DoctorInfoEditorCard({
           </EditField>
           {showCurrentAllowStatus ? (
             <EditField label="검수상태" target="allow_status">
-              <StatusBadge size="sm" color={doctorApprovalStatusBadgeColor(form.allow_status)}>
-                {labelDoctorApprovalStatus(form.allow_status)}
-              </StatusBadge>
+              <StatusValueBadge
+                label={labelDoctorApprovalStatus(form.allow_status)}
+                color={reviewAllowStatusColor(form.allow_status)}
+              />
             </EditField>
           ) : null}
         </div>

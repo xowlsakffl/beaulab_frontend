@@ -5,7 +5,6 @@ import React from "react";
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
 import { MediaPreviewItem, MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components/common/OperationHistoryCard";
-import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
   formatHospitalWalletBalance,
   getMediaFilename,
@@ -15,6 +14,7 @@ import {
   type MediaAsset,
 } from "@/lib/hospital/detail";
 import { hospitalStatusBadgeColor, labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
   Button,
   Card,
@@ -23,8 +23,8 @@ import {
   DropdownItem,
   MoreVertical,
   Star,
-  StatusBadge,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 export const hospitalDetailCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -144,13 +144,14 @@ export function HospitalInfoCard({
   const canShowStatusAction = statusActionMode === "DIRECT" || (isRequestMode && !isSuspended);
   const cannotChangeStatus =
     detail.status === "WITHDRAWN" || statusUpdating || (isRequestMode && Boolean(pendingRequest));
-  const statusActionLabel = pendingRequest && isRequestMode
-    ? "운영중지 신청중"
-    : isRequestMode
-      ? "운영중지 신청"
-      : isSuspended
-        ? "정상노출"
-        : "운영중지";
+  const statusActionLabel =
+    pendingRequest && isRequestMode
+      ? "운영중지 신청중"
+      : isRequestMode
+        ? "운영중지 신청"
+        : isSuspended
+          ? "정상노출"
+          : "운영중지";
   const handleStatusAction = isSuspended ? onOpenActivateModal : onOpenSuspendModal;
 
   return (
@@ -159,9 +160,10 @@ export function HospitalInfoCard({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold text-gray-900">병의원정보</h2>
           {detail.status && detail.status !== "ACTIVE" ? (
-            <StatusBadge size="sm" color={hospitalStatusBadgeColor(detail.status)}>
-              {labelApprovalStatus(detail.status)}
-            </StatusBadge>
+            <StatusValueBadge
+              label={labelApprovalStatus(detail.status)}
+              color={hospitalStatusBadgeColor(detail.status)}
+            />
           ) : null}
           {detail.status && detail.status !== "ACTIVE" && statusHistoryText ? (
             <span className="text-xs text-gray-700">[{statusHistoryText}]</span>
@@ -268,9 +270,10 @@ export function AllowStatusCard({
         {canUpdate ? (
           <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
         ) : (
-          <StatusBadge size="sm" color={reviewAllowStatusColor(detail.allow_status)}>
-            {labelReviewStatus(detail.allow_status ?? "")}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelReviewStatus(detail.allow_status ?? "")}
+            color={reviewAllowStatusColor(detail.allow_status)}
+          />
         )}
       </div>
       {canUpdate && error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}

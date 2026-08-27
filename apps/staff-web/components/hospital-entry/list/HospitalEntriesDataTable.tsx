@@ -9,19 +9,18 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
+import { pendingReviewAllowStatusRowClass, reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
-  hospitalEntryAllowStatusColor,
   labelHospitalEntryAllowStatus,
   type HospitalEntryRow,
   type SortField,
   type SortState,
 } from "@/lib/hospital-entry/list";
-import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -169,9 +168,10 @@ function buildHospitalEntryColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEntryAllowStatusColor(row.allowStatus)}>
-          {labelHospitalEntryAllowStatus(row.allowStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={labelHospitalEntryAllowStatus(row.allowStatus)}
+          color={reviewAllowStatusColor(row.allowStatus)}
+        />
       ),
     },
   ];

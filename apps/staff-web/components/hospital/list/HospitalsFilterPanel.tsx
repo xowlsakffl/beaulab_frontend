@@ -79,12 +79,12 @@ export function HospitalsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalsFilterPanelProps) {
-  const inlineLabelClass = "w-20 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
 
   return (
-    <Card className="rounded-xl p-3">
-      <div className="grid grid-cols-[minmax(15rem,1fr)_minmax(13rem,0.85fr)_minmax(13rem,0.85fr)_minmax(13rem,0.85fr)] gap-x-4 gap-y-4">
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+    <Card className="min-w-0 rounded-xl p-3">
+      <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
             label="기간"
@@ -105,7 +105,7 @@ export function HospitalsFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>분과</span>
           <CheckboxFilterDropdown
             label="분과"
@@ -119,7 +119,7 @@ export function HospitalsFilterPanel({
             onToggleAll={onToggleAllDepartments}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>병의원상태</span>
           <CheckboxFilterDropdown
             label="병의원상태"
@@ -133,7 +133,7 @@ export function HospitalsFilterPanel({
             onToggleAll={onToggleAllHospitalStatus}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>검수상태</span>
           <CheckboxFilterDropdown
             label="검수상태"
@@ -147,8 +147,8 @@ export function HospitalsFilterPanel({
             onToggleAll={onToggleAllReviewStatus}
           />
         </div>
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="col-span-full flex min-w-0 flex-col gap-3 py-1.5 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField

@@ -7,20 +7,14 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
+  CategoryBadgeList,
 } from "@beaulab/ui-admin";
 
-import { CategoryBadgeList } from "@beaulab/ui-admin";
-import {
-  doctorApprovalStatusBadgeColor,
-  labelDoctorApprovalStatus,
-  type DoctorRow,
-  type SortField,
-  type SortState,
-} from "@/lib/doctor/list";
-import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
+import { pendingReviewAllowStatusRowClass, reviewAllowStatusColor } from "@/lib/common/review-status";
+import { labelDoctorApprovalStatus, type DoctorRow, type SortField, type SortState } from "@/lib/doctor/list";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -209,9 +203,10 @@ function buildDoctorColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={doctorApprovalStatusBadgeColor(row.approvalStatus)}>
-          {labelDoctorApprovalStatus(row.approvalStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={labelDoctorApprovalStatus(row.approvalStatus)}
+          color={reviewAllowStatusColor(row.approvalStatus)}
+        />
       ),
     },
     {

@@ -11,7 +11,7 @@ import {
   Label,
   ShieldCheck,
   SpinnerBlock,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 import { isApiSuccess } from "@beaulab/types";
 import Image from "next/image";
@@ -381,9 +381,7 @@ export default function HospitalAccountCreatePageClient({ invitationToken }: Hos
                             <ShieldCheck className="size-4" />
                             휴대폰 인증이 완료되었습니다.
                           </div>
-                          <StatusBadge color="success" size="sm">
-                            완료
-                          </StatusBadge>
+                          <StatusValueBadge label="완료" color="success" />
                         </div>
                       ) : (
                         <div className="flex items-start gap-2">

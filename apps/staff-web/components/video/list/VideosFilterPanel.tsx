@@ -80,11 +80,16 @@ export function VideosFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: VideosFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const isMetricRangeInvalid =
+    draftFilters.metricMin !== "" &&
+    draftFilters.metricMax !== "" &&
+    Number(draftFilters.metricMax) < Number(draftFilters.metricMin);
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      if (isMetricRangeInvalid) return;
       onApplyFilters();
     }
   };
@@ -92,8 +97,8 @@ export function VideosFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1.35fr)_minmax(0,1.15fr)_minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.6fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
-          <div className={filterRowClass}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-10">
+          <div className={`${filterRowClass} xl:col-span-3`}>
             <span className={inlineLabelClass}>기간</span>
             <div className="min-w-0 flex-1">
               <DateRangeFilterDropdown
@@ -117,7 +122,7 @@ export function VideosFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:col-span-3`}>
             <span className={inlineLabelClass}>카테고리</span>
             <div className="min-w-0 flex-1">
               <Select
@@ -130,7 +135,7 @@ export function VideosFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>공개여부</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -143,7 +148,7 @@ export function VideosFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>신고상태</span>
             <div className="min-w-0 flex-1">
               <CheckboxFilterDropdown
@@ -161,6 +166,7 @@ export function VideosFilterPanel({
           </div>
 
           <MetricRangeFilter
+            className="md:col-span-2 xl:col-span-3"
             label="지표"
             metricValue={draftFilters.metric}
             minValue={draftFilters.metricMin}
@@ -169,11 +175,10 @@ export function VideosFilterPanel({
             onMinChange={onMetricMinChange}
             onMaxChange={onMetricMaxChange}
             onEnter={handleEnterToSearch}
+            error={isMetricRangeInvalid}
           />
-        </div>
 
-        <div className="grid min-w-0 grid-cols-[minmax(0,0.72fr)_minmax(0,3fr)] gap-x-3 gap-y-3">
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:col-span-2`}>
             <span className={inlineLabelClass}>강제중지</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -185,9 +190,8 @@ export function VideosFilterPanel({
               />
             </div>
           </div>
-
-          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-3 py-1.5 md:col-span-2 xl:col-span-5 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField
@@ -201,7 +205,14 @@ export function VideosFilterPanel({
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
+              <Button
+                type="button"
+                variant="brand"
+                onClick={onApplyFilters}
+                size="filter"
+                className="shrink-0"
+                disabled={isMetricRangeInvalid}
+              >
                 검색
               </Button>
               <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -217,6 +228,9 @@ export function VideosFilterPanel({
               </Can>
             </div>
           </div>
+          {isMetricRangeInvalid ? (
+            <p className="text-right text-xs text-error-500">지표 최대값은 최소값 이상이어야 합니다.</p>
+          ) : null}
         </div>
       </div>
     </Card>
@@ -224,6 +238,7 @@ export function VideosFilterPanel({
 }
 
 function MetricRangeFilter({
+  className,
   label,
   metricValue,
   minValue,
@@ -232,7 +247,9 @@ function MetricRangeFilter({
   onMinChange,
   onMaxChange,
   onEnter,
+  error = false,
 }: {
+  className?: string;
   label: string;
   metricValue: string;
   minValue: string;
@@ -241,11 +258,12 @@ function MetricRangeFilter({
   onMinChange: (value: string) => void;
   onMaxChange: (value: string) => void;
   onEnter: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  error?: boolean;
 }) {
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
 
   return (
-    <div className="flex min-w-0 items-center gap-2 py-1.5">
+    <div className={["flex min-w-0 items-center gap-3", className].filter(Boolean).join(" ")}>
       <span className={inlineLabelClass}>{label}</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(8.5rem,1.25fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select
@@ -259,22 +277,22 @@ function MetricRangeFilter({
           type="number"
           min="0"
           value={minValue}
-          disabled={metricValue === "all"}
           onChange={(event) => onMinChange(event.target.value)}
           onKeyDown={onEnter}
           placeholder="0"
           className="bg-white px-3"
+          error={error}
         />
         <span className="text-sm text-gray-400">~</span>
         <InputField
           type="number"
           min="0"
           value={maxValue}
-          disabled={metricValue === "all"}
           onChange={(event) => onMaxChange(event.target.value)}
           onKeyDown={onEnter}
           placeholder="999999999"
           className="bg-white px-3"
+          error={error}
         />
       </div>
     </div>

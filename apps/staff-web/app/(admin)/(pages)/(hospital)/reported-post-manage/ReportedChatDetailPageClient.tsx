@@ -17,7 +17,7 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -25,6 +25,7 @@ import { OperationHistoryActionBadge, OperationHistoryReason } from "@/component
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
+import { reportStatusBadgeColor, reportWarningBadgeColor, reportWarningBadgeLabel } from "@/lib/common/report-status";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   formatReportedContentAuthorName,
@@ -281,6 +282,7 @@ export default function ReportedChatDetailPageClient() {
             onPreviewMedia={setPreviewMedia}
           />
           <ChatReportActionCard
+            reportStatus={reportStatus}
             isReported={isReported}
             isIgnoredReport={isIgnoredReport}
             warningStatus={warningStatus}
@@ -580,6 +582,7 @@ function ChatOperationHistoryCard({ histories }: { histories: ReportedContentOpe
 }
 
 function ChatReportActionCard({
+  reportStatus,
   isReported,
   isIgnoredReport,
   warningStatus,
@@ -589,6 +592,7 @@ function ChatReportActionCard({
   onOpenStatusModal,
   onOpenWarningModal,
 }: {
+  reportStatus: string;
   isReported: boolean;
   isIgnoredReport: boolean;
   warningStatus: string;
@@ -626,9 +630,10 @@ function ChatReportActionCard({
                 </Button>
               </>
             ) : (
-              <StatusBadge size="sm" color={isReported ? "error" : isIgnoredReport ? "success" : "gray"}>
-                {isReported ? "신고" : isIgnoredReport ? "무시" : "미처리"}
-              </StatusBadge>
+              <StatusValueBadge
+                label={isReported ? "신고" : isIgnoredReport ? "무시" : "미처리"}
+                color={reportStatusBadgeColor(reportStatus || "REPORTED")}
+              />
             )}
           </div>
         </div>
@@ -664,9 +669,10 @@ function ChatReportActionCard({
                 </Button>
               </>
             ) : (
-              <StatusBadge size="sm" color={warningStatus === "WARNED" ? "red" : "gray"}>
-                {warningStatus === "WARNED" ? "경고" : warningStatus === "IGNORED" ? "무시" : "미처리"}
-              </StatusBadge>
+              <StatusValueBadge
+                label={reportWarningBadgeLabel(warningStatus)}
+                color={reportWarningBadgeColor(warningStatus)}
+              />
             )}
           </div>
         </div>

@@ -15,7 +15,7 @@ import {
   ModalPanel,
   ModalTitle,
   SpinnerBlock,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -250,25 +250,26 @@ function MemberInfoCard({
 
         {canUpdateStatus ? (
           <div className="flex shrink-0 items-center gap-2">
-          <StatusButton
-            label="승인"
-            value="APPROVED"
-            currentStatus={detail.status}
-            updatingStatus={updatingStatus}
-            onStatusChange={onStatusChange}
-          />
-          <StatusButton
-            label="불가"
-            value="REJECTED"
-            currentStatus={detail.status}
-            updatingStatus={updatingStatus}
-            onStatusChange={onStatusChange}
-          />
+            <StatusButton
+              label="승인"
+              value="APPROVED"
+              currentStatus={detail.status}
+              updatingStatus={updatingStatus}
+              onStatusChange={onStatusChange}
+            />
+            <StatusButton
+              label="불가"
+              value="REJECTED"
+              currentStatus={detail.status}
+              updatingStatus={updatingStatus}
+              onStatusChange={onStatusChange}
+            />
           </div>
         ) : (
-          <StatusBadge size="sm" color={hospitalEventRealModelDBStatusColor(detail.status)}>
-            {labelHospitalEventRealModelDBStatus(detail.status)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelHospitalEventRealModelDBStatus(detail.status)}
+            color={hospitalEventRealModelDBStatusColor(detail.status)}
+          />
         )}
       </div>
 

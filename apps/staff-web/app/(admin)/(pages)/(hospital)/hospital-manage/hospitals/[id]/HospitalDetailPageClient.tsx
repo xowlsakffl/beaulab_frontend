@@ -27,6 +27,7 @@ import {
   type HospitalOperationHistoryItem,
 } from "@/components/hospital/detail/HospitalDetailSections";
 import { api } from "@/lib/common/api";
+import { ADMIN_NOTE_WRITE_PERMISSION } from "@/lib/common/admin-note-permissions";
 import { getSession } from "@/lib/common/auth/session";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { type HospitalDetailResponse, type HospitalStatusChangeRequestAsset } from "@/lib/hospital/detail";
@@ -57,6 +58,7 @@ export default function HospitalDetailPageClient() {
   const { showAlert } = useGlobalAlert();
   const sessionAuth = getSession()?.auth;
   const canViewWallet = hasPermission(sessionAuth, HOSPITAL_WALLET_PERMISSIONS.show);
+  const canWriteAdminNote = hasPermission(sessionAuth, ADMIN_NOTE_WRITE_PERMISSION);
   const canUpdateHospitalStatus = hasPermission(sessionAuth, HOSPITAL_STATUS_PERMISSIONS.update);
   const canRequestHospitalStatus = hasPermission(sessionAuth, HOSPITAL_STATUS_PERMISSIONS.requestCreate);
   const statusActionMode = canUpdateHospitalStatus ? "DIRECT" : canRequestHospitalStatus ? "REQUEST" : null;
@@ -522,7 +524,7 @@ export default function HospitalDetailPageClient() {
         <AdminNotesCard
           notes={notes}
           loading={notesLoading}
-          onAdd={() => setIsNoteModalOpen(true)}
+          onAdd={canWriteAdminNote ? () => setIsNoteModalOpen(true) : undefined}
           formatDateTime={formatHospitalDetailDateTime}
           className={hospitalDetailCardClassName}
         />
@@ -543,17 +545,19 @@ export default function HospitalDetailPageClient() {
           onConfirm={() => void confirmAllowStatusChange()}
         />
       ) : null}
-      <AdminNoteCreateModal
-        isOpen={isNoteModalOpen}
-        value={noteInput}
-        saving={savingNote}
-        onChange={setNoteInput}
-        onClose={() => {
-          if (savingNote) return;
-          setIsNoteModalOpen(false);
-        }}
-        onSave={saveNote}
-      />
+      {canWriteAdminNote ? (
+        <AdminNoteCreateModal
+          isOpen={isNoteModalOpen}
+          value={noteInput}
+          saving={savingNote}
+          onChange={setNoteInput}
+          onClose={() => {
+            if (savingNote) return;
+            setIsNoteModalOpen(false);
+          }}
+          onSave={saveNote}
+        />
+      ) : null}
       <AllowStatusConfirmModal
         pending={isSuspendModalOpen ? { allowStatus: "SUSPENDED", reason: suspendReason } : null}
         title={canUpdateHospitalStatus ? "운영중지 처리" : "운영중지 신청"}

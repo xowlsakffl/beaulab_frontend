@@ -8,9 +8,9 @@ import {
   FormCheckbox,
   Pagination,
   Spinner,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -72,13 +72,11 @@ function statusColumn(
 
       const isRefundProcessable = row.type === "REFUND" && row.status === "PENDING" && canProcessRefund;
       const badge = (
-        <StatusBadge
-          size="sm"
+        <StatusValueBadge
+          label={row.statusLabel}
           color={walletOperationStatusColor(row.status)}
           className={isRefundProcessable ? "underline decoration-current underline-offset-2" : undefined}
-        >
-          {row.statusLabel}
-        </StatusBadge>
+        />
       );
 
       if (!isRefundProcessable) return badge;

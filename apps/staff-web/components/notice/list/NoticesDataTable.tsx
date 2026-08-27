@@ -7,12 +7,13 @@ import {
   ChevronsUpDown,
   DataTable,
   SingleCheckboxFilterDropdown,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { PER_PAGE_OPTIONS, labelNoticeStatus, type NoticeRow, type SortField, type SortState } from "@/lib/notice/list";
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -105,9 +106,7 @@ function buildNoticeColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={row.status === "ACTIVE" ? "success" : "error"}>
-          {labelNoticeStatus(row.status)}
-        </StatusBadge>
+        <StatusValueBadge label={labelNoticeStatus(row.status)} color={ownerVisibilityStatusColor(row.status)} />
       ),
     },
     {

@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
   Pagination,
-  StatusBadge,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
@@ -17,6 +17,7 @@ import { OperationHistoryCard as CommonOperationHistoryCard } from "@/components
 import { OperationHistoryActionBadge, OperationHistoryReason } from "@/components/common/OperationHistoryDisplay";
 import { VisibilityActionButtons as VisibilityButtons } from "@/components/common/VisibilityActionButtons";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 import { resolveMediaUrl, type MediaAsset } from "@/lib/hospital/detail";
 import {
   TALK_DETAIL_COMMENT_PER_PAGE_OPTIONS,
@@ -88,7 +89,10 @@ export const TalkContentCard = React.memo(function TalkContentCard({
               onChange={onChangeVisibility}
             />
           ) : (
-            <VisibilityStatusBadge status={detail.status} />
+            <StatusValueBadge
+              label={labelTalkVisibilityStatus(detail.status)}
+              color={ownerVisibilityStatusColor(detail.status)}
+            />
           )}
         </div>
       </CardHeader>
@@ -294,7 +298,10 @@ const CommentItem = React.memo(function CommentItem({
               onChange={(status) => onChangeVisibility(comment.id, status)}
             />
           ) : (
-            <VisibilityStatusBadge status={comment.status} />
+            <StatusValueBadge
+              label={labelTalkVisibilityStatus(comment.status)}
+              color={ownerVisibilityStatusColor(comment.status)}
+            />
           )}
         </div>
       </div>
@@ -323,16 +330,6 @@ const CommentItem = React.memo(function CommentItem({
     </article>
   );
 });
-
-function VisibilityStatusBadge({ status }: { status?: string | null }) {
-  const visible = status !== "INACTIVE";
-
-  return (
-    <StatusBadge size="sm" color={visible ? "success" : "error"}>
-      {labelTalkVisibilityStatus(status)}
-    </StatusBadge>
-  );
-}
 
 function CommentHistoryRow({ history }: { history: TalkCommentHistory }) {
   const historyForDisplay = {

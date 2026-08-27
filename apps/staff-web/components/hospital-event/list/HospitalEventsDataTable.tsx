@@ -9,9 +9,9 @@ import {
   CategoryBadgeList,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 import {
   formatHospitalEventPoint,
@@ -71,12 +71,16 @@ function EventInlineActionButton({
 
 function buildHospitalEventColumns({
   sortState,
+  canDuplicate,
+  canEditPeriod,
   onToggleSort,
   onEditPeriod,
   onDuplicate,
   onOpenConsultations,
 }: {
   sortState: HospitalEventSortState;
+  canDuplicate: boolean;
+  canEditPeriod: boolean;
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
   onDuplicate: (row: HospitalEventRow) => void;
@@ -143,15 +147,17 @@ function buildHospitalEventColumns({
               "썸네일"
             )}
           </div>
-          <div className="relative min-h-20 min-w-0 flex-1 pb-9">
+          <div className={`relative min-h-20 min-w-0 flex-1 ${canDuplicate ? "pb-9" : ""}`}>
             <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.name}>
               {row.name}
             </span>
-            <div className="absolute right-0 bottom-0">
-              <EventInlineActionButton disabled={false} onClick={() => onDuplicate(row)}>
-                복제
-              </EventInlineActionButton>
-            </div>
+            {canDuplicate ? (
+              <div className="absolute right-0 bottom-0">
+                <EventInlineActionButton disabled={false} onClick={() => onDuplicate(row)}>
+                  복제
+                </EventInlineActionButton>
+              </div>
+            ) : null}
           </div>
         </div>
       ),
@@ -162,13 +168,15 @@ function buildHospitalEventColumns({
       cellClassName: `${cellBaseClass} lg:w-[150px]`,
       header: "기간",
       render: (row) => (
-        <div className="relative min-h-20 pb-9">
+        <div className={`relative min-h-20 ${canEditPeriod ? "pb-9" : ""}`}>
           <span className="block whitespace-pre-line text-gray-700">{row.periodLabel}</span>
-          <div className="absolute right-0 bottom-0">
-            <EventInlineActionButton disabled={false} onClick={() => onEditPeriod(row)}>
-              수정
-            </EventInlineActionButton>
-          </div>
+          {canEditPeriod ? (
+            <div className="absolute right-0 bottom-0">
+              <EventInlineActionButton disabled={false} onClick={() => onEditPeriod(row)}>
+                수정
+              </EventInlineActionButton>
+            </div>
+          ) : null}
         </div>
       ),
     },
@@ -235,9 +243,10 @@ function buildHospitalEventColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventAdminStatusColor(row.adminStatus)}>
-          {labelHospitalEventAdminStatus(row.adminStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={labelHospitalEventAdminStatus(row.adminStatus)}
+          color={hospitalEventAdminStatusColor(row.adminStatus)}
+        />
       ),
     },
     {
@@ -256,9 +265,10 @@ function buildHospitalEventColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventAllowStatusColor(row.allowStatus)}>
-          {labelHospitalEventAllowStatus(row.allowStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={labelHospitalEventAllowStatus(row.allowStatus)}
+          color={hospitalEventAllowStatusColor(row.allowStatus)}
+        />
       ),
     },
     {
@@ -300,6 +310,8 @@ type HospitalEventsDataTableProps = {
   error: string | null;
   highlightedRowId: number | null;
   sortState: HospitalEventSortState;
+  canDuplicate: boolean;
+  canEditPeriod: boolean;
   onToggleSort: (field: HospitalEventSortField) => void;
   onEditPeriod: (row: HospitalEventRow) => void;
   onDuplicate: (row: HospitalEventRow) => void;
@@ -316,6 +328,8 @@ export function HospitalEventsDataTable({
   error,
   highlightedRowId,
   sortState,
+  canDuplicate,
+  canEditPeriod,
   onToggleSort,
   onEditPeriod,
   onDuplicate,
@@ -324,8 +338,17 @@ export function HospitalEventsDataTable({
   onGoPage,
 }: HospitalEventsDataTableProps) {
   const columns = React.useMemo(
-    () => buildHospitalEventColumns({ sortState, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations }),
-    [sortState, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations],
+    () =>
+      buildHospitalEventColumns({
+        sortState,
+        canDuplicate,
+        canEditPeriod,
+        onToggleSort,
+        onEditPeriod,
+        onDuplicate,
+        onOpenConsultations,
+      }),
+    [sortState, canDuplicate, canEditPeriod, onToggleSort, onEditPeriod, onDuplicate, onOpenConsultations],
   );
   const getRowClassName = React.useCallback(
     (row: HospitalEventRow) =>

@@ -64,21 +64,26 @@ export function HospitalEventDBsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEventDBsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const isAmountRangeInvalid =
+    draftFilters.amountMin !== "" &&
+    draftFilters.amountMax !== "" &&
+    Number(draftFilters.amountMax) < Number(draftFilters.amountMin);
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter") return;
 
     event.preventDefault();
+    if (isAmountRangeInvalid) return;
     onApplyFilters();
   };
 
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1.55fr)_minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,1fr)_minmax(0,1.5fr)] gap-x-3 gap-y-3">
-          <div className={filterRowClass}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-6">
+          <div className={`${filterRowClass} md:col-span-2 xl:col-span-2`}>
             <span className={inlineLabelClass}>기간</span>
             <div className="min-w-0 flex-1">
               <DateRangeFilterDropdown
@@ -155,6 +160,7 @@ export function HospitalEventDBsFilterPanel({
           </div>
 
           <AmountRangeFilter
+            className="md:col-span-2 xl:col-span-2"
             label="금액"
             metricValue={draftFilters.amountMetric}
             minValue={draftFilters.amountMin}
@@ -163,12 +169,10 @@ export function HospitalEventDBsFilterPanel({
             onMinChange={onAmountMinChange}
             onMaxChange={onAmountMaxChange}
             onEnter={handleEnterToSearch}
+            error={isAmountRangeInvalid}
           />
-        </div>
-
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-3 gap-y-3">
-          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-3 py-1.5 md:col-span-2 xl:col-span-4 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField
@@ -182,7 +186,14 @@ export function HospitalEventDBsFilterPanel({
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" size="filter" onClick={onApplyFilters} className="shrink-0">
+              <Button
+                type="button"
+                variant="brand"
+                size="filter"
+                onClick={onApplyFilters}
+                className="shrink-0"
+                disabled={isAmountRangeInvalid}
+              >
                 검색
               </Button>
               <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -191,12 +202,16 @@ export function HospitalEventDBsFilterPanel({
             </div>
           </div>
         </div>
+        {isAmountRangeInvalid ? (
+          <p className="text-right text-xs text-error-500">금액 최대값은 최소값 이상이어야 합니다.</p>
+        ) : null}
       </div>
     </Card>
   );
 }
 
 function AmountRangeFilter({
+  className,
   label,
   metricValue,
   minValue,
@@ -205,7 +220,9 @@ function AmountRangeFilter({
   onMinChange,
   onMaxChange,
   onEnter,
+  error = false,
 }: {
+  className?: string;
   label: string;
   metricValue: HospitalEventDBAmountMetric;
   minValue: string;
@@ -214,10 +231,11 @@ function AmountRangeFilter({
   onMinChange: (value: string) => void;
   onMaxChange: (value: string) => void;
   onEnter: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  error?: boolean;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2 py-1.5">
-      <span className="w-16 shrink-0 text-right text-sm font-medium whitespace-nowrap text-gray-600">{label}</span>
+    <div className={["flex min-w-0 items-center gap-3", className].filter(Boolean).join(" ")}>
+      <span className="w-[72px] shrink-0 text-right text-sm font-medium whitespace-nowrap text-gray-600">{label}</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select
           value={metricValue}
@@ -234,6 +252,7 @@ function AmountRangeFilter({
           onKeyDown={onEnter}
           placeholder="0"
           className="bg-white px-3"
+          error={error}
         />
         <span className="text-sm text-gray-400">~</span>
         <InputField
@@ -244,6 +263,7 @@ function AmountRangeFilter({
           onKeyDown={onEnter}
           placeholder="999999999"
           className="bg-white px-3"
+          error={error}
         />
       </div>
     </div>

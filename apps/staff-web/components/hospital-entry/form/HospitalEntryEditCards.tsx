@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { Button, Card, InputField, Mail, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, InputField, Mail, StatusValueBadge } from "@beaulab/ui-admin";
 
 import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
 import { BUSINESS_NUMBER_FORMATTED_LENGTH, formatBusinessNumberInput } from "@/lib/common/business-number";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import {
   getHospitalEntryMediaFilename,
   isHospitalEntryImageMedia,
@@ -14,12 +15,12 @@ import {
   type HospitalEntryDetailResponse,
   type HospitalEntryMediaAsset,
 } from "@/lib/hospital-entry/detail";
+import { labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
 import {
   type HospitalEntryFieldName,
   type HospitalEntryFormErrors,
   type HospitalEntryFormValues,
 } from "@/lib/hospital-entry/form";
-import { hospitalEntryAllowStatusColor, labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const cardTitleClassName = "text-sm font-semibold text-gray-800";
@@ -207,9 +208,7 @@ export function HospitalEntryAllowStatusReadonlyCard({
       <div className="flex min-h-[3.5rem] flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
           <h2 className="text-sm font-bold text-gray-900">검수상태</h2>
-          <StatusBadge size="sm" color={hospitalEntryAllowStatusColor(status)}>
-            {labelHospitalEntryAllowStatus(status)}
-          </StatusBadge>
+          <StatusValueBadge label={labelHospitalEntryAllowStatus(status)} color={reviewAllowStatusColor(status)} />
         </div>
         <Button
           type="button"

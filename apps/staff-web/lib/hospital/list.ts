@@ -6,6 +6,7 @@ import {
   reviewAllowStatusColor,
   REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS,
 } from "@/lib/common/review-status";
+import { STATUS_BADGE_COLORS } from "@/lib/common/status-badge-colors";
 import { resolveMediaUrl, type MediaAsset } from "./detail";
 
 export type HospitalApiItem = {
@@ -437,7 +438,7 @@ export function labelApprovalStatus(status: string) {
 export function hospitalStatusBadgeColor(status: string) {
   if (status === "ACTIVE" || status === "APPROVED") return "success" as const;
   if (status === "PENDING" || status === "REVIEWING") return reviewAllowStatusColor(status);
-  if (status === "SUSPENDED") return "warning" as const;
+  if (status === "SUSPENDED") return STATUS_BADGE_COLORS.suspended;
   return "error" as const;
 }
 

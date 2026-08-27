@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { StatusBadge } from "@beaulab/ui-admin";
-
+import { StatusValueBadge } from "@beaulab/ui-admin";
 import { VisibilityActionButtons } from "@/components/common/VisibilityActionButtons";
+import { labelOwnerVisibilityStatus, ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 
 const detailGridClass = "grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-4";
 const detailLabelClass = "pt-0.5 text-xs font-semibold text-gray-500 ";
@@ -49,11 +49,5 @@ export function ReportedOriginalVisibilityButtons({
     return <VisibilityActionButtons status={status} disabled={disabled} onChange={onChange} />;
   }
 
-  const visible = status !== "INACTIVE";
-
-  return (
-    <StatusBadge size="sm" color={visible ? "success" : "error"}>
-      {visible ? "노출" : "미노출"}
-    </StatusBadge>
-  );
+  return <StatusValueBadge label={labelOwnerVisibilityStatus(status)} color={ownerVisibilityStatusColor(status)} />;
 }

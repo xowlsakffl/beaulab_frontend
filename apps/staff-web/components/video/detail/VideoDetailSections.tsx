@@ -13,9 +13,9 @@ import {
   ModalHeader,
   ModalPanel,
   ModalTitle,
-  StatusBadge,
   type BadgeColor,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -25,6 +25,8 @@ import {
   reportedContentReportsTotal,
 } from "@/components/reported-content/list/ReportedContentReportsList";
 import { api } from "@/lib/common/api";
+import { reportStatusBadgeColor } from "@/lib/common/report-status";
+import { adminStatusColor } from "@/lib/common/status-labels";
 import { type ReportedContentDetailReportItem, type ReportedContentReportsMeta } from "@/lib/reported-content/detail";
 import { getVideoMediaFilename, resolveVideoMediaUrl, type VideoDetailResponse } from "@/lib/video/detail";
 import {
@@ -32,9 +34,7 @@ import {
   labelVideoAdminStatus,
   labelVideoHospitalStatus,
   labelVideoReportStatus,
-  videoAdminStatusColor,
   videoHospitalStatusColor,
-  videoReportStatusColor,
 } from "@/lib/video/list";
 
 export const videoDetailCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -133,9 +133,10 @@ export function VideoOperationInfoCard({
             {isForcedStopped ? "정상노출" : "강제중지"}
           </Button>
         ) : (
-          <StatusBadge size="sm" color={videoAdminStatusColor(detail.admin_status)}>
-            {labelVideoAdminStatus(detail.admin_status)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelVideoAdminStatus(detail.admin_status)}
+            color={adminStatusColor(detail.admin_status)}
+          />
         )}
         <span className="sr-only">현재 강제중지 상태: {labelVideoAdminStatus(detail.admin_status)}</span>
       </div>
@@ -181,7 +182,7 @@ export function VideoOperationHistoryCard({
       cardClassName={videoDetailCardClassName}
       formatDateTime={formatLocalDateTime}
       statusLabel={labelVideoReportStatus}
-      statusBadgeColor={videoReportStatusColor}
+      statusBadgeColor={reportStatusBadgeColor}
     />
   );
 }
@@ -538,9 +539,10 @@ function StatusInfoField({
     >
       <p className={labelClassName}>{label}</p>
       <div className="flex min-h-[1.5rem] items-center">
-        <StatusBadge size="sm" color={status ? color(status) : "light"}>
-          {formatter(status, fallbackLabel ?? undefined)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={formatter(status, fallbackLabel ?? undefined)}
+          color={status ? color(status) : "light"}
+        />
       </div>
     </div>
   );
@@ -592,9 +594,10 @@ function ReportStatusActionField({
             </Button>
           </>
         ) : (
-          <StatusBadge size="sm" color={videoReportStatusColor(currentStatus)}>
-            {labelVideoReportStatus(currentStatus)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelVideoReportStatus(currentStatus)}
+            color={reportStatusBadgeColor(currentStatus)}
+          />
         )}
       </div>
     </div>

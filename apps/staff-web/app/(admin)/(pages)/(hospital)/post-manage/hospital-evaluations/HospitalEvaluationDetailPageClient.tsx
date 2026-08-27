@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { SpinnerBlock, StatusBadge, type DataTableMeta } from "@beaulab/ui-admin";
+import { SpinnerBlock, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
@@ -24,6 +24,7 @@ import {
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { isVisibilityLockedByReport } from "@/lib/common/content-report";
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import {
@@ -300,9 +301,10 @@ export default function HospitalEvaluationDetailPageClient() {
         onChange={requestVisibilityChange}
       />
     ) : (
-      <StatusBadge size="sm" color={detail.status === "INACTIVE" ? "error" : "success"}>
-        {labelHospitalEvaluationVisibilityStatus(detail.status)}
-      </StatusBadge>
+      <StatusValueBadge
+        label={labelHospitalEvaluationVisibilityStatus(detail.status)}
+        color={ownerVisibilityStatusColor(detail.status)}
+      />
     );
   }, [canUpdateStatus, detail, loadError, requestVisibilityChange, visibilityUpdating]);
 

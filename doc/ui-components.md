@@ -1,6 +1,6 @@
 # Frontend UI Component Rules
 
-작성 기준: 2026-07-27
+작성 기준: 2026-08-27
 
 이 문서는 공통 UI 컴포넌트 사용 기준이다.
 
@@ -30,6 +30,7 @@
 - 인라인 파일 입력은 `InlineFileSelect`의 액션 버튼, 파일명, `helperText` 규격 안내 영역을 사용한다. 파일명과 규격을 한 줄에 강제로 넣거나 페이지에서 안내 문구를 중복 렌더링하지 않는다.
 - table: `DataTable`, `Pagination`
 - modal/button/card/badge 계열 공통 UI
+- 상태값 기본 렌더링: `StatusValueBadge`
 - error: `ErrorStatusPage`
 - alert context
 
@@ -53,7 +54,6 @@ staff 앱 전용 공통 UI다.
 - `SummaryCountCard`
 - `AllowStatusControls`
 - `VisibilityActionButtons`
-- `ReportStatusBadge`
 - `OperationHistoryCard`
 - `OperationHistoryDisplay`
 - `MediaPreviewModal`
@@ -67,6 +67,14 @@ staff 앱 전용 공통 UI다.
 
 - 두 개 이상 도메인에서 같은 의미로 쓰일 때만 올린다.
 - field key, endpoint, 도메인 전용 payload를 알면 common이 아니다.
+
+상태 뱃지 기준:
+
+- `ui-admin`의 `StatusBadge`는 색상·크기·형태만 제공하고, `StatusValueBadge`는 기본 크기와 빈 값 표시를 통일한다.
+- staff 상태 코드는 `StatusValueBadge` 하나로 렌더링한다.
+- 도메인 고유 상태의 라벨·색상 계산은 해당 `lib/{domain}`에 두고 결과만 `StatusValueBadge`에 전달한다.
+- 여러 도메인에서 같은 의미인 상태 색상은 `STATUS_BADGE_COLORS`와 공통 색상 함수를 사용한다.
+- 카테고리와 상태를 같은 컴포넌트로 처리하지 않는다. 카테고리는 `CategoryBadgeList`를 사용한다.
 
 ## 4. Modal
 
@@ -98,7 +106,8 @@ summary 숫자 카드는 `SummaryCountCard`를 사용한다.
 
 기준:
 
-- 기본은 입점신청/병의원/이벤트 summary 스타일이다.
+- 목록 상단 summary는 `SummaryCardsGrid` 안에 독립된 낮은 카드로 배치하고 라벨은 왼쪽, 값은 오른쪽에 둔다.
+- 충전금 현황 상단은 별도 제목이나 외곽 카드 없이 지표 셀만 연결하여 표시한다.
 - 회원상세처럼 중앙형 카드가 필요한 경우 `layout="center"`를 사용한다.
 - 클릭 가능한 경우 `pressed`로 선택 상태를 표현한다.
 

@@ -99,13 +99,16 @@ export function DoctorsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: DoctorsFilterPanelProps) {
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const metricMin = Number(draftFilters.metricMin);
+  const metricMax = Number(draftFilters.metricMax);
+  const isMetricRangeInvalid = draftFilters.metricMin !== "" && draftFilters.metricMax !== "" && metricMax < metricMin;
 
   return (
-    <Card className="rounded-xl p-3">
-      <div className="grid grid-cols-[minmax(13rem,1.4fr)_minmax(13rem,1.1fr)_minmax(13.5rem,1.15fr)_minmax(5rem,1fr)_minmax(9.5rem,1fr)_minmax(10rem,1.8fr)] gap-x-3 gap-y-4 max-[1800px]:grid-cols-[minmax(14rem,1.1fr)_minmax(13.5rem,1fr)_minmax(15rem,1.05fr)]">
-        <div className={filterRowClass}>
+    <Card className="min-w-0 rounded-xl p-3">
+      <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-6">
+        <div className={`${filterRowClass} md:col-span-2 xl:col-span-2`}>
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
             label="기간"
@@ -187,7 +190,7 @@ export function DoctorsFilterPanel({
           />
         </div>
 
-        <div className={filterRowClass}>
+        <div className={`${filterRowClass} md:col-span-2 xl:col-span-2`}>
           <span className={inlineLabelClass}>지표</span>
           <div className="grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.9fr)_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
             <div className="min-w-0">
@@ -207,6 +210,7 @@ export function DoctorsFilterPanel({
                 onChange={(event) => onMetricMinChange(event.target.value.replace(/\D/g, ""))}
                 placeholder="1"
                 className="bg-white px-3"
+                error={isMetricRangeInvalid}
               />
             </div>
             <span className="text-sm text-gray-400">~</span>
@@ -218,13 +222,14 @@ export function DoctorsFilterPanel({
                 onChange={(event) => onMetricMaxChange(event.target.value.replace(/\D/g, ""))}
                 placeholder="500"
                 className="bg-white px-3"
+                error={isMetricRangeInvalid}
               />
             </div>
           </div>
         </div>
 
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex min-w-0 flex-col gap-3 py-1.5 md:col-span-2 xl:col-span-4 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField
@@ -233,6 +238,7 @@ export function DoctorsFilterPanel({
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
                     event.preventDefault();
+                    if (isMetricRangeInvalid) return;
                     onApplyFilters();
                   }
                 }}
@@ -243,7 +249,14 @@ export function DoctorsFilterPanel({
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
+            <Button
+              type="button"
+              variant="brand"
+              onClick={onApplyFilters}
+              size="filter"
+              className="shrink-0"
+              disabled={isMetricRangeInvalid}
+            >
               검색
             </Button>
             <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -259,6 +272,9 @@ export function DoctorsFilterPanel({
             </Can>
           </div>
         </div>
+        {isMetricRangeInvalid ? (
+          <p className="col-span-full text-right text-xs text-error-500">지표 최대값은 최소값 이상이어야 합니다.</p>
+        ) : null}
       </div>
     </Card>
   );

@@ -7,9 +7,9 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -191,9 +191,10 @@ function buildHospitalColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalStatusBadgeColor(row.hospitalStatus)}>
-          {labelApprovalStatus(row.hospitalStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={labelApprovalStatus(row.hospitalStatus)}
+          color={hospitalStatusBadgeColor(row.hospitalStatus)}
+        />
       ),
     },
     {
@@ -212,9 +213,10 @@ function buildHospitalColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={reviewAllowStatusColor(row.reviewStatus)}>
-          {labelReviewStatus(row.reviewStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={labelReviewStatus(row.reviewStatus)}
+          color={reviewAllowStatusColor(row.reviewStatus)}
+        />
       ),
     },
     {
@@ -235,11 +237,7 @@ function buildHospitalColumns({
       render: (row) => (
         <div className="flex min-w-0 flex-wrap items-center gap-1">
           <span>{row.lastLoginAt}</span>
-          {row.isDormant ? (
-            <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-              휴면
-            </span>
-          ) : null}
+          {row.isDormant ? <StatusValueBadge label="휴면" color="gray" /> : null}
         </div>
       ),
     },

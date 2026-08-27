@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck, StatusBadge, type DataTableMeta } from "@beaulab/ui-admin";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CircleCheck,
+  type DataTableMeta,
+  StatusValueBadge,
+} from "@beaulab/ui-admin";
 
 import { DetailImageGallery, type DetailImageGalleryItem } from "@/components/common/DetailImageGallery";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
@@ -106,12 +115,16 @@ export const HospitalEvaluationContentCard = React.memo(function HospitalEvaluat
               {receiptButtonLabel}
             </Button>
           ) : hasReceiptImages ? (
-            <StatusBadge
-              size="sm"
-              color={detail.receipt?.status === "VERIFIED" ? "success" : detail.receipt?.status === "REJECTED" ? "error" : "light"}
-            >
-              {labelHospitalEvaluationReceiptStatus(detail.receipt?.status)}
-            </StatusBadge>
+            <StatusValueBadge
+              label={labelHospitalEvaluationReceiptStatus(detail.receipt?.status)}
+              color={
+                detail.receipt?.status === "VERIFIED"
+                  ? "success"
+                  : detail.receipt?.status === "REJECTED"
+                    ? "error"
+                    : "light"
+              }
+            />
           ) : null}
         </div>
       </CardHeader>

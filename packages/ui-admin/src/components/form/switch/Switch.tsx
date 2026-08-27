@@ -51,17 +51,15 @@ const Switch: React.FC<SwitchProps> = ({
       role="switch"
       aria-checked={isChecked}
       aria-label={ariaLabel || label}
-      className={`flex items-center gap-3 text-sm font-medium select-none ${
-        disabled ? "cursor-not-allowed text-gray-400" : "cursor-pointer text-gray-700"
+      className={`flex items-center gap-3 text-sm font-medium text-gray-700 select-none ${
+        disabled ? "cursor-not-allowed" : "cursor-pointer"
       }`}
       onClick={handleToggle}
       disabled={disabled}
     >
       <div className="relative">
         <div
-          className={`block h-6 w-11 rounded-full transition duration-150 ease-linear ${
-            disabled ? "pointer-events-none bg-gray-100" : switchColors.background
-          }`}
+          className={`block h-6 w-11 rounded-full transition duration-150 ease-linear ${switchColors.background}`}
         ></div>
         <div
           className={`absolute top-0.5 left-0.5 h-5 w-5 transform rounded-full shadow-theme-sm duration-150 ease-linear ${switchColors.knob}`}

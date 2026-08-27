@@ -8,23 +8,22 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
+  CategoryBadgeList,
 } from "@beaulab/ui-admin";
 
-import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   formatHospitalReviewCost,
   formatHospitalReviewRating,
-  labelHospitalReviewVisibilityStatus,
   resolveHospitalReviewMediaUrl,
   type HospitalReviewRow,
   type HospitalReviewSortField,
   type HospitalReviewSortState,
 } from "@/lib/hospital-review/list";
-import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
+import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
 function renderSortMark(field: HospitalReviewSortField, sortState: HospitalReviewSortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -270,22 +269,22 @@ function buildHospitalReviewColumns({
       header: (
         <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
       ),
-      render: (row) =>
-        canUpdateStatus ? (
-          <span onClick={(event) => event.stopPropagation()}>
-            <Switch
-              checked={row.isVisible}
-              disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
-              ariaLabel={`후기 ${row.id} 노출 상태 변경`}
-              color="gray"
-              onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
-            />
-          </span>
-        ) : (
-          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
-            {labelHospitalReviewVisibilityStatus(row.status)}
-          </StatusBadge>
-        ),
+      render: (row) => (
+        <span onClick={(event) => event.stopPropagation()}>
+          <Switch
+            checked={row.isVisible}
+            disabled={
+              !canUpdateStatus ||
+              row.visibilityChangeLocked ||
+              visibilityControlsDisabled ||
+              visibilityUpdatingIds.has(row.id)
+            }
+            ariaLabel={`후기 ${row.id} 노출 상태 변경`}
+            color="gray"
+            onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
+          />
+        </span>
+      ),
     },
     {
       key: "featured",
@@ -359,7 +358,12 @@ function buildHospitalReviewColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6%]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6%]`,
       header: "상태",
-      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} status={row.reportStatus} />,
+      render: (row) => (
+        <StatusValueBadge
+          label={row.reportStatusLabel || reportStatusBadgeLabel(row.reportStatus)}
+          color={reportStatusBadgeColor(row.reportStatus)}
+        />
+      ),
     },
   ];
 }

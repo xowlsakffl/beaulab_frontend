@@ -353,8 +353,6 @@ export default function VideosTableClient() {
           setDraftFilters((prev) => ({
             ...prev,
             metric: value,
-            metricMin: value === "all" ? "" : prev.metricMin,
-            metricMax: value === "all" ? "" : prev.metricMax,
           }))
         }
         onMetricMinChange={(value) => setDraftFilters((prev) => ({ ...prev, metricMin: value }))}

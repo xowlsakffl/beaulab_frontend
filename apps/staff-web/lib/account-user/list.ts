@@ -1,6 +1,8 @@
 import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { STATUS_BADGE_COLORS } from "@/lib/common/status-badge-colors";
+
 export type AccountUserDateType = "created_at" | "last_accessed_at";
 export type AccountUserSortDirection = "asc" | "desc";
 export type AccountUserSummaryCardKey = "withdrawn" | "blocked" | "warned";
@@ -282,7 +284,7 @@ export function buildAccountUserPresetDateRange(preset: string): DateRange | und
 
 export function formatAccountUserStatusColor(status: string) {
   if (status === "ACTIVE") return "success" as const;
-  if (status === "SUSPENDED") return "warning" as const;
+  if (status === "SUSPENDED") return STATUS_BADGE_COLORS.suspended;
 
   return "error" as const;
 }

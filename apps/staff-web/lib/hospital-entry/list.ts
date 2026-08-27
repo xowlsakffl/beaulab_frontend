@@ -1,7 +1,7 @@
 import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-import { labelReviewAllowStatus, reviewAllowStatusColor } from "@/lib/common/review-status";
+import { labelReviewAllowStatus } from "@/lib/common/review-status";
 
 export type HospitalEntryAllowStatus = "PENDING" | "REVIEWING" | "APPROVED" | "REJECTED";
 
@@ -206,10 +206,6 @@ function formatDateValue(value?: string | null) {
 
 export function labelHospitalEntryAllowStatus(status?: string | null) {
   return labelReviewAllowStatus(status, status || "-");
-}
-
-export function hospitalEntryAllowStatusColor(status?: string | null) {
-  return reviewAllowStatusColor(status);
 }
 
 function formatAddress(address?: string | null, addressDetail?: string | null) {

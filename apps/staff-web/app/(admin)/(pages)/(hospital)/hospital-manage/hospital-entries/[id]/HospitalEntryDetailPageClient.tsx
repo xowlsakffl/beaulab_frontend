@@ -4,7 +4,7 @@ import React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, SpinnerBlock, StatusBadge, useGlobalAlert } from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, useGlobalAlert, StatusValueBadge } from "@beaulab/ui-admin";
 
 import {
   AllowStatusActionButtons,
@@ -16,6 +16,7 @@ import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
@@ -27,7 +28,7 @@ import {
   type HospitalEntryDetailResponse,
   type HospitalEntryMediaAsset,
 } from "@/lib/hospital-entry/detail";
-import { hospitalEntryAllowStatusColor, labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
+import { labelHospitalEntryAllowStatus } from "@/lib/hospital-entry/list";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const cardTitleClassName = "text-sm font-semibold text-gray-800";
@@ -301,9 +302,10 @@ function HospitalEntryAllowStatusCard({
         {canUpdate ? (
           <AllowStatusButtons detail={detail} updating={updating} onChange={onChange} />
         ) : (
-          <StatusBadge size="sm" color={hospitalEntryAllowStatusColor(resolveAllowStatusValue(detail.allow_status))}>
-            {labelHospitalEntryAllowStatus(resolveAllowStatusValue(detail.allow_status))}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelHospitalEntryAllowStatus(resolveAllowStatusValue(detail.allow_status))}
+            color={reviewAllowStatusColor(resolveAllowStatusValue(detail.allow_status))}
+          />
         )}
       </div>
     </Card>

@@ -22,10 +22,12 @@ import {
   type OperationHistoryItem,
 } from "@/components/hospital-event/detail/HospitalEventDetailSections";
 import { api } from "@/lib/common/api";
+import { ADMIN_NOTE_WRITE_PERMISSION } from "@/lib/common/admin-note-permissions";
 import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { labelHospitalEventAllowStatus, type HospitalEventApiItem } from "@/lib/hospital-event/list";
+import { HOSPITAL_EVENT_PERMISSIONS } from "@/lib/hospital-event/permissions";
 
 type PendingAdminStatusChange = {
   allowStatus: "NORMAL" | "FORCED_STOPPED";
@@ -45,7 +47,9 @@ export default function HospitalEventDetailPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
-  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEvent);
+  const sessionAuth = getSession()?.auth;
+  const canUpdateStatus = hasPermission(sessionAuth, STAFF_STATUS_PERMISSIONS.hospitalEvent);
+  const canWriteAdminNote = hasPermission(sessionAuth, ADMIN_NOTE_WRITE_PERMISSION);
 
   const rawEventId = Array.isArray(params.id) ? params.id[0] : params.id;
   const eventId = Number(rawEventId);
@@ -342,7 +346,7 @@ export default function HospitalEventDetailPageClient() {
 
     return (
       <div className="flex items-center gap-2">
-        <Can permission="beaulab.hospital_event.update">
+        <Can permission={HOSPITAL_EVENT_PERMISSIONS.update}>
           <Button type="button" variant="brand" size="sm" onClick={() => router.push(editPath)}>
             수정하기
           </Button>
@@ -384,7 +388,11 @@ export default function HospitalEventDetailPageClient() {
             updating={updatingStatus}
             onChange={requestAllowStatus}
           />
-          <AdminNotesCard notes={notes} loading={notesLoading} onAdd={() => setIsNoteModalOpen(true)} />
+          <AdminNotesCard
+            notes={notes}
+            loading={notesLoading}
+            onAdd={canWriteAdminNote ? () => setIsNoteModalOpen(true) : undefined}
+          />
           <OperationHistoryCard
             histories={histories}
             meta={historyMeta}
@@ -428,17 +436,19 @@ export default function HospitalEventDetailPageClient() {
           />
         </>
       ) : null}
-      <NoteCreateModal
-        isOpen={isNoteModalOpen}
-        value={noteInput}
-        saving={savingNote}
-        onChange={setNoteInput}
-        onClose={() => {
-          if (savingNote) return;
-          setIsNoteModalOpen(false);
-        }}
-        onSave={saveNote}
-      />
+      {canWriteAdminNote ? (
+        <NoteCreateModal
+          isOpen={isNoteModalOpen}
+          value={noteInput}
+          saving={savingNote}
+          onChange={setNoteInput}
+          onClose={() => {
+            if (savingNote) return;
+            setIsNoteModalOpen(false);
+          }}
+          onSave={saveNote}
+        />
+      ) : null}
     </div>
   );
 }

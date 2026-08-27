@@ -14,9 +14,10 @@ import {
   ModalPanel,
   ModalTitle,
   Select,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 import {
   HASHTAG_STATUS_OPTIONS,
   labelHashtagStatus,
@@ -123,9 +124,10 @@ export function HashtagUpsertModal({
                 />
               ) : (
                 <div className="flex h-11 items-center">
-                  <StatusBadge size="sm" color={statusInput === "ACTIVE" ? "success" : "error"}>
-                    {labelHashtagStatus(statusInput)}
-                  </StatusBadge>
+                  <StatusValueBadge
+                    label={labelHashtagStatus(statusInput)}
+                    color={ownerVisibilityStatusColor(statusInput)}
+                  />
                 </div>
               )}
             </div>

@@ -7,15 +7,14 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { type SortField, type SortState, type TalkRow } from "@/lib/talk/list";
-import { labelTalkVisibilityStatus } from "@/lib/talk/detail";
-import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
+import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -186,22 +185,22 @@ function buildTalkColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6%]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6%]`,
       header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) =>
-        canUpdateStatus ? (
-          <span onClick={(event) => event.stopPropagation()}>
-            <Switch
-              ariaLabel={`토크 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
-              checked={row.isVisible}
-              color="gray"
-              disabled={visibilityControlsDisabled || row.visibilityChangeLocked || visibilityUpdatingIds.has(row.id)}
-              onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
-            />
-          </span>
-        ) : (
-          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
-            {labelTalkVisibilityStatus(row.status)}
-          </StatusBadge>
-        ),
+      render: (row) => (
+        <span onClick={(event) => event.stopPropagation()}>
+          <Switch
+            ariaLabel={`토크 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
+            checked={row.isVisible}
+            color="gray"
+            disabled={
+              !canUpdateStatus ||
+              visibilityControlsDisabled ||
+              row.visibilityChangeLocked ||
+              visibilityUpdatingIds.has(row.id)
+            }
+            onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
+          />
+        </span>
+      ),
     },
     {
       key: "likeCount",
@@ -236,7 +235,12 @@ function buildTalkColumns({
       headerClassName: `${headerBaseClass} lg:w-[86px] xl:w-[6%]`,
       cellClassName: `${nowrapCellClass} lg:w-[86px] xl:w-[6%]`,
       header: "상태",
-      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} status={row.reportStatus} />,
+      render: (row) => (
+        <StatusValueBadge
+          label={row.reportStatusLabel || reportStatusBadgeLabel(row.reportStatus)}
+          color={reportStatusBadgeColor(row.reportStatus)}
+        />
+      ),
     },
   ];
 }

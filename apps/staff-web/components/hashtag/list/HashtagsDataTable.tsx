@@ -7,12 +7,13 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { type HashtagRow, type SortField, type SortState } from "@/lib/hashtag/list";
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 
 function renderSortMark(field: SortField, sortState: SortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -123,11 +124,7 @@ function buildHashtagColumns({
           운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
         </Button>
       ),
-      render: (row) => (
-        <StatusBadge size="sm" color={row.status === "ACTIVE" ? "success" : "warning"}>
-          {row.statusLabel}
-        </StatusBadge>
-      ),
+      render: (row) => <StatusValueBadge label={row.statusLabel} color={ownerVisibilityStatusColor(row.status)} />,
     },
     {
       key: "updatedAt",

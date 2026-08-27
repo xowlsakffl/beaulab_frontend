@@ -8,20 +8,20 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
+  CategoryBadgeList,
 } from "@beaulab/ui-admin";
 
-import { CategoryBadgeList } from "@beaulab/ui-admin";
 import {
   type HospitalReviewCommentRow,
   type HospitalReviewCommentSortField,
   type HospitalReviewCommentSortState,
 } from "@/lib/hospital-review/comment-list";
-import { labelHospitalReviewVisibilityStatus, resolveHospitalReviewMediaUrl } from "@/lib/hospital-review/list";
-import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
+import { resolveHospitalReviewMediaUrl } from "@/lib/hospital-review/list";
+import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
 function renderSortMark(field: HospitalReviewCommentSortField, sortState: HospitalReviewCommentSortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -227,22 +227,22 @@ function buildCommentColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[7%]`,
       header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) =>
-        canUpdateStatus ? (
-          <span onClick={(event) => event.stopPropagation()}>
-            <Switch
-              checked={row.isVisible}
-              disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
-              ariaLabel={`후기 댓글 ${row.id} 노출 상태 변경`}
-              color="gray"
-              onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
-            />
-          </span>
-        ) : (
-          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
-            {labelHospitalReviewVisibilityStatus(row.status)}
-          </StatusBadge>
-        ),
+      render: (row) => (
+        <span onClick={(event) => event.stopPropagation()}>
+          <Switch
+            checked={row.isVisible}
+            disabled={
+              !canUpdateStatus ||
+              row.visibilityChangeLocked ||
+              visibilityControlsDisabled ||
+              visibilityUpdatingIds.has(row.id)
+            }
+            ariaLabel={`후기 댓글 ${row.id} 노출 상태 변경`}
+            color="gray"
+            onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
+          />
+        </span>
+      ),
     },
     {
       key: "likeCount",
@@ -256,7 +256,12 @@ function buildCommentColumns({
       headerClassName: `${headerBaseClass} lg:w-[88px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[88px] xl:w-[7%]`,
       header: "상태",
-      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} status={row.reportStatus} />,
+      render: (row) => (
+        <StatusValueBadge
+          label={row.reportStatusLabel || reportStatusBadgeLabel(row.reportStatus)}
+          color={reportStatusBadgeColor(row.reportStatus)}
+        />
+      ),
     },
   ];
 }

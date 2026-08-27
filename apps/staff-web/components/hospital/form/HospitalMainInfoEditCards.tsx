@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Card, InlineFileSelect, InputField, Select, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, InlineFileSelect, InputField, Select, StatusValueBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
@@ -61,9 +61,7 @@ export function HospitalMainInfoEditCard({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold text-gray-900">병의원정보</h2>
           {!isCreate && form.status !== "ACTIVE" ? (
-            <StatusBadge size="sm" color={hospitalStatusBadgeColor(form.status)}>
-              {labelApprovalStatus(form.status)}
-            </StatusBadge>
+            <StatusValueBadge label={labelApprovalStatus(form.status)} color={hospitalStatusBadgeColor(form.status)} />
           ) : null}
         </div>
       </div>

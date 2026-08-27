@@ -3,25 +3,25 @@
 import React from "react";
 import { hasPermission } from "@beaulab/auth";
 
-import { CategoryBadgeList } from "@beaulab/ui-admin";
+import { CategoryBadgeList, StatusValueBadge, Button, Card, SpinnerBlock } from "@beaulab/ui-admin";
 import { AllowStatusActionButtons, AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { resolveDoctorMediaUrl, type DoctorDetailResponse, type DoctorMediaAsset } from "@/lib/doctor/detail";
 import {
   formatCareerPeriod,
-  doctorApprovalStatusBadgeColor,
   labelDoctorApprovalStatus,
   labelDoctorGender,
   labelDoctorSpecialistField,
 } from "@/lib/doctor/list";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, SpinnerBlock, StatusBadge } from "@beaulab/ui-admin";
+
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 const infoCardClassName = "rounded-xl border border-gray-200 bg-white p-5";
@@ -242,9 +242,10 @@ function DoctorAllowStatusCard({
         {canUpdate ? (
           <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
         ) : (
-          <StatusBadge size="sm" color={doctorApprovalStatusBadgeColor(detail.allow_status ?? "")}>
-            {labelDoctorApprovalStatus(detail.allow_status ?? "")}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelDoctorApprovalStatus(detail.allow_status)}
+            color={reviewAllowStatusColor(detail.allow_status)}
+          />
         )}
       </div>
       {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}

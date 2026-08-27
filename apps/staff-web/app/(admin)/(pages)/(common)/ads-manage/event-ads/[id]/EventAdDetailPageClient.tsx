@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, SpinnerBlock, StatusBadge, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, useGlobalAlert, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
 
 import { AdminNoteCreateModal } from "@/components/common/AdminNoteCreateModal";
 import { AdminNotesCard } from "@/components/common/AdminNotesCard";
@@ -16,6 +16,7 @@ import { OperationHistoryCard, type OperationHistoryListItem } from "@/component
 import type { OperationHistoryChangeLike } from "@/components/common/OperationHistoryDisplay";
 import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
+import { ADMIN_NOTE_WRITE_PERMISSION } from "@/lib/common/admin-note-permissions";
 import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
@@ -55,7 +56,9 @@ export default function EventAdDetailPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
-  const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEventAd);
+  const sessionAuth = getSession()?.auth;
+  const canUpdateStatus = hasPermission(sessionAuth, STAFF_STATUS_PERMISSIONS.hospitalEventAd);
+  const canWriteAdminNote = hasPermission(sessionAuth, ADMIN_NOTE_WRITE_PERMISSION);
 
   const rawAdId = Array.isArray(params.id) ? params.id[0] : params.id;
   const adId = Number(rawAdId);
@@ -305,7 +308,7 @@ export default function EventAdDetailPageClient() {
           <AdminNotesCard
             notes={notes}
             loading={notesLoading}
-            onAdd={() => setIsNoteModalOpen(true)}
+            onAdd={canWriteAdminNote ? () => setIsNoteModalOpen(true) : undefined}
             formatDateTime={formatShortDateTime}
             className={cardClassName}
           />
@@ -336,17 +339,19 @@ export default function EventAdDetailPageClient() {
           onConfirm={() => void confirmAllowStatusChange()}
         />
       ) : null}
-      <AdminNoteCreateModal
-        isOpen={isNoteModalOpen}
-        value={noteInput}
-        saving={savingNote}
-        onChange={setNoteInput}
-        onClose={() => {
-          if (savingNote) return;
-          setIsNoteModalOpen(false);
-        }}
-        onSave={saveNote}
-      />
+      {canWriteAdminNote ? (
+        <AdminNoteCreateModal
+          isOpen={isNoteModalOpen}
+          value={noteInput}
+          saving={savingNote}
+          onChange={setNoteInput}
+          onClose={() => {
+            if (savingNote) return;
+            setIsNoteModalOpen(false);
+          }}
+          onSave={saveNote}
+        />
+      ) : null}
     </div>
   );
 }
@@ -403,9 +408,10 @@ function EventAdMainCard({
               label="광고상태"
               customValue={
                 detail.ad_status ? (
-                  <StatusBadge size="sm" color={eventAdStatusColor(detail.ad_status)}>
-                    {detail.ad_status_label || labelEventAdStatus(detail.ad_status)}
-                  </StatusBadge>
+                  <StatusValueBadge
+                    label={detail.ad_status_label || labelEventAdStatus(detail.ad_status)}
+                    color={eventAdStatusColor(detail.ad_status)}
+                  />
                 ) : (
                   <span>-</span>
                 )
@@ -422,9 +428,10 @@ function EventAdMainCard({
                       onChange={onAllowStatusChange}
                     />
                   ) : (
-                    <StatusBadge size="sm" color={eventAdAllowStatusColor(detail.allow_status)}>
-                      {labelEventAdAllowStatus(detail.allow_status)}
-                    </StatusBadge>
+                    <StatusValueBadge
+                      label={labelEventAdAllowStatus(detail.allow_status)}
+                      color={eventAdAllowStatusColor(detail.allow_status)}
+                    />
                   )}
                 </div>
               }
@@ -537,9 +544,11 @@ function historyChangeDisplay(change: OperationHistoryChangeLike, side: "before"
     const rawValue = String(value ?? "").trim();
 
     return (
-      <StatusBadge size="sm" color={eventAdAllowStatusColor(rawValue)} className="h-5 px-2 text-xs leading-none">
-        {display?.trim() || labelEventAdAllowStatus(rawValue)}
-      </StatusBadge>
+      <StatusValueBadge
+        label={display?.trim() || labelEventAdAllowStatus(rawValue)}
+        color={eventAdAllowStatusColor(rawValue)}
+        className="h-5 px-2 text-xs leading-none"
+      />
     );
   }
 

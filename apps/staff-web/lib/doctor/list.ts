@@ -2,11 +2,7 @@ import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
 import { resolveMediaAssetUrl } from "@/lib/common/media";
-import {
-  labelReviewAllowStatus,
-  REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS,
-  reviewAllowStatusColor,
-} from "@/lib/common/review-status";
+import { labelReviewAllowStatus, REVIEW_ALLOW_STATUS_WITH_NOT_APPLIED_OPTIONS } from "@/lib/common/review-status";
 
 type MediaAsset = {
   path?: string | null;
@@ -361,10 +357,6 @@ export function labelDoctorGender(gender?: string | null) {
 
 export function labelDoctorApprovalStatus(status?: string | null) {
   return labelReviewAllowStatus(status, status || "-");
-}
-
-export function doctorApprovalStatusBadgeColor(status?: string | null) {
-  return reviewAllowStatusColor(status);
 }
 
 export function labelDoctorOperatingStatus(status?: string | null) {

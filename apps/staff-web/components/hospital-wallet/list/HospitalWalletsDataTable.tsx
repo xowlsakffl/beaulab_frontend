@@ -11,9 +11,9 @@ import {
   DataTableSortHeader,
   FormCheckbox,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -127,11 +127,7 @@ function buildColumns({
           <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.hospitalName}>
             {row.hospitalName}
           </span>
-          {row.hospitalDeleted ? (
-            <StatusBadge size="sm" color="gray" className="shrink-0">
-              삭제됨
-            </StatusBadge>
-          ) : null}
+          {row.hospitalDeleted ? <StatusValueBadge label="삭제됨" color="gray" className="shrink-0" /> : null}
         </div>
       ),
     },

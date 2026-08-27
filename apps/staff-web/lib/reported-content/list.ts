@@ -63,7 +63,6 @@ export type ReportedContentBoardConfig = {
   showReportCountFilter?: boolean;
   showWarningFilter?: boolean;
   showSummaryCards?: boolean;
-  singleLineFilters?: boolean;
 };
 
 export type ReportedContentReasonCount = {
@@ -283,7 +282,6 @@ export const REPORTED_CONTENT_BOARD_CONFIGS: Record<ReportedContentBoardType, Re
     showReportCountFilter: false,
     showWarningFilter: true,
     showSummaryCards: false,
-    singleLineFilters: true,
   },
 };
 

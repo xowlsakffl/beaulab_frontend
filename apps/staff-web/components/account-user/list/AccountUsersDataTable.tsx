@@ -6,9 +6,9 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -127,11 +127,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[94px]`,
       cellClassName: `${nowrapCellClass} w-[94px]`,
       header: <SortHeader label="회원상태" field="status" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => (
-        <StatusBadge size="sm" color={formatAccountUserStatusColor(row.status)}>
-          {row.statusLabel}
-        </StatusBadge>
-      ),
+      render: (row) => <StatusValueBadge label={row.statusLabel} color={formatAccountUserStatusColor(row.status)} />,
     },
     {
       key: "createdAt",

@@ -10,9 +10,9 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -228,9 +228,10 @@ function buildEventAdColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={eventAdAllowStatusColor(row.allowStatus)}>
-          {row.allowStatusLabel || labelEventAdAllowStatus(row.allowStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={row.allowStatusLabel || labelEventAdAllowStatus(row.allowStatus)}
+          color={eventAdAllowStatusColor(row.allowStatus)}
+        />
       ),
     },
     {
@@ -240,9 +241,10 @@ function buildEventAdColumns({
       header: "광고상태",
       render: (row) =>
         row.adStatus ? (
-          <StatusBadge size="sm" color={eventAdStatusColor(row.adStatus)}>
-            {row.adStatusLabel || labelEventAdStatus(row.adStatus)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={row.adStatusLabel || labelEventAdStatus(row.adStatus)}
+            color={eventAdStatusColor(row.adStatus)}
+          />
         ) : (
           <span className="text-gray-500">-</span>
         ),

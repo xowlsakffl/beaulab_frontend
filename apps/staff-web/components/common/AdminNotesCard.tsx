@@ -14,7 +14,7 @@ export type AdminNotesCardItem = {
 type AdminNotesCardProps<TNote extends AdminNotesCardItem> = {
   notes: TNote[];
   loading?: boolean;
-  onAdd: () => void;
+  onAdd?: (() => void) | null;
   formatDateTime: (value?: string | null) => string;
   className?: string;
 };
@@ -35,9 +35,9 @@ export function AdminNotesCard<TNote extends AdminNotesCardItem>({
 }: AdminNotesCardProps<TNote>) {
   return (
     <Card className={className}>
-      <div className="relative mb-4 min-h-7 border-b border-gray-200 pr-9 pb-3">
+      <div className={`relative mb-4 min-h-7 border-b border-gray-200 pb-3 ${onAdd ? "pr-9" : ""}`}>
         <h3 className="text-sm font-bold text-gray-900">관리자 메모</h3>
-        <AddCircleButton label="관리자 메모 추가" onClick={onAdd} className="absolute top-0 right-0" />
+        {onAdd ? <AddCircleButton label="관리자 메모 추가" onClick={onAdd} className="absolute top-0 right-0" /> : null}
       </div>
 
       {loading ? (

@@ -57,23 +57,28 @@ export function AccountUsersFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: AccountUsersFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const warningCountMin = Number(draftFilters.warningCountMin);
+  const warningCountMax = Number(draftFilters.warningCountMax);
+  const isWarningRangeInvalid =
+    draftFilters.warningCountMin !== "" && draftFilters.warningCountMax !== "" && warningCountMax < warningCountMin;
 
-  const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== "Enter") return;
-
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isWarningRangeInvalid) return;
+
     onApplyFilters();
   };
 
+  const filterRowClassName = "flex min-w-0 items-center gap-3";
+  const filterLabelClassName = "w-[72px] shrink-0 text-right text-sm font-medium text-gray-600";
+
   return (
     <Card className="min-w-0 rounded-xl p-3">
-      <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)]">
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>기간</span>
-            <div className="flex min-w-0 flex-1 flex-row items-center gap-6">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-5">
+          <div className={`${filterRowClassName} md:col-span-2 xl:col-span-2`}>
+            <span className={filterLabelClassName}>기간</span>
+            <div className="flex min-w-0 flex-1 items-center gap-4">
               <DateRangeFilterDropdown
                 label="기간"
                 hideLabel
@@ -92,7 +97,7 @@ export function AccountUsersFilterPanel({
                 }}
                 onConfirm={onToggleDatePicker}
               />
-              <div className="flex shrink-0 items-center gap-5 px-1">
+              <div className="flex shrink-0 items-center gap-4">
                 {ACCOUNT_USER_DATE_TYPE_OPTIONS.map((option) => (
                   <FormCheckbox
                     key={option.value}
@@ -105,8 +110,8 @@ export function AccountUsersFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>가입경로</span>
+          <div className={filterRowClassName}>
+            <span className={filterLabelClassName}>가입경로</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
                 label="가입경로"
@@ -118,8 +123,8 @@ export function AccountUsersFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>회원상태</span>
+          <div className={filterRowClassName}>
+            <span className={filterLabelClassName}>회원상태</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
                 label="회원상태"
@@ -131,54 +136,64 @@ export function AccountUsersFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
-            <span className={inlineLabelClass}>경고횟수</span>
+          <div className={filterRowClassName}>
+            <span className={filterLabelClassName}>경고횟수</span>
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
               <InputField
                 type="number"
                 min="0"
+                inputMode="numeric"
                 value={draftFilters.warningCountMin}
                 onChange={(event) => onWarningCountMinChange(event.target.value)}
-                onKeyDown={handleEnterToSearch}
+                placeholder="최소"
                 className="bg-white px-3"
+                error={isWarningRangeInvalid}
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
                 type="number"
                 min="0"
+                inputMode="numeric"
                 value={draftFilters.warningCountMax}
                 onChange={(event) => onWarningCountMaxChange(event.target.value)}
-                onKeyDown={handleEnterToSearch}
+                placeholder="최대"
                 className="bg-white px-3"
+                error={isWarningRangeInvalid}
               />
             </div>
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <span className={inlineLabelClass}>검색</span>
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+          <div className={`${filterRowClassName} min-w-0 flex-1`}>
+            <label htmlFor="account-user-search" className={filterLabelClassName}>
+              검색
+            </label>
             <div className="min-w-0 flex-1">
               <InputField
+                id="account-user-search"
                 value={searchInput}
                 onChange={(event) => onSearchChange(event.target.value)}
-                onKeyDown={handleEnterToSearch}
-                placeholder="UID, 이메일, 닉네임 등을 입력해주세요"
-                className="w-full bg-white"
+                placeholder="UID, 이메일, 닉네임, 이름을 입력해 주세요."
+                className="bg-white"
               />
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-            <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
+          <div className="flex shrink-0 items-center justify-end gap-2">
+            <Button type="submit" variant="brand" size="filter" disabled={isWarningRangeInvalid}>
               검색
             </Button>
-            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
+            <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters}>
               검색 초기화
             </Button>
           </div>
         </div>
-      </div>
+
+        {isWarningRangeInvalid ? (
+          <p className="pr-1 text-right text-xs text-error-500">최대 경고횟수는 최소 경고횟수 이상이어야 합니다.</p>
+        ) : null}
+      </form>
     </Card>
   );
 }

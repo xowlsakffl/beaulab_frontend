@@ -52,7 +52,6 @@ type ReportedContentFilterPanelProps = {
   showReportStatusFilter?: boolean;
   showReportCountFilter?: boolean;
   showWarningFilter?: boolean;
-  singleLineFilters?: boolean;
 };
 
 export function ReportedContentFilterPanel({
@@ -83,36 +82,41 @@ export function ReportedContentFilterPanel({
   showReportStatusFilter = true,
   showReportCountFilter = true,
   showWarningFilter = true,
-  singleLineFilters = false,
 }: ReportedContentFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
-  const firstGridClass = singleLineFilters
-    ? "grid min-w-0 grid-cols-[minmax(0,2.1fr)_minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,2.55fr)] gap-x-3 gap-y-3"
-    : showVisibilityFilter && showReportStatusFilter
-      ? "grid min-w-0 grid-cols-[minmax(0,2.15fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
-      : showVisibilityFilter || showReportStatusFilter
-        ? "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)_minmax(0,1fr)] gap-x-3 gap-y-3 max-[1800px]:grid-cols-[minmax(0,2.05fr)_minmax(0,1.15fr)_minmax(0,1.1fr)]"
-        : "grid min-w-0 grid-cols-[minmax(0,1.9fr)_minmax(0,1.15fr)_minmax(0,1.2fr)] gap-x-3 gap-y-3";
-  const desktopSecondGridClass = showWarningFilter
-    ? "grid min-w-0 grid-cols-[minmax(0,0.75fr)_minmax(0,3fr)] gap-x-4 gap-y-3 max-[1800px]:hidden"
-    : "grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:hidden";
-  const compactSecondGridClass =
-    "hidden min-w-0 grid-cols-[minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,0.85fr)] gap-x-3 gap-y-3 max-[1800px]:grid";
-  const compactSearchGridClass = "hidden min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-3 max-[1800px]:grid";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const isReportCountRangeInvalid =
+    showReportCountFilter &&
+    draftFilters.reportCountMin !== "" &&
+    draftFilters.reportCountMax !== "" &&
+    Number(draftFilters.reportCountMax) < Number(draftFilters.reportCountMin);
   const dateControlsClass = dateTypeInline
-    ? singleLineFilters
-      ? "flex min-w-0 flex-1 flex-row items-center gap-2"
-      : "flex min-w-0 flex-1 flex-row items-center gap-6"
+    ? "flex min-w-0 flex-1 flex-row items-center gap-4"
     : "grid min-w-0 flex-1 grid-cols-[minmax(7rem,0.55fr)_minmax(0,1fr)] gap-2";
+  const secondaryFilterCount =
+    Number(showVisibilityFilter) + Number(showReportStatusFilter) + Number(showWarningFilter);
+  const isWarningOnlyLayout =
+    !showReportCountFilter && !showVisibilityFilter && !showReportStatusFilter && showWarningFilter;
+  const searchDesktopSpan = isWarningOnlyLayout
+    ? "xl:col-span-12"
+    : secondaryFilterCount === 3
+      ? "xl:col-span-6"
+      : secondaryFilterCount === 2
+        ? "xl:col-span-8"
+        : secondaryFilterCount === 1
+          ? "xl:col-span-10"
+          : "xl:col-span-12";
+  const reportReasonDesktopSpan = showReportCountFilter || isWarningOnlyLayout ? "xl:col-span-3" : "xl:col-span-6";
+  const warningDesktopSpan = isWarningOnlyLayout ? "xl:col-span-3" : "xl:col-span-2";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      if (isReportCountRangeInvalid) return;
       onApplyFilters();
     }
   };
   const reportCountFilter = showReportCountFilter ? (
-    <div className={filterRowClass}>
+    <div className={`${filterRowClass} xl:col-span-3`}>
       <span className={inlineLabelClass}>신고횟수</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <InputField
@@ -123,6 +127,7 @@ export function ReportedContentFilterPanel({
           onKeyDown={handleEnterToSearch}
           placeholder="0"
           className="bg-white px-3"
+          error={isReportCountRangeInvalid}
         />
         <span className="text-sm text-gray-400">~</span>
         <InputField
@@ -133,12 +138,13 @@ export function ReportedContentFilterPanel({
           onKeyDown={handleEnterToSearch}
           placeholder="100"
           className="bg-white px-3"
+          error={isReportCountRangeInvalid}
         />
       </div>
     </div>
   ) : null;
   const warningFilter = showWarningFilter ? (
-    <div className={filterRowClass}>
+    <div className={`${filterRowClass} ${warningDesktopSpan}`}>
       <span className={inlineLabelClass}>경고</span>
       <div className="min-w-0 flex-1">
         <SingleCheckboxFilterDropdown
@@ -152,7 +158,7 @@ export function ReportedContentFilterPanel({
     </div>
   ) : null;
   const visibilityFilter = showVisibilityFilter ? (
-    <div className={filterRowClass}>
+    <div className={`${filterRowClass} xl:col-span-2`}>
       <span className={inlineLabelClass}>공개여부</span>
       <div className="min-w-0 flex-1">
         <SingleCheckboxFilterDropdown
@@ -166,7 +172,7 @@ export function ReportedContentFilterPanel({
     </div>
   ) : null;
   const reportStatusFilter = showReportStatusFilter ? (
-    <div className={filterRowClass}>
+    <div className={`${filterRowClass} xl:col-span-2`}>
       <span className={inlineLabelClass}>{reportStatusLabel}</span>
       <div className="min-w-0 flex-1">
         <SingleCheckboxFilterDropdown
@@ -180,8 +186,10 @@ export function ReportedContentFilterPanel({
     </div>
   ) : null;
   const searchFilter = (
-    <div className="flex min-w-0 flex-row items-center gap-2 py-1.5">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+    <div
+      className={`flex min-w-0 flex-col gap-3 py-1.5 md:col-span-2 ${searchDesktopSpan} sm:flex-row sm:items-center`}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <span className={inlineLabelClass}>검색</span>
         <div className="min-w-0 flex-1">
           <InputField
@@ -195,7 +203,14 @@ export function ReportedContentFilterPanel({
       </div>
 
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-        <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
+        <Button
+          type="button"
+          variant="brand"
+          onClick={onApplyFilters}
+          size="filter"
+          className="shrink-0"
+          disabled={isReportCountRangeInvalid}
+        >
           검색
         </Button>
         <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -208,8 +223,8 @@ export function ReportedContentFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className={firstGridClass}>
-          <div className={filterRowClass}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-12">
+          <div className={`${filterRowClass} md:col-span-2 xl:col-span-6`}>
             <span className={inlineLabelClass}>기간</span>
             <div className={dateControlsClass}>
               {dateTypeInline ? null : (
@@ -254,7 +269,7 @@ export function ReportedContentFilterPanel({
             </div>
           </div>
 
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} ${reportReasonDesktopSpan}`}>
             <span className={inlineLabelClass}>신고사유</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -269,36 +284,15 @@ export function ReportedContentFilterPanel({
 
           {reportCountFilter}
 
-          {singleLineFilters ? (
-            visibilityFilter
-          ) : (
-            <div className="contents max-[1800px]:hidden">{visibilityFilter}</div>
-          )}
-          {singleLineFilters ? (
-            reportStatusFilter
-          ) : (
-            <div className="contents max-[1800px]:hidden">{reportStatusFilter}</div>
-          )}
-          {singleLineFilters ? warningFilter : null}
-          {singleLineFilters ? searchFilter : null}
+          {visibilityFilter}
+          {reportStatusFilter}
+          {warningFilter}
+          {searchFilter}
         </div>
 
-        {singleLineFilters ? null : (
-          <div className={desktopSecondGridClass}>
-            {warningFilter}
-            {searchFilter}
-          </div>
-        )}
-
-        {singleLineFilters ? null : (
-          <div className={compactSecondGridClass}>
-            {visibilityFilter}
-            {reportStatusFilter}
-            {warningFilter}
-          </div>
-        )}
-
-        {singleLineFilters ? null : <div className={compactSearchGridClass}>{searchFilter}</div>}
+        {isReportCountRangeInvalid ? (
+          <p className="text-right text-xs text-error-500">신고횟수 최대값은 최소값 이상이어야 합니다.</p>
+        ) : null}
       </div>
     </Card>
   );

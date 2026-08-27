@@ -22,7 +22,7 @@ import {
   type HospitalEventCategory,
   type HospitalEventMedia,
 } from "@/lib/hospital-event/list";
-import { Button, Card, CategoryBadgeList, StatusBadge, type DataTableMeta } from "@beaulab/ui-admin";
+import { Button, Card, CategoryBadgeList, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
 
 export { NoteCreateModal };
 
@@ -95,9 +95,10 @@ export function EventMainCard({
             {isForcedStopped ? "정상노출" : "강제중지"}
           </Button>
         ) : (
-          <StatusBadge size="sm" color={hospitalEventAdminStatusColor(detail.admin_status)}>
-            {labelHospitalEventAdminStatus(detail.admin_status)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelHospitalEventAdminStatus(detail.admin_status)}
+            color={hospitalEventAdminStatusColor(detail.admin_status)}
+          />
         )}
         <span className="sr-only">현재 강제중지 상태: {labelHospitalEventAdminStatus(detail.admin_status)}</span>
       </div>
@@ -157,9 +158,10 @@ export function AllowStatusCard({
         {canUpdateStatus ? (
           <AllowStatusActionButtons currentStatus={detail.allow_status} disabled={updating} onChange={onChange} />
         ) : (
-          <StatusBadge size="sm" color={hospitalEventAllowStatusColor(detail.allow_status)}>
-            {labelHospitalEventAllowStatus(detail.allow_status)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={labelHospitalEventAllowStatus(detail.allow_status)}
+            color={hospitalEventAllowStatusColor(detail.allow_status)}
+          />
         )}
       </div>
     </Card>
@@ -173,7 +175,7 @@ export function AdminNotesCard({
 }: {
   notes: AdminNoteItem[];
   loading: boolean;
-  onAdd: () => void;
+  onAdd?: (() => void) | null;
 }) {
   return (
     <CommonAdminNotesCard
@@ -454,13 +456,11 @@ function historyStatusBadge(field: string | null, value: unknown, display?: stri
   }
 
   return (
-    <StatusBadge
-      size="sm"
+    <StatusValueBadge
+      label={label}
       color={historyStatusBadgeColor(field, normalizedValue || displayValue)}
       className="h-5 px-2 text-xs leading-none"
-    >
-      {label}
-    </StatusBadge>
+    />
   );
 }
 

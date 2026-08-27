@@ -7,15 +7,14 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { type TalkCommentRow, type TalkCommentSortField, type TalkCommentSortState } from "@/lib/talk/comment-list";
-import { labelTalkVisibilityStatus } from "@/lib/talk/detail";
-import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
+import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
 function renderSortMark(field: TalkCommentSortField, sortState: TalkCommentSortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -185,20 +184,22 @@ function buildCommentColumns({
       headerClassName: `${headerBaseClass} lg:w-[90px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[90px] xl:w-[7%]`,
       header: <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) =>
-        canUpdateStatus ? (
+      render: (row) => (
+        <span onClick={(event) => event.stopPropagation()}>
           <Switch
             ariaLabel={`토크 댓글 ${row.id} ${row.isVisible ? "미노출로 변경" : "노출로 변경"}`}
             checked={row.isVisible}
             color="gray"
-            disabled={visibilityControlsDisabled || row.visibilityChangeLocked || visibilityUpdatingIds.has(row.id)}
+            disabled={
+              !canUpdateStatus ||
+              visibilityControlsDisabled ||
+              row.visibilityChangeLocked ||
+              visibilityUpdatingIds.has(row.id)
+            }
             onChange={(checked) => onRowVisibilityChange(row.id, checked ? "ACTIVE" : "INACTIVE")}
           />
-        ) : (
-          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
-            {labelTalkVisibilityStatus(row.status)}
-          </StatusBadge>
-        ),
+        </span>
+      ),
     },
     {
       key: "likeCount",
@@ -212,7 +213,12 @@ function buildCommentColumns({
       headerClassName: `${headerBaseClass} lg:w-[90px] xl:w-[7%]`,
       cellClassName: `${nowrapCellClass} lg:w-[90px] xl:w-[7%]`,
       header: "상태",
-      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} status={row.reportStatus} />,
+      render: (row) => (
+        <StatusValueBadge
+          label={row.reportStatusLabel || reportStatusBadgeLabel(row.reportStatus)}
+          color={reportStatusBadgeColor(row.reportStatus)}
+        />
+      ),
     },
   ];
 }

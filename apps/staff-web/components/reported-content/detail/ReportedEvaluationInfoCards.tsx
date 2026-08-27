@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, CardContent, CardHeader, CardTitle, CircleCheck, StatusValueBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import {
@@ -89,9 +89,7 @@ export function ReportedEvaluationContentCard({
               {receiptButtonLabel}
             </Button>
           ) : hasReceiptImages ? (
-            <StatusBadge size="sm" color={receiptButtonVerified ? "success" : "gray"}>
-              {receiptButtonLabel}
-            </StatusBadge>
+            <StatusValueBadge label={receiptButtonLabel} color={receiptButtonVerified ? "success" : "gray"} />
           ) : null}
         </div>
       </CardHeader>

@@ -1,11 +1,11 @@
 "use client";
 
-import { Button, Card, InputField, Mail, StatusBadge } from "@beaulab/ui-admin";
+import { Button, Card, InputField, Mail, StatusValueBadge } from "@beaulab/ui-admin";
 
 import { reviewAllowStatusColor } from "@/lib/common/review-status";
-import { labelReviewStatus } from "@/lib/hospital/list";
 import { formatHospitalWalletBalance, type AccountHospitalAsset } from "@/lib/hospital/detail";
 import type { HospitalFormErrors, HospitalFormValues } from "@/lib/hospital/form";
+import { labelReviewStatus } from "@/lib/hospital/list";
 
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "pt-0.5 text-xs font-semibold text-gray-500";
@@ -53,9 +53,7 @@ export function HospitalAllowStatusReadOnlyCard({
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="flex min-h-[3.5rem] flex-wrap items-center gap-x-8 gap-y-3">
         <h3 className="text-sm font-bold text-gray-900">검수상태</h3>
-        <StatusBadge size="sm" color={reviewAllowStatusColor(allowStatus)}>
-          {labelReviewStatus(allowStatus)}
-        </StatusBadge>
+        <StatusValueBadge label={labelReviewStatus(allowStatus)} color={reviewAllowStatusColor(allowStatus)} />
       </div>
     </Card>
   );

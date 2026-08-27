@@ -8,21 +8,20 @@ import {
   ChevronsUpDown,
   DataTable,
   FormCheckbox,
-  StatusBadge,
   Switch,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
   formatHospitalEvaluationCost,
   formatHospitalEvaluationRating,
-  labelHospitalEvaluationVisibilityStatus,
   type HospitalEvaluationRow,
   type HospitalEvaluationSortField,
   type HospitalEvaluationSortState,
 } from "@/lib/hospital-evaluation/list";
-import { ReportStatusBadge } from "@/components/common/ReportStatusBadge";
+import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
 function renderSortMark(field: HospitalEvaluationSortField, sortState: HospitalEvaluationSortState) {
   if (!sortState.enabled || sortState.field !== field) {
@@ -217,22 +216,22 @@ function buildHospitalEvaluationColumns({
       header: (
         <SortHeader field="status" label="공개여부" sortState={sortState} onToggleSort={onToggleSort} align="center" />
       ),
-      render: (row) =>
-        canUpdateStatus ? (
-          <span onClick={(event) => event.stopPropagation()}>
-            <Switch
-              checked={row.isVisible}
-              disabled={row.visibilityChangeLocked || visibilityControlsDisabled || visibilityUpdatingIds.has(row.id)}
-              ariaLabel={`평가 ${row.id} 노출 상태 변경`}
-              color="gray"
-              onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
-            />
-          </span>
-        ) : (
-          <StatusBadge size="sm" color={row.isVisible ? "success" : "error"}>
-            {labelHospitalEvaluationVisibilityStatus(row.isVisible ? "ACTIVE" : "INACTIVE")}
-          </StatusBadge>
-        ),
+      render: (row) => (
+        <span onClick={(event) => event.stopPropagation()}>
+          <Switch
+            checked={row.isVisible}
+            disabled={
+              !canUpdateStatus ||
+              row.visibilityChangeLocked ||
+              visibilityControlsDisabled ||
+              visibilityUpdatingIds.has(row.id)
+            }
+            ariaLabel={`평가 ${row.id} 노출 상태 변경`}
+            color="gray"
+            onChange={(checked) => onRowVisibilityChange(row, checked ? "ACTIVE" : "INACTIVE")}
+          />
+        </span>
+      ),
     },
     {
       key: "averageRating",
@@ -278,7 +277,12 @@ function buildHospitalEvaluationColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px] xl:w-[6%]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px] xl:w-[6%]`,
       header: "상태",
-      render: (row) => <ReportStatusBadge label={row.reportStatusLabel} status={row.reportStatus} />,
+      render: (row) => (
+        <StatusValueBadge
+          label={row.reportStatusLabel || reportStatusBadgeLabel(row.reportStatus)}
+          color={reportStatusBadgeColor(row.reportStatus)}
+        />
+      ),
     },
   ];
 }

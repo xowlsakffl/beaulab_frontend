@@ -8,18 +8,17 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
+import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
+import { adminStatusColor } from "@/lib/common/status-labels";
 import {
   labelVideoAdminStatus,
   labelVideoHospitalStatus,
-  labelVideoReportStatus,
-  videoAdminStatusColor,
   videoHospitalStatusColor,
-  videoReportStatusColor,
   type SortField,
   type SortState,
   type VideoRow,
@@ -214,9 +213,10 @@ function buildVideoColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={videoHospitalStatusColor(row.hospitalStatus)}>
-          {row.hospitalStatusLabel || labelVideoHospitalStatus(row.hospitalStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={row.hospitalStatusLabel || labelVideoHospitalStatus(row.hospitalStatus)}
+          color={videoHospitalStatusColor(row.hospitalStatus)}
+        />
       ),
     },
     {
@@ -235,9 +235,10 @@ function buildVideoColumns({
         row.reportStatus === "NONE" ? (
           <span className="text-gray-500">-</span>
         ) : (
-          <StatusBadge size="sm" color={videoReportStatusColor(row.reportStatus)}>
-            {row.reportStatusLabel || labelVideoReportStatus(row.reportStatus)}
-          </StatusBadge>
+          <StatusValueBadge
+            label={row.reportStatusLabel || reportStatusBadgeLabel(row.reportStatus)}
+            color={reportStatusBadgeColor(row.reportStatus)}
+          />
         ),
     },
     {
@@ -256,9 +257,10 @@ function buildVideoColumns({
         </Button>
       ),
       render: (row) => (
-        <StatusBadge size="sm" color={videoAdminStatusColor(row.adminStatus)}>
-          {row.adminStatusLabel || labelVideoAdminStatus(row.adminStatus)}
-        </StatusBadge>
+        <StatusValueBadge
+          label={row.adminStatusLabel || labelVideoAdminStatus(row.adminStatus)}
+          color={adminStatusColor(row.adminStatus)}
+        />
       ),
     },
     {

@@ -12,9 +12,10 @@ import {
   Label,
   RichTextEditor,
   Select,
-  StatusBadge,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
+import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
 import {
   NOTICE_CHANNEL_OPTIONS,
   NOTICE_STATUS_OPTIONS,
@@ -91,9 +92,10 @@ export function NoticeMainSection({
                 />
               ) : (
                 <div className="flex h-11 items-center">
-                  <StatusBadge size="sm" color={form.status === "ACTIVE" ? "success" : "error"}>
-                    {labelNoticeStatus(form.status)}
-                  </StatusBadge>
+                  <StatusValueBadge
+                    label={labelNoticeStatus(form.status)}
+                    color={ownerVisibilityStatusColor(form.status)}
+                  />
                 </div>
               )}
               {errors.status ? <p className="text-xs text-error-500">{errors.status}</p> : null}

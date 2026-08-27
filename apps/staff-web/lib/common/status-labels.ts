@@ -1,6 +1,8 @@
 import type { BadgeColor } from "@beaulab/ui-admin";
 
-type VisibilityLabelOptions = {
+import { STATUS_BADGE_COLORS } from "@/lib/common/status-badge-colors";
+
+export type VisibilityLabelOptions = {
   publicLabel?: string;
   privateLabel?: string;
   activeLabel?: string;
@@ -16,10 +18,12 @@ export function labelAdminStatus(status?: string | null, fallbackLabel = "-") {
 }
 
 export function adminStatusColor(status?: string | null): BadgeColor {
-  if (status === "FORCED_STOPPED" || status === "ADMIN_STOPPED" || status === "강제중지") return "error";
-  if (status === "NORMAL" || status === "ACTIVE" || status === "정상") return "success";
+  if (status === "FORCED_STOPPED" || status === "ADMIN_STOPPED" || status === "강제중지") {
+    return STATUS_BADGE_COLORS.inactive;
+  }
+  if (status === "NORMAL" || status === "ACTIVE" || status === "정상") return STATUS_BADGE_COLORS.active;
 
-  return "light";
+  return STATUS_BADGE_COLORS.neutral;
 }
 
 export function labelOwnerVisibilityStatus(status?: string | null, options: VisibilityLabelOptions = {}) {
@@ -40,10 +44,12 @@ export function labelOwnerVisibilityStatus(status?: string | null, options: Visi
 }
 
 export function ownerVisibilityStatusColor(status?: string | null): BadgeColor {
-  if (status === "PRIVATE" || status === "비공개" || status === "미공개") return "error";
-  if (status === "INACTIVE" || status === "미노출") return "error";
-  if (status === "PUBLIC" || status === "공개") return "success";
-  if (status === "ACTIVE" || status === "노출") return "success";
+  if (status === "PRIVATE" || status === "비공개" || status === "미공개") {
+    return STATUS_BADGE_COLORS.inactive;
+  }
+  if (status === "INACTIVE" || status === "미노출") return STATUS_BADGE_COLORS.inactive;
+  if (status === "PUBLIC" || status === "공개") return STATUS_BADGE_COLORS.active;
+  if (status === "ACTIVE" || status === "노출") return STATUS_BADGE_COLORS.active;
 
-  return "light";
+  return STATUS_BADGE_COLORS.neutral;
 }

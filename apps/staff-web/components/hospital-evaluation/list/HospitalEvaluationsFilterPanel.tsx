@@ -74,12 +74,22 @@ export function HospitalEvaluationsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEvaluationsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-2 py-1.5";
-  const inlineLabelClass = "w-20 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const isCostRangeInvalid =
+    draftFilters.costMin !== "" &&
+    draftFilters.costMax !== "" &&
+    Number(draftFilters.costMax) < Number(draftFilters.costMin);
+  const isViewCountRangeInvalid =
+    draftFilters.viewCountMin !== "" &&
+    draftFilters.viewCountMax !== "" &&
+    Number(draftFilters.viewCountMax) < Number(draftFilters.viewCountMin);
+  const isRangeInvalid = isCostRangeInvalid || isViewCountRangeInvalid;
 
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
+      if (isRangeInvalid) return;
       onApplyFilters();
     }
   };
@@ -87,8 +97,8 @@ export function HospitalEvaluationsFilterPanel({
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="space-y-3">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,0.65fr)_minmax(0,0.65fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)] gap-x-2 gap-y-3 max-[1800px]:grid-cols-[minmax(0,1.05fr)_minmax(0,0.75fr)_minmax(0,0.95fr)]">
-          <div className={`${filterRowClass} order-1`}>
+        <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-12">
+          <div className={`${filterRowClass} xl:order-1 xl:col-span-3`}>
             <span className={inlineLabelClass}>작성일</span>
             <DateRangeFilterDropdown
               label="작성일"
@@ -110,7 +120,7 @@ export function HospitalEvaluationsFilterPanel({
             />
           </div>
 
-          <div className={`${filterRowClass} order-2`}>
+          <div className={`${filterRowClass} xl:order-2 xl:col-span-2`}>
             <span className={inlineLabelClass}>공개여부</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -123,7 +133,7 @@ export function HospitalEvaluationsFilterPanel({
             </div>
           </div>
 
-          <div className={`${filterRowClass} order-4 max-[1800px]:order-3`}>
+          <div className={`${filterRowClass} xl:order-3 xl:col-span-2`}>
             <span className={inlineLabelClass}>평점</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -136,7 +146,7 @@ export function HospitalEvaluationsFilterPanel({
             </div>
           </div>
 
-          <div className={`${filterRowClass} order-5 max-[1800px]:order-4`}>
+          <div className={`${filterRowClass} xl:order-6 md:col-span-2 xl:col-span-3`}>
             <span className={inlineLabelClass}>시/수술비용</span>
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
               <InputField
@@ -147,6 +157,7 @@ export function HospitalEvaluationsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
                 className="bg-white px-3"
+                error={isCostRangeInvalid}
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -157,11 +168,12 @@ export function HospitalEvaluationsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="500"
                 className="bg-white px-3"
+                error={isCostRangeInvalid}
               />
             </div>
           </div>
 
-          <div className={`${filterRowClass} order-6 max-[1800px]:order-5`}>
+          <div className={`${filterRowClass} xl:order-7 md:col-span-2 xl:col-span-3`}>
             <span className={inlineLabelClass}>조회수</span>
             <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
               <InputField
@@ -172,6 +184,7 @@ export function HospitalEvaluationsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="0"
                 className="bg-white px-3"
+                error={isViewCountRangeInvalid}
               />
               <span className="text-sm text-gray-400">~</span>
               <InputField
@@ -182,11 +195,12 @@ export function HospitalEvaluationsFilterPanel({
                 onKeyDown={handleEnterToSearch}
                 placeholder="1000"
                 className="bg-white px-3"
+                error={isViewCountRangeInvalid}
               />
             </div>
           </div>
 
-          <div className={`${filterRowClass} order-6 max-[1800px]:order-6`}>
+          <div className={`${filterRowClass} xl:order-4 xl:col-span-2`}>
             <span className={inlineLabelClass}>상태</span>
             <div className="min-w-0 flex-1">
               <SingleCheckboxFilterDropdown
@@ -198,10 +212,8 @@ export function HospitalEvaluationsFilterPanel({
               />
             </div>
           </div>
-        </div>
 
-        <div className="grid min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,3.95fr)] gap-x-3 gap-y-3">
-          <div className={filterRowClass}>
+          <div className={`${filterRowClass} xl:order-5 md:col-span-2 xl:col-span-3`}>
             <span className={inlineLabelClass}>후기유형</span>
             <CheckboxFilterDropdown
               label="후기유형"
@@ -216,9 +228,8 @@ export function HospitalEvaluationsFilterPanel({
               emptyLabel="전체"
             />
           </div>
-
-          <div className="flex min-w-0 flex-row items-center gap-2 py-1.5 pl-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex min-w-0 flex-col gap-3 py-1.5 xl:order-8 md:col-span-2 xl:col-span-6 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className={inlineLabelClass}>검색</span>
               <div className="min-w-0 flex-1">
                 <InputField
@@ -232,7 +243,14 @@ export function HospitalEvaluationsFilterPanel({
             </div>
 
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-              <Button type="button" variant="brand" onClick={onApplyFilters} size="filter" className="shrink-0">
+              <Button
+                type="button"
+                variant="brand"
+                onClick={onApplyFilters}
+                size="filter"
+                className="shrink-0"
+                disabled={isRangeInvalid}
+              >
                 검색
               </Button>
               <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
@@ -240,6 +258,9 @@ export function HospitalEvaluationsFilterPanel({
               </Button>
             </div>
           </div>
+          {isRangeInvalid ? (
+            <p className="text-right text-xs text-error-500">최대값은 최소값 이상이어야 합니다.</p>
+          ) : null}
         </div>
       </div>
     </Card>

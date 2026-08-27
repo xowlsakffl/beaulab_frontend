@@ -82,12 +82,12 @@ export function NoticesFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: NoticesFilterPanelProps) {
-  const inlineLabelClass = "w-16 shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600 ";
+  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
 
   return (
-    <Card className="rounded-xl p-3">
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.2fr)_minmax(15rem,1.2fr)] gap-x-4 gap-y-4">
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+    <Card className="min-w-0 rounded-xl p-3">
+      <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>운영 상태</span>
           <CheckboxFilterDropdown
             label="운영 상태"
@@ -101,7 +101,7 @@ export function NoticesFilterPanel({
             onToggleAll={onToggleAllStatuses}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>채널</span>
           <CheckboxFilterDropdown
             label="채널"
@@ -116,7 +116,7 @@ export function NoticesFilterPanel({
             allLabel="전체 선택"
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>등록일</span>
           <DateRangeFilterDropdown
             label="등록일"
@@ -137,7 +137,7 @@ export function NoticesFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2 py-1.5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className={inlineLabelClass}>수정일</span>
           <DateRangeFilterDropdown
             label="수정일"
@@ -158,8 +158,8 @@ export function NoticesFilterPanel({
             onConfirm={onToggleUpdatedDatePicker}
           />
         </div>
-        <div className="col-span-full flex min-w-0 flex-row items-center gap-2 py-1.5">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="col-span-full flex min-w-0 flex-col gap-3 py-1.5 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <span className={inlineLabelClass}>검색</span>
             <div className="min-w-0 flex-1">
               <InputField

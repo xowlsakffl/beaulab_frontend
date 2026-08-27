@@ -365,7 +365,6 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         showReportStatusFilter={config.showReportStatusFilter ?? true}
         showReportCountFilter={config.showReportCountFilter ?? true}
         showWarningFilter={config.showWarningFilter ?? true}
-        singleLineFilters={config.singleLineFilters ?? false}
       />
       <ReportedContentDataTable
         kind={activeKind}

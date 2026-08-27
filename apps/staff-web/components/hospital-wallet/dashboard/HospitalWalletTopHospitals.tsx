@@ -3,7 +3,13 @@
 import React from "react";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, DateRangeFilterDropdown, HorizontalGroupedBarChart, SpinnerBlock } from "@beaulab/ui-admin";
+import {
+  Card,
+  DateRangeFilterDropdown,
+  HorizontalGroupedBarChart,
+  SegmentedTabs,
+  SpinnerBlock,
+} from "@beaulab/ui-admin";
 
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
@@ -97,20 +103,13 @@ export function HospitalWalletTopHospitals() {
           <span className="text-xs text-gray-500">단위: P</span>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1">
-            {WALLET_DASHBOARD_BALANCE_TYPES.map((item) => (
-              <Button
-                key={item.value}
-                type="button"
-                variant={balanceType === item.value ? "brand" : "outline"}
-                size="sm"
-                className="h-9 min-w-14"
-                onClick={() => setBalanceType(item.value)}
-              >
-                {item.label}
-              </Button>
-            ))}
-          </div>
+          <SegmentedTabs
+            items={WALLET_DASHBOARD_BALANCE_TYPES}
+            value={balanceType}
+            onValueChange={setBalanceType}
+            className="w-[196px] max-sm:w-full"
+            tabClassName="h-9 px-3 py-1.5"
+          />
           <div className="w-[250px] max-sm:w-full">
             <DateRangeFilterDropdown
               label="기간"

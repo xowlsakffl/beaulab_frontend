@@ -18,9 +18,9 @@ import {
   Pagination,
   Send,
   SpinnerBlock,
-  StatusBadge,
   useGlobalAlert,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import { api } from "@/lib/common/api";
@@ -286,9 +286,10 @@ function InvitationHistoryList({ invitations, meta, loading, error, onPageChange
             >
               <span className="text-xs font-medium text-gray-500 md:hidden">상태</span>
               <div>
-                <StatusBadge size="sm" color={hospitalAccountInvitationStatusColor(invitation.status.code)}>
-                  {invitation.status.label || "-"}
-                </StatusBadge>
+                <StatusValueBadge
+                  label={invitation.status.label}
+                  color={hospitalAccountInvitationStatusColor(invitation.status.code)}
+                />
               </div>
 
               <span className="text-xs font-medium text-gray-500 md:hidden">수신 이메일</span>

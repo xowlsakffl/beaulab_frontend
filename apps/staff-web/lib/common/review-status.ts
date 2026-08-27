@@ -1,5 +1,7 @@
 import type { BadgeColor } from "@beaulab/ui-admin";
 
+import { STATUS_BADGE_COLORS } from "@/lib/common/status-badge-colors";
+
 export type ReviewAllowStatus = "NOT_APPLIED" | "PENDING" | "REVIEWING" | "APPROVED" | "REJECTED";
 
 export const NOT_APPLIED_REVIEW_ALLOW_STATUS_OPTION = { value: "NOT_APPLIED", label: "미신청" } as const;
@@ -25,12 +27,12 @@ export function labelReviewAllowStatus(status?: string | null, fallbackLabel = "
 }
 
 export function reviewAllowStatusColor(status?: string | null): BadgeColor {
-  if (status === "PENDING") return "info";
-  if (status === "REVIEWING") return "warning";
-  if (status === "APPROVED") return "success";
-  if (status === "REJECTED") return "error";
+  if (status === "PENDING") return STATUS_BADGE_COLORS.pending;
+  if (status === "REVIEWING") return STATUS_BADGE_COLORS.reviewing;
+  if (status === "APPROVED") return STATUS_BADGE_COLORS.approved;
+  if (status === "REJECTED") return STATUS_BADGE_COLORS.rejected;
 
-  return "light";
+  return STATUS_BADGE_COLORS.neutral;
 }
 
 export function isPendingReviewAllowStatus(status?: string | null) {

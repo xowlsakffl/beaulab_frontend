@@ -199,15 +199,15 @@ export function formatWalletOperationPoint(value: number) {
 export function walletOperationStatusColor(status: string): BadgeColor {
   switch (status) {
     case "PENDING":
-      return "blue";
+      return "info";
     case "COMPLETED":
-      return "green";
+      return "success";
     case "CANCELED":
     case "REJECTED":
     case "FAILED":
-      return "red";
+      return "error";
     default:
-      return "gray";
+      return "light";
   }
 }
 

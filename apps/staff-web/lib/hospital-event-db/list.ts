@@ -1,6 +1,8 @@
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { STATUS_BADGE_COLORS } from "@/lib/common/status-badge-colors";
+
 export type HospitalEventDBOption<T extends string = string> = {
   value: T;
   label: string;
@@ -231,10 +233,10 @@ export function labelHospitalEventDBStatus(status?: string | null) {
 }
 
 export function hospitalEventDBStatusColor(status?: string | null): BadgeColor {
-  if (status === "CONFIRMED") return "gray";
-  if (status === "DUPLICATE") return "warning";
+  if (status === "CONFIRMED") return STATUS_BADGE_COLORS.neutral;
+  if (status === "DUPLICATE") return STATUS_BADGE_COLORS.attention;
 
-  return "info";
+  return STATUS_BADGE_COLORS.pending;
 }
 
 export function labelHospitalEventDBAllowStatus(status?: string | null) {
@@ -251,11 +253,11 @@ export function labelHospitalEventDBAllowStatus(status?: string | null) {
 }
 
 export function hospitalEventDBAllowStatusColor(status?: string | null): BadgeColor {
-  if (status === "NORMAL_CONFIRMED") return "gray";
+  if (status === "NORMAL_CONFIRMED") return STATUS_BADGE_COLORS.neutral;
   if (status === "UNVERIFIED_CONFIRMED") return "purple";
-  if (status === "UNVERIFIED_REPORTED") return "warning";
+  if (status === "UNVERIFIED_REPORTED") return STATUS_BADGE_COLORS.attention;
 
-  return "light";
+  return STATUS_BADGE_COLORS.neutral;
 }
 
 export function formatHospitalEventDBPrice(value: number) {

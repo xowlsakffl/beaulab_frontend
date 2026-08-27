@@ -3,6 +3,7 @@
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { type DataTableMeta } from "@beaulab/ui-admin";
 
@@ -18,8 +19,10 @@ import {
 } from "@/components/hospital-event/list/HospitalEventsSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { getSession } from "@/lib/common/auth/session";
 import type { CategoryApiItem } from "@/lib/common/category";
 import { fetchHospitalEventCategoryFilterOptions } from "@/lib/hospital-event/category-filter-options";
+import { HOSPITAL_EVENT_PERMISSIONS } from "@/lib/hospital-event/permissions";
 import {
   DEFAULT_HOSPITAL_EVENT_FILTERS,
   HOSPITAL_EVENT_ALLOW_STATUS_OPTIONS,
@@ -126,6 +129,9 @@ export default function HospitalEventsTableClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const sessionAuth = getSession()?.auth;
+  const canCreateEvent = hasPermission(sessionAuth, HOSPITAL_EVENT_PERMISSIONS.create);
+  const canUpdateEvent = hasPermission(sessionAuth, HOSPITAL_EVENT_PERMISSIONS.update);
   const [initialTableState] = React.useState(() =>
     parseHospitalEventsTableState(new URLSearchParams(searchParams.toString())),
   );
@@ -531,6 +537,8 @@ export default function HospitalEventsTableClient() {
         error={error}
         highlightedRowId={highlightedRowId}
         sortState={sortState}
+        canDuplicate={canCreateEvent}
+        canEditPeriod={canUpdateEvent}
         onToggleSort={toggleSort}
         onEditPeriod={openPeriodEditModal}
         onDuplicate={duplicateEvent}
@@ -540,13 +548,15 @@ export default function HospitalEventsTableClient() {
         onGoPage={setPage}
       />
 
-      <HospitalEventPeriodEditModal
-        periodEdit={periodEdit}
-        updating={periodUpdating}
-        onClose={closePeriodEditModal}
-        onChange={updatePeriodEdit}
-        onSubmit={submitPeriodEdit}
-      />
+      {canUpdateEvent ? (
+        <HospitalEventPeriodEditModal
+          periodEdit={periodEdit}
+          updating={periodUpdating}
+          onClose={closePeriodEditModal}
+          onChange={updatePeriodEdit}
+          onSubmit={submitPeriodEdit}
+        />
+      ) : null}
     </div>
   );
 }

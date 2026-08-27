@@ -7,9 +7,9 @@ import {
   ChevronsUpDown,
   DataTable,
   Pagination,
-  StatusBadge,
   type DataTableColumn,
   type DataTableMeta,
+  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
 import {
@@ -223,11 +223,7 @@ function buildColumns({
       headerClassName: `${headerBaseClass} w-[90px]`,
       cellClassName: `${nowrapCellClass} w-[90px]`,
       header: <SortHeader label="상담여부" field="status" sortState={sortState} onToggleSort={onToggleSort} />,
-      render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventDBStatusColor(row.status)}>
-          {row.statusLabel}
-        </StatusBadge>
-      ),
+      render: (row) => <StatusValueBadge label={row.statusLabel} color={hospitalEventDBStatusColor(row.status)} />,
     },
     {
       key: "allowStatus",
@@ -235,9 +231,7 @@ function buildColumns({
       cellClassName: `${nowrapCellClass} w-[130px]`,
       header: <SortHeader label="검증상태" field="allow_status" sortState={sortState} onToggleSort={onToggleSort} />,
       render: (row) => (
-        <StatusBadge size="sm" color={hospitalEventDBAllowStatusColor(row.allowStatus)}>
-          {row.allowStatusLabel}
-        </StatusBadge>
+        <StatusValueBadge label={row.allowStatusLabel} color={hospitalEventDBAllowStatusColor(row.allowStatus)} />
       ),
     },
   ];
