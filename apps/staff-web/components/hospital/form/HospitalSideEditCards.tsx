@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, InputField, Mail, StatusValueBadge } from "@beaulab/ui-admin";
+import { Button, Card, InputField, Mail, Send, StatusValueBadge } from "@beaulab/ui-admin";
 
 import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import { formatHospitalWalletBalance, type AccountHospitalAsset } from "@/lib/hospital/detail";
@@ -14,26 +14,34 @@ const readonlyValueClassName = "min-w-0 break-words text-sm leading-6 text-gray-
 export function HospitalVerifiedAccountContactEditCard({
   accountHospital,
   onOpenAccountInvitation,
+  onOpenPasswordReset,
   className,
 }: {
   accountHospital: AccountHospitalAsset | null;
   onOpenAccountInvitation?: () => void;
+  onOpenPasswordReset?: () => void;
   className?: string;
 }) {
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
-      <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
+      <div className="mb-5 flex min-w-0 flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
-        <Button
-          type="button"
-          variant="brand"
-          size="sm"
-          disabled={!onOpenAccountInvitation}
-          onClick={onOpenAccountInvitation}
-        >
-          <Mail className="size-4" />
-          계정 생성 이메일
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="brand"
+            size="sm"
+            disabled={!onOpenAccountInvitation}
+            onClick={onOpenAccountInvitation}
+          >
+            <Mail className="size-4" />
+            계정 생성 이메일
+          </Button>
+          <Button type="button" variant="brand" size="sm" disabled={!onOpenPasswordReset} onClick={onOpenPasswordReset}>
+            <Send className="size-4" />
+            비밀번호 재설정 링크
+          </Button>
+        </div>
       </div>
       <div className="space-y-3">
         <ReadonlyInfoField label="전화번호" value={accountHospital?.phone} compact />

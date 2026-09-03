@@ -36,11 +36,12 @@ export type PasswordResetFormValues = {
 };
 
 type PasswordResetFormProps = {
-  email: string;
+  email?: string;
   token: string;
+  maskedUsername?: string;
   title?: string;
-  description?: string;
-  loginHref?: string;
+  description?: React.ReactNode;
+  loginHref?: string | null;
   onSubmit?: (values: PasswordResetFormValues) => Promise<string | void> | string | void;
   onSuccess?: (message: string) => void;
 };
@@ -48,6 +49,7 @@ type PasswordResetFormProps = {
 export function PasswordResetForm({
   email,
   token,
+  maskedUsername,
   title = "새 비밀번호 설정",
   description = "새로 사용할 비밀번호를 입력해 주세요.",
   loginHref = "/login",
@@ -62,10 +64,12 @@ export function PasswordResetForm({
   const [isCompleted, setIsCompleted] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const hasRequiredLinkData = Boolean(email && token);
+  const hasRequiredLinkData = Boolean(token && (email === undefined || email));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isSubmitting || isCompleted) return;
 
     if (!onSubmit) return;
 
@@ -89,7 +93,7 @@ export function PasswordResetForm({
 
     try {
       const message = await onSubmit({
-        email,
+        email: email ?? "",
         token,
         password,
         passwordConfirmation,
@@ -109,13 +113,15 @@ export function PasswordResetForm({
     <div className="flex w-full flex-1 flex-col lg:w-1/2">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <div>
-          <Link
-            href={loginHref}
-            className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand-500"
-          >
-            <ArrowLeft className="size-4" />
-            로그인으로 돌아가기
-          </Link>
+          {loginHref ? (
+            <Link
+              href={loginHref}
+              className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand-500"
+            >
+              <ArrowLeft className="size-4" />
+              로그인으로 돌아가기
+            </Link>
+          ) : null}
 
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md">{title}</h1>
@@ -129,6 +135,17 @@ export function PasswordResetForm({
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
+                {maskedUsername ? (
+                  <div>
+                    <Label htmlFor="password-reset-username">아이디</Label>
+                    <Input
+                      id="password-reset-username"
+                      value={maskedUsername}
+                      readOnly
+                      className="border-gray-200 bg-gray-50"
+                    />
+                  </div>
+                ) : null}
                 <div>
                   <Label>
                     새 비밀번호 <span className="text-error-500">*</span>
@@ -140,6 +157,8 @@ export function PasswordResetForm({
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       autoComplete="new-password"
+                      maxLength={255}
+                      disabled={isSubmitting || isCompleted}
                     />
                     <button
                       type="button"
@@ -163,6 +182,8 @@ export function PasswordResetForm({
                       value={passwordConfirmation}
                       onChange={(event) => setPasswordConfirmation(event.target.value)}
                       autoComplete="new-password"
+                      maxLength={255}
+                      disabled={isSubmitting || isCompleted}
                     />
                     <button
                       type="button"

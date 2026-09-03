@@ -2,6 +2,8 @@
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { HospitalAccountInvitationModal } from "@/components/account-hospital/HospitalAccountInvitationModal";
+import { HospitalAccountPasswordResetModal } from "@/components/account-hospital/HospitalAccountPasswordResetModal";
+import { HOSPITAL_ACCOUNT_PASSWORD_RESET_PERMISSION } from "@/lib/account-hospital/password-reset";
 import { HospitalFormLayout } from "@/components/hospital/form/HospitalFormLayout";
 import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
 import { useHospitalAddressSearch } from "@/hooks/hospital/useHospitalAddressSearch";
@@ -45,6 +47,7 @@ export default function HospitalEditFormClient() {
   const canViewWallet = hasPermission(sessionAuth, HOSPITAL_WALLET_PERMISSIONS.show);
   const canViewAccountInvitation = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS.show);
   const canSendAccountInvitation = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS.update);
+  const canSendPasswordReset = hasPermission(sessionAuth, HOSPITAL_ACCOUNT_PASSWORD_RESET_PERMISSION);
   const { openPostcode, geocodeAddress } = useDaumPostcode();
   const { focusFirstErrorField } = useHospitalFieldFocus();
   const loadCategories = useHospitalCategorySelectorLoader();
@@ -96,6 +99,9 @@ export default function HospitalEditFormClient() {
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isAccountInvitationOpen, setIsAccountInvitationOpen] = React.useState(false);
+  const [isPasswordResetOpen, setIsPasswordResetOpen] = React.useState(false);
+  const canOpenPasswordReset =
+    canSendPasswordReset && accountHospital?.status === "ACTIVE" && Boolean(accountHospital?.phone);
 
   const clearError = React.useCallback((field: HospitalFieldName) => {
     setErrors((prev) => {
@@ -363,6 +369,7 @@ export default function HospitalEditFormClient() {
         onOpenAccountInvitation={
           canViewAccountInvitation && !accountHospital ? () => setIsAccountInvitationOpen(true) : undefined
         }
+        onOpenPasswordReset={canOpenPasswordReset ? () => setIsPasswordResetOpen(true) : undefined}
       />
       <HospitalAccountInvitationModal
         isOpen={isAccountInvitationOpen}
@@ -372,6 +379,14 @@ export default function HospitalEditFormClient() {
         canSend={canSendAccountInvitation && !accountHospital}
         onClose={() => setIsAccountInvitationOpen(false)}
       />
+      {isPasswordResetOpen && canOpenPasswordReset ? (
+        <HospitalAccountPasswordResetModal
+          hospitalId={hospitalId}
+          hospitalName={form.name}
+          phone={accountHospital?.phone ?? ""}
+          onClose={() => setIsPasswordResetOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

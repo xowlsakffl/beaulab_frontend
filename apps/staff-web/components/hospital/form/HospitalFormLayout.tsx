@@ -80,6 +80,7 @@ type HospitalFormLayoutProps = {
   onToggleCategory: (categoryId: number, checked: boolean) => void;
   onToggleFeature: (featureId: number, checked: boolean) => void;
   onOpenAccountInvitation?: () => void;
+  onOpenPasswordReset?: () => void;
 };
 
 export function HospitalFormLayout({
@@ -118,6 +119,7 @@ export function HospitalFormLayout({
   onToggleCategory,
   onToggleFeature,
   onOpenAccountInvitation,
+  onOpenPasswordReset,
 }: HospitalFormLayoutProps) {
   const isCreate = mode === "create";
   const [previewMedia, setPreviewMedia] = React.useState<MediaPreviewState | null>(null);
@@ -167,6 +169,7 @@ export function HospitalFormLayout({
             <HospitalVerifiedAccountContactEditCard
               accountHospital={accountHospital}
               onOpenAccountInvitation={onOpenAccountInvitation}
+              onOpenPasswordReset={onOpenPasswordReset}
               className="h-full xl:col-start-2 xl:row-start-3"
             />
           )}
