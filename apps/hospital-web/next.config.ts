@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@beaulab/ui-admin", "@beaulab/api-client", "@beaulab/types"],
+  experimental: {
+    optimizePackageImports: ["@beaulab/ui-admin"],
+  },
   async redirects() {
     return [
       {

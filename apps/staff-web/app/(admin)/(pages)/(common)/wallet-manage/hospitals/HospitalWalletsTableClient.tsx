@@ -1,7 +1,9 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
@@ -29,7 +31,6 @@ import {
 import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 
 export default function HospitalWalletsTableClient() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [initialTableState] = React.useState(() =>
@@ -91,8 +92,8 @@ export default function HospitalWalletsTableClient() {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
-    router.replace(queryString ? pathname + "?" + queryString : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? pathname + "?" + queryString : pathname);
+  }, [pathname, queryString, searchParams]);
 
   React.useEffect(() => {
     if (recentChanges.size === 0) return;

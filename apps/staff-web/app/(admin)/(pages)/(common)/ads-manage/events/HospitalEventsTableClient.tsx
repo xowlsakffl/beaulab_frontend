@@ -1,5 +1,7 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
@@ -247,8 +249,8 @@ export default function HospitalEventsTableClient() {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [pathname, queryString, searchParams]);
 
   const loadCategoryFilterOptions = React.useCallback(async () => {
     try {
@@ -279,8 +281,8 @@ export default function HospitalEventsTableClient() {
     nextSearchParams.delete("highlight");
 
     const nextQuery = nextSearchParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+    replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+  }, [pathname, searchParams]);
 
   React.useEffect(() => {
     void loadCategoryFilterOptions();

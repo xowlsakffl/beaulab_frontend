@@ -1,7 +1,9 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, type DataTableMeta } from "@beaulab/ui-admin";
@@ -39,7 +41,6 @@ function cloneFilters(filters: WalletOperationFilters): WalletOperationFilters {
 }
 
 export default function HospitalWalletHistoryTableClient() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [initialState] = React.useState(() =>
@@ -97,8 +98,8 @@ export default function HospitalWalletHistoryTableClient() {
   React.useEffect(() => {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [pathname, queryString, searchParams]);
 
   React.useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {

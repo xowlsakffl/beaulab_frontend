@@ -1,7 +1,9 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Card, CardContent, SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
@@ -116,7 +118,6 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const canUpdateOriginalStatus = hasPermission(auth, originalStatusPermission);
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const targetId = Number(rawId);
@@ -139,9 +140,9 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       syncPageParam(nextSearchParams, "operation_histories_page", nextHistoriesPage, historiesDefaultPage);
 
       const nextQuery = nextSearchParams.toString();
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+      replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
     },
-    [pathname, router, searchParams],
+    [pathname, searchParams],
   );
 
   const fetchDetail = React.useCallback(

@@ -1,8 +1,10 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
 import dynamic from "next/dynamic";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
@@ -66,7 +68,6 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
   const config = HOSPITAL_REVIEW_BOARD_CONFIGS[type];
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalReview);
   const rawReviewId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -113,9 +114,9 @@ export default function HospitalReviewDetailPageClient({ type }: HospitalReviewD
       syncPageParam(nextSearchParams, "operation_histories_page", nextHistoriesPage, historiesDefaultPage);
 
       const nextQuery = nextSearchParams.toString();
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+      replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
     },
-    [commentsPage, commentsPerPage, historiesPage, pathname, router, searchParams],
+    [commentsPage, commentsPerPage, historiesPage, pathname, searchParams],
   );
 
   const fetchReviewDetail = React.useCallback(

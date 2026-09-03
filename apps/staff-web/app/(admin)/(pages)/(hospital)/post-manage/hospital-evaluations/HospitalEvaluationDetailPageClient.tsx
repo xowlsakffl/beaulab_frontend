@@ -1,8 +1,10 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
 import dynamic from "next/dynamic";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { SpinnerBlock, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
@@ -109,7 +111,6 @@ const historiesDefaultPage = 1;
 export default function HospitalEvaluationDetailPageClient() {
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.hospitalEvaluation);
   const rawEvaluationId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -143,9 +144,9 @@ export default function HospitalEvaluationDetailPageClient() {
       syncPageParam(nextSearchParams, "operation_histories_page", nextHistoriesPage, historiesDefaultPage);
 
       const nextQuery = nextSearchParams.toString();
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+      replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
     },
-    [historiesPage, pathname, router, searchParams],
+    [historiesPage, pathname, searchParams],
   );
 
   const fetchEvaluationDetail = React.useCallback(

@@ -55,7 +55,7 @@ export async function login(payload: LoginPayload): Promise<StaffSession> {
     };
 
     sessionStorage.set("staff", session, { persistent });
-    await fetchNavigationBadges(profile.id);
+    void fetchNavigationBadges(profile.id);
     return session;
   }
 

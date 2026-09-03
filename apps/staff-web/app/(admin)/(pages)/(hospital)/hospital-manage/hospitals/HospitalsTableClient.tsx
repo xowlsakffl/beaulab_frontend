@@ -1,5 +1,7 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
 import { HospitalsSummaryCards, type HospitalSummaryCardKey } from "@/components/hospital/list/HospitalsSummaryCards";
@@ -172,8 +174,8 @@ export default function HospitalsTableClient() {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [pathname, queryString, searchParams]);
 
   React.useEffect(() => {
     void fetchHospitalSummary();
@@ -192,8 +194,8 @@ export default function HospitalsTableClient() {
     nextSearchParams.delete("highlight");
 
     const nextQuery = nextSearchParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+    replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+  }, [pathname, searchParams]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

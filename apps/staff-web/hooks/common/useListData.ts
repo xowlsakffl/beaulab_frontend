@@ -83,7 +83,7 @@ export function useListData<Query, Row, Meta = unknown>({
         }
 
         if (isApiRequestCanceledError(error)) {
-          shouldFinalize = false;
+          requestKeyRef.current = "";
           return;
         }
 
@@ -105,7 +105,11 @@ export function useListData<Query, Row, Meta = unknown>({
   React.useEffect(() => {
     if (!enabled) return;
 
-    void fetchList(false);
+    const timeoutId = window.setTimeout(() => {
+      void fetchList(false);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [enabled, fetchList]);
 
   const resetList = React.useCallback(() => {

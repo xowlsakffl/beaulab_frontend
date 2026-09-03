@@ -1,5 +1,7 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
 import dynamic from "next/dynamic";
 import { hasPermission } from "@beaulab/auth";
@@ -276,8 +278,8 @@ export default function TalksTableClient() {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [pathname, queryString, searchParams]);
 
   React.useEffect(() => {
     setSelectedIds((prev) => {

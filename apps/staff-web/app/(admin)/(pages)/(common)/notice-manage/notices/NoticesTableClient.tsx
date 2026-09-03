@@ -1,5 +1,7 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
@@ -112,8 +114,8 @@ export default function NoticesTableClient() {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [pathname, queryString, searchParams]);
 
   React.useEffect(() => {
     const highlightParam = searchParams.get("highlight");
@@ -128,8 +130,8 @@ export default function NoticesTableClient() {
     nextSearchParams.delete("highlight");
 
     const nextQuery = nextSearchParams.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+    replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+  }, [pathname, searchParams]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

@@ -1,8 +1,10 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
 import dynamic from "next/dynamic";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
@@ -58,7 +60,6 @@ const commentsDefaultPerPage = 10;
 export default function TalkDetailPageClient() {
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const rawTalkId = Array.isArray(params.id) ? params.id[0] : params.id;
   const talkId = Number(rawTalkId);
@@ -105,9 +106,9 @@ export default function TalkDetailPageClient() {
       syncPageParam(nextSearchParams, "operation_histories_page", nextHistoriesPage, historiesDefaultPage);
 
       const nextQuery = nextSearchParams.toString();
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+      replaceCurrentPageUrl(nextQuery ? `${pathname}?${nextQuery}` : pathname);
     },
-    [commentsPage, commentsPerPage, historiesPage, pathname, router, searchParams],
+    [commentsPage, commentsPerPage, historiesPage, pathname, searchParams],
   );
 
   const fetchTalkDetail = React.useCallback(

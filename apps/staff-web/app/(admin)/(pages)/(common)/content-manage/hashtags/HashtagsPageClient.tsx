@@ -1,7 +1,9 @@
 "use client";
 
+import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+
 import React from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
@@ -30,7 +32,6 @@ import {
 } from "@/lib/hashtag/list";
 
 export default function HashtagsPageClient() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { showAlert } = useGlobalAlert();
@@ -111,8 +112,8 @@ export default function HashtagsPageClient() {
     const currentQueryString = searchParams.toString();
     if (queryString === currentQueryString) return;
 
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
-  }, [pathname, queryString, router, searchParams]);
+    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
+  }, [pathname, queryString, searchParams]);
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

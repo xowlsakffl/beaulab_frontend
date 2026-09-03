@@ -31,6 +31,7 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown; // object | FormData | string | etc
   latestKey?: string;
   skipUnauthorizedHandler?: boolean;
+  timeoutMs?: number;
 };
 
 export type ApiUnauthorizedContext = {
@@ -92,31 +93,9 @@ export function createClient(options: CreateClientOptions) {
   const { baseURL, actor, onUnauthorized } = options;
 
   async function requestWithResponse<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponseWithHttp<T>> {
-    const { query, body: rawBody, latestKey, skipUnauthorizedHandler, ...rest } = opts;
+    const { query, body: rawBody, latestKey, skipUnauthorizedHandler, timeoutMs, ...rest } = opts;
 
     const url = buildUrl(baseURL, path, query);
-    let latestRequest: LatestRequest | null = null;
-    let signal = rest.signal;
-
-    if (latestKey) {
-      latestRequests.get(latestKey)?.controller.abort();
-
-      const controller = new AbortController();
-      latestRequest = {
-        controller,
-        requestId: (latestRequestSequence += 1),
-      };
-      latestRequests.set(latestKey, latestRequest);
-
-      if (rest.signal?.aborted) {
-        controller.abort();
-      } else {
-        rest.signal?.addEventListener("abort", () => controller.abort(), { once: true });
-      }
-
-      signal = controller.signal;
-    }
-
     const headers = new Headers(rest.headers);
     headers.set("Accept", "application/json");
 
@@ -138,21 +117,54 @@ export function createClient(options: CreateClientOptions) {
       }
     }
 
+    const controller = new AbortController();
+    const latestRequestKey = latestKey ? `${actor}:${baseURL}:${latestKey}` : null;
+    let latestRequest: LatestRequest | null = null;
+
+    if (latestRequestKey) {
+      latestRequests.get(latestRequestKey)?.controller.abort();
+
+      latestRequest = {
+        controller,
+        requestId: (latestRequestSequence += 1),
+      };
+      latestRequests.set(latestRequestKey, latestRequest);
+    }
+
+    const abortFromCaller = () => controller.abort();
+    if (rest.signal?.aborted) controller.abort();
+    else rest.signal?.addEventListener("abort", abortFromCaller, { once: true });
+
+    const readTimeoutMs = timeoutMs ?? ((rest.method ?? "GET").toUpperCase() === "GET" ? 30_000 : 0);
+    let timedOut = false;
+    const timeoutId =
+      readTimeoutMs > 0
+        ? setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+          }, readTimeoutMs)
+        : undefined;
+
     try {
+      if (latestRequestKey) {
+        await Promise.resolve();
+        if (controller.signal.aborted) throw new ApiRequestCanceledError();
+      }
+
       const res = await fetch(url, {
         ...rest,
-        signal,
+        signal: controller.signal,
         headers,
         body,
       });
 
-      if (latestKey && latestRequests.get(latestKey)?.requestId !== latestRequest?.requestId) {
+      if (latestRequestKey && latestRequests.get(latestRequestKey)?.requestId !== latestRequest?.requestId) {
         throw new ApiRequestCanceledError("Stale API response ignored");
       }
 
       const payload = (await res.json()) as ApiResponse<T>;
 
-      if (latestKey && latestRequests.get(latestKey)?.requestId !== latestRequest?.requestId) {
+      if (latestRequestKey && latestRequests.get(latestRequestKey)?.requestId !== latestRequest?.requestId) {
         throw new ApiRequestCanceledError("Stale API response ignored");
       }
 
@@ -172,14 +184,19 @@ export function createClient(options: CreateClientOptions) {
         payload,
       };
     } catch (error) {
+      if (timedOut) {
+        throw new Error("응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+      }
       if (isAbortError(error)) {
         throw new ApiRequestCanceledError();
       }
 
       throw error;
     } finally {
-      if (latestKey && latestRequests.get(latestKey)?.requestId === latestRequest?.requestId) {
-        latestRequests.delete(latestKey);
+      clearTimeout(timeoutId);
+      rest.signal?.removeEventListener("abort", abortFromCaller);
+      if (latestRequestKey && latestRequests.get(latestRequestKey)?.requestId === latestRequest?.requestId) {
+        latestRequests.delete(latestRequestKey);
       }
     }
   }

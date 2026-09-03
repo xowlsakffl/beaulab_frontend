@@ -9,7 +9,7 @@ import {
   EventAdCalendarAdSticker,
   type EventAdCalendarStickerAd,
 } from "@/components/hospital-event-ad/calendar/EventAdCalendarAdSticker";
-import { api } from "@/lib/common/api";
+import { api, isApiRequestCanceledError } from "@/lib/common/api";
 import {
   EVENT_AD_PLACEMENT_GROUPS,
   addDays,
@@ -115,11 +115,15 @@ export default function EventAdsCalendarPageClient() {
     setLoadError(null);
 
     try {
-      const response = await api.get<EventAdCalendarResponse>("/hospital-event-ads/calendar", {
-        group: activeGroup,
-        category_id: selectedCategoryId ?? undefined,
-        month: monthKey(calendarMonth),
-      });
+      const response = await api.get<EventAdCalendarResponse>(
+        "/hospital-event-ads/calendar",
+        {
+          group: activeGroup,
+          category_id: selectedCategoryId ?? undefined,
+          month: monthKey(calendarMonth),
+        },
+        { latestKey: "event-ads:calendar" },
+      );
 
       if (requestId !== requestIdRef.current) return;
 
@@ -135,8 +139,8 @@ export default function EventAdsCalendarPageClient() {
         ...(response.data.category_groups ?? {}),
         [response.data.group]: response.data.categories,
       }));
-    } catch {
-      if (requestId !== requestIdRef.current) return;
+    } catch (error) {
+      if (requestId !== requestIdRef.current || isApiRequestCanceledError(error)) return;
 
       setCalendarData(null);
       setLoadError("광고 현황을 불러오는 중 오류가 발생했습니다.");

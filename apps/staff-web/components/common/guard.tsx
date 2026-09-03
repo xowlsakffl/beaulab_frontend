@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { StaffSession } from "@beaulab/types";
 import { SpinnerBlock } from "@beaulab/ui-admin";
 import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissionRule } from "@/lib/common/routing/route-permissions";
-import { fetchNavigationBadges } from "@/lib/common/navigation-badges";
 
 type GuardProps = {
   children: ReactNode;
@@ -68,10 +67,6 @@ export function Guard(props: GuardProps) {
         setGuardState({ session: resolvedSession, isChecking: false });
         return;
       }
-
-      await fetchNavigationBadges(resolvedSession.profile.id);
-
-      if (!isMounted) return;
 
       if (session !== resolvedSession || isChecking) {
         setGuardState({ session: resolvedSession, isChecking: false });
