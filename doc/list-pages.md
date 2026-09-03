@@ -34,6 +34,8 @@ URL에 보존할 값:
 
 검색어 입력값은 draft state로 들고, 검색 버튼 또는 Enter 시 applied query로 반영한다. key stroke마다 API를 호출하지 않는다.
 
+같은 페이지의 query 반영은 `replaceCurrentPageUrl`을 사용한다. Client가 직접 데이터를 조회하므로 필터/정렬/페이지 변경마다 `router.replace`로 Server Component를 다시 요청하지 않는다. 목록에서 상세로 이동하는 실제 경로 변경은 Next router 또는 Link를 사용한다.
+
 ## 3. Fetch lifecycle
 
 아래 상태 묶음은 `useListData` 사용을 우선 검토한다.
@@ -54,6 +56,8 @@ URL에 보존할 값:
 - 캐시된 화면도 백그라운드 요청으로 최신 데이터를 다시 확인한다.
 - mutation 성공과 로그아웃 시 목록 캐시를 무효화한다.
 - 민감한 목록을 영구 저장소나 브라우저 간 공유 캐시에 보관하지 않는다.
+- 개발 모드의 effect 재실행은 정리 가능한 예약 호출로 합친다.
+- 현재 요청이 취소되면 loading/refreshing을 해제한다. 이미 대체된 과거 요청은 새 요청의 로딩 상태를 변경하지 않는다.
 
 도메인별 endpoint, query field, row mapper는 공통 hook 안에 넣지 않는다.
 

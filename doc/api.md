@@ -80,8 +80,11 @@ staff API의 `post`, `put`, `patch`, `delete`는 성공 시 `staff:navigation-ba
 사용 기준:
 
 - 검색/필터/목록처럼 이전 응답이 나중에 도착하면 화면을 덮어쓰면 안 되는 경우 사용한다.
-- 같은 `latestKey`의 이전 요청은 abort된다.
+- 같은 actor와 baseURL 안에서 같은 `latestKey`의 이전 요청은 abort된다.
+- 같은 tick에 대체된 요청은 네트워크 호출 전에 취소한다.
 - abort된 요청은 `ApiRequestCanceledError`로 구분한다.
+
+GET 요청은 기본 30초 후 오류로 종료한다. `timeoutMs`로 개별 조정할 수 있으며 `0`은 제한 없음이다. 시간 초과는 의도적인 취소가 아니므로 사용자에게 오류를 표시한다. 저장/충전금 처리 등 mutation에는 기본 시간 제한과 자동 재시도를 적용하지 않는다.
 
 목록 화면은 `useListData`와 함께 쓰는 것을 우선 검토한다.
 

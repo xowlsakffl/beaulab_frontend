@@ -104,7 +104,7 @@ pnpm build
 `apps/hospital-web`도 같은 origin을 사용하고 내부적으로 `/api/v1/hospital`을 붙인다.
 
 ```text
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_HOSPITAL_IDENTITY_VERIFICATION_URL=
 ```
 
