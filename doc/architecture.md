@@ -6,7 +6,7 @@
 
 ## 1. 범위
 
-현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/hospital-web`은 병의원 계정 생성 링크 화면을 소유하며, `apps/user-web`은 앱 사용자 로그인, 채팅, 알림, Reverb 이벤트를 브라우저에서 수동 검증하기 위한 테스트 앱이다.
+현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/hospital-web`은 병의원 계정 생성/재설정 및 세션 로그인/계정 화면을 소유한다. `apps/user-web`은 사용자 세션 로그인/계정 화면과 개발 전용 `/dev/chat` 검증 화면을 제공한다. 사용자 서비스의 본 화면은 아직 구현하지 않았다. 인증 정책은 `authentication.md`를 따른다.
 
 ```text
 beaulab_frontend/
@@ -203,7 +203,7 @@ API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 �
 현재 주요 파일:
 
 - `api.ts`: staff API client
-- `auth/session.ts`: login / restoreSession / ensureSession / logout
+- `auth/session.ts`: 공통 createWebSession을 연결하는 login / ensureSession / logout
 - `routing/route-permissions.ts`: 정적/동적 route permission 단일 소스
 - `routing/admin-pages.tsx`: placeholder 페이지 metadata/렌더 정의
 - `routing/page-header-extra.tsx`: 페이지 header action 주입

@@ -6,6 +6,8 @@
 
 ## 문서 목록
 
+웹 세션/CSRF/로그아웃 정책: [authentication.md](authentication.md).
+
 | 문서                                                                | 목적                                              |
 | ------------------------------------------------------------------- | ------------------------------------------------- |
 | [architecture.md](/root/beaulab_frontend/doc/architecture.md)       | 모노레포, 앱, 패키지, 도메인 경계                 |

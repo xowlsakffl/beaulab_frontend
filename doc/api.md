@@ -11,14 +11,14 @@
 ```text
 packages/api-client
   -> createClient
-  -> token 자동 주입
+  -> 웹 세션 쿠키 및 CSRF 자동 처리
   -> JSON/FormData 처리
   -> latestKey 요청 취소
   -> unauthorized callback
 
 apps/staff-web/lib/common/api.ts
   -> staff baseURL 고정
-  -> 401/419 로그인 이동
+  -> 401 로그인 이동, 419 CSRF 오류 반환
   -> mutation 성공 후 메뉴 N 배지 refresh event 발생
   -> 파일 다운로드 helper
 ```
@@ -51,9 +51,9 @@ type ApiResponse<T> = {
 
 ## 3. 인증 만료
 
-staff API에서 401 또는 419가 오면 `apps/staff-web/lib/common/api.ts`가 다음 처리를 한다.
+staff API에서 401이 오면 `apps/staff-web/lib/common/api.ts`가 다음 처리를 한다. 419는 CSRF 만료 오류로 반환하고 다음 요청의 CSRF 토큰을 다시 발급한다. 변경 요청은 자동 재시도하지 않는다.
 
-1. staff token/session storage 제거
+1. staff 메모리 프로필/권한 캐시 제거
 2. 현재 경로를 `next` query로 보존
 3. `/login`으로 replace 이동
 
@@ -110,9 +110,9 @@ staff 파일 다운로드는 `downloadFile`을 사용한다.
 
 기준:
 
-- staff token을 붙인다.
+- 동일 출처 staff API에만 세션 쿠키와 웹 요청 헤더를 보낸다. 외부 미디어 URL에는 인증정보를 전달하지 않는다.
 - `Content-Disposition` 파일명을 우선 사용한다.
-- 401/419는 로그인 이동 처리한다.
+- 401은 로그인 이동 처리한다.
 - 실패 JSON 응답이면 `error.message`를 우선 사용한다.
 
 ## 8. 금지 패턴
