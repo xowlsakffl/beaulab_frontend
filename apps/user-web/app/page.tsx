@@ -1,5 +1,5 @@
-import ChatTestPageClient from "./ChatTestPageClient";
+import UserAccountPageClient from "./UserAccountPageClient";
 
 export default function HomePage() {
-  return <ChatTestPageClient />;
+  return <UserAccountPageClient />;
 }

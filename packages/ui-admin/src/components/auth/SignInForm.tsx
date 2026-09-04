@@ -1,6 +1,5 @@
 "use client";
 
-import Checkbox from "../form/input/Checkbox";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
@@ -32,7 +31,6 @@ function extractErrorMessage(error: unknown): string {
 export type SignInFormValues = {
   identifier: string;
   password: string;
-  keepLoggedIn: boolean;
 };
 
 type SignInFormProps = {
@@ -44,7 +42,7 @@ type SignInFormProps = {
   passwordPlaceholder?: string;
   submitText?: string;
   backHref?: string;
-  forgotPasswordHref?: string;
+  forgotPasswordHref?: string | null;
   signUpHref?: string;
   hideSocialButtons?: boolean;
   errorMessage?: string | null;
@@ -66,7 +64,6 @@ export function SignInForm({
   onSubmit,
 }: SignInFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,7 +81,6 @@ export function SignInForm({
       await onSubmit({
         identifier: identifier.trim(),
         password,
-        keepLoggedIn: isChecked,
       });
     } catch (err) {
       setLocalError(extractErrorMessage(err));
@@ -159,18 +155,13 @@ export function SignInForm({
                     <p className="mt-1 text-[11px] leading-4 text-error-500">{finalErrorMessage}</p>
                   ) : null}
                 </div>
-                <div className="-mt-2 flex items-center justify-between">
-                  <Checkbox
-                    id="keep-logged-in"
-                    checked={isChecked}
-                    onChange={setIsChecked}
-                    label="로그인 유지"
-                    labelClassName="block text-theme-sm font-normal text-gray-700"
-                  />
-                  <Link href={forgotPasswordHref} className="text-sm text-brand-500 hover:text-brand-600">
-                    비밀번호를 잊으셨나요?
-                  </Link>
-                </div>
+                {forgotPasswordHref ? (
+                  <div className="-mt-2 flex items-center justify-end">
+                    <Link href={forgotPasswordHref} className="text-sm text-brand-500 hover:text-brand-600">
+                      비밀번호를 잊으셨나요?
+                    </Link>
+                  </div>
+                ) : null}
                 <div>
                   <Button variant="brand" className="w-full" size="auth" disabled={isSubmitting}>
                     {isSubmitting ? "로그인 중..." : submitText}

@@ -9,6 +9,46 @@ export type AdminPageDefinition = {
 
 export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   {
+    slug: ["video-manage", "consents"],
+    title: "영상 동의여부",
+    group: "동영상",
+  },
+  {
+    slug: ["promotion-manage", "hospitals"],
+    title: "병의원",
+    group: "프로모션 상품",
+  },
+  {
+    slug: ["promotion-manage", "users"],
+    title: "일반회원",
+    group: "프로모션 상품",
+  },
+  {
+    slug: ["beauty-promotion-manage", "beauties"],
+    title: "뷰티샵",
+    group: "프로모션 상품",
+  },
+  {
+    slug: ["content-manage", "exhibitions"],
+    title: "기획전",
+    group: "이벤트 노출설정",
+  },
+  {
+    slug: ["content-manage", "videos"],
+    title: "동영상",
+    group: "이벤트 노출설정",
+  },
+  {
+    slug: ["admin-settings", "db-pricing"],
+    title: "DB 단가비율 설정",
+    group: "운영 관리",
+  },
+  {
+    slug: ["admin-settings", "ad-pricing"],
+    title: "광고비율 설정",
+    group: "운영 관리",
+  },
+  {
     slug: ["user-manage", "users"],
     title: "일반 회원",
     group: "회원",
@@ -75,7 +115,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   },
   {
     slug: ["video-manage", "videos"],
-    title: "동영상 관리",
+    title: "영상 등록관리",
     group: "동영상",
   },
   {
@@ -125,7 +165,7 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   },
   {
     slug: ["notice-manage", "notices"],
-    title: "공지사항",
+    title: "전체공지",
     group: "공지사항",
   },
   {
@@ -145,28 +185,28 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   },
   {
     slug: ["content-manage", "banners"],
-    title: "배너 / 팝업",
-    group: "컨텐츠",
+    title: "배너",
+    group: "이벤트 노출설정",
   },
   {
     slug: ["content-manage", "popups"],
     title: "팝업",
-    group: "컨텐츠",
+    group: "이벤트 노출설정",
   },
   {
     slug: ["category-hashtag-manage", "categories"],
     title: "카테고리",
-    group: "컨텐츠",
+    group: "정책 설정",
   },
   {
     slug: ["content-manage", "hashtags"],
     title: "해시태그",
-    group: "컨텐츠",
+    group: "정책 설정",
   },
   {
     slug: ["content-manage", "top-titles"],
-    title: "상단타이틀 관리",
-    group: "컨텐츠",
+    title: "상단타이틀",
+    group: "정책 설정",
   },
   {
     slug: ["statistics-manage", "statistics"],
@@ -179,23 +219,23 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   },
   {
     slug: ["admin-settings", "harmful-words"],
-    title: "유해성 단어 설정",
-    group: "관리자 설정",
+    title: "금지어 설정",
+    group: "정책 설정",
   },
   {
     slug: ["admin-settings", "nicknames"],
-    title: "닉네임 관리",
-    group: "관리자 설정",
+    title: "자동 닉네임 설정",
+    group: "정책 설정",
   },
   {
     slug: ["admin-settings", "staff"],
-    title: "직원 관리",
-    group: "관리자 설정",
+    title: "직원 계정 관리",
+    group: "운영 관리",
   },
   {
     slug: ["admin-settings", "event-display-positions"],
-    title: "이벤트 노출위치 설정",
-    group: "관리자 설정",
+    title: "이벤트",
+    group: "이벤트 노출설정",
   },
   {
     slug: ["beauty-dashboard", "dashboard"],

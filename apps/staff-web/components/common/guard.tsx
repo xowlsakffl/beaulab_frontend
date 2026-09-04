@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { StaffSession } from "@beaulab/types";
 import { SpinnerBlock } from "@beaulab/ui-admin";
 import { ADMIN_ROUTE_PERMISSION_RULES, resolveRoutePermissionRule } from "@/lib/common/routing/route-permissions";
+import { LoadErrorState } from "@/components/common/LoadErrorState";
 
 type GuardProps = {
   children: ReactNode;
@@ -15,6 +16,7 @@ type GuardProps = {
 };
 
 export function Guard(props: GuardProps) {
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [{ session, isChecking }, setGuardState] = useState<{
     session: StaffSession | null;
     isChecking: boolean;
@@ -73,13 +75,16 @@ export function Guard(props: GuardProps) {
       }
     };
 
-    void authorize();
+    void authorize().catch((error: unknown) => {
+      if (isMounted) setLoadError(error instanceof Error ? error.message : "로그인 정보를 확인하지 못했습니다.");
+    });
 
     return () => {
       isMounted = false;
     };
   }, [isChecking, next, props.unauthorizedRedirectPath, requiredPermissions, router, session]);
 
+  if (loadError) return <LoadErrorState title="로그인 확인 실패" message={loadError} />;
   if (isChecking) {
     return <SpinnerBlock className="min-h-dvh bg-gray-50" spinnerClassName="size-10" label="관리자 확인 중" />;
   }

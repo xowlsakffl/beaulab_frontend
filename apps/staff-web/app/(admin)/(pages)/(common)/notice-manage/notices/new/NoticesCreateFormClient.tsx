@@ -2,14 +2,17 @@
 
 import React from "react";
 import { hasPermission } from "@beaulab/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { NoticeAttachmentSection } from "@/components/notice/form/NoticeAttachmentSection";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
+import { NoticeSettingsSection } from "@/components/notice/form/NoticeSettingsSection";
 import { NoticeMainSection } from "@/components/notice/form/NoticeMainSection";
 import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempImages";
 import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
+import { buildReturnToPath } from "@/lib/common/navigation/buildReturnToPath";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
@@ -26,6 +29,8 @@ import {
 
 export default function NoticesCreateFormClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = buildReturnToPath({ searchParams, fallbackPath: "/notice-manage/notices" });
   const { showAlert } = useGlobalAlert();
   const { focusFirstErrorField } = useNoticeFieldFocus();
   const canUpdateStatus = hasPermission(getSession()?.auth, STAFF_STATUS_PERMISSIONS.notice);
@@ -74,11 +79,7 @@ export default function NoticesCreateFormClient() {
   );
 
   const validate = React.useCallback(() => {
-    const nextErrors = validateNoticeForm(form);
-
-    if (attachments.length > 5) {
-      nextErrors.attachments = "첨부파일은 최대 5개까지 업로드할 수 있습니다.";
-    }
+    const nextErrors = validateNoticeForm(form, attachments);
 
     setErrors(nextErrors);
 
@@ -88,11 +89,11 @@ export default function NoticesCreateFormClient() {
     }
 
     return true;
-  }, [attachments.length, focusFirstErrorField, form]);
+  }, [attachments, focusFirstErrorField, form]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!validate()) return;
+    if (isSubmitting || !validate()) return;
 
     const formData = buildCreateNoticeFormData({ form, attachments, includeStatus: canUpdateStatus });
 
@@ -123,7 +124,9 @@ export default function NoticesCreateFormClient() {
         title: "공지사항 등록 완료",
         message: "등록된 공지사항을 목록에서 확인할 수 있습니다.",
       });
-      router.push(`/notice-manage/notices?highlight=${response.data.id}`);
+      router.push(
+        buildReturnToPath({ searchParams, fallbackPath: "/notice-manage/notices", highlightId: response.data.id }),
+      );
     } catch {
       showAlert({
         variant: "error",
@@ -135,14 +138,29 @@ export default function NoticesCreateFormClient() {
     }
   };
 
+  const headerActions = React.useMemo(
+    () => (
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" disabled={isSubmitting} onClick={() => router.push(returnTo)}>
+          취소
+        </Button>
+        <Button type="submit" form="notice-create-form" size="sm" variant="brand" disabled={isSubmitting}>
+          {isSubmitting ? "등록 중..." : "등록"}
+        </Button>
+      </div>
+    ),
+    [isSubmitting, returnTo, router],
+  );
+  usePageHeaderExtra(headerActions);
+
   return (
     <form
+      id="notice-create-form"
       onSubmit={handleSubmit}
-      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
+      className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start"
     >
       <div className="min-w-0">
         <NoticeMainSection
-          canUpdateStatus={canUpdateStatus}
           form={form}
           errors={errors}
           onFieldChange={setField}
@@ -151,7 +169,7 @@ export default function NoticesCreateFormClient() {
         />
       </div>
 
-      <div className="min-w-0 space-y-6">
+      <NoticeSettingsSection form={form} errors={errors} onFieldChange={setField} canUpdateStatus={canUpdateStatus}>
         <NoticeAttachmentSection
           attachments={attachments}
           errors={errors}
@@ -160,13 +178,7 @@ export default function NoticesCreateFormClient() {
             clearError("attachments");
           }}
         />
-
-        <div className="flex flex-col gap-3">
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "등록 중..." : "공지사항 등록"}
-          </Button>
-        </div>
-      </div>
+      </NoticeSettingsSection>
     </form>
   );
 }

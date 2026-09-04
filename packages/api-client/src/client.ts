@@ -1,9 +1,9 @@
 import type { ActorType, ApiResponse } from "@beaulab/types";
-import { tokenStorage } from "@beaulab/auth";
+import { clearLegacyAuthStorage, setSessionTiming } from "@beaulab/auth";
 import { buildUrl, type Query } from "./url";
 
 /**
- * staff/hospital/beauty/user 각각 다른 baseURL + 다른 토큰을 자동으로 붙여서 fetch 하는 래퍼.
+ * Actor별 웹 세션과 CSRF를 처리하는 공통 HTTP client.
  *
  * 사용법 예)
  * import { createClient } from "@beaulab/api-client"; // client.ts가 export된 패키지 경로
@@ -91,6 +91,33 @@ function shouldJsonify(body: unknown): boolean {
 //baseURL+actor를 클로저로 고정
 export function createClient(options: CreateClientOptions) {
   const { baseURL, actor, onUnauthorized } = options;
+  let csrfToken: string | null = null;
+  let csrfPromise: Promise<string> | null = null;
+
+  async function ensureCsrfToken(): Promise<string> {
+    if (csrfToken) return csrfToken;
+    if (csrfPromise) return csrfPromise;
+    csrfPromise = (async () => {
+      const response = await fetch(buildUrl(baseURL, "/auth/csrf"), {
+        credentials: "include",
+        cache: "no-store",
+        referrerPolicy: "strict-origin",
+        headers: { Accept: "application/json", "X-Beaulab-Client": "web" },
+        signal: AbortSignal.timeout(15_000),
+      });
+      const payload = (await response.json()) as ApiResponse<{ csrf_token: string }>;
+      if (!response.ok || !payload.success || !payload.data?.csrf_token) {
+        throw new Error(
+          !payload.success ? payload.error.message : "인증 정보를 확인하지 못했습니다. 다시 시도해 주세요.",
+        );
+      }
+      csrfToken = payload.data.csrf_token;
+      return csrfToken;
+    })().finally(() => {
+      csrfPromise = null;
+    });
+    return csrfPromise;
+  }
 
   async function requestWithResponse<T>(path: string, opts: RequestOptions = {}): Promise<ApiResponseWithHttp<T>> {
     const { query, body: rawBody, latestKey, skipUnauthorizedHandler, timeoutMs, ...rest } = opts;
@@ -99,8 +126,9 @@ export function createClient(options: CreateClientOptions) {
     const headers = new Headers(rest.headers);
     headers.set("Accept", "application/json");
 
-    const token = tokenStorage.get(actor);
-    if (token) headers.set("Authorization", `Bearer ${token}`);
+    clearLegacyAuthStorage(actor);
+    headers.delete("Authorization");
+    headers.set("X-Beaulab-Client", "web");
 
     let body: BodyInit | undefined = undefined;
 
@@ -151,8 +179,15 @@ export function createClient(options: CreateClientOptions) {
         if (controller.signal.aborted) throw new ApiRequestCanceledError();
       }
 
+      if (!["GET", "HEAD", "OPTIONS"].includes((rest.method ?? "GET").toUpperCase())) {
+        headers.set("X-CSRF-TOKEN", await ensureCsrfToken());
+      }
+      if (controller.signal.aborted) throw new ApiRequestCanceledError();
       const res = await fetch(url, {
         ...rest,
+        credentials: "include",
+        cache: "no-store",
+        referrerPolicy: "strict-origin",
         signal: controller.signal,
         headers,
         body,
@@ -163,12 +198,20 @@ export function createClient(options: CreateClientOptions) {
       }
 
       const payload = (await res.json()) as ApiResponse<T>;
+      if (res.status === 419 || (res.ok && (path === "/auth/login" || path === "/auth/logout"))) {
+        csrfToken = null;
+      }
+      const expires = res.headers.get("X-Session-Expires-At");
+      const idleExpires = res.headers.get("X-Session-Idle-Expires-At");
+      if (expires && idleExpires) {
+        setSessionTiming(actor, { expires_at: Number(expires), idle_expires_at: Number(idleExpires) });
+      }
 
       if (latestRequestKey && latestRequests.get(latestRequestKey)?.requestId !== latestRequest?.requestId) {
         throw new ApiRequestCanceledError("Stale API response ignored");
       }
 
-      if (!skipUnauthorizedHandler && (res.status === 401 || res.status === 419)) {
+      if (!skipUnauthorizedHandler && res.status === 401) {
         onUnauthorized?.({
           actor,
           path,

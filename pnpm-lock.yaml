@@ -121,6 +121,15 @@ importers:
 
   apps/user-web:
     dependencies:
+      '@beaulab/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@beaulab/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@beaulab/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       laravel-echo:
         specifier: ^2.3.4
         version: 2.3.4(pusher-js@8.5.0)(socket.io-client@4.8.3)

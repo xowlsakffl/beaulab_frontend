@@ -4,7 +4,10 @@ export type QueryValue =
 export type Query = Record<string, QueryValue>;
 
 export function buildUrl(baseURL: string, path: string, query?: Query): string {
-  const url = new URL(`${baseURL}${path.startsWith("/") ? path : `/${path}`}`);
+  const url = new URL(
+    `${baseURL}${path.startsWith("/") ? path : `/${path}`}`,
+    typeof window !== "undefined" ? window.location.origin : undefined,
+  );
 
   if (!query) return url.toString();
 

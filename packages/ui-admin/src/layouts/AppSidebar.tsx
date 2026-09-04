@@ -96,6 +96,7 @@ export function AppSidebar({
                       isParentActive ? "menu-item-active" : "menu-item-inactive"
                     } cursor-pointer`}
                     aria-label={nav.name}
+                    aria-expanded={isOpen}
                   >
                     <span className={isParentActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
                       {nav.icon ?? <span className="h-5 w-5" />}
@@ -173,28 +174,38 @@ export function AppSidebar({
   }, [pathname, isActive, mainItems, otherItems]);
 
   return (
-    <aside className="fixed top-0 left-0 z-50 flex h-screen w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white">
+    <aside className="fixed top-0 left-0 z-50 flex h-dvh w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white">
       <div className="flex justify-start py-8">
         {brand ? <Link href={brand.href ?? "/"}>{brand.expandedLogo}</Link> : null}
       </div>
 
       {topContent ? <div className="pb-6">{topContent}</div> : null}
 
-      <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+      <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto duration-300 ease-linear">
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="mb-4 flex justify-start text-xs leading-[20px] text-white/55 uppercase">
-                {sectionLabels.main}
-              </h2>
-              {renderMenuItems(mainItems, "main")}
-            </div>
+            {mainItems.length > 0 ? (
+              <div>
+                {sectionLabels.main ? (
+                  <h2 className="mb-4 flex justify-start text-xs leading-[20px] text-white/55 uppercase">
+                    {sectionLabels.main}
+                  </h2>
+                ) : null}
+                {renderMenuItems(mainItems, "main")}
+              </div>
+            ) : null}
+
+            {mainItems.length > 0 && otherItems.length > 0 ? (
+              <hr className="my-2 border-0 border-t border-solid border-white/25" />
+            ) : null}
 
             {otherItems.length > 0 ? (
               <div>
-                <h2 className="mb-4 flex justify-start text-xs leading-[20px] text-white/55 uppercase">
-                  {sectionLabels.others}
-                </h2>
+                {sectionLabels.others ? (
+                  <h2 className="mb-4 flex justify-start text-xs leading-[20px] text-white/55 uppercase">
+                    {sectionLabels.others}
+                  </h2>
+                ) : null}
                 {renderMenuItems(otherItems, "others")}
               </div>
             ) : null}

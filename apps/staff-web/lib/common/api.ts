@@ -1,5 +1,5 @@
 import { createClient, type ApiUnauthorizedContext } from "@beaulab/api-client";
-import { sessionStorage, tokenStorage } from "@beaulab/auth";
+import { sessionStorage } from "@beaulab/auth";
 import { invalidateListDataCache } from "@/lib/common/list-data-cache";
 
 export { isApiRequestCanceledError } from "@beaulab/api-client";
@@ -31,7 +31,6 @@ function wrapMutation<Args extends unknown[], Result extends { success?: boolean
 function redirectToLoginAfterUnauthorized(context: ApiUnauthorizedContext) {
   if (typeof window === "undefined" || isRedirectingToLogin) return;
 
-  tokenStorage.clear(context.actor);
   sessionStorage.clear(context.actor);
   invalidateListDataCache();
 
@@ -46,7 +45,7 @@ function redirectToLoginAfterUnauthorized(context: ApiUnauthorizedContext) {
 }
 
 const staffApi = createClient({
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/staff`,
+  baseURL: "/api/v1/staff",
   actor: "staff",
   onUnauthorized: redirectToLoginAfterUnauthorized,
 });
@@ -81,24 +80,26 @@ function parseContentDispositionFileName(headerValue: string | null): string | n
 }
 
 export async function downloadFile(pathOrUrl: string, fallbackFileName?: string): Promise<void> {
-  const token = tokenStorage.get("staff");
-  const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/staff`;
+  const baseURL = "/api/v1/staff";
   const url = /^(?:https?:\/\/|blob:|data:)/i.test(pathOrUrl)
     ? pathOrUrl
     : `${baseURL}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
 
   const headers = new Headers();
   headers.set("Accept", "application/json");
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  const target = new URL(url, window.location.origin);
+  const isApi = target.origin === window.location.origin && target.pathname.startsWith(`${baseURL}/`);
+  if (isApi) headers.set("X-Beaulab-Client", "web");
 
   const response = await fetch(url, {
     method: "GET",
     headers,
+    credentials: isApi ? "include" : "omit",
+    cache: "no-store",
+    referrerPolicy: "strict-origin",
   });
 
-  if (response.status === 401 || response.status === 419) {
+  if (isApi && response.status === 401) {
     redirectToLoginAfterUnauthorized({
       actor: "staff",
       path: pathOrUrl,
@@ -108,7 +109,7 @@ export async function downloadFile(pathOrUrl: string, fallbackFileName?: string)
       payload: {
         success: false,
         error: {
-          code: response.status === 419 ? "TOKEN_ERROR" : "UNAUTHORIZED",
+          code: "UNAUTHORIZED",
           message: "인증이 필요합니다.",
         },
         traceId: response.headers.get("X-Request-Id"),

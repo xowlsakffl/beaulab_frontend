@@ -1,7 +1,5 @@
-import Link from "next/link";
 import React from "react";
 
-import { Can } from "@/components/common/guard";
 import {
   Button,
   Card,
@@ -13,24 +11,21 @@ import {
 } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
-import type { DateFilterKey, DatePresetKey } from "@/lib/notice/list";
+import { Can } from "@/components/common/guard";
+import type { DatePresetKey } from "@/lib/notice/list";
 
 type NoticesFilterPanelProps = {
   searchInput: string;
   draftStatuses: string[];
   draftChannels: string[];
   draftDateLabel: string;
-  draftUpdatedDateLabel: string;
   draftDateRange?: DateRange;
-  draftUpdatedDateRange?: DateRange;
   isStatusDropdownOpen: boolean;
   isChannelDropdownOpen: boolean;
   isDatePickerOpen: boolean;
-  isUpdatedDatePickerOpen: boolean;
   statusDropdownRef: React.RefObject<HTMLDivElement | null>;
   channelDropdownRef: React.RefObject<HTMLDivElement | null>;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
-  updatedDatePickerRef: React.RefObject<HTMLDivElement | null>;
   statusOptions: CheckboxFilterOption[];
   channelOptions: CheckboxFilterOption[];
   datePresetOptions: readonly { key: string; label: string }[];
@@ -38,15 +33,15 @@ type NoticesFilterPanelProps = {
   onToggleStatusDropdown: () => void;
   onToggleChannelDropdown: () => void;
   onToggleDatePicker: () => void;
-  onToggleUpdatedDatePicker: () => void;
   onToggleStatus: (value: string) => void;
   onToggleChannel: (value: string) => void;
   onToggleAllStatuses: () => void;
   onToggleAllChannels: () => void;
-  onApplyDateRange: (key: DateFilterKey, nextRange?: DateRange) => void;
-  onApplyDatePreset: (key: DateFilterKey, preset: DatePresetKey) => void;
+  onApplyDateRange: (nextRange?: DateRange) => void;
+  onApplyDatePreset: (preset: DatePresetKey) => void;
   onApplyFilters: () => void;
   onResetFilters: () => void;
+  onOpenCreate: () => void;
 };
 
 export function NoticesFilterPanel({
@@ -54,17 +49,13 @@ export function NoticesFilterPanel({
   draftStatuses,
   draftChannels,
   draftDateLabel,
-  draftUpdatedDateLabel,
   draftDateRange,
-  draftUpdatedDateRange,
   isStatusDropdownOpen,
   isChannelDropdownOpen,
   isDatePickerOpen,
-  isUpdatedDatePickerOpen,
   statusDropdownRef,
   channelDropdownRef,
   datePickerRef,
-  updatedDatePickerRef,
   statusOptions,
   channelOptions,
   datePresetOptions,
@@ -72,7 +63,6 @@ export function NoticesFilterPanel({
   onToggleStatusDropdown,
   onToggleChannelDropdown,
   onToggleDatePicker,
-  onToggleUpdatedDatePicker,
   onToggleStatus,
   onToggleChannel,
   onToggleAllStatuses,
@@ -81,6 +71,7 @@ export function NoticesFilterPanel({
   onApplyDatePreset,
   onApplyFilters,
   onResetFilters,
+  onOpenCreate,
 }: NoticesFilterPanelProps) {
   const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
 
@@ -88,17 +79,24 @@ export function NoticesFilterPanel({
     <Card className="min-w-0 rounded-xl p-3">
       <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={inlineLabelClass}>운영 상태</span>
-          <CheckboxFilterDropdown
-            label="운영 상태"
+          <span className={inlineLabelClass}>기간</span>
+          <DateRangeFilterDropdown
+            label="등록일"
             hideLabel
-            containerRef={statusDropdownRef}
-            selectedValues={draftStatuses}
-            options={statusOptions}
-            isOpen={isStatusDropdownOpen}
-            onToggleOpen={onToggleStatusDropdown}
-            onToggleValue={onToggleStatus}
-            onToggleAll={onToggleAllStatuses}
+            containerRef={datePickerRef}
+            value={draftDateLabel}
+            placeholder="등록일 기간 선택"
+            selected={draftDateRange}
+            isOpen={isDatePickerOpen}
+            presetOptions={datePresetOptions}
+            onToggleOpen={onToggleDatePicker}
+            onSelect={(nextRange) => onApplyDateRange(nextRange)}
+            onPresetSelect={(presetKey) => onApplyDatePreset(presetKey as DatePresetKey)}
+            onReset={() => {
+              onApplyDateRange(undefined);
+              onToggleDatePicker();
+            }}
+            onConfirm={onToggleDatePicker}
           />
         </div>
         <div className="flex min-w-0 items-center gap-3">
@@ -117,52 +115,28 @@ export function NoticesFilterPanel({
           />
         </div>
         <div className="flex min-w-0 items-center gap-3">
-          <span className={inlineLabelClass}>등록일</span>
-          <DateRangeFilterDropdown
-            label="등록일"
+          <span className={inlineLabelClass}>공개여부</span>
+          <CheckboxFilterDropdown
+            label="공개여부"
             hideLabel
-            containerRef={datePickerRef}
-            value={draftDateLabel}
-            placeholder="등록일 기간 선택"
-            selected={draftDateRange}
-            isOpen={isDatePickerOpen}
-            presetOptions={datePresetOptions}
-            onToggleOpen={onToggleDatePicker}
-            onSelect={(nextRange) => onApplyDateRange("created", nextRange)}
-            onPresetSelect={(presetKey) => onApplyDatePreset("created", presetKey as DatePresetKey)}
-            onReset={() => {
-              onApplyDateRange("created", undefined);
-              onToggleDatePicker();
-            }}
-            onConfirm={onToggleDatePicker}
-          />
-        </div>
-        <div className="flex min-w-0 items-center gap-3">
-          <span className={inlineLabelClass}>수정일</span>
-          <DateRangeFilterDropdown
-            label="수정일"
-            hideLabel
-            containerRef={updatedDatePickerRef}
-            value={draftUpdatedDateLabel}
-            placeholder="수정일 기간 선택"
-            selected={draftUpdatedDateRange}
-            isOpen={isUpdatedDatePickerOpen}
-            presetOptions={datePresetOptions}
-            onToggleOpen={onToggleUpdatedDatePicker}
-            onSelect={(nextRange) => onApplyDateRange("updated", nextRange)}
-            onPresetSelect={(presetKey) => onApplyDatePreset("updated", presetKey as DatePresetKey)}
-            onReset={() => {
-              onApplyDateRange("updated", undefined);
-              onToggleUpdatedDatePicker();
-            }}
-            onConfirm={onToggleUpdatedDatePicker}
+            containerRef={statusDropdownRef}
+            selectedValues={draftStatuses}
+            options={statusOptions}
+            isOpen={isStatusDropdownOpen}
+            onToggleOpen={onToggleStatusDropdown}
+            onToggleValue={onToggleStatus}
+            onToggleAll={onToggleAllStatuses}
           />
         </div>
         <div className="col-span-full flex min-w-0 flex-col gap-3 py-1.5 sm:flex-row sm:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className={inlineLabelClass}>검색</span>
+            <label htmlFor="notice-search" className={inlineLabelClass}>
+              검색
+            </label>
             <div className="min-w-0 flex-1">
               <InputField
+                id="notice-search"
+                maxLength={100}
                 value={searchInput}
                 onChange={(event) => onSearchChange(event.target.value)}
                 onKeyDown={(event) => {
@@ -171,7 +145,7 @@ export function NoticesFilterPanel({
                     onApplyFilters();
                   }
                 }}
-                placeholder="제목, 내용 검색"
+                placeholder="ID, 제목, 관리자 검색"
                 className="bg-white"
               />
             </div>
@@ -182,15 +156,13 @@ export function NoticesFilterPanel({
               검색
             </Button>
             <Button type="button" variant="brandOutline" size="filter" onClick={onResetFilters} className="shrink-0">
-              필터 초기화
+              검색 초기화
             </Button>
             <Can permission="beaulab.notice.create">
-              <Link href="/notice-manage/notices/new">
-                <Button type="button" variant="brand" size="filter">
-                  <SquarePlus className="size-5" />
-                  <span>공지사항 등록</span>
-                </Button>
-              </Link>
+              <Button type="button" variant="brand" size="filter" onClick={onOpenCreate}>
+                <SquarePlus className="size-5" />
+                <span>공지사항 등록</span>
+              </Button>
             </Can>
           </div>
         </div>

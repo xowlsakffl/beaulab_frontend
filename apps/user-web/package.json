@@ -10,6 +10,9 @@
     "typecheck": "next typegen && tsc --noEmit --incremental false"
   },
   "dependencies": {
+    "@beaulab/api-client": "workspace:*",
+    "@beaulab/auth": "workspace:*",
+    "@beaulab/types": "workspace:*",
     "laravel-echo": "^2.3.4",
     "next": "16.1.6",
     "pusher-js": "^8.5.0",

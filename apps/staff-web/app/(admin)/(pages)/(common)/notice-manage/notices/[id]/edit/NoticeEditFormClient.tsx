@@ -8,7 +8,10 @@ import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { NoticeAttachmentSection } from "@/components/notice/form/NoticeAttachmentSection";
+import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
+import { NoticeSettingsSection } from "@/components/notice/form/NoticeSettingsSection";
 import { NoticeMainSection } from "@/components/notice/form/NoticeMainSection";
+import { useNoticeDetail } from "@/hooks/notice/useNoticeDetail";
 import { useNoticeEditorTempImages } from "@/hooks/notice/useNoticeEditorTempImages";
 import { useNoticeFieldFocus } from "@/hooks/notice/useNoticeFieldFocus";
 import { api } from "@/lib/common/api";
@@ -44,8 +47,7 @@ export default function NoticeEditFormClient() {
   const [attachments, setAttachments] = React.useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = React.useState<NoticeAttachment[]>([]);
   const [errors, setErrors] = React.useState<NoticeFormErrors>({});
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
+  const { detail, isLoading, loadError } = useNoticeDetail(noticeId);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
@@ -57,7 +59,7 @@ export default function NoticeEditFormClient() {
   }, [cleanupAllTempImages]);
 
   const detailPath = React.useMemo(() => {
-    if (!Number.isFinite(noticeId) || noticeId <= 0) return "/notice-manage/notices";
+    if (!Number.isSafeInteger(noticeId) || noticeId <= 0) return "/notice-manage/notices";
 
     const rawReturnTo = searchParams.get("returnTo");
     return rawReturnTo
@@ -83,35 +85,13 @@ export default function NoticeEditFormClient() {
     [clearError],
   );
 
-  const fetchNotice = React.useCallback(async () => {
-    if (!Number.isFinite(noticeId) || noticeId <= 0) {
-      setLoadError("잘못된 공지사항 경로입니다.");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadError(null);
-
-    try {
-      const response = await api.get<NoticeDetailResponse>(`/notices/${noticeId}`);
-      if (!isApiSuccess(response)) {
-        setLoadError(response.error.message || "공지사항 정보를 불러오지 못했습니다.");
-        return;
-      }
-
-      setForm(mapNoticeDetailToForm(response.data));
-      setExistingAttachments(response.data.attachments ?? []);
-    } catch {
-      setLoadError("공지사항 정보를 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [noticeId]);
-
   React.useEffect(() => {
-    void fetchNotice();
-  }, [fetchNotice]);
+    if (!detail) return;
+    setForm(mapNoticeDetailToForm(detail));
+    setExistingAttachments(detail.attachments ?? []);
+    setAttachments([]);
+    setErrors({});
+  }, [detail]);
 
   const handleContentChange = React.useCallback(
     (value: string) => {
@@ -122,11 +102,7 @@ export default function NoticeEditFormClient() {
   );
 
   const validate = React.useCallback(() => {
-    const nextErrors = validateNoticeForm(form);
-
-    if (existingAttachments.length + attachments.length > 5) {
-      nextErrors.attachments = "첨부파일은 최대 5개까지 업로드할 수 있습니다.";
-    }
+    const nextErrors = validateNoticeForm(form, attachments, existingAttachments.length);
 
     setErrors(nextErrors);
 
@@ -136,12 +112,12 @@ export default function NoticeEditFormClient() {
     }
 
     return true;
-  }, [attachments.length, existingAttachments.length, focusFirstErrorField, form]);
+  }, [attachments, existingAttachments.length, focusFirstErrorField, form]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!validate()) return;
-    if (!Number.isFinite(noticeId) || noticeId <= 0) return;
+    if (isSubmitting || !validate()) return;
+    if (!Number.isSafeInteger(noticeId) || noticeId <= 0) return;
 
     const formData = buildUpdateNoticeFormData({
       form,
@@ -189,6 +165,21 @@ export default function NoticeEditFormClient() {
     }
   };
 
+  const headerActions = React.useMemo(
+    () => (
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" disabled={isSubmitting} onClick={() => router.push(detailPath)}>
+          취소
+        </Button>
+        <Button type="submit" form="notice-edit-form" size="sm" variant="brand" disabled={isSubmitting}>
+          {isSubmitting ? "저장 중..." : "저장"}
+        </Button>
+      </div>
+    ),
+    [detailPath, isSubmitting, router],
+  );
+  usePageHeaderExtra(isLoading || loadError ? null : headerActions);
+
   if (isLoading) {
     return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" />;
   }
@@ -199,12 +190,12 @@ export default function NoticeEditFormClient() {
 
   return (
     <form
+      id="notice-edit-form"
       onSubmit={handleSubmit}
-      className="grid gap-6 lg:grid-cols-[minmax(0,1.36fr)_minmax(240px,0.64fr)] lg:items-start"
+      className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:items-start"
     >
       <div className="min-w-0">
         <NoticeMainSection
-          canUpdateStatus={canUpdateStatus}
           form={form}
           errors={errors}
           onFieldChange={setField}
@@ -213,7 +204,7 @@ export default function NoticeEditFormClient() {
         />
       </div>
 
-      <div className="min-w-0 space-y-6">
+      <NoticeSettingsSection form={form} errors={errors} onFieldChange={setField} canUpdateStatus={canUpdateStatus}>
         <NoticeAttachmentSection
           attachments={attachments}
           existingAttachments={existingAttachments}
@@ -227,13 +218,7 @@ export default function NoticeEditFormClient() {
             clearError("attachments");
           }}
         />
-
-        <div className="flex flex-col gap-3">
-          <Button type="submit" variant="brand" size="auth" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "저장 중..." : "공지사항 저장"}
-          </Button>
-        </div>
-      </div>
+      </NoticeSettingsSection>
     </form>
   );
 }

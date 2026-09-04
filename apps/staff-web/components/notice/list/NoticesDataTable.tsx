@@ -1,27 +1,16 @@
 import React from "react";
 
 import {
-  Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
-  SingleCheckboxFilterDropdown,
+  DataTableSortHeader,
+  StatusValueBadge,
   type DataTableColumn,
   type DataTableMeta,
-  StatusValueBadge,
 } from "@beaulab/ui-admin";
 
-import { PER_PAGE_OPTIONS, labelNoticeStatus, type NoticeRow, type SortField, type SortState } from "@/lib/notice/list";
 import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
-
-function renderSortMark(field: SortField, sortState: SortState) {
-  if (!sortState.enabled || sortState.field !== field) {
-    return <ChevronsUpDown className="size-4" />;
-  }
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
+import type { NoticeRow, SortField, SortState } from "@/lib/notice/list";
+import { labelNoticeStatus } from "@/lib/notice/options";
 
 function buildNoticeColumns({
   sortState,
@@ -30,60 +19,44 @@ function buildNoticeColumns({
   sortState: SortState;
   onToggleSort: (field: SortField) => void;
 }): DataTableColumn<NoticeRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-gray-600 text-theme-xs ";
-  const cellBaseClass = "px-3 py-4 text-start align-top ";
-  const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
+  const headerClass = "px-2 py-3 text-left text-theme-xs font-semibold text-gray-600";
+  const cellClass = "px-2 py-4 text-start align-top";
+  const sortHeader = (field: SortField, label: string) => (
+    <DataTableSortHeader
+      label={label}
+      active={sortState.enabled && sortState.field === field}
+      direction={sortState.direction}
+      onClick={() => onToggleSort(field)}
+    />
+  );
 
   return [
     {
       key: "id",
-      headerClassName: `${headerBaseClass} lg:w-[72px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[72px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("id")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
-        </Button>
-      ),
+      header: sortHeader("id", "ID"),
+      headerClassName: `${headerClass} w-[80px]`,
+      cellClassName: cellClass,
       render: (row) => row.id,
     },
     {
+      key: "createdAt",
+      header: sortHeader("created_at", "등록일"),
+      headerClassName: `${headerClass} w-[130px]`,
+      cellClassName: `${cellClass} whitespace-nowrap`,
+      render: (row) => row.createdAt,
+    },
+    {
       key: "channel",
-      headerClassName: `${headerBaseClass} lg:w-[120px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[120px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("channel")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          채널 <span className="text-xs text-gray-400">{renderSortMark("channel", sortState)}</span>
-        </Button>
-      ),
+      header: sortHeader("channel", "채널"),
+      headerClassName: `${headerClass} w-[120px]`,
+      cellClassName: cellClass,
       render: (row) => row.channel,
     },
     {
       key: "title",
-      headerClassName: `${headerBaseClass} lg:w-[320px]`,
-      cellClassName: `${cellBaseClass} lg:w-[320px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("title")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          제목 <span className="text-xs text-gray-400">{renderSortMark("title", sortState)}</span>
-        </Button>
-      ),
+      header: sortHeader("title", "제목"),
+      headerClassName: headerClass,
+      cellClassName: cellClass,
       render: (row) => (
         <span className="block truncate font-medium text-gray-800" title={row.title}>
           {row.title}
@@ -92,80 +65,26 @@ function buildNoticeColumns({
     },
     {
       key: "status",
-      headerClassName: `${headerBaseClass} lg:w-[110px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[110px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
-        </Button>
-      ),
+      header: sortHeader("status", "공개여부"),
+      headerClassName: `${headerClass} w-[110px]`,
+      cellClassName: cellClass,
       render: (row) => (
         <StatusValueBadge label={labelNoticeStatus(row.status)} color={ownerVisibilityStatusColor(row.status)} />
       ),
     },
     {
-      key: "creatorName",
-      headerClassName: `${headerBaseClass} lg:w-[140px]`,
-      cellClassName: `${cellBaseClass} lg:w-[140px]`,
-      header: "작성자이름",
-      render: (row) => row.creatorName,
-    },
-    {
       key: "viewCount",
-      headerClassName: `${headerBaseClass} lg:w-[96px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[96px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("view_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
-        </Button>
-      ),
+      header: sortHeader("view_count", "조회수"),
+      headerClassName: `${headerClass} w-[100px]`,
+      cellClassName: cellClass,
       render: (row) => row.viewCount.toLocaleString(),
     },
     {
-      key: "createdAt",
-      headerClassName: `${headerBaseClass} lg:w-[120px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[120px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("created_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          등록일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
-        </Button>
-      ),
-      render: (row) => row.createdAt,
-    },
-    {
-      key: "updatedAt",
-      headerClassName: `${headerBaseClass} lg:w-[120px]`,
-      cellClassName: `${nowrapCellClass} lg:w-[120px]`,
-      header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleSort("updated_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          수정일 <span className="text-xs text-gray-400">{renderSortMark("updated_at", sortState)}</span>
-        </Button>
-      ),
-      render: (row) => row.updatedAt,
+      key: "creatorName",
+      header: "관리자",
+      headerClassName: `${headerClass} w-[140px]`,
+      cellClassName: `${cellClass} break-words`,
+      render: (row) => row.creatorName,
     },
   ];
 }
@@ -178,63 +97,25 @@ type NoticesDataTableProps = {
   error: string | null;
   highlightedRowId: number | null;
   sortState: SortState;
-  perPage: number;
   onToggleSort: (field: SortField) => void;
   onGoPage: (page: number) => void;
-  onPerPageChange: (value: number) => void;
   onRowClick: (row: NoticeRow) => void;
 };
 
-export function NoticesDataTable({
-  rows,
-  meta,
-  loading,
-  refreshing,
-  error,
-  highlightedRowId,
-  sortState,
-  perPage,
-  onToggleSort,
-  onGoPage,
-  onPerPageChange,
-  onRowClick,
-}: NoticesDataTableProps) {
+export function NoticesDataTable({ sortState, onToggleSort, highlightedRowId, ...props }: NoticesDataTableProps) {
   const columns = React.useMemo(() => buildNoticeColumns({ sortState, onToggleSort }), [sortState, onToggleSort]);
 
   return (
     <DataTable
-      title="공지사항 목록"
-      description="공지사항 채널과 운영 상태, 작성자와 조회 현황을 확인할 수 있습니다."
-      tableClassName="w-[1560px] min-w-[1560px] table-fixed"
+      {...props}
+      tableClassName="w-full min-w-[1000px] table-fixed"
       columns={columns}
-      rows={rows}
       getRowKey={(row) => row.id}
       getRowClassName={(row) =>
-        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500 " : undefined
+        row.id === highlightedRowId ? "bg-emerald-50/90 transition-colors duration-500" : undefined
       }
       loadingVariant="spinner"
       loadingLabel="공지사항 목록 불러오는 중"
-      loading={loading}
-      refreshing={refreshing}
-      error={error}
-      meta={meta}
-
-      onGoPage={onGoPage}
-      onRowClick={onRowClick}
-      rightActions={
-        <div className="flex items-center gap-2">
-          <SingleCheckboxFilterDropdown
-            label="개수"
-            hideLabel
-            value={String(perPage)}
-            options={PER_PAGE_OPTIONS}
-            onChange={(value) => onPerPageChange(Number(value))}
-            emptyLabel="개수 선택"
-            className="w-[86px]"
-            triggerClassName="h-9 px-2 text-xs"
-          />
-        </div>
-      }
       emptyText="조건에 맞는 공지사항이 없습니다."
     />
   );

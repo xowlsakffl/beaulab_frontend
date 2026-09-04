@@ -77,7 +77,11 @@ export default function HospitalAccountCreatePageClient({ invitationToken }: Hos
         if (!active) return;
 
         if (!isApiSuccess(result.payload)) {
-          if (result.status === 419 || result.status === 404 || result.payload.error.code === "TOKEN_ERROR") {
+          if (
+            (result.status === 419 && result.payload.error.code !== "CSRF_MISMATCH") ||
+            result.status === 404 ||
+            result.payload.error.code === "TOKEN_ERROR"
+          ) {
             router.replace("/error/419");
             return;
           }
@@ -123,7 +127,10 @@ export default function HospitalAccountCreatePageClient({ invitationToken }: Hos
     try {
       const result = await sendHospitalAccountPhoneVerification(invitationToken, phone);
       if (!isApiSuccess(result.payload)) {
-        if (result.status === 419 || result.payload.error.code === "TOKEN_ERROR") {
+        if (
+          (result.status === 419 && result.payload.error.code !== "CSRF_MISMATCH") ||
+          result.payload.error.code === "TOKEN_ERROR"
+        ) {
           router.replace("/error/419");
           return;
         }
@@ -164,7 +171,10 @@ export default function HospitalAccountCreatePageClient({ invitationToken }: Hos
         verificationCode,
       );
       if (!isApiSuccess(result.payload)) {
-        if (result.status === 419 || result.payload.error.code === "TOKEN_ERROR") {
+        if (
+          (result.status === 419 && result.payload.error.code !== "CSRF_MISMATCH") ||
+          result.payload.error.code === "TOKEN_ERROR"
+        ) {
           router.replace("/error/419");
           return;
         }
@@ -221,7 +231,10 @@ export default function HospitalAccountCreatePageClient({ invitationToken }: Hos
       });
 
       if (!isApiSuccess(result.payload)) {
-        if (result.status === 419 || result.payload.error.code === "TOKEN_ERROR") {
+        if (
+          (result.status === 419 && result.payload.error.code !== "CSRF_MISMATCH") ||
+          result.payload.error.code === "TOKEN_ERROR"
+        ) {
           router.replace("/error/419");
           return;
         }

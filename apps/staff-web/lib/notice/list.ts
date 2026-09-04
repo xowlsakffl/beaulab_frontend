@@ -1,5 +1,7 @@
-import type { CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
+import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
+import type { NoticeStaffUser } from "./detail";
+import { labelNoticeChannel, NOTICE_CHANNEL_OPTIONS, NOTICE_STATUS_OPTIONS } from "./options";
 
 export type NoticeApiItem = {
   id: number;
@@ -7,17 +9,8 @@ export type NoticeApiItem = {
   title?: string | null;
   status?: string | null;
   creator?: NoticeStaffUser | null;
-  updater?: NoticeStaffUser | null;
-  creator_name?: string | null;
   view_count?: number | null;
   created_at?: string | null;
-  updated_at?: string | null;
-};
-
-export type NoticeStaffUser = {
-  id: number;
-  name?: string | null;
-  email?: string | null;
 };
 
 export type NoticeRow = {
@@ -28,10 +21,9 @@ export type NoticeRow = {
   creatorName: string;
   viewCount: number;
   createdAt: string;
-  updatedAt: string;
 };
 
-export type SortField = "id" | "channel" | "title" | "status" | "view_count" | "created_at" | "updated_at";
+export type SortField = "id" | "channel" | "title" | "status" | "view_count" | "created_at";
 export type SortDirection = "asc" | "desc";
 
 export type SortState = {
@@ -46,9 +38,6 @@ export type Filters = {
   dateRange: string;
   startDate: string;
   endDate: string;
-  updatedDateRange: string;
-  updatedStartDate: string;
-  updatedEndDate: string;
 };
 
 export type NoticesQuery = {
@@ -57,8 +46,6 @@ export type NoticesQuery = {
   channel?: string;
   start_date?: string;
   end_date?: string;
-  updated_start_date?: string;
-  updated_end_date?: string;
   sort: SortField;
   direction: SortDirection;
   per_page: number;
@@ -77,28 +64,9 @@ export const DEFAULT_FILTERS: Filters = {
   dateRange: "",
   startDate: "",
   endDate: "",
-  updatedDateRange: "",
-  updatedStartDate: "",
-  updatedEndDate: "",
 };
 
-export const NOTICE_STATUS_OPTIONS: CheckboxFilterOption[] = [
-  { value: "ACTIVE", label: "정상" },
-  { value: "INACTIVE", label: "비활성" },
-];
-
-export const NOTICE_CHANNEL_OPTIONS: CheckboxFilterOption[] = [
-  { value: "ALL", label: "전체 채널" },
-  { value: "APP_WEB", label: "앱/웹" },
-  { value: "HOSPITAL", label: "병의원" },
-  { value: "BEAUTY", label: "뷰티" },
-];
-
-export const PER_PAGE_OPTIONS = [
-  { value: "15", label: "15개" },
-  { value: "30", label: "30개" },
-  { value: "50", label: "50개" },
-];
+export const NOTICES_PER_PAGE = 15;
 
 export const DATE_PRESET_OPTIONS = [
   { key: "today", label: "오늘" },
@@ -108,8 +76,6 @@ export const DATE_PRESET_OPTIONS = [
 ] as const satisfies readonly DatePresetOption[];
 
 export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
-export type DateFilterKey = "created" | "updated";
-
 export function formatLocalDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -199,24 +165,9 @@ export function buildFilterDateState(startDate: string, endDate: string) {
   };
 }
 
-export function labelNoticeChannel(channel?: string | null) {
-  if (channel === "ALL") return "전체 채널";
-  if (channel === "APP_WEB") return "앱/웹";
-  if (channel === "HOSPITAL") return "병의원";
-  if (channel === "BEAUTY") return "뷰티";
-  return channel?.trim() || "-";
-}
-
-export function labelNoticeStatus(status?: string | null) {
-  if (status === "ACTIVE") return "정상";
-  if (status === "INACTIVE") return "비활성";
-  return status?.trim() || "-";
-}
-
 export function normalizeNotice(item: NoticeApiItem): NoticeRow {
   const createdDate = item.created_at ? new Date(item.created_at) : null;
-  const updatedDate = item.updated_at ? new Date(item.updated_at) : null;
-  const creatorName = item.creator?.name ?? item.creator_name ?? "";
+  const creatorName = item.creator?.name ?? "";
 
   return {
     id: item.id,
@@ -226,7 +177,6 @@ export function normalizeNotice(item: NoticeApiItem): NoticeRow {
     creatorName: creatorName.trim() || "-",
     viewCount: Number(item.view_count ?? 0),
     createdAt: createdDate && !Number.isNaN(createdDate.getTime()) ? formatLocalDate(createdDate) : "-",
-    updatedAt: updatedDate && !Number.isNaN(updatedDate.getTime()) ? formatLocalDate(updatedDate) : "-",
   };
 }
 
@@ -248,34 +198,19 @@ export function parseNoticesTableState(searchParams: URLSearchParams) {
   const statuses = (searchParams.get("status") ?? "")
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter((value) => NOTICE_STATUS_OPTIONS.some((option) => option.value === value));
   const channels = (searchParams.get("channel") ?? "")
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter((value) => NOTICE_CHANNEL_OPTIONS.some((option) => option.value === value));
   const startDate = searchParams.get("start_date") ?? "";
   const endDate = searchParams.get("end_date") ?? "";
-  const updatedStartDate = searchParams.get("updated_start_date") ?? "";
-  const updatedEndDate = searchParams.get("updated_end_date") ?? "";
   const createdDateState = buildFilterDateState(startDate, endDate);
-  const updatedDateState = buildFilterDateState(updatedStartDate, updatedEndDate);
-
-  const parsedPerPage = Number(searchParams.get("per_page"));
-  const allowedPerPageValues = new Set(PER_PAGE_OPTIONS.map((option) => Number(option.value)));
-  const perPage = Number.isFinite(parsedPerPage) && allowedPerPageValues.has(parsedPerPage) ? parsedPerPage : 15;
 
   const parsedPage = Number(searchParams.get("page"));
-  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const page = Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  const allowedSortFields = new Set<SortField>([
-    "id",
-    "channel",
-    "title",
-    "status",
-    "view_count",
-    "created_at",
-    "updated_at",
-  ]);
+  const allowedSortFields = new Set<SortField>(["id", "channel", "title", "status", "view_count", "created_at"]);
   const sortFieldParam = searchParams.get("sort");
   const sortDirectionParam = searchParams.get("direction");
   const sortField =
@@ -292,18 +227,13 @@ export function parseNoticesTableState(searchParams: URLSearchParams) {
       dateRange: createdDateState.label,
       startDate,
       endDate,
-      updatedDateRange: updatedDateState.label,
-      updatedStartDate,
-      updatedEndDate,
     },
     draftDateRange: createdDateState.range,
-    draftUpdatedDateRange: updatedDateState.range,
     sortState: {
       field: sortField,
       direction: sortDirection,
       enabled: Boolean(sortFieldParam || sortDirectionParam),
     },
-    perPage,
     page,
   };
 }
@@ -312,19 +242,17 @@ export function buildNoticesQuery({
   searchKeyword,
   appliedFilters,
   sortState,
-  perPage,
   page,
 }: {
   searchKeyword: string;
   appliedFilters: Filters;
   sortState: SortState;
-  perPage: number;
   page: number;
 }): NoticesQuery {
   const query: NoticesQuery = {
     sort: sortState.enabled ? sortState.field : DEFAULT_SORT.field,
     direction: sortState.enabled ? sortState.direction : DEFAULT_SORT.direction,
-    per_page: perPage,
+    per_page: NOTICES_PER_PAGE,
     page,
   };
 
@@ -334,9 +262,6 @@ export function buildNoticesQuery({
   if (appliedFilters.channels.length > 0) query.channel = appliedFilters.channels.join(",");
   if (appliedFilters.startDate) query.start_date = appliedFilters.startDate;
   if (appliedFilters.endDate) query.end_date = appliedFilters.endDate;
-  if (appliedFilters.updatedStartDate) query.updated_start_date = appliedFilters.updatedStartDate;
-  if (appliedFilters.updatedEndDate) query.updated_end_date = appliedFilters.updatedEndDate;
-
   return query;
 }
 
@@ -348,11 +273,8 @@ export function buildNoticesQueryString(query: NoticesQuery) {
   if (query.channel) params.set("channel", query.channel);
   if (query.start_date) params.set("start_date", query.start_date);
   if (query.end_date) params.set("end_date", query.end_date);
-  if (query.updated_start_date) params.set("updated_start_date", query.updated_start_date);
-  if (query.updated_end_date) params.set("updated_end_date", query.updated_end_date);
   if (query.sort !== DEFAULT_SORT.field) params.set("sort", query.sort);
   if (query.direction !== DEFAULT_SORT.direction) params.set("direction", query.direction);
-  if (query.per_page !== 15) params.set("per_page", String(query.per_page));
   if (query.page !== 1) params.set("page", String(query.page));
 
   return params.toString();

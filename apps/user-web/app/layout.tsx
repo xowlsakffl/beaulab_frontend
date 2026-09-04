@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "User Web Chat Test",
+  title: "뷰랩",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

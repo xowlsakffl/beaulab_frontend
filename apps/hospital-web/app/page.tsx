@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
+import HospitalAccountPageClient from "./HospitalAccountPageClient";
 
 export default function HomePage() {
-  notFound();
+  return <HospitalAccountPageClient />;
 }

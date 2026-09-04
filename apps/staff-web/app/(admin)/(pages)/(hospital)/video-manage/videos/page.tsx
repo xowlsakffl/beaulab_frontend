@@ -1,10 +1,8 @@
-import type { Metadata } from "next";
+import { buildAdminPageMetadata } from "@/lib/common/routing/admin-pages";
 
 import VideosTableClient from "./VideosTableClient";
 
-export const metadata: Metadata = {
-  title: "동영상 관리 | 뷰랩 관리자",
-};
+export const metadata = buildAdminPageMetadata("/video-manage/videos");
 
 export default function VideosPage() {
   return (

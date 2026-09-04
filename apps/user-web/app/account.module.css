@@ -1,0 +1,75 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f9fafb;
+  color: #1d2939;
+  font-size: 14px;
+}
+.content {
+  width: 100%;
+  max-width: 400px;
+}
+.content h1 {
+  font-size: 28px;
+  color: #db477e;
+  margin-bottom: 32px;
+}
+.content h2 {
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+.content form {
+  display: flex;
+  flex-direction: column;
+}
+.content label {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.content input {
+  height: 44px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 0 12px;
+  margin-bottom: 20px;
+  background: white;
+}
+.content input:focus {
+  outline: 2px solid #f8a5c2;
+  outline-offset: 2px;
+}
+.content button {
+  min-height: 44px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #db477e;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+.content button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.content dl {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.content dt {
+  color: #667085;
+}
+.content dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.error {
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 12px;
+}

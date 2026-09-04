@@ -1,6 +1,6 @@
 import PasswordResetPageClient from "./PasswordResetPageClient";
 import Link from "next/link";
-import { verifyPasswordResetToken } from "@/lib/common/auth/password-reset";
+import { verifyPasswordResetToken } from "@/lib/common/auth/password-reset.server";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";

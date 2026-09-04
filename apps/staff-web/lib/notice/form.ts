@@ -1,4 +1,8 @@
 import type { NoticeDetailResponse } from "./detail";
+import { NOTICE_CHANNEL_OPTIONS, NOTICE_STATUS_OPTIONS } from "./options";
+
+export const NOTICE_MAX_ATTACHMENTS = 5;
+export const NOTICE_MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
 
 export type NoticeFormValues = {
   channel: string;
@@ -6,10 +10,6 @@ export type NoticeFormValues = {
   content: string;
   status: string;
   is_pinned: boolean;
-  is_publish_period_unlimited: boolean;
-  publish_start_at: string;
-  publish_end_at: string;
-  is_important: boolean;
 };
 
 export type NoticeFieldName = keyof NoticeFormValues | "attachments";
@@ -19,33 +19,15 @@ export const INITIAL_NOTICE_FORM: NoticeFormValues = {
   channel: "ALL",
   title: "",
   content: "",
-  status: "ACTIVE",
+  status: "INACTIVE",
   is_pinned: false,
-  is_publish_period_unlimited: true,
-  publish_start_at: "",
-  publish_end_at: "",
-  is_important: false,
 };
-
-export const NOTICE_CHANNEL_OPTIONS = [
-  { value: "ALL", label: "전체 채널" },
-  { value: "APP_WEB", label: "앱/웹" },
-  { value: "HOSPITAL", label: "병의원" },
-  { value: "BEAUTY", label: "뷰티" },
-] as const;
-
-export const NOTICE_STATUS_OPTIONS = [
-  { value: "ACTIVE", label: "정상" },
-  { value: "INACTIVE", label: "비활성" },
-] as const;
 
 export const FIELD_FOCUS_ORDER: readonly NoticeFieldName[] = [
   "title",
   "channel",
   "status",
   "content",
-  "publish_start_at",
-  "publish_end_at",
   "attachments",
 ] as const;
 
@@ -55,27 +37,8 @@ const FIELD_NAMES: readonly NoticeFieldName[] = [
   "content",
   "status",
   "is_pinned",
-  "is_publish_period_unlimited",
-  "publish_start_at",
-  "publish_end_at",
-  "is_important",
   "attachments",
 ] as const;
-
-export function toDateTimeLocalValue(isoString?: string | null) {
-  if (!isoString) return "";
-
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
 
 export function mapNoticeDetailToForm(detail: NoticeDetailResponse): NoticeFormValues {
   return {
@@ -84,10 +47,6 @@ export function mapNoticeDetailToForm(detail: NoticeDetailResponse): NoticeFormV
     content: detail.content || "",
     status: detail.status || INITIAL_NOTICE_FORM.status,
     is_pinned: Boolean(detail.is_pinned),
-    is_publish_period_unlimited: Boolean(detail.is_publish_period_unlimited),
-    publish_start_at: toDateTimeLocalValue(detail.publish_start_at),
-    publish_end_at: toDateTimeLocalValue(detail.publish_end_at),
-    is_important: Boolean(detail.is_important),
   };
 }
 
@@ -96,7 +55,7 @@ export function isNoticeFieldName(value: string): value is NoticeFieldName {
 }
 
 export function normalizeNoticeErrorField(key: string): NoticeFieldName | null {
-  if (key.startsWith("attachments")) return "attachments";
+  if (key.startsWith("attachments") || key.startsWith("existing_attachment_ids")) return "attachments";
   if (isNoticeFieldName(key)) return key;
   return null;
 }
@@ -147,37 +106,35 @@ export function isNoticeContentMeaningful(content: string) {
   return textOnly.length > 0;
 }
 
-export function validateNoticeForm(form: NoticeFormValues): NoticeFormErrors {
+export function validateNoticeForm(
+  form: NoticeFormValues,
+  attachments: File[],
+  existingAttachmentCount = 0,
+): NoticeFormErrors {
   const nextErrors: NoticeFormErrors = {};
 
   if (!form.title.trim()) {
     nextErrors.title = "제목을 입력해 주세요.";
+  } else if (Array.from(form.title.trim()).length > 255) {
+    nextErrors.title = "제목은 255자 이하로 입력해 주세요.";
   }
 
-  if (!form.channel.trim()) {
+  if (!NOTICE_CHANNEL_OPTIONS.some((option) => option.value === form.channel)) {
     nextErrors.channel = "공지 채널을 선택해 주세요.";
   }
 
-  if (!form.status.trim()) {
-    nextErrors.status = "운영 상태를 선택해 주세요.";
+  if (!NOTICE_STATUS_OPTIONS.some((option) => option.value === form.status)) {
+    nextErrors.status = "공개여부를 선택해 주세요.";
   }
 
   if (!isNoticeContentMeaningful(form.content)) {
     nextErrors.content = "내용을 입력해 주세요.";
   }
 
-  if (!form.is_publish_period_unlimited) {
-    if (!form.publish_start_at) {
-      nextErrors.publish_start_at = "게시 시작 일시를 입력해 주세요.";
-    }
-
-    if (!form.publish_end_at) {
-      nextErrors.publish_end_at = "게시 종료 일시를 입력해 주세요.";
-    }
-
-    if (form.publish_start_at && form.publish_end_at && form.publish_end_at < form.publish_start_at) {
-      nextErrors.publish_end_at = "게시 종료 일시는 시작 일시보다 빠를 수 없습니다.";
-    }
+  if (attachments.length + existingAttachmentCount > NOTICE_MAX_ATTACHMENTS) {
+    nextErrors.attachments = "첨부파일은 최대 5개까지 업로드할 수 있습니다.";
+  } else if (attachments.some((file) => file.size > NOTICE_MAX_ATTACHMENT_BYTES)) {
+    nextErrors.attachments = "첨부파일은 파일당 20MB 이하로 등록해 주세요.";
   }
 
   return nextErrors;
@@ -189,7 +146,11 @@ export type BuildCreateNoticeFormDataParams = {
   includeStatus: boolean;
 };
 
-export function buildCreateNoticeFormData({ form, attachments, includeStatus }: BuildCreateNoticeFormDataParams): FormData {
+export function buildCreateNoticeFormData({
+  form,
+  attachments,
+  includeStatus,
+}: BuildCreateNoticeFormDataParams): FormData {
   const formData = new FormData();
 
   appendNoticeFormData(formData, form, attachments, undefined, includeStatus);
@@ -238,19 +199,6 @@ function appendNoticeFormData(
     formData.append("status", form.status);
   }
   formData.append("is_pinned", form.is_pinned ? "1" : "0");
-  formData.append("is_publish_period_unlimited", form.is_publish_period_unlimited ? "1" : "0");
-  formData.append("is_important", form.is_important ? "1" : "0");
-
-  if (!form.is_publish_period_unlimited) {
-    if (form.publish_start_at) {
-      formData.append("publish_start_at", form.publish_start_at);
-    }
-
-    if (form.publish_end_at) {
-      formData.append("publish_end_at", form.publish_end_at);
-    }
-  }
-
   attachments?.forEach((file) => {
     formData.append("attachments[]", file);
   });

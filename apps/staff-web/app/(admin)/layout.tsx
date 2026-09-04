@@ -13,12 +13,14 @@ import {
 } from "@/lib/common/navigation-badges";
 import {
   buildStaffSidebarMenus,
+  hasStaffSidebarItems,
   mergeStaffSidebarMenu,
   resolveStaffSidebarDomain,
   STAFF_SIDEBAR_DOMAIN_OPTIONS,
   type StaffSidebarDomain,
 } from "@/components/common/sidebar-menu";
-import { AppHeader, AppSidebar } from "@beaulab/ui-admin";
+import { AppHeader, AppSidebar, useGlobalAlert } from "@beaulab/ui-admin";
+import { WebSessionMonitor } from "@/components/common/WebSessionMonitor";
 import { resolveAdminPageByPath } from "@/lib/common/routing/admin-pages";
 import { PageHeaderExtraProvider } from "@/lib/common/routing/page-header-extra";
 
@@ -35,18 +37,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 }
 
 function AdminLayoutInner({ children }: AdminLayoutProps) {
+  const { showAlert } = useGlobalAlert();
+  const signingOut = React.useRef(false);
   const router = useRouter();
   const pathname = usePathname();
   const session = React.useMemo(() => getSession(), []);
   const permissions = React.useMemo(() => session?.auth?.permissions ?? [], [session]);
   const sidebarMenus = React.useMemo(() => buildStaffSidebarMenus(permissions), [permissions]);
   const availableDomains = React.useMemo(
-    () => STAFF_SIDEBAR_DOMAIN_OPTIONS.filter(({ key }) => sidebarMenus.domainMenus[key].main.length > 0),
+    () => STAFF_SIDEBAR_DOMAIN_OPTIONS.filter(({ key }) => hasStaffSidebarItems(sidebarMenus.domainMenus[key])),
     [sidebarMenus],
   );
   const [activeDomain, setActiveDomain] = React.useState<StaffSidebarDomain>(() => {
     const resolvedDomain = resolveStaffSidebarDomain(pathname);
-    if (resolvedDomain && sidebarMenus.domainMenus[resolvedDomain].main.length > 0) {
+    if (resolvedDomain && hasStaffSidebarItems(sidebarMenus.domainMenus[resolvedDomain])) {
       return resolvedDomain;
     }
 
@@ -77,10 +81,18 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     };
   }, []);
 
-  const handleSignOut = () => {
-    logout();
-    router.replace("/login");
-    router.refresh();
+  const handleSignOut = async () => {
+    if (signingOut.current) return;
+    signingOut.current = true;
+    try {
+      await logout();
+      router.replace("/login");
+      router.refresh();
+    } catch {
+      showAlert({ variant: "error", title: "로그아웃 실패", message: "로그아웃하지 못했습니다. 다시 시도해 주세요." });
+    } finally {
+      signingOut.current = false;
+    }
   };
 
   React.useEffect(() => {
@@ -89,7 +101,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
     }
 
     const resolvedDomain = resolveStaffSidebarDomain(pathname);
-    if (resolvedDomain && sidebarMenus.domainMenus[resolvedDomain].main.length > 0) {
+    if (resolvedDomain && hasStaffSidebarItems(sidebarMenus.domainMenus[resolvedDomain])) {
       setActiveDomain(resolvedDomain);
     }
   }, [availableDomains, pathname, sidebarMenus]);
@@ -106,6 +118,7 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
 
   return (
     <PageHeaderExtraProvider onChange={setPageHeaderExtra}>
+      <WebSessionMonitor />
       <div className="h-dvh w-full overflow-hidden bg-gray-50">
         <AdminSidebarNavigation
           permissions={permissions}
@@ -247,7 +260,7 @@ const AdminSidebarNavigation = React.memo(function AdminSidebarNavigation({
       topContent={sidebarTopContent}
       sectionLabels={{
         main: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
-        others: activeDomain === "hospital" ? "병의원메뉴" : "뷰티메뉴",
+        others: "",
       }}
       brand={{
         href: brandHref,

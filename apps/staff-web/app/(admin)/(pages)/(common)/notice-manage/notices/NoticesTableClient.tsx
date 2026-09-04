@@ -6,6 +6,7 @@ import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import type { DataTableMeta } from "@beaulab/ui-admin";
+import { NOTICE_CHANNEL_OPTIONS, NOTICE_STATUS_OPTIONS } from "@/lib/notice/options";
 import type { DateRange } from "react-day-picker";
 
 import { NoticesDataTable } from "@/components/notice/list/NoticesDataTable";
@@ -22,11 +23,8 @@ import {
   mapDateRangeToFilter,
   nextSortState,
   normalizeNotice,
-  NOTICE_CHANNEL_OPTIONS,
-  NOTICE_STATUS_OPTIONS,
   normalizeRangeDate,
   parseNoticesTableState,
-  type DateFilterKey,
   type DatePresetKey,
   type Filters,
   type NoticeApiItem,
@@ -49,18 +47,11 @@ export default function NoticesTableClient() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = React.useState(false);
   const [isChannelDropdownOpen, setIsChannelDropdownOpen] = React.useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [isUpdatedDatePickerOpen, setIsUpdatedDatePickerOpen] = React.useState(false);
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
-  const [draftUpdatedDateRange, setDraftUpdatedDateRange] = React.useState<DateRange | undefined>(
-    initialTableState.draftUpdatedDateRange,
-  );
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const channelDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
-  const updatedDatePickerRef = React.useRef<HTMLDivElement | null>(null);
-
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
-  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [page, setPage] = React.useState(initialTableState.page);
 
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
@@ -71,10 +62,9 @@ export default function NoticesTableClient() {
         searchKeyword,
         appliedFilters,
         sortState,
-        perPage,
         page,
       }),
-    [appliedFilters, page, perPage, searchKeyword, sortState],
+    [appliedFilters, page, searchKeyword, sortState],
   );
 
   const queryString = React.useMemo(() => buildNoticesQueryString(query), [query]);
@@ -146,10 +136,6 @@ export default function NoticesTableClient() {
       if (!datePickerRef.current?.contains(event.target as Node)) {
         setIsDatePickerOpen(false);
       }
-
-      if (!updatedDatePickerRef.current?.contains(event.target as Node)) {
-        setIsUpdatedDatePickerOpen(false);
-      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -165,9 +151,6 @@ export default function NoticesTableClient() {
       dateRange: draftFilters.dateRange,
       startDate: draftFilters.startDate,
       endDate: draftFilters.endDate,
-      updatedDateRange: draftFilters.updatedDateRange,
-      updatedStartDate: draftFilters.updatedStartDate,
-      updatedEndDate: draftFilters.updatedEndDate,
     });
   }, [draftFilters, searchInput]);
 
@@ -178,16 +161,13 @@ export default function NoticesTableClient() {
     setDraftFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
     setDraftDateRange(undefined);
-    setDraftUpdatedDateRange(undefined);
     setIsStatusDropdownOpen(false);
     setIsChannelDropdownOpen(false);
     setIsDatePickerOpen(false);
-    setIsUpdatedDatePickerOpen(false);
   }, []);
 
   const applyDateRange = React.useCallback(
     (
-      key: DateFilterKey,
       nextRange?: DateRange,
       options?: {
         closePicker?: boolean;
@@ -202,33 +182,21 @@ export default function NoticesTableClient() {
           : undefined;
       const mapped = mapDateRangeToFilter(normalizedRange);
 
-      if (key === "created") {
-        setDraftDateRange(normalizedRange);
-        setDraftFilters((prev) => ({
-          ...prev,
-          dateRange: mapped.label,
-          startDate: mapped.startDate,
-          endDate: mapped.endDate,
-        }));
-        if (options?.closePicker) setIsDatePickerOpen(false);
-        return;
-      }
-
-      setDraftUpdatedDateRange(normalizedRange);
+      setDraftDateRange(normalizedRange);
       setDraftFilters((prev) => ({
         ...prev,
-        updatedDateRange: mapped.label,
-        updatedStartDate: mapped.startDate,
-        updatedEndDate: mapped.endDate,
+        dateRange: mapped.label,
+        startDate: mapped.startDate,
+        endDate: mapped.endDate,
       }));
-      if (options?.closePicker) setIsUpdatedDatePickerOpen(false);
+      if (options?.closePicker) setIsDatePickerOpen(false);
     },
     [],
   );
 
   const applyDatePreset = React.useCallback(
-    (key: DateFilterKey, preset: DatePresetKey) => {
-      applyDateRange(key, buildPresetDateRange(preset), { closePicker: true });
+    (preset: DatePresetKey) => {
+      applyDateRange(buildPresetDateRange(preset), { closePicker: true });
     },
     [applyDateRange],
   );
@@ -276,11 +244,6 @@ export default function NoticesTableClient() {
     setSortState((prev) => nextSortState(prev, field));
   }, []);
 
-  const handlePerPageChange = React.useCallback((value: number) => {
-    setPerPage(value);
-    setPage(1);
-  }, []);
-
   return (
     <div className="min-w-0 space-y-4">
       <NoticesFilterPanel
@@ -289,43 +252,30 @@ export default function NoticesTableClient() {
         draftStatuses={draftFilters.statuses}
         draftChannels={draftFilters.channels}
         draftDateLabel={draftFilters.dateRange}
-        draftUpdatedDateLabel={draftFilters.updatedDateRange}
         isStatusDropdownOpen={isStatusDropdownOpen}
         isChannelDropdownOpen={isChannelDropdownOpen}
         isDatePickerOpen={isDatePickerOpen}
-        isUpdatedDatePickerOpen={isUpdatedDatePickerOpen}
         statusDropdownRef={statusDropdownRef}
         channelDropdownRef={channelDropdownRef}
         datePickerRef={datePickerRef}
-        updatedDatePickerRef={updatedDatePickerRef}
         statusOptions={NOTICE_STATUS_OPTIONS}
         channelOptions={NOTICE_CHANNEL_OPTIONS}
         datePresetOptions={DATE_PRESET_OPTIONS}
         draftDateRange={draftDateRange}
-        draftUpdatedDateRange={draftUpdatedDateRange}
         onToggleStatusDropdown={() => {
           setIsChannelDropdownOpen(false);
           setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen(false);
           setIsStatusDropdownOpen((prev) => !prev);
         }}
         onToggleChannelDropdown={() => {
           setIsStatusDropdownOpen(false);
           setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen(false);
           setIsChannelDropdownOpen((prev) => !prev);
         }}
         onToggleDatePicker={() => {
           setIsStatusDropdownOpen(false);
           setIsChannelDropdownOpen(false);
-          setIsUpdatedDatePickerOpen(false);
           setIsDatePickerOpen((prev) => !prev);
-        }}
-        onToggleUpdatedDatePicker={() => {
-          setIsStatusDropdownOpen(false);
-          setIsChannelDropdownOpen(false);
-          setIsDatePickerOpen(false);
-          setIsUpdatedDatePickerOpen((prev) => !prev);
         }}
         onToggleStatus={handleToggleStatus}
         onToggleChannel={handleToggleChannel}
@@ -335,6 +285,9 @@ export default function NoticesTableClient() {
         onApplyDatePreset={applyDatePreset}
         onApplyFilters={applyFilters}
         onResetFilters={resetFilters}
+        onOpenCreate={() =>
+          router.push(`/notice-manage/notices/new?returnTo=${encodeURIComponent(buildReturnToPath())}`)
+        }
       />
 
       <NoticesDataTable
@@ -345,11 +298,8 @@ export default function NoticesTableClient() {
         error={error}
         highlightedRowId={highlightedRowId}
         sortState={sortState}
-        perPage={perPage}
         onToggleSort={handleToggleSort}
-
         onGoPage={setPage}
-        onPerPageChange={handlePerPageChange}
         onRowClick={(row) => {
           const returnTo = buildReturnToPath();
           router.push(`/notice-manage/notices/${row.id}?returnTo=${encodeURIComponent(returnTo)}`);

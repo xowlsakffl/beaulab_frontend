@@ -31,7 +31,7 @@ export type StaffProfile = {
 /** Hospital 프로필(백엔드 DTO 기준) */
 export type HospitalProfile = {
   id: number | string;
-  name: string;
+  phone?: string | null;
   nickname?: string;
   status?: string;
   hospital_id?: number | string | null;

@@ -1,7 +1,7 @@
-import { resolveMediaAssetUrl } from "@/lib/common/media";
-
 export type NoticeAttachment = {
   id: number;
+  file_name?: string | null;
+  download_path?: string | null;
   collection?: string | null;
   disk?: string | null;
   path?: string | null;
@@ -28,10 +28,6 @@ export type NoticeDetailResponse = {
   content: string;
   status: string;
   is_pinned: boolean;
-  is_publish_period_unlimited: boolean;
-  publish_start_at?: string | null;
-  publish_end_at?: string | null;
-  is_important: boolean;
   view_count: number;
   creator?: NoticeStaffUser | null;
   updater?: NoticeStaffUser | null;
@@ -39,24 +35,6 @@ export type NoticeDetailResponse = {
   created_at?: string | null;
   updated_at?: string | null;
 };
-
-export function labelNoticeChannel(channel?: string | null) {
-  if (channel === "ALL") return "전체 채널";
-  if (channel === "APP_WEB") return "앱/웹";
-  if (channel === "HOSPITAL") return "병의원";
-  if (channel === "BEAUTY") return "뷰티";
-  return channel?.trim() || "-";
-}
-
-export function labelNoticeStatus(status?: string | null) {
-  if (status === "ACTIVE") return "정상";
-  if (status === "INACTIVE") return "비활성";
-  return status?.trim() || "-";
-}
-
-export function formatNoticeStaffName(staff?: NoticeStaffUser | null) {
-  return staff?.name?.trim() || staff?.email?.trim() || "-";
-}
 
 export function formatLocalDateTime(isoString?: string | null) {
   if (!isoString) return "-";
@@ -73,11 +51,10 @@ export function formatLocalDateTime(isoString?: string | null) {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-export function resolveNoticeAttachmentUrl(attachment?: NoticeAttachment | null) {
-  return resolveMediaAssetUrl(attachment);
-}
-
 export function getNoticeAttachmentFilename(attachment?: NoticeAttachment | null) {
+  const originalName = attachment?.file_name?.trim();
+  if (originalName) return originalName;
+
   const path = attachment?.path?.trim();
   if (!path) return "파일";
 

@@ -1,10 +1,8 @@
-import type { Metadata } from "next";
+import { buildAdminPageMetadata } from "@/lib/common/routing/admin-pages";
 
 import NoticesTableClient from "./NoticesTableClient";
 
-export const metadata: Metadata = {
-  title: "공지사항 | 뷰랩 관리자",
-};
+export const metadata = buildAdminPageMetadata("/notice-manage/notices");
 
 export default function NoticesPage() {
   return (

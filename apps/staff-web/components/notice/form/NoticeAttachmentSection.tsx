@@ -1,131 +1,130 @@
 "use client";
 
 import React from "react";
-import { Card, CardDescription, CardHeader, CardTitle, FormFileInput, Label, X } from "@beaulab/ui-admin";
-
-import { DetailEmptyState } from "@/components/common/DetailMediaCard";
-import {
-  formatBytes,
-  getNoticeAttachmentFilename,
-  resolveNoticeAttachmentUrl,
-  type NoticeAttachment,
-} from "@/lib/notice/detail";
-import type { NoticeFormErrors } from "@/lib/notice/form";
+import { Button, InlineFileSelect, useGlobalAlert } from "@beaulab/ui-admin";
+import { downloadFile } from "@/lib/common/api";
+import { formatBytes, getNoticeAttachmentFilename, type NoticeAttachment } from "@/lib/notice/detail";
+import { NOTICE_MAX_ATTACHMENTS, NOTICE_MAX_ATTACHMENT_BYTES, type NoticeFormErrors } from "@/lib/notice/form";
+import { NoticeFormField } from "./NoticeFormField";
 
 type NoticeAttachmentSectionProps = {
-  attachments: File[];
+  attachments?: File[];
   existingAttachments?: NoticeAttachment[];
-  errors: NoticeFormErrors;
-  onAttachmentsChange: (files: File[]) => void;
+  errors?: NoticeFormErrors;
+  readOnly?: boolean;
+  onAttachmentsChange?: (files: File[]) => void;
   onExistingAttachmentsChange?: (attachments: NoticeAttachment[]) => void;
 };
 
 export function NoticeAttachmentSection({
-  attachments,
+  attachments = [],
   existingAttachments = [],
   errors,
+  readOnly = false,
   onAttachmentsChange,
   onExistingAttachmentsChange,
 }: NoticeAttachmentSectionProps) {
+  const { showAlert } = useGlobalAlert();
+  const [downloadingId, setDownloadingId] = React.useState<number | null>(null);
+  const count = existingAttachments.length + attachments.length;
+
+  const downloadAttachment = async (attachment: NoticeAttachment) => {
+    const url = attachment.download_path;
+    if (!url || downloadingId !== null) return;
+    setDownloadingId(attachment.id);
+    try {
+      await downloadFile(url, getNoticeAttachmentFilename(attachment));
+    } catch {
+      showAlert({ variant: "error", title: "첨부파일 다운로드 실패", message: "파일을 다운로드하지 못했습니다." });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  if (readOnly) {
+    if (existingAttachments.length === 0) return <p className="text-sm leading-6 text-gray-800">-</p>;
+
+    return (
+      <ul className="space-y-3">
+        {existingAttachments.map((attachment) => (
+          <li key={attachment.id} className="flex min-w-0 items-center gap-2">
+            <p
+              className="min-w-0 truncate text-sm leading-6 text-gray-800"
+              title={getNoticeAttachmentFilename(attachment)}
+            >
+              {getNoticeAttachmentFilename(attachment)}
+            </p>
+            {attachment.download_path ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 shrink-0 px-2 text-xs"
+                disabled={downloadingId !== null}
+                onClick={() => void downloadAttachment(attachment)}
+              >
+                다운로드
+              </Button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  const fileList = (
+    <div className="space-y-2">
+      {count < NOTICE_MAX_ATTACHMENTS ? (
+        <InlineFileSelect
+          id="attachments"
+          accept=""
+          placeholder="파일을 선택해 주세요."
+          helperText="파일당 20MB 이하 · 최대 5개"
+          error={Boolean(errors?.attachments)}
+          onChange={(file) => {
+            if (file) onAttachmentsChange?.([...attachments, file]);
+          }}
+        />
+      ) : null}
+      {existingAttachments.map((attachment) => (
+        <InlineFileSelect
+          key={attachment.id}
+          accept=""
+          fileName={getNoticeAttachmentFilename(attachment)}
+          placeholder="파일을 선택해 주세요."
+          helperText={formatBytes(attachment.size) ?? undefined}
+          disabled={downloadingId !== null}
+          previewLabel="다운로드"
+          onPreview={attachment.download_path ? () => void downloadAttachment(attachment) : undefined}
+          onClear={() => onExistingAttachmentsChange?.(existingAttachments.filter((item) => item.id !== attachment.id))}
+          onChange={(file) => {
+            if (!file) return;
+            onExistingAttachmentsChange?.(existingAttachments.filter((item) => item.id !== attachment.id));
+            onAttachmentsChange?.([...attachments, file]);
+          }}
+        />
+      ))}
+      {attachments.map((file, index) => (
+        <InlineFileSelect
+          key={index}
+          accept=""
+          fileName={file.name}
+          placeholder="파일을 선택해 주세요."
+          helperText={formatBytes(file.size) ?? undefined}
+          error={file.size > NOTICE_MAX_ATTACHMENT_BYTES}
+          onChange={(nextFile) => {
+            if (nextFile)
+              onAttachmentsChange?.(attachments.map((item, fileIndex) => (fileIndex === index ? nextFile : item)));
+          }}
+          onClear={() => onAttachmentsChange?.(attachments.filter((_, fileIndex) => fileIndex !== index))}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <Card as="section">
-      <CardHeader className="pb-6">
-        <CardTitle>첨부파일</CardTitle>
-        <CardDescription>
-          기존 첨부파일을 개별 삭제하거나 새 파일을 추가할 수 있습니다. 최대 5개까지 가능합니다.
-        </CardDescription>
-      </CardHeader>
-
-      <div className="space-y-4" data-field-target="attachments" tabIndex={-1}>
-        <div className="space-y-2">
-          <Label htmlFor="attachments">첨부파일</Label>
-          <FormFileInput
-            id="attachments"
-            name="attachments"
-            multiple
-            onChange={(event) => {
-              const nextFiles = event.target.files ? Array.from(event.target.files) : [];
-              onAttachmentsChange(nextFiles);
-            }}
-          />
-        </div>
-
-        {existingAttachments.length > 0 || attachments.length > 0 ? (
-          <div className="space-y-3">
-            {existingAttachments.map((attachment) => (
-              <div
-                key={`existing-${attachment.id}`}
-                className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
-              >
-                <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-gray-50 text-sm text-gray-500">
-                  파일
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate text-sm font-semibold text-gray-900"
-                    title={getNoticeAttachmentFilename(attachment)}
-                  >
-                    {getNoticeAttachmentFilename(attachment)}
-                  </p>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <p className="text-xs text-gray-500">{(formatBytes(attachment.size) ?? "-") + " · 현재 파일"}</p>
-                    {resolveNoticeAttachmentUrl(attachment) ? (
-                      <a
-                        href={resolveNoticeAttachmentUrl(attachment) ?? undefined}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-medium text-brand-600 underline underline-offset-2"
-                      >
-                        파일 보기
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-                {onExistingAttachmentsChange ? (
-                  <button
-                    type="button"
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-600"
-                    onClick={() =>
-                      onExistingAttachmentsChange(existingAttachments.filter((item) => item.id !== attachment.id))
-                    }
-                    aria-label="기존 첨부파일 제거"
-                    title="첨부파일 제거"
-                  >
-                    <X className="size-4" />
-                  </button>
-                ) : null}
-              </div>
-            ))}
-
-            {attachments.map((file, index) => (
-              <div
-                key={`${file.name}-${file.size}-${index}`}
-                className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-gray-900" title={file.name}>
-                    {file.name}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">{formatBytes(file.size) ?? "-"}</p>
-                </div>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-600"
-                  onClick={() => onAttachmentsChange(attachments.filter((_, fileIndex) => fileIndex !== index))}
-                  aria-label="선택한 첨부파일 제거"
-                  title="첨부파일 제거"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <DetailEmptyState>등록된 첨부파일이 없습니다.</DetailEmptyState>
-        )}
-
-        {errors.attachments ? <p className="text-xs text-error-500">{errors.attachments}</p> : null}
-      </div>
-    </Card>
+    <NoticeFormField label="첨부파일" target="attachments" error={errors?.attachments}>
+      {fileList}
+    </NoticeFormField>
   );
 }

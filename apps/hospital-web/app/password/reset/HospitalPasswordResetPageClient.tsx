@@ -27,7 +27,10 @@ export default function HospitalPasswordResetPageClient({ token }: { token: stri
             hospitalName: payload.data.hospital_name,
             maskedNickname: payload.data.masked_nickname,
           });
-        } else if (response.status === 419 || response.status === 422) {
+        } else if (
+          (response.status === 419 && !isApiSuccess(payload) && payload.error.code !== "CSRF_MISMATCH") ||
+          response.status === 422
+        ) {
           router.replace("/error/419");
         } else if (response.status === 429) {
           router.replace("/error/429");
@@ -46,7 +49,7 @@ export default function HospitalPasswordResetPageClient({ token }: { token: stri
   const handleSubmit = async ({ password, passwordConfirmation }: PasswordResetFormValues) => {
     const { response, payload } = await resetHospitalPassword(token, password, passwordConfirmation);
     if (!isApiSuccess(payload)) {
-      if (response.status === 419) {
+      if (response.status === 419 && payload.error.code !== "CSRF_MISMATCH") {
         setState({ status: "loading" });
         router.replace("/error/419");
       }

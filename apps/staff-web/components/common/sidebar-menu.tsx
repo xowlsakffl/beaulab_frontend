@@ -10,6 +10,7 @@ import {
   Megaphone,
   MessageSquareText,
   Settings,
+  SlidersHorizontal,
   ShieldAlert,
   Store,
   Tags,
@@ -62,11 +63,6 @@ function routeItem(item: { name: string; path: StaticAdminRoutePath; icon: React
 const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
   main: [
     {
-      icon: <Users className={iconClass} />,
-      name: "회원",
-      subItems: [routeSubItem({ name: "일반 회원", path: "/user-manage/users" })],
-    },
-    {
       icon: <Hospital className={iconClass} />,
       name: "병의원",
       subItems: [
@@ -104,7 +100,10 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     {
       icon: <Video className={iconClass} />,
       name: "동영상",
-      subItems: [routeSubItem({ name: "동영상 관리", path: "/video-manage/videos" })],
+      subItems: [
+        routeSubItem({ name: "영상 등록관리", path: "/video-manage/videos" }),
+        routeSubItem({ name: "영상 동의여부", path: "/video-manage/consents" }),
+      ],
     },
     {
       icon: <MessageSquareText className={iconClass} />,
@@ -127,24 +126,35 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
         routeSubItem({ name: "채팅", path: "/reported-post-manage/chats" }),
       ],
     },
+  ],
+  others: [
+    {
+      icon: <Users className={iconClass} />,
+      name: "회원",
+      subItems: [routeSubItem({ name: "일반 회원", path: "/user-manage/users" })],
+    },
     {
       icon: <Bell className={iconClass} />,
       name: "공지사항",
-      subItems: [
-        routeSubItem({ name: "공지사항", path: "/notice-manage/notices" }),
-        routeSubItem({ name: "병의원대상 공지사항", path: "/notice-manage/hospital-notices" }),
-        routeSubItem({ name: "자주하는 질문", path: "/notice-manage/faqs" }),
-        routeSubItem({ name: "1:1문의", path: "/notice-manage/inquiries" }),
-      ],
+      subItems: [routeSubItem({ name: "전체공지", path: "/notice-manage/notices" })],
     },
     {
       icon: <Tags className={iconClass} />,
-      name: "컨텐츠",
+      name: "프로모션 상품",
       subItems: [
-        routeSubItem({ name: "배너 / 팝업", path: "/content-manage/banners" }),
-        routeSubItem({ name: "카테고리", path: "/category-hashtag-manage/categories" }),
-        routeSubItem({ name: "해시태그", path: "/content-manage/hashtags" }),
-        routeSubItem({ name: "상단타이틀 관리", path: "/content-manage/top-titles" }),
+        routeSubItem({ name: "병의원", path: "/promotion-manage/hospitals" }),
+        routeSubItem({ name: "일반회원", path: "/promotion-manage/users" }),
+      ],
+    },
+    {
+      icon: <SlidersHorizontal className={iconClass} />,
+      name: "이벤트 노출설정",
+      subItems: [
+        routeSubItem({ name: "기획전", path: "/content-manage/exhibitions" }),
+        routeSubItem({ name: "배너", path: "/content-manage/banners" }),
+        routeSubItem({ name: "팝업", path: "/content-manage/popups" }),
+        routeSubItem({ name: "이벤트", path: "/admin-settings/event-display-positions" }),
+        routeSubItem({ name: "동영상", path: "/content-manage/videos" }),
       ],
     },
     routeItem({
@@ -154,16 +164,24 @@ const hospitalDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
     }),
     {
       icon: <Settings className={iconClass} />,
-      name: "관리자 설정",
+      name: "운영 관리",
       subItems: [
-        routeSubItem({ name: "유해성 단어 설정", path: "/admin-settings/harmful-words" }),
-        routeSubItem({ name: "닉네임 관리", path: "/admin-settings/nicknames" }),
-        routeSubItem({ name: "직원 관리", path: "/admin-settings/staff" }),
-        routeSubItem({ name: "이벤트 노출위치 설정", path: "/admin-settings/event-display-positions" }),
+        routeSubItem({ name: "직원 계정 관리", path: "/admin-settings/staff" }),
+        routeSubItem({ name: "DB 단가비율 설정", path: "/admin-settings/db-pricing" }),
+        routeSubItem({ name: "광고비율 설정", path: "/admin-settings/ad-pricing" }),
+      ],
+    },
+    {
+      icon: <Settings className={iconClass} />,
+      name: "정책 설정",
+      subItems: [
+        routeSubItem({ name: "카테고리", path: "/category-hashtag-manage/categories" }),
+        routeSubItem({ name: "상단타이틀", path: "/content-manage/top-titles" }),
+        routeSubItem({ name: "금지어 설정", path: "/admin-settings/harmful-words" }),
+        routeSubItem({ name: "자동 닉네임 설정", path: "/admin-settings/nicknames" }),
       ],
     },
   ],
-  others: [],
 };
 
 const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
@@ -215,13 +233,9 @@ const beautyDomainMenu: { main: AppNavItem[]; others: AppNavItem[] } = {
       ],
     },
     {
-      icon: <Bell className={iconClass} />,
-      name: "공지사항",
-      subItems: [
-        routeSubItem({ name: "공지사항", path: "/beauty-notice-manage/notices" }),
-        routeSubItem({ name: "자주하는 질문", path: "/beauty-notice-manage/faqs" }),
-        routeSubItem({ name: "1:1문의", path: "/beauty-notice-manage/inquiries" }),
-      ],
+      icon: <Tags className={iconClass} />,
+      name: "프로모션 상품",
+      subItems: [routeSubItem({ name: "뷰티샵", path: "/beauty-promotion-manage/beauties" })],
     },
   ],
   others: [],
@@ -291,6 +305,10 @@ export function mergeStaffSidebarMenu(bundle: StaffSidebarMenuBundle, domain: St
   return bundle.domainMenus[domain];
 }
 
+export function hasStaffSidebarItems(menu: SidebarMenu): boolean {
+  return menu.main.length > 0 || menu.others.length > 0;
+}
+
 export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebarDomain | null {
   if (!pathname) {
     return null;
@@ -303,6 +321,7 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
     pathname.startsWith("/beauty-wallet-manage") ||
     pathname.startsWith("/beauty-post-manage") ||
     pathname.startsWith("/beauty-reported-content-manage") ||
+    pathname.startsWith("/beauty-promotion-manage") ||
     pathname.startsWith("/beauty-notice-manage")
   ) {
     return "beauty";
@@ -318,6 +337,7 @@ export function resolveStaffSidebarDomain(pathname: string | null): StaffSidebar
     pathname.startsWith("/post-manage") ||
     pathname.startsWith("/reported-post-manage") ||
     pathname.startsWith("/notice-manage") ||
+    pathname.startsWith("/promotion-manage") ||
     pathname.startsWith("/content-manage") ||
     pathname.startsWith("/category-hashtag-manage") ||
     pathname.startsWith("/statistics-manage") ||
