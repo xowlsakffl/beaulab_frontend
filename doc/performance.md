@@ -57,6 +57,9 @@
 
 - 권한/상태에 따라 결과가 달라지는 API는 cache key에 조건을 포함한다.
 - 저장 직후 바로 최신성이 필요한 데이터는 mutation 성공 후 무효화 기준을 둔다.
+- staff 옵션 캐시는 `createTimedCache`로 등록한다. mutation 성공, 로그인·로그아웃·401 세션 제거 시 함께 비우며, 활성 검색형 옵션 훅은 재조회한다.
+- 카테고리 selector와 이벤트 카테고리 필터는 `createCachedRequest`로 동일 조건의 진행 중 요청을 합친다. 무효화 시 요청을 취소하고, 이전 세대의 결과 저장을 차단한다.
+- 옵션 캐시는 캐시별 최대 100개이며 만료와 LRU 기준으로 정리한다. 검색형 옵션 기본 TTL은 5분이다.
 
 ## 5. 달력/광고 현황
 
@@ -78,6 +81,8 @@
 - dependency가 명확하고 stale closure 위험이 낮다.
 
 `DataTable`의 body처럼 행 수에 비례해 렌더 비용이 커지는 영역은 props가 같을 때 다시 렌더하지 않도록 공통 컴포넌트 경계에서 memoization한다.
+
+`getRowClassName`, `getRowKey`처럼 렌더 결과를 바꾸는 함수는 실제 의존성이 body에 전달되어야 한다. 이를 빈 의존성 콜백과 ref로 감추면 강조 해제나 행 key 변경이 화면에 반영되지 않는다. 순수 클릭 핸들러와 구분한다.
 
 ## 7. 코드 분할
 
@@ -105,7 +110,7 @@ Windows 브라우저에서 WSL의 `localhost`로 요청할 때는 포트 포워�
 
 - 로컬 Laravel API는 IPv4로 실행하므로 웹 API origin은 `http://127.0.0.1:8000`을 사용한다. 웹 화면의 `localhost:3000`, `localhost:3002` 주소는 유지한다.
 - 인증과 페이지 권한 확인은 본문 표시 전에 수행한다. 메뉴 N 배지는 별도로 갱신하며 로그인 완료나 본문 표시를 막지 않는다.
-- 필터/정렬/페이지 번호처럼 Client가 조회하는 같은 페이지의 query 변경은 `replaceCurrentPageUrl`로 처리한다. 실제 페이지 이동에만 Next router를 사용한다.
+- 필터/정렬/페이지 번호처럼 Client가 조회하는 같은 페이지의 query 변경은 `useSyncCurrentPageQuery`로 처리한다. 실제 페이지 이동에만 Next router를 사용한다.
 - `replaceCurrentPageUrl`은 Next와 연동되는 Native History API를 사용하므로 `useSearchParams`는 갱신하되 불필요한 Server Component 요청은 만들지 않는다.
 - `useListData`는 개발 모드 effect 재실행을 합쳐 최초 중복 조회를 줄인다. 캐시가 있어도 서버 재조회와 mutation 성공 후 캐시 무효화는 유지한다.
 - API GET 요청은 기본 30초 제한을 두고, 시간 초과를 취소와 구분해 오류 상태로 종료한다. 저장/충전금 처리 요청에는 임의 시간 제한이나 자동 재시도를 적용하지 않는다.
@@ -122,7 +127,7 @@ Windows 브라우저 + WSL Ubuntu, Next 개발 서버, 기존 시드 데이터 �
 - Windows에서 `localhost:8000`에 연결할 때 IPv6 시도 후 IPv4로 넘어가며 연결에 약 209~220ms가 걸렸다. `127.0.0.1:8000`은 약 1ms였다.
 - CORS 사전 요청 캐시가 0초여서 인증 헤더가 있는 요청마다 OPTIONS 왕복이 반복됐다. 서버의 `CORS_MAX_AGE=3600`과 실제 응답 헤더를 확인했다.
 - 로그인/Guard가 메뉴 N 조회까지 기다려 본문 요청을 늦췄다. N은 별도로 갱신하고 인증/페이지 권한 검사는 유지했다.
-- 목록 필터/정렬/페이지와 상세 댓글 query 변경에서 불필요한 RSC 요청이 발생했다. 21개 파일의 같은 페이지 URL 변경을 공통 helper로 정리했다.
+- 목록 필터/정렬/페이지와 상세 댓글 query 변경에서 불필요한 RSC 요청이 발생했다. 목록 URL 동기화는 공통 hook, 상세 query 변경은 공통 helper로 정리했다.
 - 개발 모드 최초 중복 조회, 오래된 달력 조회, 취소 후 남는 목록 로딩 상태를 정리했다. GET은 30초 제한을 적용한다.
 
 ### 반복 조회 실측

@@ -34,7 +34,9 @@ URL에 보존할 값:
 
 검색어 입력값은 draft state로 들고, 검색 버튼 또는 Enter 시 applied query로 반영한다. key stroke마다 API를 호출하지 않는다.
 
-같은 페이지의 query 반영은 `replaceCurrentPageUrl`을 사용한다. Client가 직접 데이터를 조회하므로 필터/정렬/페이지 변경마다 `router.replace`로 Server Component를 다시 요청하지 않는다. 목록에서 상세로 이동하는 실제 경로 변경은 Next router 또는 Link를 사용한다.
+같은 페이지의 query 반영은 `useSyncCurrentPageQuery`를 사용한다. 화면에서 변경한 조건은 `replaceCurrentPageUrl`로 기록하고, 외부 링크·브라우저 뒤로가기로 바뀐 URL은 `onNavigate`에서 도메인 parser로 다시 해석한다. 이때 검색 입력, draft/applied 필터, 정렬, 페이지와 게시글/댓글 탭을 함께 복원한다. `highlight`는 일회성 행 표시 정보이므로 검색조건 비교에서 제외한다. Client가 직접 데이터를 조회하므로 필터/정렬/페이지 변경마다 `router.replace`로 Server Component를 다시 요청하지 않는다. 목록에서 상세로 이동하는 실제 경로 변경은 Next router 또는 Link를 사용한다.
+
+날짜 필터는 `lib/common/date-range-filter.ts`의 표준 프리셋·표시·파싱 함수를 사용한다. 한쪽 날짜만 허용하거나 프리셋 key가 다른 명시적인 도메인 정책만 별도 mapper를 둔다.
 
 ## 3. Fetch lifecycle
 
@@ -54,7 +56,10 @@ URL에 보존할 값:
 - 기본 메모리 캐시 TTL은 30초다.
 - 최대 100개 요청 결과만 유지하고 오래 사용하지 않은 항목부터 제거한다.
 - 캐시된 화면도 백그라운드 요청으로 최신 데이터를 다시 확인한다.
-- mutation 성공과 로그아웃 시 목록 캐시를 무효화한다.
+- mutation 성공과 세션 변경 시 목록 캐시를 무효화한다. 활성 목록은 새 세대에서 재조회한다.
+- `fetchRows(query, signal)`의 signal을 `api.get`에 전달한다. 조건 변경, 비활성 탭 전환, 언마운트 시 이전 요청을 취소한다.
+- 요청 시작 시 캐시 세대를 캡처하고, 응답 시 최신 요청·활성 수명·세대를 모두 확인한다. 이전 응답이 무효화된 캐시를 되살려서는 안 된다.
+- 비동기 작업 완료 후 `fetchList(true)`는 호출 시점의 조건을 조회한다. 이전 페이지 조건을 캡처한 fetch를 재실행하지 않는다.
 - 민감한 목록을 영구 저장소나 브라우저 간 공유 캐시에 보관하지 않는다.
 - 개발 모드의 effect 재실행은 정리 가능한 예약 호출로 합친다.
 - 현재 요청이 취소되면 loading/refreshing을 해제한다. 이미 대체된 과거 요청은 새 요청의 로딩 상태를 변경하지 않는다.
@@ -126,6 +131,9 @@ summary 카드는 `SummaryCountCard`를 우선 사용한다.
 - 1페이지뿐이어도 정책상 표시가 필요한 목록은 표시한다.
 - refreshing 중 기존 rows를 비우지 않는다.
 - 로딩 중 pagination 높이가 튀지 않게 한다.
+- `DataTable`에 `meta`와 `onGoPage`를 전달하면 기본 페이지네이션을 사용한다. 같은 Pagination을 `footerCenter`로 다시 만들지 않는다.
+
+정렬 헤더는 `DataTableSortHeader`를 사용한다. 도메인별 `SortField` 타입 wrapper는 허용하지만 정렬 아이콘과 버튼 스타일을 다시 구현하지 않는다.
 
 ## 8. 이미지
 

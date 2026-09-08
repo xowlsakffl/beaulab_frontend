@@ -28,7 +28,7 @@
 - `InputField`, `Select`, 날짜 선택, 목록 필터, 파일 입력, 전화번호 입력은 공통 컴포넌트의 기본 높이를 사용한다.
 - 페이지에서 높이를 반복 지정하지 않는다. 공통 입력 컴포넌트는 페이지의 높이 덮어쓰기와 관계없이 `h-11`을 유지한다. 다중 행 입력, 미디어 영역, 소형 아이콘·행 액션 버튼만 별도 높이를 사용할 수 있다.
 - 인라인 파일 입력은 `InlineFileSelect`의 액션 버튼, 파일명, `helperText` 규격 안내 영역을 사용한다. 파일명과 규격을 한 줄에 강제로 넣거나 페이지에서 안내 문구를 중복 렌더링하지 않는다.
-- table: `DataTable`, `Pagination`
+- table: `DataTable`, `DataTableSortHeader`, `Pagination`
 - modal/button/card/badge 계열 공통 UI
 - 상태값 기본 렌더링: `StatusValueBadge`
 - error: `ErrorStatusPage`
@@ -59,13 +59,14 @@ staff 앱 전용 공통 UI다.
 - `MediaPreviewModal`
 - `DetailImageGallery`
 - `DetailMediaCard`
+- `ActionErrorBanner`
 - `AddCircleButton`
 - `guard`
 - `sidebar-menu`
 
 추가 기준:
 
-- 두 개 이상 도메인에서 같은 의미로 쓰일 때만 올린다.
+- 관리자 앱 전반에서 같은 의미로 쓰일 때만 올린다. 후기·토크에 한정된 댓글 UI는 `components/post-content/ManagedCommentsCard`에 둔다.
 - field key, endpoint, 도메인 전용 payload를 알면 common이 아니다.
 
 상태 뱃지 기준:
@@ -87,6 +88,7 @@ staff 앱 전용 공통 UI다.
 - 반려/중지/부적합 사유 입력은 `InputField` 스타일을 사용한다.
 - textarea가 꼭 필요한 장문 사유가 아니면 기존 input 스타일과 맞춘다.
 - 닫기 X 버튼 크기와 위치를 모달마다 임의 변경하지 않는다.
+- 최초 화면에 필요 없는 대형 모달은 `next/dynamic`으로 불러오고, 열림 상태일 때만 렌더한다.
 
 ## 5. LoadError
 

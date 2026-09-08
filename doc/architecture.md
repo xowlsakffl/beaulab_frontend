@@ -1,12 +1,12 @@
 # Frontend Architecture
 
-작성 기준: 2026-06-29
+작성 기준: 2026-09-08
 
 이 문서는 현재 `beaulab_frontend` 코드 기준의 구조 문서다. 미래 계획이 아니라 지금 유지해야 하는 기준만 적는다.
 
 ## 1. 범위
 
-현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/hospital-web`은 병의원 계정 생성/재설정 및 세션 로그인/계정 화면을 소유한다. `apps/user-web`은 사용자 세션 로그인/계정 화면과 개발 전용 `/dev/chat` 검증 화면을 제공한다. 사용자 서비스의 본 화면은 아직 구현하지 않았다. 인증 정책은 `authentication.md`를 따른다.
+현재 실제 운영 중심 앱은 `apps/staff-web`이다. `apps/hospital-web`은 병의원 계정 생성/재설정 및 세션 로그인/계정 화면을 소유한다. `apps/user-web`은 사용자 세션 로그인/계정 화면을 제공한다. 사용자 서비스의 본 화면은 아직 구현하지 않았다. 인증 정책은 `authentication.md`를 따른다.
 
 ```text
 beaulab_frontend/
@@ -46,7 +46,7 @@ apps/hospital-web
   -> 병의원 계정 초대 검증과 계정 생성 흐름
 
 apps/user-web
-  -> 앱 사용자 로그인/채팅/알림 API 수동 검증
+  -> 사용자 웹 세션 로그인/계정 화면
 ```
 
 ## 3. `apps/staff-web` 구조
@@ -110,15 +110,15 @@ apps/staff-web/
 | `/hospital-dashboard`      | 병의원 대시보드                                       |
 | `/hospital-manage`         | 병의원, 의료진, 입점신청                              |
 | `/video-manage`            | 동영상                                                |
-| `/ads-manage`              | 병원 이벤트                                           |
+| `/ads-manage`              | 병원 이벤트, 광고 관리, 광고 현황                     |
 | `/customer-db-manage`      | 이벤트 DB, 리얼모델 DB                                |
 | `/post-manage`             | 토크, 성형후기, 시술후기, 병의원 평가                 |
 | `/reported-post-manage`    | 신고 토크/후기/평가/채팅                              |
 | `/notice-manage`           | 공지사항, FAQ, 1:1 문의 placeholder                   |
 | `/user-manage`             | 일반 회원                                             |
-| `/category-hashtag-manage` | 카테고리, 해시태그                                    |
-| `/wallet-manage`           | 충전금 placeholder                                    |
-| `/content-manage`          | 배너/팝업/상단 타이틀 placeholder                     |
+| `/category-hashtag-manage` | 카테고리 placeholder                                  |
+| `/wallet-manage`           | 충전금 현황, 내역, 병의원 충전금 관리                 |
+| `/content-manage`          | 해시태그 및 배너/팝업/상단 타이틀 등 placeholder      |
 | `/statistics-manage`       | 통계 placeholder                                      |
 | `/admin-settings`          | 프로필, 직원, 유해성 단어, 닉네임, 대행사 placeholder |
 | `/beauty-*`                | 뷰티 도메인 placeholder                               |
@@ -181,6 +181,9 @@ API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 �
 
 도메인 endpoint나 field key를 알면 `hooks/common`이 아니다.
 
+- `useSyncCurrentPageQuery.ts`: 화면 조건의 URL 기록과 외부 URL 이동의 상태 복원을 구분한다.
+- `useDebouncedRemoteOptions.ts`: 검색 지연, 요청 취소, 옵션 캐시 수명을 공유한다. endpoint는 전달받는다.
+
 ### 4.5 도메인 hook
 
 도메인 endpoint, field key, DOM target을 아는 hook은 도메인 폴더에 둔다.
@@ -195,6 +198,16 @@ API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 �
 - `hooks/hospital-event/useHospitalEventMediaState.ts`
 - `hooks/video/useVideoHospitalOptions.ts`
 - `hooks/video/useVideoDoctorOptions.ts`
+- `hooks/hospital-review/useReviewCategoryFilters.ts`: 후기 카테고리 단계 선택과 URL 선택 복원
+
+후기·토크 게시물에서 같은 계약을 공유하는 코드는 `hooks/post-content`와 `components/post-content`에 둔다. 관리자 앱 전체의 범용 기능으로 취급하지 않는다.
+
+- `useManagedContentDetail`: 상세 화면 조립
+- `usePostDetailResource`: 상세/댓글/히스토리 조회, 취소, 최신 요청 반영
+- `usePostDetailPagination`: 댓글·히스토리 URL 페이지 상태
+- `usePostVisibility`: 상세의 노출 변경
+- `usePostListVisibility`: 목록 선택과 단건/일괄 노출 변경
+- `ManagedCommentsCard`: 게시물 댓글 표시와 개별 행 메모이제이션
 
 ### 4.6 `lib/common/`
 
@@ -225,7 +238,7 @@ API path와 프론트 URL prefix는 다를 수 있다. 예를 들어 이벤트 �
 
 ## 5. 목록 패턴
 
-목록 화면은 URL query를 상태의 단일 기준으로 사용한다.
+목록의 적용된 검색 조건은 URL query에 보존한다. 입력 중인 draft는 별도 상태로 두며, 외부 링크·뒤로가기에서는 URL을 다시 해석해 draft와 applied 상태를 함께 복원한다.
 
 흐름:
 
