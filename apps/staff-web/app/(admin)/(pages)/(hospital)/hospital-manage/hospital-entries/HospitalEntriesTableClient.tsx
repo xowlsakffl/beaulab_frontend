@@ -1,6 +1,6 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import type { DateRange } from "react-day-picker";
@@ -107,8 +107,9 @@ export default function HospitalEntriesTableClient() {
     return rawQueryString ? `${pathname}?${rawQueryString}` : pathname;
   }, [pathname, searchParams]);
 
-  const fetchHospitalEntryRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchHospitalEntryRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<HospitalEntryApiItem[]>("/hospital-entries", nextQuery, {
+      signal,
       latestKey: "hospital-entries:list",
     });
     if (!isApiSuccess(response)) {
@@ -137,12 +138,21 @@ export default function HospitalEntriesTableClient() {
     errorMessage: "입점신청 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalEntriesTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setDraftDateRange(next.draftDateRange);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   const fetchSummary = React.useCallback(async () => {
     try {

@@ -3,12 +3,9 @@
 import React from "react";
 import {
   Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   CategoryBadgeList,
   DataTable,
-  Pagination,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -25,11 +22,6 @@ import {
   type HospitalEventSortState,
 } from "@/lib/hospital-event/list";
 import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
-
-function renderSortMark(field: HospitalEventSortField, sortState: HospitalEventSortState) {
-  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
 
 function categoryBadges(row: HospitalEventRow) {
   return (
@@ -96,15 +88,12 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[58px]`,
       cellClassName: `${nowrapCellClass} lg:w-[58px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="EID"
+          active={sortState.enabled && sortState.field === "id"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("id")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          EID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.id,
     },
@@ -185,15 +174,12 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="이벤트가격"
+          active={sortState.enabled && sortState.field === "event_price"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("event_price")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          이벤트가격 <span className="text-xs text-gray-400">{renderSortMark("event_price", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <span>
@@ -232,15 +218,12 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[72px]`,
       cellClassName: `${nowrapCellClass} lg:w-[72px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="강제중지"
+          active={sortState.enabled && sortState.field === "admin_status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("admin_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          강제중지 <span className="text-xs text-gray-400">{renderSortMark("admin_status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -254,15 +237,12 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[88px]`,
       cellClassName: `${nowrapCellClass} lg:w-[88px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="검수상태"
+          active={sortState.enabled && sortState.field === "allow_status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("allow_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          검수상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -276,15 +256,12 @@ function buildHospitalEventColumns({
       headerClassName: `${headerBaseClass} lg:w-[70px]`,
       cellClassName: `${nowrapCellClass} lg:w-[70px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="조회수"
+          active={sortState.enabled && sortState.field === "view_count"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("view_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.viewCount.toLocaleString(),
     },
@@ -377,16 +354,6 @@ export function HospitalEventsDataTable({
 
       onGoPage={onGoPage}
       onRowClick={onOpenDetail}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing || !onGoPage}
-          />
-        ) : null
-      }
     />
   );
 }

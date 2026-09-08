@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
   Card,
@@ -24,7 +23,7 @@ import {
   ReportedContentReportsList,
   reportedContentReportsTotal,
 } from "@/components/reported-content/list/ReportedContentReportsList";
-import { api } from "@/lib/common/api";
+import { useReportedContentReports } from "@/hooks/reported-content/useReportedContentReports";
 import { reportStatusBadgeColor } from "@/lib/common/report-status";
 import { adminStatusColor } from "@/lib/common/status-labels";
 import { type ReportedContentDetailReportItem, type ReportedContentReportsMeta } from "@/lib/reported-content/detail";
@@ -301,20 +300,18 @@ function ReportCountInfoField({ videoId, reportCount }: { videoId: number; repor
   const wrapperRef = React.useRef<HTMLDivElement | null>(null);
   const stickerRef = React.useRef<HTMLElement | null>(null);
   const [isOpen, setIsOpen] = React.useState(false);
-  const [page, setPage] = React.useState(1);
-  const [reports, setReports] = React.useState<ReportedContentDetailReportItem[]>([]);
-  const [meta, setMeta] = React.useState<ReportedContentReportsMeta | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const normalizedReportCount = Math.max(0, Number(reportCount || 0));
   const canOpen = normalizedReportCount > 0;
+  const { reports, meta, loading, error, page, setPage } = useReportedContentReports({
+    targetType: "hospital_video",
+    targetId: videoId,
+    enabled: isOpen && canOpen,
+    latestKey: `video:reports:${videoId}`,
+    errorMessage: "신고내역을 불러오지 못했습니다.",
+  });
 
   React.useEffect(() => {
     setIsOpen(false);
-    setPage(1);
-    setReports([]);
-    setMeta(null);
-    setError(null);
   }, [videoId, normalizedReportCount]);
 
   React.useEffect(() => {
@@ -335,51 +332,6 @@ function ReportCountInfoField({ videoId, reportCount }: { videoId: number; repor
       document.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [isOpen]);
-
-  React.useEffect(() => {
-    if (!isOpen || !canOpen) return;
-
-    let isMounted = true;
-
-    const fetchReports = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await api.get<ReportedContentDetailReportItem[]>(
-          `/reported-contents/hospital_video/${videoId}/reports`,
-          { reports_page: page },
-          { latestKey: `video:reports:${videoId}` },
-        );
-
-        if (!isMounted) return;
-
-        if (!isApiSuccess(response)) {
-          setReports([]);
-          setMeta(null);
-          setError(response.error.message || "신고내역을 불러오지 못했습니다.");
-          return;
-        }
-
-        setReports(response.data ?? []);
-        setMeta((response.meta as ReportedContentReportsMeta | null) ?? null);
-      } catch {
-        if (!isMounted) return;
-
-        setReports([]);
-        setMeta(null);
-        setError("신고내역 조회 중 오류가 발생했습니다.");
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    void fetchReports();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [canOpen, isOpen, page, videoId]);
 
   const openSticker = React.useCallback(() => {
     if (!canOpen) return;

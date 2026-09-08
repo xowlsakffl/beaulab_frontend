@@ -2,14 +2,9 @@ import { isApiSuccess } from "@beaulab/types";
 
 import { api } from "@/lib/common/api";
 import type { CategoryApiItem } from "@/lib/common/category";
-import { getTimedCache, setTimedCache } from "@/lib/common/request-cache";
+import { createCachedRequest } from "@/lib/common/request-cache";
 
 export const CATEGORY_SELECTOR_CACHE_TTL_MS = 5 * 60 * 1000;
-
-type CategorySelectorCacheEntry = {
-  expiresAt: number;
-  value: CategoryApiItem[];
-};
 
 type FetchCategorySelectorItemsParams = {
   domain: string;
@@ -22,7 +17,7 @@ type FetchCategorySelectorItemsParams = {
   cacheTtlMs?: number;
 };
 
-const categorySelectorItemsCache = new Map<string, CategorySelectorCacheEntry>();
+const loadCategorySelectorItems = createCachedRequest<CategoryApiItem[]>(CATEGORY_SELECTOR_CACHE_TTL_MS);
 
 function buildCategorySelectorCacheKey({
   domain,
@@ -65,27 +60,29 @@ export async function fetchCategorySelectorItems({
     depth,
     status: normalizedStatus,
   });
-  const cachedItems = getTimedCache(categorySelectorItemsCache, cacheKey);
+  return loadCategorySelectorItems(
+    cacheKey,
+    async (signal) => {
+      const response = await api.get<CategoryApiItem[]>(
+        "/categories/selector",
+        {
+          domain,
+          status: normalizedStatus,
+          ...(usage && parentId === null ? { usage } : {}),
+          ...(trimmedQuery ? { q: trimmedQuery, per_page: perPage ?? 12 } : {}),
+          ...(!trimmedQuery && perPage ? { per_page: perPage } : {}),
+          ...(depth ? { depth } : {}),
+          ...(parentId !== null ? { parent_id: parentId } : {}),
+        },
+        { signal },
+      );
 
-  if (cachedItems) {
-    return cachedItems;
-  }
+      if (!isApiSuccess(response)) {
+        throw new Error(response.error.message || "카테고리 목록을 불러오지 못했습니다.");
+      }
 
-  const response = await api.get<CategoryApiItem[]>("/categories/selector", {
-    domain,
-    status: normalizedStatus,
-    ...(usage && parentId === null ? { usage } : {}),
-    ...(trimmedQuery ? { q: trimmedQuery, per_page: perPage ?? 12 } : {}),
-    ...(!trimmedQuery && perPage ? { per_page: perPage } : {}),
-    ...(depth ? { depth } : {}),
-    ...(parentId !== null ? { parent_id: parentId } : {}),
-  });
-
-  if (!isApiSuccess(response)) {
-    throw new Error(response.error.message || "카테고리 목록을 불러오지 못했습니다.");
-  }
-
-  setTimedCache(categorySelectorItemsCache, cacheKey, response.data, cacheTtlMs);
-
-  return response.data;
+      return response.data;
+    },
+    cacheTtlMs,
+  );
 }

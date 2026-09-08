@@ -1,6 +1,7 @@
 "use client";
 
 import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import { DoctorsDataTable } from "@/components/doctor/list/DoctorsDataTable";
 import { DoctorsFilterPanel } from "@/components/doctor/list/DoctorsFilterPanel";
@@ -111,16 +112,14 @@ export default function DoctorsTableClient() {
   const queryString = React.useMemo(() => buildDoctorsQueryString(query), [query]);
   const buildReturnToPath = React.useCallback(() => buildDoctorsReturnToPath(pathname, query), [pathname, query]);
 
-  const fetchDoctorRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchDoctorRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<DoctorApiItem[]>(
       "/doctors",
       {
         ...nextQuery,
         category_ids: expandDoctorCategoryIds(nextQuery.category_ids),
       },
-      {
-        latestKey: "doctors:list",
-      },
+      { signal, latestKey: "doctors:list" },
     );
     if (!isApiSuccess(response)) {
       throw new Error(response.error.message || "의료진 목록 조회에 실패했습니다.");
@@ -161,12 +160,21 @@ export default function DoctorsTableClient() {
     }
   }, []);
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseDoctorsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setDraftDateRange(next.draftDateRange);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   React.useEffect(() => {
     void fetchCategoryOptions();

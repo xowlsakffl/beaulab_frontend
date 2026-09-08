@@ -1,6 +1,7 @@
 "use client";
 
 import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import { HospitalsDataTable } from "@/components/hospital/list/HospitalsDataTable";
 import { HospitalsFilterPanel } from "@/components/hospital/list/HospitalsFilterPanel";
@@ -134,10 +135,8 @@ export default function HospitalsTableClient() {
     return buildHospitalsReturnToPath(pathname, query);
   }, [pathname, query]);
 
-  const fetchHospitalRows = React.useCallback(async (nextQuery: typeof query) => {
-    const response = await api.get<HospitalApiItem[]>("/hospitals", nextQuery, {
-      latestKey: "hospitals:list",
-    });
+  const fetchHospitalRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
+    const response = await api.get<HospitalApiItem[]>("/hospitals", nextQuery, { signal, latestKey: "hospitals:list" });
     if (!isApiSuccess(response)) {
       throw new Error(response.error.message || "병의원 목록 조회에 실패했습니다.");
     }
@@ -170,12 +169,21 @@ export default function HospitalsTableClient() {
     }
   }, []);
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   React.useEffect(() => {
     void fetchHospitalSummary();

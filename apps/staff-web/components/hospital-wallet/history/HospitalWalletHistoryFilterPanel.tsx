@@ -52,8 +52,8 @@ export function HospitalWalletHistoryFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalWalletHistoryFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3";
-  const labelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const filterRowClass = "staff-filter-row";
+  const labelClass = "staff-filter-inline-label";
 
   return (
     <Card className="min-w-0 rounded-xl p-3">

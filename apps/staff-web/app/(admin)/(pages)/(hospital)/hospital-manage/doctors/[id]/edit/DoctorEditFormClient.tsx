@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 
 import {
   CategorySelectPanel,
@@ -8,7 +9,6 @@ import {
   ProfileImageEditor,
   RepeaterPanel,
 } from "@/components/doctor/form/DoctorFormEditorPanels";
-import { MediaPreviewModal } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { useDoctorCategorySelection } from "@/hooks/doctor/useDoctorCategorySelection";
 import { useDoctorFieldFocus } from "@/hooks/doctor/useDoctorFieldFocus";
@@ -29,6 +29,7 @@ import {
   type DoctorFormValues,
   type DoctorHospitalOption,
 } from "@/lib/doctor/form";
+
 import { isApiSuccess } from "@beaulab/types";
 import {
   Button,
@@ -42,6 +43,10 @@ import {
   useGlobalAlert,
 } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+
+const MediaPreviewModal = dynamic(() =>
+  import("@/components/common/MediaPreviewModal").then((module) => module.MediaPreviewModal),
+);
 
 const DOCTOR_EDIT_FORM_ID = "doctor-edit-form";
 export default function DoctorEditFormClient() {
@@ -346,7 +351,9 @@ export default function DoctorEditFormClient() {
         </div>
       </section>
 
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      {previewMedia ? (
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      ) : null}
       <Modal
         isOpen={Boolean(uploadModalMessage)}
         onClose={closeUploadModal}

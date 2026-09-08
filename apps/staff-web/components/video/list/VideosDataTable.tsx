@@ -1,13 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Button,
   CategoryBadgeList,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
-  Pagination,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -23,12 +19,6 @@ import {
   type SortState,
   type VideoRow,
 } from "@/lib/video/list";
-
-function renderSortMark(field: SortField, sortState: SortState) {
-  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
 
 function categoryBadges(row: VideoRow) {
   return (
@@ -98,15 +88,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[56px]`,
       cellClassName: `${nowrapCellClass} lg:w-[56px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="VID"
+          active={sortState.enabled && sortState.field === "id"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("id")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          VID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.id,
     },
@@ -115,15 +102,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[126px]`,
       cellClassName: `${nowrapCellClass} lg:w-[126px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="업로드일"
+          active={sortState.enabled && sortState.field === "created_at"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("created_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          업로드일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.uploadedAt,
     },
@@ -165,15 +149,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[210px]`,
       cellClassName: `${cellBaseClass} lg:w-[210px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="제목"
+          active={sortState.enabled && sortState.field === "title"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("title")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          제목 <span className="text-xs text-gray-400">{renderSortMark("title", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <div className="flex min-w-0 items-start gap-3">
@@ -202,15 +183,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="공개여부"
+          active={sortState.enabled && sortState.field === "hospital_status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("hospital_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          공개여부 <span className="text-xs text-gray-400">{renderSortMark("hospital_status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -246,15 +224,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[82px]`,
       cellClassName: `${nowrapCellClass} lg:w-[82px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="강제중지"
+          active={sortState.enabled && sortState.field === "admin_status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("admin_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          강제중지 <span className="text-xs text-gray-400">{renderSortMark("admin_status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -268,15 +243,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[70px]`,
       cellClassName: `${nowrapCellClass} lg:w-[70px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="조회수"
+          active={sortState.enabled && sortState.field === "view_count"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("view_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.viewCount.toLocaleString(),
     },
@@ -285,15 +257,12 @@ function buildVideoColumns({
       headerClassName: `${headerBaseClass} lg:w-[78px]`,
       cellClassName: `${nowrapCellClass} lg:w-[78px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="좋아요수"
+          active={sortState.enabled && sortState.field === "like_count"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("like_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          좋아요수 <span className="text-xs text-gray-400">{renderSortMark("like_count", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.likeCount.toLocaleString(),
     },
@@ -356,16 +325,6 @@ export function VideosDataTable({
 
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing || !onGoPage}
-          />
-        ) : null
-      }
       emptyText="조건에 맞는 동영상이 없습니다."
     />
   );

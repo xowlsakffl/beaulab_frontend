@@ -2,7 +2,10 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "dev": { "cache": false, "persistent": true },
-    "build": { "dependsOn": ["^build"], "outputs": [".next/**", "dist/**"] },
+    "build": { "dependsOn": ["^build"] },
+    "staff-web#build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**"] },
+    "hospital-web#build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**"] },
+    "user-web#build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**"] },
     "lint": { "dependsOn": ["^lint"] },
     "typecheck": { "dependsOn": ["^typecheck"] }
   }

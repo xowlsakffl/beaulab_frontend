@@ -69,8 +69,8 @@ export function AccountUsersFilterPanel({
     onApplyFilters();
   };
 
-  const filterRowClassName = "flex min-w-0 items-center gap-3";
-  const filterLabelClassName = "w-[72px] shrink-0 text-right text-sm font-medium text-gray-600";
+  const filterRowClassName = "staff-filter-row";
+  const filterLabelClassName = "staff-filter-inline-label";
 
   return (
     <Card className="min-w-0 rounded-xl p-3">

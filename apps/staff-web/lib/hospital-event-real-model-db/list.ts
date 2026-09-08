@@ -1,6 +1,13 @@
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  STANDARD_DATE_PRESET_OPTIONS,
+  buildFilterDateState as buildCommonFilterDateState,
+  buildPresetDateRange as buildCommonPresetDateRange,
+  mapDateRange as mapCommonDateRange,
+  normalizeRangeDate as normalizeCommonRangeDate,
+} from "@/lib/common/date-range-filter";
 import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
 
 export type HospitalEventRealModelDBOption<T extends string = string> = {
@@ -163,12 +170,8 @@ export const DEFAULT_HOSPITAL_EVENT_REAL_MODEL_DB_SORT: HospitalEventRealModelDB
   enabled: true,
 };
 
-export const HOSPITAL_EVENT_REAL_MODEL_DB_DATE_PRESET_OPTIONS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const HOSPITAL_EVENT_REAL_MODEL_DB_DATE_PRESET_OPTIONS =
+  STANDARD_DATE_PRESET_OPTIONS satisfies readonly DatePresetOption[];
 
 export type HospitalEventRealModelDBDatePresetKey =
   (typeof HOSPITAL_EVENT_REAL_MODEL_DB_DATE_PRESET_OPTIONS)[number]["key"];
@@ -363,53 +366,19 @@ export function nextHospitalEventRealModelDBSortState(
 }
 
 export function mapDateRangeToHospitalEventRealModelDBFilter(range?: DateRange) {
-  return {
-    label: formatDateRange(range),
-    startDate: range?.from ? formatLocalDate(range.from) : "",
-    endDate: range?.to ? formatLocalDate(range.to) : "",
-  };
+  return mapCommonDateRange(range);
 }
 
 export function buildHospitalEventRealModelDBPresetDateRange(preset: HospitalEventRealModelDBDatePresetKey): DateRange {
-  const today = normalizeRangeDate(new Date());
-
-  if (preset === "today") return { from: today, to: today };
-
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    return { from: yesterday, to: yesterday };
-  }
-
-  const days = preset === "recent7" ? 6 : 29;
-  const from = new Date(today);
-  from.setDate(today.getDate() - days);
-
-  return { from, to: today };
+  return buildCommonPresetDateRange(preset);
 }
 
 export function normalizeRangeDate(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return normalizeCommonRangeDate(date);
 }
 
 function buildHospitalEventRealModelDBDateState(startDate: string, endDate: string) {
-  const from = startDate ? parseDateParam(startDate) : undefined;
-  const to = endDate ? parseDateParam(endDate) : undefined;
-  const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
-
-  return {
-    range,
-    label: formatDateRange(range),
-  };
-}
-
-function formatDateRange(range?: DateRange) {
-  if (!range?.from) return "";
-
-  const fromDate = formatFilterDisplayDate(range.from);
-  if (!range.to) return fromDate;
-
-  return `${fromDate} ~ ${formatFilterDisplayDate(range.to)}`;
+  return buildCommonFilterDateState(startDate, endDate);
 }
 
 function formatDateString(value?: string | null) {
@@ -420,37 +389,8 @@ function formatDateString(value?: string | null) {
   return `${match[1]}-${match[2]}-${match[3]}`;
 }
 
-function parseDateParam(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  if (
-    Number.isNaN(parsedDate.getTime()) ||
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return parsedDate;
-}
-
 function formatLocalDate(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function formatFilterDisplayDate(date: Date) {
-  const year = String(date.getFullYear() % 100).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 

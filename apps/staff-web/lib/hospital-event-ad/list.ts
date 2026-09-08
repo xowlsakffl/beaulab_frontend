@@ -1,6 +1,16 @@
 import type { BadgeColor, CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  STANDARD_DATE_PRESET_OPTIONS,
+  buildFilterDateState as buildCommonFilterDateState,
+  buildPresetDateRange as buildCommonPresetDateRange,
+  formatDateRange as formatCommonDateRange,
+  formatLocalDate as formatCommonLocalDate,
+  mapDateRange as mapCommonDateRange,
+  normalizeRangeDate as normalizeCommonRangeDate,
+  parseDateParam as parseCommonDateParam,
+} from "@/lib/common/date-range-filter";
 import { resolveMediaAssetUrl, type MediaVariantPreference } from "@/lib/common/media";
 import {
   labelReviewAllowStatus,
@@ -174,12 +184,7 @@ export const EVENT_AD_DATE_TYPE_OPTIONS: { value: EventAdDateType; label: string
   { value: "ad_period", label: "광고기간" },
 ];
 
-export const EVENT_AD_DATE_PRESET_OPTIONS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const EVENT_AD_DATE_PRESET_OPTIONS = STANDARD_DATE_PRESET_OPTIONS satisfies readonly DatePresetOption[];
 
 export type EventAdDatePresetKey = (typeof EVENT_AD_DATE_PRESET_OPTIONS)[number]["key"];
 
@@ -199,19 +204,7 @@ const EVENT_AD_ALLOW_STATUS_VALUE_SET = new Set(EVENT_AD_ALLOW_STATUS_OPTIONS.ma
 const EVENT_AD_STATUS_VALUE_SET = new Set(EVENT_AD_STATUS_OPTIONS.map((option) => option.value));
 
 export function formatEventAdLocalDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function formatFilterDisplayDate(date: Date) {
-  const year = String(date.getFullYear() % 100).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return formatCommonLocalDate(date);
 }
 
 export function formatEventAdDateTime(value?: string | null) {
@@ -233,75 +226,27 @@ function formatEventAdShortDateTime(value?: string | null) {
 }
 
 export function formatEventAdDateRange(range?: DateRange) {
-  if (!range?.from) return "";
-
-  const fromDate = formatFilterDisplayDate(range.from);
-  if (!range.to) return fromDate;
-
-  return `${fromDate} ~ ${formatFilterDisplayDate(range.to)}`;
+  return formatCommonDateRange(range);
 }
 
 export function normalizeEventAdRangeDate(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return normalizeCommonRangeDate(date);
 }
 
 export function buildEventAdPresetDateRange(preset: EventAdDatePresetKey): DateRange {
-  const today = normalizeEventAdRangeDate(new Date());
-
-  if (preset === "today") return { from: today, to: today };
-
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
-    return { from: yesterday, to: yesterday };
-  }
-
-  const days = preset === "recent7" ? 6 : 29;
-  const from = new Date(today);
-  from.setDate(today.getDate() - days);
-
-  return { from, to: today };
+  return buildCommonPresetDateRange(preset);
 }
 
 export function mapDateRangeToEventAdFilter(range?: DateRange) {
-  return {
-    label: formatEventAdDateRange(range),
-    startDate: range?.from ? formatEventAdLocalDate(range.from) : "",
-    endDate: range?.to ? formatEventAdLocalDate(range.to) : "",
-  };
+  return mapCommonDateRange(range);
 }
 
 export function parseEventAdDateParam(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  if (
-    Number.isNaN(parsedDate.getTime()) ||
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return parsedDate;
+  return parseCommonDateParam(value);
 }
 
 export function buildEventAdDateState(startDate: string, endDate: string) {
-  const from = startDate ? parseEventAdDateParam(startDate) : undefined;
-  const to = endDate ? parseEventAdDateParam(endDate) : undefined;
-  const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
-
-  return {
-    range,
-    label: formatEventAdDateRange(range),
-  };
+  return buildCommonFilterDateState(startDate, endDate);
 }
 
 export function formatEventAdCost(value: number) {

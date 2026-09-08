@@ -1,8 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { HospitalAccountInvitationModal } from "@/components/account-hospital/HospitalAccountInvitationModal";
-import { HospitalAccountPasswordResetModal } from "@/components/account-hospital/HospitalAccountPasswordResetModal";
 import { HOSPITAL_ACCOUNT_PASSWORD_RESET_PERMISSION } from "@/lib/account-hospital/password-reset";
 import { HospitalFormLayout } from "@/components/hospital/form/HospitalFormLayout";
 import { useDaumPostcode } from "@/hooks/common/useDaumPostcode";
@@ -35,6 +34,17 @@ import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
+
+const HospitalAccountInvitationModal = dynamic(() =>
+  import("@/components/account-hospital/HospitalAccountInvitationModal").then(
+    (module) => module.HospitalAccountInvitationModal,
+  ),
+);
+const HospitalAccountPasswordResetModal = dynamic(() =>
+  import("@/components/account-hospital/HospitalAccountPasswordResetModal").then(
+    (module) => module.HospitalAccountPasswordResetModal,
+  ),
+);
 
 const HOSPITAL_EDIT_FORM_ID = "hospital-edit-form";
 
@@ -371,14 +381,16 @@ export default function HospitalEditFormClient() {
         }
         onOpenPasswordReset={canOpenPasswordReset ? () => setIsPasswordResetOpen(true) : undefined}
       />
-      <HospitalAccountInvitationModal
-        isOpen={isAccountInvitationOpen}
-        sourceType="HOSPITAL"
-        sourceId={hospitalId}
-        hospitalName={form.name}
-        canSend={canSendAccountInvitation && !accountHospital}
-        onClose={() => setIsAccountInvitationOpen(false)}
-      />
+      {isAccountInvitationOpen ? (
+        <HospitalAccountInvitationModal
+          isOpen
+          sourceType="HOSPITAL"
+          sourceId={hospitalId}
+          hospitalName={form.name}
+          canSend={canSendAccountInvitation && !accountHospital}
+          onClose={() => setIsAccountInvitationOpen(false)}
+        />
+      ) : null}
       {isPasswordResetOpen && canOpenPasswordReset ? (
         <HospitalAccountPasswordResetModal
           hospitalId={hospitalId}

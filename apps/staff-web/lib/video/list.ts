@@ -1,6 +1,16 @@
-import type { BadgeColor, CheckboxFilterOption, DatePresetOption } from "@beaulab/ui-admin";
+import type { BadgeColor, CheckboxFilterOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  STANDARD_DATE_PRESET_OPTIONS,
+  buildFilterDateState as buildCommonFilterDateState,
+  buildPresetDateRange as buildCommonPresetDateRange,
+  formatDateRange as formatCommonDateRange,
+  formatLocalDate as formatCommonLocalDate,
+  mapDateRange,
+  normalizeRangeDate as normalizeCommonRangeDate,
+  parseDateParam as parseCommonDateParam,
+} from "@/lib/common/date-range-filter";
 import { CATEGORY_USAGES } from "@/lib/common/category";
 import { resolveMediaAssetUrl } from "@/lib/common/media";
 import { labelAdminStatus, labelOwnerVisibilityStatus, ownerVisibilityStatusColor } from "@/lib/common/status-labels";
@@ -194,12 +204,7 @@ export const VIDEO_METRIC_OPTIONS: { value: VideoMetric; label: string }[] = [
   { value: "like_count", label: "좋아요수" },
 ];
 
-export const DATE_PRESET_OPTIONS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const DATE_PRESET_OPTIONS = STANDARD_DATE_PRESET_OPTIONS;
 
 export type DatePresetKey = (typeof DATE_PRESET_OPTIONS)[number]["key"];
 
@@ -220,19 +225,7 @@ const VIDEO_METRIC_VALUE_SET = new Set(VIDEO_METRIC_OPTIONS.map((option) => opti
 const VIDEO_SUMMARY_FILTER_VALUE_SET = new Set<VideoSummaryFilter>(["normal", "limited", "reported"]);
 
 export function formatLocalDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function formatFilterDisplayDate(date: Date) {
-  const year = String(date.getFullYear() % 100).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
+  return formatCommonLocalDate(date);
 }
 
 export function formatLocalDateTime(value?: string | null) {
@@ -248,75 +241,27 @@ export function formatLocalDateTime(value?: string | null) {
 }
 
 export function formatDateRange(range?: DateRange) {
-  if (!range?.from) return "";
-
-  const fromDate = formatFilterDisplayDate(range.from);
-  if (!range.to) return fromDate;
-
-  return `${fromDate} ~ ${formatFilterDisplayDate(range.to)}`;
+  return formatCommonDateRange(range);
 }
 
 export function normalizeRangeDate(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return normalizeCommonRangeDate(date);
 }
 
 export function buildPresetDateRange(preset: DatePresetKey): DateRange {
-  const today = normalizeRangeDate(new Date());
-
-  if (preset === "today") return { from: today, to: today };
-
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
-    return { from: yesterday, to: yesterday };
-  }
-
-  const days = preset === "recent7" ? 6 : 29;
-  const from = new Date(today);
-  from.setDate(today.getDate() - days);
-
-  return { from, to: today };
+  return buildCommonPresetDateRange(preset);
 }
 
 export function mapDateRangeToFilter(range?: DateRange) {
-  return {
-    label: formatDateRange(range),
-    startDate: range?.from ? formatLocalDate(range.from) : "",
-    endDate: range?.to ? formatLocalDate(range.to) : "",
-  };
+  return mapDateRange(range);
 }
 
 export function parseDateParam(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  if (
-    Number.isNaN(parsedDate.getTime()) ||
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return parsedDate;
+  return parseCommonDateParam(value);
 }
 
 export function buildFilterDateState(startDate: string, endDate: string) {
-  const from = startDate ? parseDateParam(startDate) : undefined;
-  const to = endDate ? parseDateParam(endDate) : undefined;
-  const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
-
-  return {
-    range,
-    label: formatDateRange(range),
-  };
+  return buildCommonFilterDateState(startDate, endDate);
 }
 
 export function normalizeNumberBound(value: string | null | undefined) {

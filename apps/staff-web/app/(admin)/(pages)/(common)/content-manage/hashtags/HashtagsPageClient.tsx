@@ -1,7 +1,5 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
-
 import React from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
@@ -12,6 +10,7 @@ import { HashtagUpsertModal } from "@/components/hashtag/list/HashtagUpsertModal
 import { HashtagsDataTable } from "@/components/hashtag/list/HashtagsDataTable";
 import { HashtagsFilterPanel } from "@/components/hashtag/list/HashtagsFilterPanel";
 import { useListData } from "@/hooks/common/useListData";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
@@ -47,7 +46,7 @@ export default function HashtagsPageClient() {
   const [appliedFilters, setAppliedFilters] = React.useState<Filters>(initialTableState.filters);
   const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
-  const perPage = initialTableState.perPage;
+  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [page, setPage] = React.useState(initialTableState.page);
 
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
@@ -71,10 +70,8 @@ export default function HashtagsPageClient() {
 
   const queryString = React.useMemo(() => buildHashtagsQueryString(query), [query]);
 
-  const fetchHashtagRows = React.useCallback(async (nextQuery: typeof query) => {
-    const response = await api.get<HashtagApiItem[]>("/hashtags", nextQuery, {
-      latestKey: "hashtags:list",
-    });
+  const fetchHashtagRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
+    const response = await api.get<HashtagApiItem[]>("/hashtags", nextQuery, { signal, latestKey: "hashtags:list" });
     if (!isApiSuccess(response)) {
       throw new Error(response.error.message || "해시태그 목록 조회에 실패했습니다.");
     }
@@ -108,12 +105,21 @@ export default function HashtagsPageClient() {
     errorMessage: "해시태그 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHashtagsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+      setPerPage(next.perPage);
+    },
+  });
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

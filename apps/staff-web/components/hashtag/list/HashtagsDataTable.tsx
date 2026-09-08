@@ -1,12 +1,8 @@
 import React from "react";
 
 import {
-  Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
-  Pagination,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -14,14 +10,6 @@ import {
 
 import { type HashtagRow, type SortField, type SortState } from "@/lib/hashtag/list";
 import { ownerVisibilityStatusColor } from "@/lib/common/status-labels";
-
-function renderSortMark(field: SortField, sortState: SortState) {
-  if (!sortState.enabled || sortState.field !== field) {
-    return <ChevronsUpDown className="size-4" />;
-  }
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
 
 function buildHashtagColumns({
   sortState,
@@ -40,15 +28,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[70px]`,
       cellClassName: `${nowrapCellClass} lg:w-[70px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="ID"
+          active={sortState.enabled && sortState.field === "id"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("id")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.id,
     },
@@ -57,15 +42,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[220px]`,
       cellClassName: `${cellBaseClass} lg:w-[220px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="해시태그명"
+          active={sortState.enabled && sortState.field === "name"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("name")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          해시태그명 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <span className="line-clamp-2 block font-medium break-words text-gray-800" title={row.name}>
@@ -78,15 +60,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[180px]`,
       cellClassName: `${cellBaseClass} lg:w-[180px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="고유 검색 키"
+          active={sortState.enabled && sortState.field === "normalized_name"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("normalized_name")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          고유 검색 키 <span className="text-xs text-gray-400">{renderSortMark("normalized_name", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">{row.normalizedName}</code>
@@ -97,15 +76,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[96px]`,
       cellClassName: `${nowrapCellClass} lg:w-[96px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="사용수"
+          active={sortState.enabled && sortState.field === "usage_count"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("usage_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          사용수 <span className="text-xs text-gray-400">{renderSortMark("usage_count", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.usageCount.toLocaleString(),
     },
@@ -114,15 +90,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[110px]`,
       cellClassName: `${nowrapCellClass} lg:w-[110px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="운영상태"
+          active={sortState.enabled && sortState.field === "status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          운영상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => <StatusValueBadge label={row.statusLabel} color={ownerVisibilityStatusColor(row.status)} />,
     },
@@ -131,15 +104,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="수정일"
+          active={sortState.enabled && sortState.field === "updated_at"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("updated_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          수정일 <span className="text-xs text-gray-400">{renderSortMark("updated_at", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.updatedAt,
     },
@@ -148,15 +118,12 @@ function buildHashtagColumns({
       headerClassName: `${headerBaseClass} lg:w-[120px]`,
       cellClassName: `${nowrapCellClass} lg:w-[120px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="등록일"
+          active={sortState.enabled && sortState.field === "created_at"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("created_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          등록일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.createdAt,
     },
@@ -208,16 +175,6 @@ export function HashtagsDataTable({
 
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing}
-          />
-        ) : null
-      }
       emptyText="조건에 맞는 해시태그가 없습니다."
     />
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -171,8 +172,9 @@ export default function HospitalEventsTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEventsQueryString(query), [query]);
   const activeSummaryKey = React.useMemo(() => resolveActiveSummaryKey(appliedFilters), [appliedFilters]);
-  const fetchEventRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchEventRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<HospitalEventApiItem[]>("/hospital-events", nextQuery, {
+      signal,
       latestKey: "hospital-events:list",
     });
     if (!isApiSuccess(response)) {
@@ -245,12 +247,21 @@ export default function HospitalEventsTableClient() {
     ];
   }, [draftFilters.majorCategoryId, middleCategoryItems]);
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalEventsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   const loadCategoryFilterOptions = React.useCallback(async () => {
     try {

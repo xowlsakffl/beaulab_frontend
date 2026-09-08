@@ -99,8 +99,8 @@ export function DoctorsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: DoctorsFilterPanelProps) {
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
-  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "staff-filter-inline-label";
+  const filterRowClass = "staff-filter-row";
   const metricMin = Number(draftFilters.metricMin);
   const metricMax = Number(draftFilters.metricMax);
   const isMetricRangeInvalid = draftFilters.metricMin !== "" && draftFilters.metricMax !== "" && metricMax < metricMin;

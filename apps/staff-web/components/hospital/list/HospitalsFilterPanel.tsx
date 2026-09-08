@@ -79,12 +79,12 @@ export function HospitalsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalsFilterPanelProps) {
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const inlineLabelClass = "staff-filter-inline-label";
 
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
             label="기간"
@@ -105,7 +105,7 @@ export function HospitalsFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>분과</span>
           <CheckboxFilterDropdown
             label="분과"
@@ -119,7 +119,7 @@ export function HospitalsFilterPanel({
             onToggleAll={onToggleAllDepartments}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>병의원상태</span>
           <CheckboxFilterDropdown
             label="병의원상태"
@@ -133,7 +133,7 @@ export function HospitalsFilterPanel({
             onToggleAll={onToggleAllHospitalStatus}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>검수상태</span>
           <CheckboxFilterDropdown
             label="검수상태"

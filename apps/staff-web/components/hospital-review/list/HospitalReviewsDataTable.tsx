@@ -3,10 +3,8 @@
 import React from "react";
 import {
   Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
+  DataTableSortHeader,
   FormCheckbox,
   Switch,
   type DataTableColumn,
@@ -25,14 +23,6 @@ import {
 } from "@/lib/hospital-review/list";
 import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
-function renderSortMark(field: HospitalReviewSortField, sortState: HospitalReviewSortState) {
-  if (!sortState.enabled || sortState.field !== field) {
-    return <ChevronsUpDown className="size-4" />;
-  }
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
-
 function SortHeader({
   field,
   label,
@@ -47,18 +37,17 @@ function SortHeader({
   align?: "left" | "center";
 }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
+    <DataTableSortHeader
+      label={label}
+      active={sortState.enabled && sortState.field === field}
+      direction={sortState.direction}
       onClick={() => onToggleSort(field)}
       className={`inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal ${
         align === "center" ? "justify-center text-center" : ""
       }`}
-    >
-      <span className="min-w-0 break-keep">{label}</span>
-      <span className="shrink-0 text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
-    </Button>
+      labelClassName="min-w-0 break-keep"
+      iconClassName="shrink-0 text-xs text-gray-400"
+    />
   );
 }
 
@@ -164,8 +153,8 @@ function buildHospitalReviewColumns({
   onToggleAllRows: (checked: boolean) => void;
   onRowVisibilityChange: (row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => void;
 }): DataTableColumn<HospitalReviewRow>[] {
-  const headerBaseClass = "px-1.5 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
-  const cellBaseClass = "px-1.5 py-4 text-start align-top ";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-2 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
   const imageHeaderClass = "px-1.5 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
   const imageCellClass = "px-1.5 py-4 text-start align-top ";

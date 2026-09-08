@@ -2,7 +2,6 @@
 
 import React from "react";
 import type { DateRange } from "react-day-picker";
-import { isApiSuccess } from "@beaulab/types";
 import {
   Card,
   DateRangeFilterDropdown,
@@ -11,7 +10,7 @@ import {
   SpinnerBlock,
 } from "@beaulab/ui-admin";
 
-import { api, isApiRequestCanceledError } from "@/lib/common/api";
+import { useHospitalWalletTopHospitals } from "@/hooks/hospital-wallet/useHospitalWalletTopHospitals";
 import {
   WALLET_DASHBOARD_BALANCE_TYPES,
   WALLET_DASHBOARD_CHART_COLORS,
@@ -20,11 +19,8 @@ import {
   formatWalletDashboardCompactPoints,
   formatWalletDashboardPoints,
   mapWalletDashboardDateRange,
-  normalizeWalletDashboardTopHospitals,
   type WalletDashboardBalanceType,
   type WalletDashboardDatePresetKey,
-  type WalletDashboardTopHospital,
-  type WalletDashboardTopHospitalsApiData,
 } from "@/lib/hospital-wallet/dashboard";
 
 export function HospitalWalletTopHospitals() {
@@ -32,52 +28,14 @@ export function HospitalWalletTopHospitals() {
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>();
   const [appliedDateRange, setAppliedDateRange] = React.useState<DateRange | undefined>();
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
-  const [rows, setRows] = React.useState<WalletDashboardTopHospital[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
   const appliedDates = React.useMemo(() => mapWalletDashboardDateRange(appliedDateRange), [appliedDateRange]);
   const draftDates = React.useMemo(() => mapWalletDashboardDateRange(draftDateRange), [draftDateRange]);
-
-  React.useEffect(() => {
-    let active = true;
-
-    const fetchRows = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await api.get<WalletDashboardTopHospitalsApiData>(
-          "/hospital-wallets/dashboard/top-hospitals",
-          {
-            balance_type: balanceType,
-            start_date: appliedDates.startDate || undefined,
-            end_date: appliedDates.endDate || undefined,
-          },
-          { latestKey: "hospital-wallet-dashboard:top-hospitals" },
-        );
-
-        if (!isApiSuccess(response)) {
-          throw new Error(response.error.message || "충전금 사용 상위 병의원을 불러오지 못했습니다.");
-        }
-
-        if (active) setRows(normalizeWalletDashboardTopHospitals(response.data));
-      } catch (requestError) {
-        if (!active || isApiRequestCanceledError(requestError)) return;
-        setError(
-          requestError instanceof Error ? requestError.message : "충전금 사용 현황 조회 중 오류가 발생했습니다.",
-        );
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    void fetchRows();
-
-    return () => {
-      active = false;
-    };
-  }, [appliedDates.endDate, appliedDates.startDate, balanceType]);
+  const { rows, loading, error } = useHospitalWalletTopHospitals({
+    balanceType,
+    startDate: appliedDates.startDate || undefined,
+    endDate: appliedDates.endDate || undefined,
+  });
 
   React.useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {

@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { VideoBasicSection } from "@/components/video/form/VideoBasicSection";
 import { useCategorySelectorLoader } from "@/hooks/common/useCategorySelectorLoader";
 import { useVideoFieldFocus } from "@/hooks/video/useVideoFieldFocus";
@@ -26,6 +27,10 @@ import {
   type VideoFormValues,
   type VideoHospitalOption,
 } from "@/lib/video/form";
+
+const MediaPreviewModal = dynamic(() =>
+  import("@/components/common/MediaPreviewModal").then((module) => module.MediaPreviewModal),
+);
 
 const VIDEO_EDIT_FORM_ID = "video-edit-form";
 
@@ -311,7 +316,9 @@ export default function VideoEditFormClient() {
           onThumbnailPreview={setPreviewMedia}
         />
       </form>
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      {previewMedia ? (
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+      ) : null}
     </>
   );
 }

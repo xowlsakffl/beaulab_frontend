@@ -1,19 +1,20 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { HospitalAccountInvitationModal } from "@/components/account-hospital/HospitalAccountInvitationModal";
 import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
 import {
   HospitalEntryAllowStatusReadonlyCard,
   HospitalEntryApplicantEditCard,
   HospitalEntryHospitalEditCard,
 } from "@/components/hospital-entry/form/HospitalEntryEditCards";
-import { MediaPreviewModal, type MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
 import { HOSPITAL_ACCOUNT_INVITATION_PERMISSIONS } from "@/lib/account-hospital/invitation";
@@ -32,7 +33,15 @@ import {
   type HospitalEntryFormErrors,
   type HospitalEntryFormValues,
 } from "@/lib/hospital-entry/form";
-import { hasPermission } from "@beaulab/auth";
+
+const HospitalAccountInvitationModal = dynamic(() =>
+  import("@/components/account-hospital/HospitalAccountInvitationModal").then(
+    (module) => module.HospitalAccountInvitationModal,
+  ),
+);
+const MediaPreviewModal = dynamic(() =>
+  import("@/components/common/MediaPreviewModal").then((module) => module.MediaPreviewModal),
+);
 
 export default function HospitalEntryEditFormClient() {
   const params = useParams<{ id: string }>();
@@ -283,17 +292,21 @@ export default function HospitalEntryEditFormClient() {
           onOpenAccountInvitation={canViewInvitationForEntry ? () => setIsAccountInvitationOpen(true) : undefined}
         />
 
-        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+        {previewMedia ? (
+          <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />
+        ) : null}
       </form>
-      <HospitalAccountInvitationModal
-        isOpen={isAccountInvitationOpen}
-        sourceType="HOSPITAL_ENTRY"
-        sourceId={entryId}
-        hospitalName={form.hospital_name}
-        initialEmail={form.applicant_email}
-        canSend={canSendInvitationForEntry}
-        onClose={() => setIsAccountInvitationOpen(false)}
-      />
+      {isAccountInvitationOpen ? (
+        <HospitalAccountInvitationModal
+          isOpen
+          sourceType="HOSPITAL_ENTRY"
+          sourceId={entryId}
+          hospitalName={form.hospital_name}
+          initialEmail={form.applicant_email}
+          canSend={canSendInvitationForEntry}
+          onClose={() => setIsAccountInvitationOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

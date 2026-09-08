@@ -1,6 +1,14 @@
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  STANDARD_DATE_PRESET_OPTIONS,
+  buildFilterDateState as buildCommonFilterDateState,
+  buildPresetDateRange as buildCommonPresetDateRange,
+  mapDateRange as mapCommonDateRange,
+  normalizeRangeDate as normalizeCommonRangeDate,
+} from "@/lib/common/date-range-filter";
+
 import { STATUS_BADGE_COLORS } from "@/lib/common/status-badge-colors";
 
 export type HospitalEventDBOption<T extends string = string> = {
@@ -160,12 +168,7 @@ export const DEFAULT_HOSPITAL_EVENT_DB_SORT: HospitalEventDBSortState = {
   enabled: true,
 };
 
-export const HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS = STANDARD_DATE_PRESET_OPTIONS satisfies readonly DatePresetOption[];
 
 export type HospitalEventDBDatePresetKey = (typeof HOSPITAL_EVENT_DB_DATE_PRESET_OPTIONS)[number]["key"];
 
@@ -422,33 +425,15 @@ export function nextHospitalEventDBSortState(
 }
 
 export function mapDateRangeToHospitalEventDBFilter(range?: DateRange) {
-  return {
-    label: formatDateRange(range),
-    startDate: range?.from ? formatLocalDate(range.from) : "",
-    endDate: range?.to ? formatLocalDate(range.to) : "",
-  };
+  return mapCommonDateRange(range);
 }
 
 export function buildHospitalEventDBPresetDateRange(preset: HospitalEventDBDatePresetKey): DateRange {
-  const today = normalizeRangeDate(new Date());
-
-  if (preset === "today") return { from: today, to: today };
-
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    return { from: yesterday, to: yesterday };
-  }
-
-  const days = preset === "recent7" ? 6 : 29;
-  const from = new Date(today);
-  from.setDate(today.getDate() - days);
-
-  return { from, to: today };
+  return buildCommonPresetDateRange(preset);
 }
 
 export function normalizeRangeDate(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return normalizeCommonRangeDate(date);
 }
 
 export function normalizeNumberBound(value: string | null | undefined) {
@@ -467,52 +452,7 @@ function labelPreferredTime(value?: string | null) {
 }
 
 function buildHospitalEventDBDateState(startDate: string, endDate: string) {
-  const from = startDate ? parseDateParam(startDate) : undefined;
-  const to = endDate ? parseDateParam(endDate) : undefined;
-  const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
-
-  return {
-    range,
-    label: formatDateRange(range),
-  };
-}
-
-function formatDateRange(range?: DateRange) {
-  if (!range?.from) return "";
-
-  const fromDate = formatFilterDisplayDate(range.from);
-  if (!range.to) return fromDate;
-
-  return `${fromDate} ~ ${formatFilterDisplayDate(range.to)}`;
-}
-
-function formatFilterDisplayDate(date: Date) {
-  const year = String(date.getFullYear() % 100).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function parseDateParam(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  if (
-    Number.isNaN(parsedDate.getTime()) ||
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return parsedDate;
+  return buildCommonFilterDateState(startDate, endDate);
 }
 
 function formatLocalDate(date: Date) {

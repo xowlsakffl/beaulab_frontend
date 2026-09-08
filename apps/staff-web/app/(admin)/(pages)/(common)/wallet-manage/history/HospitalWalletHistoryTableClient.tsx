@@ -1,8 +1,9 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { isApiSuccess } from "@beaulab/types";
@@ -10,8 +11,6 @@ import { Button, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { HospitalWalletHistoryDataTable } from "@/components/hospital-wallet/history/HospitalWalletHistoryDataTable";
 import { HospitalWalletHistoryFilterPanel } from "@/components/hospital-wallet/history/HospitalWalletHistoryFilterPanel";
-import { HospitalWalletRefundDocumentsModal } from "@/components/hospital-wallet/history/HospitalWalletRefundDocumentsModal";
-import { HospitalWalletRefundStatusModal } from "@/components/hospital-wallet/history/HospitalWalletRefundStatusModal";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
@@ -35,6 +34,17 @@ import {
   type WalletOperationRow,
 } from "@/lib/hospital-wallet/history";
 import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
+
+const HospitalWalletRefundDocumentsModal = dynamic(() =>
+  import("@/components/hospital-wallet/history/HospitalWalletRefundDocumentsModal").then(
+    (module) => module.HospitalWalletRefundDocumentsModal,
+  ),
+);
+const HospitalWalletRefundStatusModal = dynamic(() =>
+  import("@/components/hospital-wallet/history/HospitalWalletRefundStatusModal").then(
+    (module) => module.HospitalWalletRefundStatusModal,
+  ),
+);
 
 function cloneFilters(filters: WalletOperationFilters): WalletOperationFilters {
   return { ...filters, statuses: [...filters.statuses] };
@@ -73,8 +83,9 @@ export default function HospitalWalletHistoryTableClient() {
   );
   const queryString = React.useMemo(() => buildWalletOperationsQueryString(query), [query]);
 
-  const fetchRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<WalletOperationApiItem[]>("/hospital-wallet-operations", nextQuery, {
+      signal,
       latestKey: "hospital-wallet-operations:list",
     });
 
@@ -95,11 +106,22 @@ export default function HospitalWalletHistoryTableClient() {
     errorMessage: "충전금 내역 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseWalletOperationsTableState(params);
+      setTab(next.tab);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setDraftDateRange(next.draftDateRange);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   React.useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -249,24 +271,28 @@ export default function HospitalWalletHistoryTableClient() {
         onOpenRefundDocuments={setRefundDocumentsRow}
       />
 
-      <HospitalWalletRefundDocumentsModal
-        row={refundDocumentsRow}
-        canManage={canManageRefundDocuments}
-        onClose={() => setRefundDocumentsRow(null)}
-        onUpdated={() => {
-          setRefundDocumentsRow(null);
-          void fetchList(true);
-        }}
-      />
+      {refundDocumentsRow ? (
+        <HospitalWalletRefundDocumentsModal
+          row={refundDocumentsRow}
+          canManage={canManageRefundDocuments}
+          onClose={() => setRefundDocumentsRow(null)}
+          onUpdated={() => {
+            setRefundDocumentsRow(null);
+            void fetchList(true);
+          }}
+        />
+      ) : null}
 
-      <HospitalWalletRefundStatusModal
-        row={refundStatusRow}
-        onClose={() => setRefundStatusRow(null)}
-        onProcessed={() => {
-          setRefundStatusRow(null);
-          void fetchList(true);
-        }}
-      />
+      {refundStatusRow ? (
+        <HospitalWalletRefundStatusModal
+          row={refundStatusRow}
+          onClose={() => setRefundStatusRow(null)}
+          onProcessed={() => {
+            setRefundStatusRow(null);
+            void fetchList(true);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

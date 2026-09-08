@@ -213,6 +213,14 @@
   @apply text-theme-sm relative flex w-full items-center gap-3 rounded-lg px-3 py-2 font-medium;
 }
 
+@utility staff-filter-row {
+  @apply flex min-w-0 items-center gap-3;
+}
+
+@utility staff-filter-inline-label {
+  @apply w-[72px] shrink-0 text-right text-sm font-medium whitespace-nowrap text-gray-600;
+}
+
 @utility menu-item-active {
   @apply bg-white/10 text-white;
 }

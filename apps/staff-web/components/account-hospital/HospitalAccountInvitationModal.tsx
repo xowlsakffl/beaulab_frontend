@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { isApiSuccess } from "@beaulab/types";
 import {
   ArrowLeft,
   Button,
@@ -18,20 +17,16 @@ import {
   Pagination,
   Send,
   SpinnerBlock,
-  useGlobalAlert,
   type DataTableMeta,
   StatusValueBadge,
 } from "@beaulab/ui-admin";
 
-import { api } from "@/lib/common/api";
+import { useHospitalAccountInvitations } from "@/hooks/account-hospital/useHospitalAccountInvitations";
 import {
   formatHospitalAccountInvitationDateTime,
-  HOSPITAL_ACCOUNT_INVITATIONS_PER_PAGE,
   hospitalAccountInvitationStatusColor,
   type HospitalAccountInvitation,
-  type HospitalAccountInvitationSendResponse,
   type HospitalAccountInvitationSourceType,
-  validateHospitalAccountInvitationEmail,
 } from "@/lib/account-hospital/invitation";
 
 type HospitalAccountInvitationModalProps = {
@@ -55,108 +50,40 @@ export function HospitalAccountInvitationModal({
   canSend,
   onClose,
 }: HospitalAccountInvitationModalProps) {
-  const { showAlert } = useGlobalAlert();
   const [flow, setFlow] = React.useState<InvitationModalFlow>("history");
-  const [page, setPage] = React.useState(1);
-  const [invitations, setInvitations] = React.useState<HospitalAccountInvitation[]>([]);
-  const [meta, setMeta] = React.useState<DataTableMeta | null>(null);
-  const [recipientEmail, setRecipientEmail] = React.useState("");
-  const [emailError, setEmailError] = React.useState<string | null>(null);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const {
+    invitations,
+    meta,
+    recipientEmail,
+    setRecipientEmail,
+    emailError,
+    setEmailError,
+    loadError,
+    isLoading,
+    isSubmitting,
+    reset,
+    sendInvitation,
+    setPage,
+  } = useHospitalAccountInvitations({
+    enabled: isOpen && flow === "history",
+    sourceType,
+    sourceId,
+    initialEmail,
+  });
 
   React.useEffect(() => {
     if (!isOpen) return;
 
     setFlow("history");
-    setPage(1);
-    setInvitations([]);
-    setMeta(null);
-    setRecipientEmail(initialEmail?.trim() ?? "");
-    setEmailError(null);
-    setLoadError(null);
-  }, [initialEmail, isOpen, sourceId, sourceType]);
-
-  React.useEffect(() => {
-    if (!isOpen || flow !== "history") return;
-
-    let active = true;
-    setInvitations([]);
-    setMeta(null);
-    setLoadError(null);
-    setIsLoading(true);
-
-    void api
-      .get<HospitalAccountInvitation[]>(
-        "/hospital-account-invitations",
-        {
-          source_type: sourceType,
-          source_id: sourceId,
-          page,
-          per_page: HOSPITAL_ACCOUNT_INVITATIONS_PER_PAGE,
-        },
-        { latestKey: `hospital-account-invitations:${sourceType}:${sourceId}` },
-      )
-      .then((response) => {
-        if (!active) return;
-
-        if (!isApiSuccess(response)) {
-          setLoadError(response.error.message || "계정 생성 이메일 내역을 불러오지 못했습니다.");
-          return;
-        }
-
-        setInvitations(response.data);
-        setMeta((response.meta as DataTableMeta | null) ?? null);
-        setRecipientEmail((current) => current.trim() || response.data[0]?.recipient_email || "");
-      })
-      .catch(() => {
-        if (active) setLoadError("계정 생성 이메일 내역을 불러오는 중 오류가 발생했습니다.");
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [flow, isOpen, page, sourceId, sourceType]);
+    reset();
+  }, [isOpen, reset]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSend || isSubmitting) return;
 
-    const nextEmailError = validateHospitalAccountInvitationEmail(recipientEmail);
-    setEmailError(nextEmailError);
-    if (nextEmailError) return;
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await api.post<HospitalAccountInvitationSendResponse>("/hospital-account-invitations", {
-        source_type: sourceType,
-        source_id: sourceId,
-        recipient_email: recipientEmail.trim(),
-      });
-
-      if (!isApiSuccess(response)) {
-        setEmailError(response.error.message || "계정 생성 이메일을 전송하지 못했습니다.");
-        return;
-      }
-
-      setRecipientEmail(response.data.invitation.recipient_email);
-      setEmailError(null);
-      setPage(1);
+    if (await sendInvitation()) {
       setFlow("history");
-      showAlert({
-        variant: "success",
-        title: "계정 생성 이메일 전송 완료",
-        message: response.data.message || "계정 생성 링크를 전송했습니다.",
-      });
-    } catch {
-      setEmailError("계정 생성 이메일을 전송하는 중 오류가 발생했습니다.");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

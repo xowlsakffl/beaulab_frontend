@@ -3,10 +3,8 @@
 import React from "react";
 import {
   Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
+  DataTableSortHeader,
   FormCheckbox,
   Switch,
   type DataTableColumn,
@@ -23,14 +21,6 @@ import {
 import { resolveHospitalReviewMediaUrl } from "@/lib/hospital-review/list";
 import { reportStatusBadgeColor, reportStatusBadgeLabel } from "@/lib/common/report-status";
 
-function renderSortMark(field: HospitalReviewCommentSortField, sortState: HospitalReviewCommentSortState) {
-  if (!sortState.enabled || sortState.field !== field) {
-    return <ChevronsUpDown className="size-4" />;
-  }
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
-
 function SortHeader({
   field,
   label,
@@ -43,16 +33,15 @@ function SortHeader({
   onToggleSort: (field: HospitalReviewCommentSortField) => void;
 }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
+    <DataTableSortHeader
+      label={label}
+      active={sortState.enabled && sortState.field === field}
+      direction={sortState.direction}
       onClick={() => onToggleSort(field)}
-      className="inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal"
-    >
-      <span className="min-w-0 break-keep">{label}</span>
-      <span className="shrink-0 text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
-    </Button>
+      className={"inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal"}
+      labelClassName="min-w-0 break-keep"
+      iconClassName="shrink-0 text-xs text-gray-400"
+    />
   );
 }
 

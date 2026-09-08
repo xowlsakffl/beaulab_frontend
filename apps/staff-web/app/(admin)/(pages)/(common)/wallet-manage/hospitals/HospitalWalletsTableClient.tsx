@@ -1,15 +1,13 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
 import type { DataTableMeta } from "@beaulab/ui-admin";
 
-import { HospitalWalletNoticeModal } from "@/components/hospital-wallet/list/HospitalWalletNoticeModal";
-import { HospitalWalletRefundModal } from "@/components/hospital-wallet/list/HospitalWalletRefundModal";
-import { HospitalWalletServicePointModal } from "@/components/hospital-wallet/list/HospitalWalletServicePointModal";
 import { HospitalWalletsDataTable } from "@/components/hospital-wallet/list/HospitalWalletsDataTable";
 import { HospitalWalletsFilterPanel } from "@/components/hospital-wallet/list/HospitalWalletsFilterPanel";
 import { useListData } from "@/hooks/common/useListData";
@@ -30,6 +28,22 @@ import {
 } from "@/lib/hospital-wallet/list";
 import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 
+const HospitalWalletNoticeModal = dynamic(() =>
+  import("@/components/hospital-wallet/list/HospitalWalletNoticeModal").then(
+    (module) => module.HospitalWalletNoticeModal,
+  ),
+);
+const HospitalWalletRefundModal = dynamic(() =>
+  import("@/components/hospital-wallet/list/HospitalWalletRefundModal").then(
+    (module) => module.HospitalWalletRefundModal,
+  ),
+);
+const HospitalWalletServicePointModal = dynamic(() =>
+  import("@/components/hospital-wallet/list/HospitalWalletServicePointModal").then(
+    (module) => module.HospitalWalletServicePointModal,
+  ),
+);
+
 export default function HospitalWalletsTableClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,7 +54,7 @@ export default function HospitalWalletsTableClient() {
   const [searchKeyword, setSearchKeyword] = React.useState(initialTableState.searchKeyword);
   const [sortState, setSortState] = React.useState(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
-  const perPage = initialTableState.perPage;
+  const [perPage, setPerPage] = React.useState(initialTableState.perPage);
   const [selectedHospitalIds, setSelectedHospitalIds] = React.useState<Set<number>>(new Set());
   const [recentChanges, setRecentChanges] = React.useState<Map<number, HospitalWalletBalanceChange>>(new Map());
   const canDirectRefund = getSession()?.auth?.permissions?.includes(HOSPITAL_WALLET_PERMISSIONS.refundProcess) ?? false;
@@ -50,8 +64,9 @@ export default function HospitalWalletsTableClient() {
     [page, perPage, searchKeyword, sortState],
   );
   const queryString = React.useMemo(() => buildHospitalWalletsQueryString(query), [query]);
-  const fetchHospitalWalletRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchHospitalWalletRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<HospitalWalletApiItem[]>("/hospital-wallets", nextQuery, {
+      signal,
       latestKey: "hospital-wallets:list",
     });
 
@@ -88,12 +103,20 @@ export default function HospitalWalletsTableClient() {
     errorMessage: "병의원 충전금 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? pathname + "?" + queryString : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalWalletsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setSortState(next.sortState);
+      setPage(next.page);
+      setPerPage(next.perPage);
+      setSelectedHospitalIds(new Set());
+    },
+  });
 
   React.useEffect(() => {
     if (recentChanges.size === 0) return;
@@ -205,35 +228,41 @@ export default function HospitalWalletsTableClient() {
         />
       </div>
 
-      <HospitalWalletServicePointModal
-        isOpen={servicePoint.mode !== null}
-        mode={servicePoint.mode ?? "grant"}
-        selectedRows={selectedRows}
-        insufficientHospitals={servicePoint.insufficientHospitals}
-        submitting={servicePoint.submitting}
-        submitError={servicePoint.submitError}
-        onClose={servicePoint.close}
-        onSubmit={(amount, reason) => void servicePoint.submit(amount, reason)}
-      />
+      {servicePoint.mode ? (
+        <HospitalWalletServicePointModal
+          isOpen
+          mode={servicePoint.mode}
+          selectedRows={selectedRows}
+          insufficientHospitals={servicePoint.insufficientHospitals}
+          submitting={servicePoint.submitting}
+          submitError={servicePoint.submitError}
+          onClose={servicePoint.close}
+          onSubmit={(amount, reason) => void servicePoint.submit(amount, reason)}
+        />
+      ) : null}
 
-      <HospitalWalletNoticeModal
-        isOpen={notice.isOpen}
-        selectedRows={selectedRows}
-        submitting={notice.submitting}
-        submitError={notice.submitError}
-        onClose={notice.close}
-        onSubmit={(payload) => void notice.submit(payload)}
-      />
+      {notice.isOpen ? (
+        <HospitalWalletNoticeModal
+          isOpen
+          selectedRows={selectedRows}
+          submitting={notice.submitting}
+          submitError={notice.submitError}
+          onClose={notice.close}
+          onSubmit={(payload) => void notice.submit(payload)}
+        />
+      ) : null}
 
-      <HospitalWalletRefundModal
-        isOpen={refund.isOpen}
-        hospital={selectedRows[0] ?? null}
-        directProcess={canDirectRefund}
-        submitting={refund.submitting}
-        submitError={refund.submitError}
-        onClose={refund.close}
-        onSubmit={(payload) => void refund.submit(payload)}
-      />
+      {refund.isOpen ? (
+        <HospitalWalletRefundModal
+          isOpen
+          hospital={selectedRows[0] ?? null}
+          directProcess={canDirectRefund}
+          submitting={refund.submitting}
+          submitError={refund.submitError}
+          onClose={refund.close}
+          onSubmit={(payload) => void refund.submit(payload)}
+        />
+      ) : null}
     </>
   );
 }

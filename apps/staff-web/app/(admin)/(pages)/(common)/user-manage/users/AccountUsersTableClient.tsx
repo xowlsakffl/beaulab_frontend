@@ -1,6 +1,6 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -92,8 +92,9 @@ export default function AccountUsersTableClient() {
   const queryString = React.useMemo(() => buildAccountUsersQueryString(query), [query]);
   const activeSummaryKey = appliedFilters.summaryFilter || null;
 
-  const fetchAccountUserRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchAccountUserRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<AccountUserApiItem[]>("/users", nextQuery, {
+      signal,
       latestKey: "account-users:list",
     });
 
@@ -114,12 +115,21 @@ export default function AccountUsersTableClient() {
     errorMessage: "일반회원 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseAccountUsersTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   const fetchSummary = React.useCallback(async () => {
     try {

@@ -3,6 +3,12 @@ import type { DateRange } from "react-day-picker";
 import type { ReportedContentTargetType } from "@/lib/reported-content/detail";
 
 import {
+  STANDARD_DATE_PRESET_OPTIONS,
+  buildFilterDateState as buildCommonFilterDateState,
+  buildPresetDateRange as buildCommonPresetDateRange,
+  mapDateRange as mapCommonDateRange,
+} from "@/lib/common/date-range-filter";
+import {
   formatHospitalReviewCategories,
   formatHospitalReviewDate,
   formatHospitalReviewAuthorName,
@@ -21,14 +27,7 @@ import {
   type HospitalEvaluationCategory,
 } from "@/lib/hospital-evaluation/list";
 import { type TalkCommentApiItem } from "@/lib/talk/comment-list";
-import {
-  buildTalkContentPreview,
-  formatDateRange,
-  formatLocalDate,
-  formatLocalDateTime,
-  normalizeRangeDate,
-  type TalkApiItem,
-} from "@/lib/talk/list";
+import { buildTalkContentPreview, formatLocalDateTime, type TalkApiItem } from "@/lib/talk/list";
 
 export type ReportedContentBoardType =
   "surgery-reviews" | "treatment-reviews" | "hospital-evaluations" | "talks" | "chats";
@@ -350,12 +349,7 @@ export const REPORTED_CONTENT_WARNING_OPTIONS = [
   { value: "NONE", label: "미경고" },
 ];
 
-export const REPORTED_CONTENT_DATE_PRESET_OPTIONS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const REPORTED_CONTENT_DATE_PRESET_OPTIONS = STANDARD_DATE_PRESET_OPTIONS satisfies readonly DatePresetOption[];
 
 export type ReportedContentDatePresetKey = (typeof REPORTED_CONTENT_DATE_PRESET_OPTIONS)[number]["key"];
 
@@ -396,31 +390,11 @@ export function reportedContentStatusOptions(config?: ReportedContentBoardConfig
 }
 
 export function buildReportedContentPresetDateRange(preset: ReportedContentDatePresetKey): DateRange {
-  const today = normalizeRangeDate(new Date());
-
-  if (preset === "today") {
-    return { from: today, to: today };
-  }
-
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    return { from: yesterday, to: yesterday };
-  }
-
-  const days = preset === "recent7" ? 6 : 29;
-  const from = new Date(today);
-  from.setDate(today.getDate() - days);
-
-  return { from, to: today };
+  return buildCommonPresetDateRange(preset);
 }
 
 export function mapDateRangeToReportedContentFilter(range?: DateRange) {
-  return {
-    label: formatDateRange(range),
-    startDate: range?.from ? formatLocalDate(range.from) : "",
-    endDate: range?.to ? formatLocalDate(range.to) : "",
-  };
+  return mapCommonDateRange(range);
 }
 
 export function parseReportedContentTableState(searchParams: URLSearchParams, config?: ReportedContentBoardConfig) {
@@ -888,36 +862,8 @@ function formatTalkDate(value?: string | null) {
   return formatReportedDate(value);
 }
 
-function parseDateParam(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  if (
-    Number.isNaN(parsedDate.getTime()) ||
-    parsedDate.getFullYear() !== year ||
-    parsedDate.getMonth() !== month - 1 ||
-    parsedDate.getDate() !== day
-  ) {
-    return undefined;
-  }
-
-  return parsedDate;
-}
-
 function buildReportedContentDateState(startDate: string, endDate: string) {
-  const from = startDate ? parseDateParam(startDate) : undefined;
-  const to = endDate ? parseDateParam(endDate) : undefined;
-  const range = from || to ? { from: from ?? to, to: to ?? from } : undefined;
-
-  return {
-    range,
-    label: formatDateRange(range),
-  };
+  return buildCommonFilterDateState(startDate, endDate);
 }
 
 function normalizeNumberBound(value: string | null | undefined) {

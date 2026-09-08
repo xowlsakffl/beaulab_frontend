@@ -21,7 +21,7 @@ export function HospitalWalletsFilterPanel({
     <Card className="min-w-0 rounded-xl p-3">
       <div className="flex min-w-0 flex-col gap-3 py-1.5 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="w-[72px] shrink-0 text-right text-sm font-medium whitespace-nowrap text-gray-600">검색</span>
+          <span className="staff-filter-inline-label">검색</span>
           <div className="min-w-0 flex-1">
             <InputField
               value={searchInput}

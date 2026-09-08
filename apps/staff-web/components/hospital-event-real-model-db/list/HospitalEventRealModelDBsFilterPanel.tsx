@@ -47,8 +47,8 @@ export function HospitalEventRealModelDBsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEventRealModelDBsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3";
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const filterRowClass = "staff-filter-row";
+  const inlineLabelClass = "staff-filter-inline-label";
   const isBirthYearRangeInvalid =
     draftFilters.birthYearMin !== "" &&
     draftFilters.birthYearMax !== "" &&

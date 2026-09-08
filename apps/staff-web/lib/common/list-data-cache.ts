@@ -10,6 +10,16 @@ type ListDataCacheEntry = {
 
 const MAX_CACHE_ENTRIES = 100;
 const listDataCache = new Map<string, ListDataCacheEntry>();
+let cacheVersion = 0;
+const listeners = new Set<() => void>();
+
+export const getListDataCacheVersion = () => cacheVersion;
+export function subscribeListDataCache(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 function buildCacheKey(namespace: string, requestKey: string) {
   return `${namespace}:${requestKey}`;
@@ -40,7 +50,9 @@ export function setListDataCache<Row, Meta>(
   namespace: string,
   requestKey: string,
   value: ListDataCacheValue<Row, Meta>,
+  requestVersion: number,
 ) {
+  if (requestVersion !== cacheVersion) return;
   const cacheKey = buildCacheKey(namespace, requestKey);
 
   listDataCache.delete(cacheKey);
@@ -57,16 +69,14 @@ export function setListDataCache<Row, Meta>(
 }
 
 export function invalidateListDataCache(namespace?: string) {
+  cacheVersion += 1;
   if (!namespace) {
     listDataCache.clear();
-    return;
-  }
-
-  const prefix = `${namespace}:`;
-
-  for (const cacheKey of listDataCache.keys()) {
-    if (cacheKey.startsWith(prefix)) {
-      listDataCache.delete(cacheKey);
+  } else {
+    const prefix = `${namespace}:`;
+    for (const cacheKey of listDataCache.keys()) {
+      if (cacheKey.startsWith(prefix)) listDataCache.delete(cacheKey);
     }
   }
+  listeners.forEach((listener) => listener());
 }

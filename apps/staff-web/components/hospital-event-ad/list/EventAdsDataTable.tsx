@@ -3,13 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Button,
   CategoryBadgeList,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
-  Pagination,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -25,12 +21,6 @@ import {
   type EventAdSortState,
 } from "@/lib/hospital-event-ad/list";
 import { pendingReviewAllowStatusRowClass } from "@/lib/common/review-status";
-
-function renderSortMark(field: EventAdSortField, sortState: EventAdSortState) {
-  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
 
 function DetailLink({
   href,
@@ -89,15 +79,12 @@ function buildEventAdColumns({
       headerClassName: `${headerBaseClass} lg:w-[64px]`,
       cellClassName: `${nowrapCellClass} lg:w-[64px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="ID"
+          active={sortState.enabled && sortState.field === "id"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("id")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          ID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.id,
     },
@@ -106,15 +93,12 @@ function buildEventAdColumns({
       headerClassName: `${headerBaseClass} lg:w-[132px]`,
       cellClassName: `${nowrapCellClass} lg:w-[132px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="신청일"
+          active={sortState.enabled && sortState.field === "created_at"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("created_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          신청일 <span className="text-xs text-gray-400">{renderSortMark("created_at", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.requestedAt,
     },
@@ -123,15 +107,12 @@ function buildEventAdColumns({
       headerClassName: `${headerBaseClass} lg:w-[150px]`,
       cellClassName: `${cellBaseClass} lg:w-[150px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="광고위치"
+          active={sortState.enabled && sortState.field === "placement"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("placement")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          광고위치 <span className="text-xs text-gray-400">{renderSortMark("placement", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <div className="min-w-0">
@@ -151,15 +132,12 @@ function buildEventAdColumns({
       headerClassName: `${headerBaseClass} lg:w-[104px]`,
       cellClassName: `${nowrapCellClass} lg:w-[104px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="비용"
+          active={sortState.enabled && sortState.field === "cost"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("cost")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          비용 <span className="text-xs text-gray-400">{renderSortMark("cost", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.costLabel,
     },
@@ -168,15 +146,12 @@ function buildEventAdColumns({
       headerClassName: `${headerBaseClass} lg:w-[144px]`,
       cellClassName: `${cellBaseClass} lg:w-[144px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="광고기간"
+          active={sortState.enabled && sortState.field === "start_at"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("start_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          광고기간 <span className="text-xs text-gray-400">{renderSortMark("start_at", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => <span className="whitespace-pre-line text-gray-700">{row.periodLabel}</span>,
     },
@@ -217,15 +192,12 @@ function buildEventAdColumns({
       headerClassName: `${headerBaseClass} lg:w-[86px]`,
       cellClassName: `${nowrapCellClass} lg:w-[86px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="검수상태"
+          active={sortState.enabled && sortState.field === "allow_status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("allow_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          검수상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -304,16 +276,6 @@ export function EventAdsDataTable({
 
       onGoPage={onGoPage}
       onRowClick={onOpenDetail}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing || !onGoPage}
-          />
-        ) : null
-      }
       emptyText="조건에 맞는 이벤트 광고가 없습니다."
     />
   );

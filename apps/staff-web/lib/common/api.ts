@@ -1,6 +1,7 @@
 import { createClient, type ApiUnauthorizedContext } from "@beaulab/api-client";
 import { sessionStorage } from "@beaulab/auth";
 import { invalidateListDataCache } from "@/lib/common/list-data-cache";
+import { invalidateRequestCaches } from "@/lib/common/request-cache";
 
 export { isApiRequestCanceledError } from "@beaulab/api-client";
 
@@ -21,6 +22,7 @@ function wrapMutation<Args extends unknown[], Result extends { success?: boolean
 
     if (response.success) {
       invalidateListDataCache();
+      invalidateRequestCaches();
       dispatchNavigationBadgeRefresh();
     }
 
@@ -33,6 +35,7 @@ function redirectToLoginAfterUnauthorized(context: ApiUnauthorizedContext) {
 
   sessionStorage.clear(context.actor);
   invalidateListDataCache();
+  invalidateRequestCaches();
 
   if (window.location.pathname === "/login") return;
 

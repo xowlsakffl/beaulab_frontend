@@ -1,6 +1,8 @@
 import type { DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import { STANDARD_DATE_PRESET_OPTIONS, buildPresetDateRange, mapDateRange } from "@/lib/common/date-range-filter";
+
 export type WalletDashboardBalanceType = "ALL" | "PAID" | "SERVICE";
 
 export type WalletDashboardMonthlyItem = {
@@ -93,12 +95,7 @@ export const WALLET_DASHBOARD_BALANCE_TYPES = [
   { value: "SERVICE", label: "무상" },
 ] as const;
 
-export const WALLET_DASHBOARD_DATE_PRESETS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const WALLET_DASHBOARD_DATE_PRESETS = STANDARD_DATE_PRESET_OPTIONS satisfies readonly DatePresetOption[];
 
 export type WalletDashboardDatePresetKey = (typeof WALLET_DASHBOARD_DATE_PRESETS)[number]["key"];
 
@@ -180,39 +177,10 @@ export function formatWalletDashboardCompactPoints(value: number) {
 }
 
 export function buildWalletDashboardDateRange(preset: WalletDashboardDatePresetKey): DateRange {
-  const current = new Date();
-  const today = new Date(current.getFullYear(), current.getMonth(), current.getDate());
-
-  if (preset === "today") return { from: today, to: today };
-  if (preset === "yesterday") {
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return { from: yesterday, to: yesterday };
-  }
-
-  const from = new Date(today);
-  from.setDate(from.getDate() - (preset === "recent7" ? 6 : 29));
-  return { from, to: today };
-}
-
-function localDate(value: Date) {
-  return [
-    value.getFullYear(),
-    String(value.getMonth() + 1).padStart(2, "0"),
-    String(value.getDate()).padStart(2, "0"),
-  ].join("-");
-}
-
-function displayDate(value: Date) {
-  return `${String(value.getFullYear() % 100).padStart(2, "0")}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+  return buildPresetDateRange(preset);
 }
 
 export function mapWalletDashboardDateRange(range?: DateRange) {
-  if (!range?.from) return { label: "전체", startDate: "", endDate: "" };
-
-  return {
-    label: range.to ? `${displayDate(range.from)} ~ ${displayDate(range.to)}` : displayDate(range.from),
-    startDate: localDate(range.from),
-    endDate: range.to ? localDate(range.to) : "",
-  };
+  const mappedRange = mapDateRange(range);
+  return { ...mappedRange, label: mappedRange.label || "전체" };
 }

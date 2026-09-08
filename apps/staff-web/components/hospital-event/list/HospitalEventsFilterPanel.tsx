@@ -96,8 +96,8 @@ export function HospitalEventsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEventsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3";
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const filterRowClass = "staff-filter-row";
+  const inlineLabelClass = "staff-filter-inline-label";
   const handleEnterToSearch = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -305,10 +305,10 @@ function MetricRangeFilter({
   onEnter: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   error?: boolean;
 }) {
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const inlineLabelClass = "staff-filter-inline-label";
 
   return (
-    <div className={["flex min-w-0 items-center gap-3", className].filter(Boolean).join(" ")}>
+    <div className={["staff-filter-row", className].filter(Boolean).join(" ")}>
       <span className={inlineLabelClass}>{label}</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(5.5rem,1fr)_minmax(0,0.75fr)_auto_minmax(0,0.75fr)] items-center gap-2">
         <Select

@@ -6,7 +6,6 @@ import {
   DataTable,
   DataTableSortHeader,
   FormCheckbox,
-  Pagination,
   Spinner,
   type DataTableColumn,
   type DataTableMeta,
@@ -331,16 +330,6 @@ export function HospitalWalletHistoryDataTable({
       error={error}
       meta={meta}
       onGoPage={onGoPage}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing}
-          />
-        ) : null
-      }
       emptyText="조건에 맞는 충전금 내역이 없습니다."
     />
   );

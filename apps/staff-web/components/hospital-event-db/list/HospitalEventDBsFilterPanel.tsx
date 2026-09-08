@@ -64,8 +64,8 @@ export function HospitalEventDBsFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEventDBsFilterPanelProps) {
-  const filterRowClass = "flex min-w-0 items-center gap-3";
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const filterRowClass = "staff-filter-row";
+  const inlineLabelClass = "staff-filter-inline-label";
   const isAmountRangeInvalid =
     draftFilters.amountMin !== "" &&
     draftFilters.amountMax !== "" &&
@@ -234,8 +234,8 @@ function AmountRangeFilter({
   error?: boolean;
 }) {
   return (
-    <div className={["flex min-w-0 items-center gap-3", className].filter(Boolean).join(" ")}>
-      <span className="w-[72px] shrink-0 text-right text-sm font-medium whitespace-nowrap text-gray-600">{label}</span>
+    <div className={["staff-filter-row", className].filter(Boolean).join(" ")}>
+      <span className="staff-filter-inline-label">{label}</span>
       <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_auto_minmax(0,0.8fr)] items-center gap-2">
         <Select
           value={metricValue}

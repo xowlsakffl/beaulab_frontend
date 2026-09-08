@@ -52,24 +52,22 @@ export default function HospitalWalletDashboardClient() {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <SpinnerBlock className="min-h-[calc(100dvh-180px)]" spinnerClassName="size-10" label="충전금 현황 불러오는 중" />
-    );
-  }
-
-  if (error || !overview) {
-    return <LoadErrorState title="충전금 현황을 불러오지 못했습니다." message={error} />;
-  }
-
   return (
     <div className="min-w-0 space-y-4">
-      <HospitalWalletDashboardSummary overview={overview} />
-      <HospitalWalletMonthlyChart items={overview.monthly} />
-      <HospitalWalletCategoryCharts
-        surgery={overview.categoryShares.surgery}
-        treatment={overview.categoryShares.treatment}
-      />
+      {loading ? (
+        <SpinnerBlock className="min-h-[640px]" spinnerClassName="size-10" label="충전금 현황 불러오는 중" />
+      ) : error || !overview ? (
+        <LoadErrorState title="충전금 현황을 불러오지 못했습니다." message={error} />
+      ) : (
+        <>
+          <HospitalWalletDashboardSummary overview={overview} />
+          <HospitalWalletMonthlyChart items={overview.monthly} />
+          <HospitalWalletCategoryCharts
+            surgery={overview.categoryShares.surgery}
+            treatment={overview.categoryShares.treatment}
+          />
+        </>
+      )}
       <HospitalWalletTopHospitals />
     </div>
   );

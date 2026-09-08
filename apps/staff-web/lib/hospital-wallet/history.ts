@@ -1,6 +1,14 @@
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
+import {
+  STANDARD_DATE_PRESET_OPTIONS,
+  buildPresetDateRange,
+  formatLocalDate,
+  mapDateRange,
+  parseDateParam as parseCommonDateParam,
+} from "@/lib/common/date-range-filter";
+
 export type WalletOperationTypeGroup = "CHARGE" | "USAGE" | "REFUND" | "SERVICE" | "ALL";
 export type WalletOperationStatus = "PENDING" | "COMPLETED" | "CANCELED" | "REJECTED" | "FAILED";
 export type WalletOperationSortField = "id" | "created_at" | "amount";
@@ -102,12 +110,7 @@ export const CHARGE_STATUS_OPTIONS: { value: WalletOperationStatus; label: strin
   { value: "CANCELED", label: "취소" },
 ];
 
-export const WALLET_OPERATION_DATE_PRESETS = [
-  { key: "today", label: "오늘" },
-  { key: "yesterday", label: "어제" },
-  { key: "recent7", label: "최근 7일" },
-  { key: "recent30", label: "최근 30일" },
-] as const satisfies readonly DatePresetOption[];
+export const WALLET_OPERATION_DATE_PRESETS = STANDARD_DATE_PRESET_OPTIONS satisfies readonly DatePresetOption[];
 
 export type WalletOperationDatePresetKey = (typeof WALLET_OPERATION_DATE_PRESETS)[number]["key"];
 
@@ -138,22 +141,8 @@ function parseListParam(value: string | null) {
     : [];
 }
 
-function localDate(value: Date) {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function filterDate(value: Date) {
-  return `${String(value.getFullYear() % 100).padStart(2, "0")}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
-}
-
 function parseDateParam(value: string | null) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
-  if (!match) return undefined;
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return Number.isNaN(date.getTime()) ? undefined : date;
+  return parseCommonDateParam(value);
 }
 
 export function normalizeWalletOperation(item: WalletOperationApiItem): WalletOperationRow {
@@ -188,7 +177,7 @@ export function formatWalletOperationDateTime(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
 
-  return `${localDate(date)} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
+  return `${formatLocalDate(date)} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
 }
 
 export function formatWalletOperationPoint(value: number) {
@@ -212,30 +201,14 @@ export function walletOperationStatusColor(status: string): BadgeColor {
 }
 
 export function buildWalletOperationPresetDateRange(preset: WalletOperationDatePresetKey): DateRange {
-  const today = new Date();
-  const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  if (preset === "today") return { from: normalizedToday, to: normalizedToday };
-  if (preset === "yesterday") {
-    const yesterday = new Date(normalizedToday);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return { from: yesterday, to: yesterday };
-  }
-
-  const from = new Date(normalizedToday);
-  from.setDate(from.getDate() - (preset === "recent7" ? 6 : 29));
-  return { from, to: normalizedToday };
+  return buildPresetDateRange(preset);
 }
 
 export function mapWalletOperationDateRange(
   range?: DateRange,
 ): Pick<WalletOperationFilters, "dateRange" | "startDate" | "endDate"> {
-  if (!range?.from) return { dateRange: "", startDate: "", endDate: "" };
-
-  return {
-    dateRange: range.to ? `${filterDate(range.from)} ~ ${filterDate(range.to)}` : filterDate(range.from),
-    startDate: localDate(range.from),
-    endDate: range.to ? localDate(range.to) : "",
-  };
+  const mappedRange = mapDateRange(range);
+  return { dateRange: mappedRange.label, startDate: mappedRange.startDate, endDate: mappedRange.endDate };
 }
 
 export function parseWalletOperationsTableState(searchParams: URLSearchParams) {

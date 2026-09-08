@@ -1,12 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
-  Pagination,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -32,12 +28,6 @@ type HospitalEventDBsDataTableProps = {
   onGoPage: (page: number) => void;
 };
 
-function renderSortMark(field: HospitalEventDBSortField, sortState: HospitalEventDBSortState) {
-  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
-
 function SortHeader({
   label,
   field,
@@ -50,15 +40,12 @@ function SortHeader({
   onToggleSort: (field: HospitalEventDBSortField) => void;
 }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
+    <DataTableSortHeader
+      label={label}
+      active={sortState.enabled && sortState.field === field}
+      direction={sortState.direction}
       onClick={() => onToggleSort(field)}
-      className="inline-flex items-center gap-1 px-0 text-xs"
-    >
-      {label} <span className="text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
-    </Button>
+    />
   );
 }
 
@@ -102,8 +89,8 @@ function buildColumns({
   sortState: HospitalEventDBSortState;
   onToggleSort: (field: HospitalEventDBSortField) => void;
 }): DataTableColumn<HospitalEventDBRow>[] {
-  const headerBaseClass = "px-3 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
-  const cellBaseClass = "px-3 py-4 text-start align-top ";
+  const headerBaseClass = "px-2 py-3 text-left font-semibold text-theme-xs text-gray-600 ";
+  const cellBaseClass = "px-2 py-4 text-start align-top ";
   const nowrapCellClass = `${cellBaseClass} whitespace-nowrap`;
 
   return [
@@ -263,16 +250,6 @@ export function HospitalEventDBsDataTable({
       meta={meta}
 
       onGoPage={onGoPage}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing}
-          />
-        ) : null
-      }
     />
   );
 }

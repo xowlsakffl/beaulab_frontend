@@ -73,12 +73,12 @@ export function NoticesFilterPanel({
   onResetFilters,
   onOpenCreate,
 }: NoticesFilterPanelProps) {
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
+  const inlineLabelClass = "staff-filter-inline-label";
 
   return (
     <Card className="min-w-0 rounded-xl p-3">
       <div className="grid min-w-0 gap-x-4 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>기간</span>
           <DateRangeFilterDropdown
             label="등록일"
@@ -99,7 +99,7 @@ export function NoticesFilterPanel({
             onConfirm={onToggleDatePicker}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>채널</span>
           <CheckboxFilterDropdown
             label="채널"
@@ -114,7 +114,7 @@ export function NoticesFilterPanel({
             allLabel="전체 선택"
           />
         </div>
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="staff-filter-row">
           <span className={inlineLabelClass}>공개여부</span>
           <CheckboxFilterDropdown
             label="공개여부"

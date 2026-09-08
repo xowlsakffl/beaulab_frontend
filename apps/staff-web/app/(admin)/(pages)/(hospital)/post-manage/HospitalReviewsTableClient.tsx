@@ -1,6 +1,6 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import dynamic from "next/dynamic";
@@ -23,12 +23,11 @@ import {
 import { HospitalReviewsDataTable } from "@/components/hospital-review/list/HospitalReviewsDataTable";
 import { HospitalReviewsFilterPanel } from "@/components/hospital-review/list/HospitalReviewsFilterPanel";
 import { VisibilityConfirmModal } from "@/components/common/VisibilityActionButtons";
+import { usePostListVisibility } from "@/hooks/post-content/usePostListVisibility";
+import { useReviewCategoryFilters } from "@/hooks/hospital-review/useReviewCategoryFilters";
 import { useListData } from "@/hooks/common/useListData";
 import { api } from "@/lib/common/api";
 import { getSession } from "@/lib/common/auth/session";
-import { CATEGORY_DOMAINS, type CategoryApiItem } from "@/lib/common/category";
-import { fetchCategorySelectorItems } from "@/lib/common/category-selector";
-import { applyVisibilityStatusToRows } from "@/lib/common/visibility-row";
 import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import {
   DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT,
@@ -77,35 +76,10 @@ const HospitalReviewCommentsFilterPanel = dynamic(() =>
   ),
 );
 
-type HospitalReviewVisibilityUpdateResponse = {
-  updated_count: number;
-  status: string;
-  ids: number[];
-};
-
-type HospitalReviewVisibilityUpdatePayload = {
-  ids: number[];
-  status: "ACTIVE" | "INACTIVE";
-  hidden_reason?: string;
-};
-
-type PendingVisibilityChange = {
-  board: HospitalReviewBoard;
-  source: "bulk" | "row";
-  ids: number[];
-  status: "ACTIVE" | "INACTIVE";
-  hiddenReason?: string;
-} | null;
-
 type HospitalReviewBoard = "posts" | "comments";
 
 type HospitalReviewsTableClientProps = {
   type: HospitalReviewBoardType;
-};
-
-type SelectOption = {
-  value: string;
-  label: string;
 };
 
 export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientProps) {
@@ -138,19 +112,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     initialState.commentSortState,
   );
   const [page, setPage] = React.useState(initialTableState.page);
-  const [actionError, setActionError] = React.useState<string | null>(null);
   const [isMetricRequiredModalOpen, setIsMetricRequiredModalOpen] = React.useState(false);
-  const [bulkUpdating, setBulkUpdating] = React.useState(false);
-  const [majorCategoryItems, setMajorCategoryItems] = React.useState<CategoryApiItem[]>([]);
-  const [middleCategoryItems, setMiddleCategoryItems] = React.useState<CategoryApiItem[]>([]);
-  const [smallCategoryItems, setSmallCategoryItems] = React.useState<CategoryApiItem[]>([]);
-  const [selectedIds, setSelectedIds] = React.useState<Set<number>>(() => new Set());
-  const [rowVisibilityUpdatingIds, setRowVisibilityUpdatingIds] = React.useState<Set<number>>(() => new Set());
-  const [pendingVisibilityChange, setPendingVisibilityChange] = React.useState<PendingVisibilityChange>(null);
   const ratingDropdownRef = React.useRef<HTMLDivElement | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
-  const middleCategoryParentRef = React.useRef("");
-  const smallCategoryParentRef = React.useRef("");
 
   const query = React.useMemo(
     () =>
@@ -185,8 +149,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   }, [activeBoard, commentQuery, query]);
 
   const fetchReviewRows = React.useCallback(
-    async (nextQuery: typeof query) => {
+    async (nextQuery: typeof query, signal: AbortSignal) => {
       const response = await api.get<HospitalReviewApiItem[]>("/hospital-reviews", nextQuery, {
+        signal,
         latestKey: `hospital-reviews:${type}:posts`,
       });
 
@@ -203,8 +168,9 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   );
 
   const fetchReviewCommentRows = React.useCallback(
-    async (nextQuery: typeof commentQuery) => {
+    async (nextQuery: typeof commentQuery, signal: AbortSignal) => {
       const response = await api.get<HospitalReviewCommentApiItem[]>("/hospital-review-comments", nextQuery, {
+        signal,
         latestKey: `hospital-reviews:${type}:comments`,
       });
 
@@ -222,7 +188,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
 
   const {
     rows,
-    setRows,
+    fetchList: refreshReviews,
     meta: reviewMeta,
     error: reviewError,
     loading: reviewLoading,
@@ -238,7 +204,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
 
   const {
     rows: commentRows,
-    setRows: setCommentRows,
+    fetchList: refreshComments,
     meta: commentMeta,
     error: commentError,
     loading: commentLoading,
@@ -257,193 +223,58 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
   const loading = activeBoard === "comments" ? commentLoading : reviewLoading;
   const refreshing = activeBoard === "comments" ? commentRefreshing : reviewRefreshing;
 
-  const majorCategoryOptions = React.useMemo<SelectOption[]>(
-    () => [
-      { value: "", label: "전체" },
-      ...majorCategoryItems.map((item) => ({
-        value: String(item.id),
-        label: item.name,
-      })),
-    ],
-    [majorCategoryItems],
-  );
-  const middleCategoryOptions = React.useMemo<SelectOption[]>(() => {
-    if (!draftFilters.majorCategoryId) {
-      return [{ value: "", label: "대분류 선택" }];
-    }
-
-    return [
-      { value: "", label: "전체" },
-      ...middleCategoryItems.map((item) => ({
-        value: String(item.id),
-        label: item.name,
-      })),
-    ];
-  }, [draftFilters.majorCategoryId, middleCategoryItems]);
-  const smallCategoryOptions = React.useMemo<SelectOption[]>(() => {
-    if (!draftFilters.middleCategoryId) {
-      return [{ value: "", label: "중분류 선택" }];
-    }
-
-    return [
-      { value: "", label: "전체" },
-      ...smallCategoryItems.map((item) => ({
-        value: String(item.id),
-        label: item.name,
-      })),
-    ];
-  }, [draftFilters.middleCategoryId, smallCategoryItems]);
-
-  const fetchCategoryItems = React.useCallback(
-    async (parentId?: string | number | null, perPage = 100): Promise<CategoryApiItem[]> => {
-      return fetchCategorySelectorItems({
-        domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
-        usage: parentId !== undefined && parentId !== null && String(parentId) !== "" ? null : config.categoryUsage,
-        parentId: parentId !== undefined && parentId !== null && String(parentId) !== "" ? parentId : null,
-        perPage,
-      });
+  const {
+    selectedIds,
+    setSelectedIds,
+    actionError,
+    bulkUpdating,
+    rowVisibilityUpdatingIds,
+    pendingVisibilityChange,
+    resetVisibility,
+    toggleRow: toggleRowById,
+    toggleAllRows,
+    requestBulkVisibilityChange,
+    requestRowVisibilityChange: requestVisibilityById,
+    closeVisibilityConfirmModal,
+    updatePendingHiddenReason,
+    confirmVisibilityChange,
+  } = usePostListVisibility({
+    scopeKey: `hospital-reviews:${type}:${activeBoard}`,
+    board: activeBoard,
+    rows: activeBoard === "comments" ? commentRows : rows,
+    statusPath: activeBoard === "comments" ? "/hospital-review-comments/status" : "/hospital-reviews/status",
+    canUpdateStatus,
+    refresh: () => {
+      void (activeBoard === "comments" ? refreshComments : refreshReviews)(true);
     },
-    [config.categoryUsage],
-  );
+  });
+  const {
+    majorCategoryOptions,
+    middleCategoryOptions,
+    smallCategoryOptions,
+    changeMajorCategory,
+    changeMiddleCategory,
+    changeSmallCategory,
+  } = useReviewCategoryFilters(config.categoryUsage, draftFilters, setDraftFilters, setAppliedFilters);
 
-  const loadMiddleCategories = React.useCallback(
-    async (parentId: string) => {
-      middleCategoryParentRef.current = parentId;
-      setMiddleCategoryItems([]);
-
-      if (!parentId) return;
-
-      try {
-        const items = await fetchCategoryItems(parentId);
-        if (middleCategoryParentRef.current === parentId) {
-          setMiddleCategoryItems(items);
-        }
-      } catch {
-        if (middleCategoryParentRef.current === parentId) {
-          setMiddleCategoryItems([]);
-        }
-      }
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalReviewsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+      setActiveBoard(params.get("board") === "comments" ? "comments" : "posts");
+      setCommentSortState(parseHospitalReviewCommentSortState(params));
+      setSelectedIds(new Set());
     },
-    [fetchCategoryItems],
-  );
-
-  const loadSmallCategories = React.useCallback(
-    async (parentId: string) => {
-      smallCategoryParentRef.current = parentId;
-      setSmallCategoryItems([]);
-
-      if (!parentId) return;
-
-      try {
-        const items = await fetchCategoryItems(parentId);
-        if (smallCategoryParentRef.current === parentId) {
-          setSmallCategoryItems(items);
-        }
-      } catch {
-        if (smallCategoryParentRef.current === parentId) {
-          setSmallCategoryItems([]);
-        }
-      }
-    },
-    [fetchCategoryItems],
-  );
-
-  React.useEffect(() => {
-    let cancelled = false;
-
-    async function fetchRootCategories() {
-      try {
-        const items = await fetchCategoryItems(null);
-        if (cancelled) return;
-
-        middleCategoryParentRef.current = "";
-        smallCategoryParentRef.current = "";
-        setMajorCategoryItems(items);
-        setMiddleCategoryItems([]);
-        setSmallCategoryItems([]);
-      } catch {
-        if (!cancelled) {
-          setMajorCategoryItems([]);
-          setMiddleCategoryItems([]);
-          setSmallCategoryItems([]);
-        }
-      }
-    }
-
-    void fetchRootCategories();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchCategoryItems]);
-
-  React.useEffect(() => {
-    if (majorCategoryItems.length === 0 && middleCategoryItems.length === 0 && smallCategoryItems.length === 0) return;
-
-    const hydrateCategorySelection = (filters: HospitalReviewFilters): HospitalReviewFilters => {
-      if (
-        filters.majorCategoryId ||
-        filters.middleCategoryId ||
-        filters.smallCategoryId ||
-        filters.categoryIds.length === 0
-      ) {
-        return filters;
-      }
-
-      const selectedCategoryId = filters.categoryIds[0];
-      const majorItem = majorCategoryItems.find((item) => String(item.id) === selectedCategoryId);
-      if (majorItem) {
-        return {
-          ...filters,
-          majorCategoryId: selectedCategoryId,
-          middleCategoryId: "",
-          smallCategoryId: "",
-        };
-      }
-
-      const smallItem = smallCategoryItems.find((item) => String(item.id) === selectedCategoryId);
-      if (smallItem) {
-        const parentMiddleItem = middleCategoryItems.find((item) => Number(item.id) === Number(smallItem.parent_id));
-
-        return {
-          ...filters,
-          majorCategoryId: parentMiddleItem?.parent_id ? String(parentMiddleItem.parent_id) : "",
-          middleCategoryId: smallItem.parent_id ? String(smallItem.parent_id) : "",
-          smallCategoryId: selectedCategoryId,
-        };
-      }
-
-      const middleItem = middleCategoryItems.find((item) => String(item.id) === selectedCategoryId);
-      if (!middleItem) return filters;
-
-      return {
-        ...filters,
-        majorCategoryId: middleItem.parent_id ? String(middleItem.parent_id) : "",
-        middleCategoryId: selectedCategoryId,
-        smallCategoryId: "",
-      };
-    };
-
-    setDraftFilters((prev) => hydrateCategorySelection(prev));
-    setAppliedFilters((prev) => hydrateCategorySelection(prev));
-  }, [majorCategoryItems, middleCategoryItems, smallCategoryItems]);
-
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
-
-  React.useEffect(() => {
-    setSelectedIds((prev) => {
-      const activeRows = activeBoard === "comments" ? commentRows : rows;
-      const selectableIds = new Set(activeRows.filter((row) => !row.visibilityChangeLocked).map((row) => row.id));
-      const next = new Set(Array.from(prev).filter((id) => selectableIds.has(id)));
-
-      return next.size === prev.size ? prev : next;
-    });
-  }, [activeBoard, commentRows, rows]);
+  });
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
@@ -496,7 +327,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     });
     setPage(1);
     setSelectedIds(new Set());
-  }, [activeBoard, draftFilters, searchInput]);
+  }, [setSelectedIds, activeBoard, draftFilters, searchInput]);
 
   const resetFilters = React.useCallback(() => {
     setSearchInput("");
@@ -510,7 +341,7 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     setIsDatePickerOpen(false);
     setPage(1);
     setSelectedIds(new Set());
-  }, []);
+  }, [setSelectedIds]);
 
   const applyDateRange = React.useCallback((nextRange?: DateRange) => {
     const mapped = mapDateRangeToHospitalReviewFilter(nextRange);
@@ -538,97 +369,23 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
     }));
   }, []);
 
-  const changeMajorCategory = React.useCallback(
-    (value: string) => {
-      void loadMiddleCategories(value);
-      void loadSmallCategories("");
-
-      setDraftFilters((prev) => ({
-        ...prev,
-        majorCategoryId: value,
-        middleCategoryId: "",
-        smallCategoryId: "",
-        categoryIds: value ? [value] : [],
-      }));
+  const toggleSort = React.useCallback(
+    (field: HospitalReviewSortField) => {
+      setSortState((prev) => nextHospitalReviewSortState(prev, field));
+      setPage(1);
+      setSelectedIds(new Set());
     },
-    [loadMiddleCategories, loadSmallCategories],
+    [setSelectedIds],
   );
 
-  const changeMiddleCategory = React.useCallback(
-    (value: string) => {
-      void loadSmallCategories(value);
-
-      setDraftFilters((prev) => {
-        if (!prev.majorCategoryId) {
-          return {
-            ...prev,
-            middleCategoryId: "",
-            smallCategoryId: "",
-            categoryIds: [],
-          };
-        }
-
-        if (!value) {
-          return {
-            ...prev,
-            middleCategoryId: "",
-            smallCategoryId: "",
-            categoryIds: prev.majorCategoryId ? [prev.majorCategoryId] : [],
-          };
-        }
-
-        const middleItem = middleCategoryItems.find((item) => String(item.id) === value);
-        const majorCategoryId = middleItem?.parent_id ? String(middleItem.parent_id) : prev.majorCategoryId;
-
-        return {
-          ...prev,
-          majorCategoryId,
-          middleCategoryId: value,
-          smallCategoryId: "",
-          categoryIds: [value],
-        };
-      });
+  const toggleCommentSort = React.useCallback(
+    (field: HospitalReviewCommentSortField) => {
+      setCommentSortState((prev) => nextHospitalReviewCommentSortState(prev, field));
+      setPage(1);
+      setSelectedIds(new Set());
     },
-    [loadSmallCategories, middleCategoryItems],
+    [setSelectedIds],
   );
-
-  const changeSmallCategory = React.useCallback((value: string) => {
-    setDraftFilters((prev) => {
-      if (!prev.middleCategoryId) {
-        return {
-          ...prev,
-          smallCategoryId: "",
-          categoryIds: prev.majorCategoryId ? [prev.middleCategoryId || prev.majorCategoryId] : [],
-        };
-      }
-
-      if (!value) {
-        return {
-          ...prev,
-          smallCategoryId: "",
-          categoryIds: [prev.middleCategoryId],
-        };
-      }
-
-      return {
-        ...prev,
-        smallCategoryId: value,
-        categoryIds: [value],
-      };
-    });
-  }, []);
-
-  const toggleSort = React.useCallback((field: HospitalReviewSortField) => {
-    setSortState((prev) => nextHospitalReviewSortState(prev, field));
-    setPage(1);
-    setSelectedIds(new Set());
-  }, []);
-
-  const toggleCommentSort = React.useCallback((field: HospitalReviewCommentSortField) => {
-    setCommentSortState((prev) => nextHospitalReviewCommentSortState(prev, field));
-    setPage(1);
-    setSelectedIds(new Set());
-  }, []);
 
   const changeBoard = React.useCallback(
     (board: HospitalReviewBoard) => {
@@ -649,176 +406,22 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
       setCommentSortState(DEFAULT_HOSPITAL_REVIEW_COMMENT_SORT);
       setPage(1);
       setSelectedIds(new Set());
-      setRowVisibilityUpdatingIds(new Set());
-      setPendingVisibilityChange(null);
-      setActionError(null);
+      resetVisibility();
       if (board === "comments") resetCommentList();
       else resetReviewList();
     },
-    [activeBoard, appliedFilters.authorId, resetCommentList, resetReviewList],
+    [setSelectedIds, activeBoard, appliedFilters.authorId, resetCommentList, resetReviewList, resetVisibility],
   );
 
-  const toggleRow = React.useCallback((row: HospitalReviewRow, checked: boolean) => {
-    if (row.visibilityChangeLocked) return;
-
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(row.id);
-      else next.delete(row.id);
-      return next;
-    });
-  }, []);
-
-  const toggleCommentRow = React.useCallback((row: HospitalReviewCommentRow, checked: boolean) => {
-    if (row.visibilityChangeLocked) return;
-
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(row.id);
-      else next.delete(row.id);
-      return next;
-    });
-  }, []);
-
-  const toggleAllRows = React.useCallback(
-    (checked: boolean) => {
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        const activeRows = activeBoard === "comments" ? commentRows : rows;
-        const selectableIds = activeRows.filter((row) => !row.visibilityChangeLocked).map((row) => row.id);
-
-        if (checked) {
-          selectableIds.forEach((id) => next.add(id));
-        } else {
-          selectableIds.forEach((id) => next.delete(id));
-        }
-
-        return next;
-      });
-    },
-    [activeBoard, commentRows, rows],
+  const toggleRow = React.useCallback(
+    (row: HospitalReviewRow | HospitalReviewCommentRow, checked: boolean) => toggleRowById(row.id, checked),
+    [toggleRowById],
   );
-
-  const requestBulkVisibilityChange = React.useCallback(
-    (status: "ACTIVE" | "INACTIVE") => {
-      if (selectedIds.size === 0) return;
-
-      const activeRows = activeBoard === "comments" ? commentRows : rows;
-      const currentRowsById = new Map(activeRows.map((row) => [row.id, row]));
-      const ids = Array.from(selectedIds).filter((id) => !currentRowsById.get(id)?.visibilityChangeLocked);
-      if (ids.length === 0) return;
-
-      setActionError(null);
-      setPendingVisibilityChange({
-        board: activeBoard,
-        source: "bulk",
-        ids,
-        status,
-        hiddenReason: "",
-      });
-    },
-    [activeBoard, commentRows, rows, selectedIds],
+  const requestRowVisibilityChange = React.useCallback(
+    (row: HospitalReviewRow | HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") =>
+      requestVisibilityById(row.id, status),
+    [requestVisibilityById],
   );
-
-  const requestRowVisibilityChange = React.useCallback((row: HospitalReviewRow, status: "ACTIVE" | "INACTIVE") => {
-    if (row.visibilityChangeLocked || row.status === status) return;
-
-    setActionError(null);
-    setPendingVisibilityChange({
-      board: "posts",
-      source: "row",
-      ids: [row.id],
-      status,
-      hiddenReason: "",
-    });
-  }, []);
-
-  const requestCommentRowVisibilityChange = React.useCallback(
-    (row: HospitalReviewCommentRow, status: "ACTIVE" | "INACTIVE") => {
-      if (row.visibilityChangeLocked || row.status === status) return;
-
-      setActionError(null);
-      setPendingVisibilityChange({
-        board: "comments",
-        source: "row",
-        ids: [row.id],
-        status,
-        hiddenReason: "",
-      });
-    },
-    [],
-  );
-
-  const closeVisibilityConfirmModal = React.useCallback(() => {
-    if (bulkUpdating || rowVisibilityUpdatingIds.size > 0) return;
-    setPendingVisibilityChange(null);
-  }, [bulkUpdating, rowVisibilityUpdatingIds.size]);
-
-  const updatePendingHiddenReason = React.useCallback((value: string) => {
-    setPendingVisibilityChange((prev) => (prev ? { ...prev, hiddenReason: value } : prev));
-  }, []);
-
-  const confirmVisibilityChange = React.useCallback(async () => {
-    if (!pendingVisibilityChange) return;
-
-    const { board, source, ids, status, hiddenReason } = pendingVisibilityChange;
-    const isCommentChange = board === "comments";
-    const payload: HospitalReviewVisibilityUpdatePayload = {
-      ids,
-      status,
-      ...(status === "INACTIVE" && hiddenReason?.trim() ? { hidden_reason: hiddenReason.trim() } : {}),
-    };
-
-    if (source === "bulk") {
-      setBulkUpdating(true);
-    } else {
-      setRowVisibilityUpdatingIds((prev) => {
-        const next = new Set(prev);
-        ids.forEach((id) => next.add(id));
-        return next;
-      });
-    }
-
-    setActionError(null);
-
-    try {
-      const response = await api.patch<HospitalReviewVisibilityUpdateResponse>(
-        isCommentChange ? "/hospital-review-comments/status" : "/hospital-reviews/status",
-        payload,
-      );
-
-      if (!isApiSuccess(response)) {
-        setActionError(
-          response.error.message || `${isCommentChange ? "후기 댓글" : "후기"} 노출 상태 변경에 실패했습니다.`,
-        );
-        return;
-      }
-
-      setPendingVisibilityChange(null);
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        ids.forEach((id) => next.delete(id));
-        return next;
-      });
-      if (isCommentChange) {
-        setCommentRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
-      } else {
-        setRows((prev) => applyVisibilityStatusToRows(prev, ids, status, appliedFilters.visibilityStatus));
-      }
-    } catch {
-      setActionError(`${isCommentChange ? "후기 댓글" : "후기"} 노출 상태 변경 중 오류가 발생했습니다.`);
-    } finally {
-      if (source === "bulk") {
-        setBulkUpdating(false);
-      } else {
-        setRowVisibilityUpdatingIds((prev) => {
-          const next = new Set(prev);
-          ids.forEach((id) => next.delete(id));
-          return next;
-        });
-      }
-    }
-  }, [appliedFilters.visibilityStatus, pendingVisibilityChange, setCommentRows, setRows]);
 
   const openReviewDetail = React.useCallback(
     (row: HospitalReviewRow) => {
@@ -982,10 +585,10 @@ export function HospitalReviewsTableClient({ type }: HospitalReviewsTableClientP
           onToggleSort={toggleCommentSort}
 
           onGoPage={setPage}
-          onToggleRow={toggleCommentRow}
+          onToggleRow={toggleRow}
           onToggleAllRows={toggleAllRows}
           onBulkVisibilityChange={requestBulkVisibilityChange}
-          onRowVisibilityChange={requestCommentRowVisibilityChange}
+          onRowVisibilityChange={requestRowVisibilityChange}
         />
       )}
 

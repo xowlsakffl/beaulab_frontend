@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Button,
@@ -15,16 +16,13 @@ import {
 } from "@beaulab/ui-admin";
 import { isApiSuccess } from "@beaulab/types";
 
-import { MediaPreviewModal } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { HospitalEventAppPreviewModal } from "@/components/hospital-event/form/HospitalEventAppPreviewModal";
 import { EventInfoCard } from "@/components/hospital-event/form/HospitalEventInfoCard";
 import { HospitalEventMediaCard } from "@/components/hospital-event/form/HospitalEventMediaFields";
 import {
   CategoryDoctorPickerCard,
   HospitalPickerCard,
 } from "@/components/hospital-event/form/HospitalEventPickerCards";
-import { UploadWarningModal } from "@/components/hospital-event/form/HospitalEventUploadWarningModal";
 import { useHospitalEventCategorySelection } from "@/hooks/hospital-event/useHospitalEventCategorySelection";
 import { useHospitalEventFieldFocus } from "@/hooks/hospital-event/useHospitalEventFieldFocus";
 import { useHospitalEventMediaState } from "@/hooks/hospital-event/useHospitalEventMediaState";
@@ -47,9 +45,24 @@ import {
   type HospitalEventFormValues,
   type HospitalEventOptionForm,
 } from "@/lib/hospital-event/form";
+
 import { type HospitalEventApiItem } from "@/lib/hospital-event/list";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
 import type { VideoDoctorOption } from "@/lib/video/form";
+
+const MediaPreviewModal = dynamic(() =>
+  import("@/components/common/MediaPreviewModal").then((module) => module.MediaPreviewModal),
+);
+const HospitalEventAppPreviewModal = dynamic(() =>
+  import("@/components/hospital-event/form/HospitalEventAppPreviewModal").then(
+    (module) => module.HospitalEventAppPreviewModal,
+  ),
+);
+const UploadWarningModal = dynamic(() =>
+  import("@/components/hospital-event/form/HospitalEventUploadWarningModal").then(
+    (module) => module.UploadWarningModal,
+  ),
+);
 
 const EVENT_CREATE_FORM_ID = "hospital-event-create-form";
 
@@ -534,19 +547,23 @@ function HospitalEventsFormClient({
         </ModalPanel>
       </Modal>
 
-      <HospitalEventAppPreviewModal
-        isOpen={isAppPreviewOpen}
-        onClose={closeAppPreview}
-        form={form}
-        thumbnailImage={thumbnailImage}
-        eventPageImage={eventPageImage}
-        existingThumbnailImage={existingThumbnailImage}
-        existingEventPageImage={existingEventPageImage}
-        discountRate={discountRate}
-      />
+      {isAppPreviewOpen ? (
+        <HospitalEventAppPreviewModal
+          isOpen
+          onClose={closeAppPreview}
+          form={form}
+          thumbnailImage={thumbnailImage}
+          eventPageImage={eventPageImage}
+          existingThumbnailImage={existingThumbnailImage}
+          existingEventPageImage={existingEventPageImage}
+          discountRate={discountRate}
+        />
+      ) : null}
 
-      <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={closePreviewMedia} />
-      <UploadWarningModal message={uploadWarning} onClose={closeUploadWarning} />
+      {previewMedia ? (
+        <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={closePreviewMedia} />
+      ) : null}
+      {uploadWarning ? <UploadWarningModal message={uploadWarning} onClose={closeUploadWarning} /> : null}
     </>
   );
 }

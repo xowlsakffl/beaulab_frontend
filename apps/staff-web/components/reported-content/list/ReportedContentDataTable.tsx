@@ -2,11 +2,8 @@
 
 import React from "react";
 import {
-  Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -43,14 +40,6 @@ type ReportedContentDataTableProps = {
   onOpenProcess?: (row: ReportedContentRow) => void;
 };
 
-function renderSortMark(field: ReportedContentSortField, sortState: ReportedContentSortState) {
-  if (!sortState.enabled || sortState.field !== field) {
-    return <ChevronsUpDown className="size-4" />;
-  }
-
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
-
 function loadingLabelForKind(kind: ReportedContentKind) {
   if (kind === "chat") return "신고 채팅 목록 불러오는 중";
   if (kind === "review-comment" || kind === "talk-comment") return "신고 댓글 목록 불러오는 중";
@@ -70,16 +59,15 @@ function SortHeader({
   onToggleSort: (field: ReportedContentSortField) => void;
 }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
+    <DataTableSortHeader
+      label={label}
+      active={sortState.enabled && sortState.field === field}
+      direction={sortState.direction}
       onClick={() => onToggleSort(field)}
-      className="inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal"
-    >
-      <span className="min-w-0 break-keep">{label}</span>
-      <span className="shrink-0 text-xs text-gray-400">{renderSortMark(field, sortState)}</span>
-    </Button>
+      className={"inline-flex min-w-0 items-center gap-1 px-0 text-xs leading-tight whitespace-normal"}
+      labelClassName="min-w-0 break-keep"
+      iconClassName="shrink-0 text-xs text-gray-400"
+    />
   );
 }
 

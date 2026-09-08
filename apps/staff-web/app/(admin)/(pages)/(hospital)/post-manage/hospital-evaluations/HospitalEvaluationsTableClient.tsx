@@ -1,6 +1,6 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -96,8 +96,9 @@ export function HospitalEvaluationsTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEvaluationsQueryString(query), [query]);
 
-  const fetchEvaluationRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchEvaluationRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<HospitalEvaluationApiItem[]>("/hospital-evaluations", nextQuery, {
+      signal,
       latestKey: "hospital-evaluations:list",
     });
 
@@ -150,12 +151,22 @@ export function HospitalEvaluationsTableClient() {
     };
   }, []);
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalEvaluationsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+      setSelectedIds(new Set());
+    },
+  });
 
   React.useEffect(() => {
     setSelectedIds((prev) => {

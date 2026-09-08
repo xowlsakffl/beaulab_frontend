@@ -63,7 +63,7 @@ type DataTableBodyContentProps<T> = {
   skeletonRows: number;
   rowClickable: boolean;
   onRowClick: (row: T) => void;
-  getRowClassName: (row: T) => string | undefined;
+  getRowClassName?: (row: T) => string | undefined;
 };
 
 function DataTableBodyContentComponent<T>({
@@ -128,7 +128,7 @@ function DataTableBodyContentComponent<T>({
       {!loading && !error
         ? rows.map((row) => {
             const rowClassName =
-              [rowClickable ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName(row) ?? ""]
+              [rowClickable ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName?.(row) ?? ""]
                 .filter(Boolean)
                 .join(" ") || undefined;
 
@@ -178,16 +178,10 @@ export function DataTable<T>({
     Boolean(meta) || footerLeft !== undefined || footerCenter !== undefined || footerRight !== undefined;
   const handlePageChange = onGoPage ?? (() => undefined);
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
-  const getRowKeyRef = React.useRef(getRowKey);
   const onRowClickRef = React.useRef(onRowClick);
-  const getRowClassNameRef = React.useRef(getRowClassName);
   const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
-  getRowKeyRef.current = getRowKey;
   onRowClickRef.current = onRowClick;
-  getRowClassNameRef.current = getRowClassName;
-  const resolveRowKey = React.useCallback((row: T) => getRowKeyRef.current(row), []);
   const handleRowClick = React.useCallback((row: T) => onRowClickRef.current?.(row), []);
-  const resolveRowClassName = React.useCallback((row: T) => getRowClassNameRef.current?.(row), []);
   const defaultFooterSummary = meta ? (
     <div className="text-sm text-gray-500">
       총 {meta.total.toLocaleString()}개 · {meta.current_page} / {Math.max(1, totalPages)} 페이지
@@ -284,7 +278,7 @@ export function DataTable<T>({
             <DataTableBodyContent
               columns={columns}
               rows={rows}
-              getRowKey={resolveRowKey}
+              getRowKey={getRowKey}
               loading={loading}
               loadingVariant={loadingVariant}
               loadingLabel={loadingLabel}
@@ -293,7 +287,7 @@ export function DataTable<T>({
               skeletonRows={skeletonRows}
               rowClickable={Boolean(onRowClick)}
               onRowClick={handleRowClick}
-              getRowClassName={resolveRowClassName}
+              getRowClassName={getRowClassName}
             />
           </Table>
         </div>

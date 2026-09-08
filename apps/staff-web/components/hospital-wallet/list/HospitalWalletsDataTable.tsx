@@ -10,7 +10,6 @@ import {
   DataTable,
   DataTableSortHeader,
   FormCheckbox,
-  Pagination,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -303,16 +302,6 @@ export function HospitalWalletsDataTable({
       error={error}
       meta={meta}
       onGoPage={onGoPage}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing}
-          />
-        ) : null
-      }
       emptyText="조건에 맞는 병의원 충전금 정보가 없습니다."
       rightActions={
         <div className="flex w-full flex-wrap items-center justify-end gap-2">

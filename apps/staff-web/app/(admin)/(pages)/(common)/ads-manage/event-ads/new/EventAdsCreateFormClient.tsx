@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 import { isApiSuccess } from "@beaulab/types";
 
 import { LoadErrorState } from "@/components/common/LoadErrorState";
-import { EventAdCategorySelectModal } from "@/components/hospital-event-ad/form/EventAdCategorySelectModal";
 import { EventAdDateStep } from "@/components/hospital-event-ad/form/EventAdDateStep";
 import { EventAdFormStep } from "@/components/hospital-event-ad/form/EventAdFormStep";
 import { EventAdPlacementStep } from "@/components/hospital-event-ad/form/EventAdPlacementStep";
@@ -41,6 +41,12 @@ import {
   type EventAdPlacementGroupKey,
   type EventAdPlacementOption,
 } from "@/lib/hospital-event-ad/form";
+
+const EventAdCategorySelectModal = dynamic(() =>
+  import("@/components/hospital-event-ad/form/EventAdCategorySelectModal").then(
+    (module) => module.EventAdCategorySelectModal,
+  ),
+);
 
 type StepKey = "placement" | "date" | "form";
 
@@ -458,16 +464,18 @@ export default function EventAdsCreateFormClient() {
         ) : null}
       </div>
 
-      <EventAdCategorySelectModal
-        placement={categoryModalPlacement}
-        categories={categoryOptions}
-        selectedCategoryId={categoryModalSelectedId}
-        isLoading={isLoadingCategories}
-        error={categoryLoadError}
-        onSelectCategory={setCategoryModalSelectedId}
-        onClose={closeCategoryModal}
-        onConfirm={confirmCategoryModal}
-      />
+      {categoryModalPlacement ? (
+        <EventAdCategorySelectModal
+          placement={categoryModalPlacement}
+          categories={categoryOptions}
+          selectedCategoryId={categoryModalSelectedId}
+          isLoading={isLoadingCategories}
+          error={categoryLoadError}
+          onSelectCategory={setCategoryModalSelectedId}
+          onClose={closeCategoryModal}
+          onConfirm={confirmCategoryModal}
+        />
+      ) : null}
     </>
   );
 }

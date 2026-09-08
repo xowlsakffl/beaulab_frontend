@@ -1,12 +1,8 @@
 import React from "react";
 
 import {
-  Button,
-  ChevronDown,
-  ChevronUp,
-  ChevronsUpDown,
   DataTable,
-  Pagination,
+  DataTableSortHeader,
   type DataTableColumn,
   type DataTableMeta,
   StatusValueBadge,
@@ -21,11 +17,6 @@ import {
   type SortState,
 } from "@/lib/hospital/list";
 import { pendingReviewAllowStatusRowClass, reviewAllowStatusColor } from "@/lib/common/review-status";
-
-function renderSortMark(field: SortField, sortState: SortState) {
-  if (!sortState.enabled || sortState.field !== field) return <ChevronsUpDown className="size-4" />;
-  return sortState.direction === "desc" ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />;
-}
 
 function buildHospitalColumns({
   sortState,
@@ -46,15 +37,12 @@ function buildHospitalColumns({
       headerClassName: `${headerBaseClass} lg:w-[52px]`,
       cellClassName: `${nowrapCellClass} lg:w-[52px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="UID"
+          active={sortState.enabled && sortState.field === "id"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("id")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          UID <span className="text-xs text-gray-400">{renderSortMark("id", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.id,
     },
@@ -70,15 +58,12 @@ function buildHospitalColumns({
       headerClassName: `${headerBaseClass} lg:w-[220px]`,
       cellClassName: `${cellBaseClass} lg:w-[220px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="병의원"
+          active={sortState.enabled && sortState.field === "name"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("name")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          병의원 <span className="text-xs text-gray-400">{renderSortMark("name", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <div className="flex min-w-0 items-start gap-3">
@@ -139,15 +124,12 @@ function buildHospitalColumns({
       headerClassName: `${spacedHeaderClass} lg:w-[82px]`,
       cellClassName: `${spacedNowrapCellClass} lg:w-[82px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="병의원평가"
+          active={sortState.enabled && sortState.field === "evaluation_count"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("evaluation_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          병의원평가 <span className="text-xs text-gray-400">{renderSortMark("evaluation_count", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => `${row.evaluationCount.toLocaleString()}(${row.evaluationAverageRating.toFixed(1)})`,
     },
@@ -163,15 +145,12 @@ function buildHospitalColumns({
       headerClassName: `${spacedHeaderClass} lg:w-[60px]`,
       cellClassName: `${spacedNowrapCellClass} lg:w-[60px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="조회수"
+          active={sortState.enabled && sortState.field === "view_count"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("view_count")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          조회수 <span className="text-xs text-gray-400">{renderSortMark("view_count", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => row.viewCount.toLocaleString(),
     },
@@ -180,15 +159,12 @@ function buildHospitalColumns({
       headerClassName: `${spacedHeaderClass} lg:w-[76px]`,
       cellClassName: `${spacedNowrapCellClass} lg:w-[76px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="병의원상태"
+          active={sortState.enabled && sortState.field === "status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          병의원상태 <span className="text-xs text-gray-400">{renderSortMark("status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -202,15 +178,12 @@ function buildHospitalColumns({
       headerClassName: `${spacedHeaderClass} lg:w-[68px]`,
       cellClassName: `${spacedNowrapCellClass} lg:w-[68px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="검수상태"
+          active={sortState.enabled && sortState.field === "allow_status"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("allow_status")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          검수상태 <span className="text-xs text-gray-400">{renderSortMark("allow_status", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <StatusValueBadge
@@ -224,15 +197,12 @@ function buildHospitalColumns({
       headerClassName: `${spacedHeaderClass} lg:w-[110px]`,
       cellClassName: `${spacedNowrapCellClass} lg:w-[110px]`,
       header: (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+        <DataTableSortHeader
+          label="최근접속일"
+          active={sortState.enabled && sortState.field === "last_login_at"}
+          direction={sortState.direction}
           onClick={() => onToggleSort("last_login_at")}
-          className="inline-flex items-center gap-1 px-0 text-xs"
-        >
-          최근접속일 <span className="text-xs text-gray-400">{renderSortMark("last_login_at", sortState)}</span>
-        </Button>
+        />
       ),
       render: (row) => (
         <div className="flex min-w-0 flex-wrap items-center gap-1">
@@ -297,16 +267,6 @@ export function HospitalsDataTable({
 
       onGoPage={onGoPage}
       onRowClick={onRowClick}
-      footerCenter={
-        meta ? (
-          <Pagination
-            currentPage={meta.current_page}
-            totalPages={Math.max(1, meta.last_page)}
-            onPageChange={onGoPage}
-            disabled={refreshing || !onGoPage}
-          />
-        ) : null
-      }
       emptyText="조건에 맞는 병의원이 없습니다."
     />
   );

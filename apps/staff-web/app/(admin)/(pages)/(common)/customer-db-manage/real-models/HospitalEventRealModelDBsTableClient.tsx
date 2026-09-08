@@ -1,6 +1,6 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -62,8 +62,9 @@ export default function HospitalEventRealModelDBsTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEventRealModelDBsQueryString(query), [query]);
 
-  const fetchRealModelDBRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchRealModelDBRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<HospitalEventRealModelDBApiItem[]>("/hospital-event-real-model-dbs", nextQuery, {
+      signal,
       latestKey: "hospital-event-real-model-dbs:list",
     });
 
@@ -84,12 +85,21 @@ export default function HospitalEventRealModelDBsTableClient() {
     errorMessage: "리얼모델 신청 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseHospitalEventRealModelDBsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

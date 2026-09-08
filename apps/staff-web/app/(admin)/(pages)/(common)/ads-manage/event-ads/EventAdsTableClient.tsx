@@ -1,6 +1,6 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -95,8 +95,9 @@ export default function EventAdsTableClient() {
 
   const queryString = React.useMemo(() => buildEventAdsQueryString(query), [query]);
 
-  const fetchEventAdRows = React.useCallback(async (nextQuery: typeof query) => {
+  const fetchEventAdRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
     const response = await api.get<EventAdApiItem[]>("/hospital-event-ads", nextQuery, {
+      signal,
       latestKey: "hospital-event-ads:list",
     });
 
@@ -117,12 +118,21 @@ export default function EventAdsTableClient() {
     errorMessage: "이벤트 광고 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseEventAdsTableState(params);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setDraftDateRange(next.draftDateRange);
+      setSortState(next.sortState);
+      setPage(next.page);
+    },
+  });
 
   React.useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {

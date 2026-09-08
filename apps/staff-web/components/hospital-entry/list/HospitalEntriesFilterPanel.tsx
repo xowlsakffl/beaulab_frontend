@@ -50,8 +50,8 @@ export function HospitalEntriesFilterPanel({
   onApplyFilters,
   onResetFilters,
 }: HospitalEntriesFilterPanelProps) {
-  const inlineLabelClass = "w-[72px] shrink-0 whitespace-nowrap text-right text-sm font-medium text-gray-600";
-  const filterRowClass = "flex min-w-0 items-center gap-3";
+  const inlineLabelClass = "staff-filter-inline-label";
+  const filterRowClass = "staff-filter-row";
 
   return (
     <Card className="min-w-0 rounded-xl p-3">

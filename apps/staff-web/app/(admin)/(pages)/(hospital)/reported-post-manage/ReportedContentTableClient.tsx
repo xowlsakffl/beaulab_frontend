@@ -1,8 +1,9 @@
 "use client";
 
-import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
+import { useSyncCurrentPageQuery } from "@/hooks/common/useSyncCurrentPageQuery";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import type { DateRange } from "react-day-picker";
@@ -11,8 +12,6 @@ import { Button, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { ReportedContentDataTable } from "@/components/reported-content/list/ReportedContentDataTable";
 import { ReportedContentFilterPanel } from "@/components/reported-content/list/ReportedContentFilterPanel";
-import { ReportedContentProcessModal } from "@/components/reported-content/list/ReportedContentProcessModal";
-import { ReportedContentReportsModal } from "@/components/reported-content/list/ReportedContentReportsModal";
 import { ReportedContentSummaryCards } from "@/components/reported-content/list/ReportedContentSummaryCards";
 import { useListData } from "@/hooks/common/useListData";
 import { api, isApiRequestCanceledError } from "@/lib/common/api";
@@ -41,6 +40,17 @@ import {
   type ReportedContentSummary,
   type ReportedContentSummaryCardKey,
 } from "@/lib/reported-content/list";
+
+const ReportedContentProcessModal = dynamic(() =>
+  import("@/components/reported-content/list/ReportedContentProcessModal").then(
+    (module) => module.ReportedContentProcessModal,
+  ),
+);
+const ReportedContentReportsModal = dynamic(() =>
+  import("@/components/reported-content/list/ReportedContentReportsModal").then(
+    (module) => module.ReportedContentReportsModal,
+  ),
+);
 
 type ReportedContentTableClientProps = {
   type: ReportedContentBoardType;
@@ -107,8 +117,9 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
   );
 
   const fetchReportedContentRows = React.useCallback(
-    async (request: typeof listRequest) => {
+    async (request: typeof listRequest, signal: AbortSignal) => {
       const response = await api.get<ReportedContentApiItem[]>(request.apiPath, request.query, {
+        signal,
         latestKey: "reported-content:list",
       });
 
@@ -149,12 +160,22 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
     errorMessage: "신고게시물 목록 조회 중 오류가 발생했습니다.",
   });
 
-  React.useEffect(() => {
-    const currentQueryString = searchParams.toString();
-    if (queryString === currentQueryString) return;
-
-    replaceCurrentPageUrl(queryString ? `${pathname}?${queryString}` : pathname);
-  }, [pathname, queryString, searchParams]);
+  useSyncCurrentPageQuery({
+    pathname,
+    queryString,
+    searchParams,
+    onNavigate: (params) => {
+      const next = parseReportedContentTableState(params, config);
+      setSearchInput(next.searchKeyword);
+      setSearchKeyword(next.searchKeyword);
+      setDraftDateRange(next.draftDateRange);
+      setDraftFilters(next.filters);
+      setAppliedFilters(next.filters);
+      setSortState(next.sortState);
+      setPage(next.page);
+      setActiveBoard(supportsComments && params.get("board") === "comments" ? "comments" : "posts");
+    },
+  });
 
   const fetchSummary = React.useCallback(async () => {
     if (!showSummaryCards) {
@@ -383,8 +404,10 @@ export function ReportedContentTableClient({ type }: ReportedContentTableClientP
         onOpenReports={isCommentKind ? setReportsModalRow : undefined}
         onOpenProcess={isCommentKind && canUpdateStatus ? setProcessModalRow : undefined}
       />
-      <ReportedContentReportsModal row={reportsModalRow} onClose={() => setReportsModalRow(null)} />
-      {canUpdateStatus ? (
+      {reportsModalRow ? (
+        <ReportedContentReportsModal row={reportsModalRow} onClose={() => setReportsModalRow(null)} />
+      ) : null}
+      {canUpdateStatus && processModalRow ? (
         <ReportedContentProcessModal
           row={processModalRow}
           onClose={() => setProcessModalRow(null)}
