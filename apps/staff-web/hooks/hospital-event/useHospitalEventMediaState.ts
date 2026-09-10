@@ -4,8 +4,17 @@ import React from "react";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import type { HospitalEventMedia } from "@/lib/hospital-event/list";
+import type { HospitalEventApiItem } from "@/lib/hospital-event/list";
+import {
+  emptyBeforeAfterPhoto,
+  mapBeforeAfterPhotos,
+  type HospitalEventBeforeAfterPhoto,
+} from "@/lib/hospital-event/before-after-photos";
 
 export function useHospitalEventMediaState() {
+  const [beforeAfterPhotos, setBeforeAfterPhotos] = React.useState<HospitalEventBeforeAfterPhoto[]>(() => [
+    emptyBeforeAfterPhoto(),
+  ]);
   const [thumbnailImage, setThumbnailImage] = React.useState<File | null>(null);
   const [eventPageImage, setEventPageImage] = React.useState<File | null>(null);
   const [existingThumbnailImage, setExistingThumbnailImage] = React.useState<HospitalEventMedia | null>(null);
@@ -15,11 +24,17 @@ export function useHospitalEventMediaState() {
   const [uploadWarning, setUploadWarning] = React.useState<string | null>(null);
 
   const applyExistingMedia = React.useCallback(
-    (thumbnail: HospitalEventMedia | null | undefined, eventPage: HospitalEventMedia | null | undefined) => {
+    (
+      thumbnail: HospitalEventMedia | null | undefined,
+      eventPage: HospitalEventMedia | null | undefined,
+      photos?: HospitalEventApiItem["before_after_photos"],
+    ) => {
       setThumbnailImage(null);
       setEventPageImage(null);
       setExistingThumbnailImage(thumbnail ?? null);
       setExistingEventPageImage(eventPage ?? null);
+      const mapped = mapBeforeAfterPhotos(photos);
+      setBeforeAfterPhotos(mapped.length ? mapped : [emptyBeforeAfterPhoto()]);
     },
     [],
   );
@@ -41,6 +56,8 @@ export function useHospitalEventMediaState() {
   }, []);
 
   return {
+    beforeAfterPhotos,
+    setBeforeAfterPhotos,
     thumbnailImage,
     setThumbnailImage,
     eventPageImage,

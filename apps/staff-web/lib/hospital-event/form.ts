@@ -3,9 +3,15 @@ import type { CategorySelectorSection } from "@beaulab/ui-admin";
 import { CATEGORY_DOMAINS, CATEGORY_USAGES } from "@/lib/common/category";
 import { validateImageFileRuleMessage, type ImageFileValidationRule } from "@/lib/common/media-validation";
 import type { HospitalEventApiItem } from "./list";
+import {
+  appendBeforeAfterPhotos,
+  validateBeforeAfterPhotos,
+  type HospitalEventBeforeAfterPhoto,
+} from "./before-after-photos";
 
 export type HospitalEventType = "IMAGE" | "TEXT";
-export type HospitalEventCategoryUsage = "HOSPITAL_EVENT_SURGERY" | "HOSPITAL_EVENT_TREATMENT";
+export type HospitalEventCategoryUsage =
+  "HOSPITAL_EVENT_SURGERY" | "HOSPITAL_EVENT_TREATMENT" | "HOSPITAL_EVENT_PROMOTION";
 
 export type HospitalEventDoctorAssignmentForm = {
   hospital_doctor_id: number | null;
@@ -46,7 +52,8 @@ export type HospitalEventFormValues = {
   side_effect_notice: string;
 };
 
-export type HospitalEventFieldName = keyof HospitalEventFormValues | "thumbnail_image" | "event_page_image";
+export type HospitalEventFieldName =
+  keyof HospitalEventFormValues | "thumbnail_image" | "event_page_image" | "before_after_photos";
 
 export type HospitalEventImageFieldName = Extract<HospitalEventFieldName, "thumbnail_image" | "event_page_image">;
 
@@ -55,6 +62,7 @@ export type HospitalEventFormErrors = Partial<Record<HospitalEventFieldName, str
 export type HospitalEventFormValidationOptions = {
   hasExistingThumbnailImage?: boolean;
   hasExistingEventPageImage?: boolean;
+  beforeAfterPhotos?: HospitalEventBeforeAfterPhoto[];
 };
 
 export const HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT = 5;
@@ -98,6 +106,13 @@ export const HOSPITAL_EVENT_CATEGORY_SECTIONS: CategorySelectorSection[] = [
     usage: CATEGORY_USAGES.HOSPITAL_EVENT_TREATMENT,
     searchPlaceholder: "카테고리를 검색해 주세요. (ex. 보톡스, 리프팅)",
   },
+  {
+    key: "promotion",
+    label: "기획전",
+    domain: CATEGORY_DOMAINS.HOSPITAL_MEDICAL,
+    usage: CATEGORY_USAGES.HOSPITAL_EVENT_PROMOTION,
+    searchPlaceholder: "기획전 카테고리를 검색해 주세요.",
+  },
 ];
 
 export const INITIAL_HOSPITAL_EVENT_FORM: HospitalEventFormValues = {
@@ -139,6 +154,7 @@ export const HOSPITAL_EVENT_FIELD_FOCUS_ORDER: readonly HospitalEventFieldName[]
   "options",
   "procedure_targets",
   "procedure_benefits",
+  "before_after_photos",
   "side_effect_notice",
   "thumbnail_image",
   "event_page_image",
@@ -166,6 +182,7 @@ const FIELD_NAMES: readonly HospitalEventFieldName[] = [
   "options",
   "procedure_targets",
   "procedure_benefits",
+  "before_after_photos",
   "side_effect_notice",
   "thumbnail_image",
   "event_page_image",
@@ -270,7 +287,11 @@ export function mapHospitalEventDetailToForm(item: HospitalEventApiItem): Hospit
 }
 
 export function normalizeHospitalEventCategoryUsage(value?: string | null): HospitalEventCategoryUsage | undefined {
-  if (value === "HOSPITAL_EVENT_SURGERY" || value === "HOSPITAL_EVENT_TREATMENT") {
+  if (
+    value === "HOSPITAL_EVENT_SURGERY" ||
+    value === "HOSPITAL_EVENT_TREATMENT" ||
+    value === "HOSPITAL_EVENT_PROMOTION"
+  ) {
     return value;
   }
 
@@ -279,6 +300,7 @@ export function normalizeHospitalEventCategoryUsage(value?: string | null): Hosp
 
 export function normalizeHospitalEventErrorField(key: string): HospitalEventFieldName | null {
   if (key.startsWith("category_ids")) return "category_ids";
+  if (key.startsWith("before_after_photos")) return "before_after_photos";
   if (key.startsWith("doctor_assignments")) return "doctor_assignments";
   if (key.startsWith("options")) return "options";
   if (key.startsWith("procedure_targets")) return "procedure_targets";
@@ -328,6 +350,10 @@ export function validateCreateHospitalEventForm(
   options: HospitalEventFormValidationOptions = {},
 ): HospitalEventFormErrors {
   const errors: HospitalEventFormErrors = {};
+  if (form.event_type === "TEXT") {
+    const photoError = validateBeforeAfterPhotos(options.beforeAfterPhotos ?? []);
+    if (photoError) errors.before_after_photos = photoError;
+  }
   const normalPrice = parseNumberInput(form.normal_price);
   const eventPrice = parseNumberInput(form.event_price);
   const consultationPrice = parseNumberInput(form.consultation_price);
@@ -336,6 +362,9 @@ export function validateCreateHospitalEventForm(
   if (!form.hospital_id) errors.hospital_id = "병의원을 선택해 주세요.";
   if (form.category_ids.length === 0) errors.category_ids = "카테고리를 1개 이상 선택해 주세요.";
   if (form.category_ids.length > 3) errors.category_ids = "카테고리는 최대 3개까지 선택할 수 있습니다.";
+  if (selectedCategoryUsage === "HOSPITAL_EVENT_PROMOTION" && form.category_ids.length > 1) {
+    errors.category_ids = "기획전 카테고리는 1개만 선택해 주세요.";
+  }
   if (!form.primary_category_id) errors.primary_category_id = "대표 카테고리를 선택해 주세요.";
   if (!form.name.trim()) errors.name = "이벤트명을 입력해 주세요.";
   if (!form.description.trim()) errors.description = "이벤트 설명을 입력해 주세요.";
@@ -347,7 +376,7 @@ export function validateCreateHospitalEventForm(
   if (normalPrice > 0 && eventPrice > 0 && eventPrice * 100 < normalPrice * 51) {
     errors.event_price = "할인율은 49%를 초과할 수 없습니다.";
   }
-  if (consultationPrice > 0 && consultationPrice < baseConsultationPrice) {
+  if (form.consultation_price.trim() && consultationPrice < baseConsultationPrice) {
     errors.consultation_price = "상담 신청 단가는 기준 단가보다 낮게 설정할 수 없습니다.";
   }
   if (!thumbnailImage && !options.hasExistingThumbnailImage) errors.thumbnail_image = "썸네일 이미지를 등록해 주세요.";
@@ -392,6 +421,7 @@ export async function validateHospitalEventImageFile(field: HospitalEventImageFi
 }
 
 export type BuildHospitalEventFormDataParams = {
+  beforeAfterPhotos?: HospitalEventBeforeAfterPhoto[];
   form: HospitalEventFormValues;
   thumbnailImage: File | null;
   eventPageImage: File | null;
@@ -399,6 +429,7 @@ export type BuildHospitalEventFormDataParams = {
 };
 
 export function buildHospitalEventFormData({
+  beforeAfterPhotos = [],
   form,
   thumbnailImage,
   eventPageImage,
@@ -407,6 +438,7 @@ export function buildHospitalEventFormData({
   const formData = new FormData();
 
   appendHospitalEventFormData(formData, form, thumbnailImage, eventPageImage, selectedCategoryUsage);
+  if (form.event_type === "TEXT") appendBeforeAfterPhotos(formData, beforeAfterPhotos);
 
   return formData;
 }
@@ -431,8 +463,9 @@ function appendHospitalEventFormData(
   formData.append("normal_price", String(parseNumberInput(form.normal_price)));
   formData.append("event_price", String(parseNumberInput(form.event_price)));
   formData.append("is_vat_included", form.is_vat_included ? "1" : "0");
-  const consultationPrice =
-    parseNumberInput(form.consultation_price) || calculateHospitalEventDBBasePrice(parseNumberInput(form.event_price));
+  const consultationPrice = form.consultation_price.trim()
+    ? parseNumberInput(form.consultation_price)
+    : calculateHospitalEventDBBasePrice(parseNumberInput(form.event_price));
   formData.append("consultation_price", String(consultationPrice));
   formData.append("side_effect_notice", form.side_effect_notice.trim());
 
@@ -442,14 +475,14 @@ function appendHospitalEventFormData(
 
   formData.append("primary_category_id", String(form.primary_category_id ?? ""));
 
-  form.doctor_assignments
-    .filter((assignment) => assignment.hospital_doctor_id)
-    .forEach((assignment, index) => {
-      formData.append(`doctor_assignments[${index}][hospital_doctor_id]`, String(assignment.hospital_doctor_id));
-      formData.append(`doctor_assignments[${index}][sort_order]`, String(index));
-      formData.append(`doctor_assignments[${index}][is_career_visible]`, assignment.is_career_visible ? "1" : "0");
-      formData.append(`doctor_assignments[${index}][is_activity_visible]`, assignment.is_activity_visible ? "1" : "0");
-    });
+  const doctorAssignments = form.doctor_assignments.filter((assignment) => assignment.hospital_doctor_id);
+  if (doctorAssignments.length === 0) formData.append("doctor_assignments", "[]");
+  doctorAssignments.forEach((assignment, index) => {
+    formData.append(`doctor_assignments[${index}][hospital_doctor_id]`, String(assignment.hospital_doctor_id));
+    formData.append(`doctor_assignments[${index}][sort_order]`, String(index));
+    formData.append(`doctor_assignments[${index}][is_career_visible]`, assignment.is_career_visible ? "1" : "0");
+    formData.append(`doctor_assignments[${index}][is_activity_visible]`, assignment.is_activity_visible ? "1" : "0");
+  });
 
   const shouldSubmitOptions = selectedCategoryUsage === "HOSPITAL_EVENT_TREATMENT" && form.has_options;
   formData.append("has_options", shouldSubmitOptions ? "1" : "0");

@@ -21,6 +21,8 @@ import {
   type AdminNoteItem,
   type OperationHistoryItem,
 } from "@/components/hospital-event/detail/HospitalEventDetailSections";
+import { HospitalEventTextPagePreview } from "@/components/hospital-event/form/HospitalEventTextPagePreview";
+import { useHospitalEventPreviewContext } from "@/hooks/hospital-event/useHospitalEventPreviewContext";
 import { api } from "@/lib/common/api";
 import { ADMIN_NOTE_WRITE_PERMISSION } from "@/lib/common/admin-note-permissions";
 import { getSession } from "@/lib/common/auth/session";
@@ -28,6 +30,8 @@ import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { labelHospitalEventAllowStatus, type HospitalEventApiItem } from "@/lib/hospital-event/list";
 import { HOSPITAL_EVENT_PERMISSIONS } from "@/lib/hospital-event/permissions";
+import { INITIAL_HOSPITAL_EVENT_FORM, mapHospitalEventDetailToForm } from "@/lib/hospital-event/form";
+import { mapBeforeAfterPhotos } from "@/lib/hospital-event/before-after-photos";
 
 type PendingAdminStatusChange = {
   allowStatus: "NORMAL" | "FORCED_STOPPED";
@@ -72,6 +76,12 @@ export default function HospitalEventDetailPageClient() {
   const [pendingAdminStatusError, setPendingAdminStatusError] = React.useState<string | null>(null);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
   const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
+
+  const previewForm = React.useMemo(
+    () => (detail ? mapHospitalEventDetailToForm(detail) : INITIAL_HOSPITAL_EVENT_FORM),
+    [detail],
+  );
+  const previewContext = useHospitalEventPreviewContext(previewForm);
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -378,6 +388,7 @@ export default function HospitalEventDetailPageClient() {
           canUpdateStatus={canUpdateStatus}
           updating={updatingStatus}
           onAdminStatusChange={requestAdminStatusChange}
+          onPreview={setPreviewMedia}
         />
 
         <div className="min-w-0 space-y-4">
@@ -401,7 +412,20 @@ export default function HospitalEventDetailPageClient() {
           />
         </div>
 
-        <EventMediaColumn detail={detail} onPreview={setPreviewMedia} />
+        <EventMediaColumn
+          detail={detail}
+          onPreview={setPreviewMedia}
+          textPreview={
+            detail.event_type === "TEXT" ? (
+              <HospitalEventTextPagePreview
+                form={previewForm}
+                photos={mapBeforeAfterPhotos(detail.before_after_photos)}
+                context={previewContext}
+                onPreview={setPreviewMedia}
+              />
+            ) : null
+          }
+        />
       </section>
 
       <MediaPreviewModal preview={previewMedia} onChange={setPreviewMedia} onClose={() => setPreviewMedia(null)} />

@@ -96,6 +96,7 @@ export type HospitalEventApiItem = {
     sort_order?: number | null;
   }> | null;
   event_page_image?: HospitalEventMedia | null;
+  before_after_photos?: { before_image: HospitalEventMedia | null; after_image: HospitalEventMedia | null }[];
   hospital_status?: string | null;
   admin_status?: string | null;
   allow_status?: string | null;

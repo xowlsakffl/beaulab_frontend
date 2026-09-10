@@ -28,6 +28,7 @@ export function HospitalEventMediaCard({
   onEventPageChange,
   onPreview,
   onUploadWarning,
+  textPagePreview,
 }: {
   eventType: HospitalEventType;
   thumbnailImage: File | null;
@@ -38,6 +39,7 @@ export function HospitalEventMediaCard({
   onEventPageChange: (file: File | null) => void;
   onPreview: (preview: MediaPreviewState) => void;
   onUploadWarning: (message: string) => void;
+  textPagePreview?: React.ReactNode;
 }) {
   const thumbnailObjectUrl = useObjectUrl(thumbnailImage);
   const eventPageObjectUrl = useObjectUrl(eventPageImage);
@@ -66,7 +68,9 @@ export function HospitalEventMediaCard({
           onUploadWarning={onUploadWarning}
           tall
         />
-      ) : null}
+      ) : (
+        textPagePreview
+      )}
     </div>
   );
 }

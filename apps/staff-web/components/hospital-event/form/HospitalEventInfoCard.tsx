@@ -8,6 +8,7 @@ import {
   DateRangeFilterDropdown,
   FormCheckbox,
   FormTextArea,
+  HelpPopover,
   InputField,
   Label,
   Modal,
@@ -20,6 +21,9 @@ import {
 } from "@beaulab/ui-admin";
 
 import { HospitalEventInlineImageFileField } from "@/components/hospital-event/form/HospitalEventMediaFields";
+import { HospitalEventBeforeAfterPhotos } from "./HospitalEventBeforeAfterPhotos";
+import type { HospitalEventBeforeAfterPhoto } from "@/lib/hospital-event/before-after-photos";
+import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import {
   DoctorVisibilitySection,
   EventOptionsSection,
@@ -63,6 +67,9 @@ export function EventInfoCard({
   eventPriceError,
   thumbnailImage,
   eventPageImage,
+  beforeAfterPhotos,
+  onBeforeAfterPhotosChange,
+  onPreview,
   existingThumbnailImage,
   existingEventPageImage,
   onThumbnailChange,
@@ -83,6 +90,9 @@ export function EventInfoCard({
   eventPriceError: string | null;
   thumbnailImage: File | null;
   eventPageImage: File | null;
+  beforeAfterPhotos: HospitalEventBeforeAfterPhoto[];
+  onBeforeAfterPhotosChange: React.Dispatch<React.SetStateAction<HospitalEventBeforeAfterPhoto[]>>;
+  onPreview: (preview: MediaPreviewState) => void;
   existingThumbnailImage: HospitalEventMedia | null;
   existingEventPageImage: HospitalEventMedia | null;
   onThumbnailChange: (file: File | null) => void;
@@ -151,10 +161,10 @@ export function EventInfoCard({
 
   const handleConsultationPriceBlur = React.useCallback(() => {
     const consultationPrice = parseNumberInput(form.consultation_price);
-    if (eventPriceValue <= 0 || consultationPrice <= 0 || consultationPrice >= baseConsultationPrice) return;
+    if (!form.consultation_price.trim() || consultationPrice >= baseConsultationPrice) return;
 
     setConsultationPriceResetValue(baseConsultationPrice);
-  }, [baseConsultationPrice, eventPriceValue, form.consultation_price]);
+  }, [baseConsultationPrice, form.consultation_price]);
 
   const confirmConsultationPriceReset = React.useCallback(() => {
     if (consultationPriceResetValue === null) return;
@@ -169,6 +179,7 @@ export function EventInfoCard({
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <h3 className="text-sm font-bold text-gray-900">이벤트 정보</h3>
           <SegmentedTabs
+            variant="buttons"
             items={[
               { value: "IMAGE", label: "이미지 등록" },
               { value: "TEXT", label: "텍스트 등록" },
@@ -177,9 +188,21 @@ export function EventInfoCard({
             onValueChange={(value) => {
               onFieldChange("event_type", value as HospitalEventType);
             }}
-            className="w-44 rounded-lg p-0.5"
+            className="w-max"
             tabClassName="whitespace-nowrap rounded-md px-3 py-1.5 text-xs"
           />
+          <HelpPopover label="이벤트 등록 방식 안내">
+            <div className="space-y-2">
+              <p>
+                <strong className="font-medium text-gray-900">이미지 등록:</strong> 썸네일과 이벤트 페이지 이미지를
+                등록하는 방식
+              </p>
+              <p>
+                <strong className="font-medium text-gray-900">텍스트 등록:</strong> 이벤트 페이지 이미지 대신 텍스트로
+                내용을 입력하는 방식
+              </p>
+            </div>
+          </HelpPopover>
         </div>
 
         <div className="space-y-4">
@@ -332,6 +355,7 @@ export function EventInfoCard({
             <>
               <TextItemSection
                 title="시술 대상"
+                field="procedure_targets"
                 items={form.procedure_targets}
                 maxItems={HOSPITAL_EVENT_PROCEDURE_TARGET_MAX_COUNT}
                 error={errors.procedure_targets}
@@ -341,12 +365,20 @@ export function EventInfoCard({
               />
               <TextItemSection
                 title="시술 장점"
+                field="procedure_benefits"
                 items={form.procedure_benefits}
                 maxItems={HOSPITAL_EVENT_PROCEDURE_BENEFIT_MAX_COUNT}
                 error={errors.procedure_benefits}
                 onAdd={() => onAddTextItem("procedure_benefits")}
                 onRemove={(index) => onRemoveTextItem("procedure_benefits", index)}
                 onChange={(index, value) => onTextItemChange("procedure_benefits", index, value)}
+              />
+              <HospitalEventBeforeAfterPhotos
+                photos={beforeAfterPhotos}
+                onChange={onBeforeAfterPhotosChange}
+                onPreview={onPreview}
+                onUploadWarning={onUploadWarning}
+                error={errors.before_after_photos}
               />
               <DoctorVisibilitySection
                 assignments={form.doctor_assignments}

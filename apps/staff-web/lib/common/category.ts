@@ -10,6 +10,7 @@ export const CATEGORY_USAGES = {
   HOSPITAL_REVIEW_TREATMENT: "HOSPITAL_REVIEW_TREATMENT",
   HOSPITAL_EVENT_SURGERY: "HOSPITAL_EVENT_SURGERY",
   HOSPITAL_EVENT_TREATMENT: "HOSPITAL_EVENT_TREATMENT",
+  HOSPITAL_EVENT_PROMOTION: "HOSPITAL_EVENT_PROMOTION",
   HOSPITAL_EVENT_AD_SURGERY: "HOSPITAL_EVENT_AD_SURGERY",
   HOSPITAL_EVENT_AD_TREATMENT: "HOSPITAL_EVENT_AD_TREATMENT",
   HOSPITAL_VIDEO_CATEGORY: "HOSPITAL_VIDEO_CATEGORY",
@@ -23,11 +24,13 @@ export const HOSPITAL_REVIEW_CATEGORY_DOMAINS = {
 export const CATEGORY_GROUP_CODES = {
   SURGERY: "SURGERY",
   TREATMENT: "TREATMENT",
+  PROMOTION: "PROMOTION",
 } as const;
 
 const CATEGORY_GROUP_LABELS = {
   [CATEGORY_GROUP_CODES.SURGERY]: "성형",
   [CATEGORY_GROUP_CODES.TREATMENT]: "쁘띠",
+  [CATEGORY_GROUP_CODES.PROMOTION]: "기획전",
 } as const;
 
 export type CategoryApiItem = {
@@ -60,8 +63,12 @@ export function normalizeCategorySelectorItem(item: CategoryApiItem): CategorySe
 export function groupMedicalCategorySelectorItems<T extends CategorySelectorItem>(items: T[]) {
   const surgeryItems = items.filter((item) => item.group_code === CATEGORY_GROUP_CODES.SURGERY);
   const treatmentItems = items.filter((item) => item.group_code === CATEGORY_GROUP_CODES.TREATMENT);
+  const promotionItems = items.filter((item) => item.group_code === CATEGORY_GROUP_CODES.PROMOTION);
   const otherItems = items.filter(
-    (item) => item.group_code !== CATEGORY_GROUP_CODES.SURGERY && item.group_code !== CATEGORY_GROUP_CODES.TREATMENT,
+    (item) =>
+      item.group_code !== CATEGORY_GROUP_CODES.SURGERY &&
+      item.group_code !== CATEGORY_GROUP_CODES.TREATMENT &&
+      item.group_code !== CATEGORY_GROUP_CODES.PROMOTION,
   );
 
   return [
@@ -74,6 +81,11 @@ export function groupMedicalCategorySelectorItems<T extends CategorySelectorItem
       key: CATEGORY_GROUP_CODES.TREATMENT,
       label: CATEGORY_GROUP_LABELS[CATEGORY_GROUP_CODES.TREATMENT],
       items: treatmentItems,
+    },
+    {
+      key: CATEGORY_GROUP_CODES.PROMOTION,
+      label: CATEGORY_GROUP_LABELS[CATEGORY_GROUP_CODES.PROMOTION],
+      items: promotionItems,
     },
     {
       key: "OTHER",

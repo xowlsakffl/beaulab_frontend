@@ -4,6 +4,9 @@ import React from "react";
 import { Button, Modal } from "@beaulab/ui-admin";
 
 import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { HospitalEventTextPage } from "./HospitalEventTextPagePreview";
+import type { HospitalEventBeforeAfterPhoto } from "@/lib/hospital-event/before-after-photos";
+import type { HospitalEventPreviewContextState } from "@/hooks/hospital-event/useHospitalEventPreviewContext";
 import {
   calculateHospitalEventDiscountRate,
   parseNumberInput,
@@ -17,18 +20,22 @@ export function HospitalEventAppPreviewModal({
   form,
   thumbnailImage,
   eventPageImage,
+  beforeAfterPhotos,
   existingThumbnailImage,
   existingEventPageImage,
   discountRate,
+  previewContext,
 }: {
   isOpen: boolean;
   onClose: () => void;
   form: HospitalEventFormValues;
   thumbnailImage: File | null;
   eventPageImage: File | null;
+  beforeAfterPhotos: HospitalEventBeforeAfterPhoto[];
   existingThumbnailImage: HospitalEventMedia | null;
   existingEventPageImage: HospitalEventMedia | null;
   discountRate: number;
+  previewContext: HospitalEventPreviewContextState;
 }) {
   const thumbnailObjectUrl = useObjectUrl(thumbnailImage);
   const eventPageObjectUrl = useObjectUrl(eventPageImage);
@@ -38,11 +45,6 @@ export function HospitalEventAppPreviewModal({
   const eventPrice = parseNumberInput(form.event_price);
   const heroUrl = thumbnailUrl;
   const heroPlaceholder = "썸네일 이미지를 등록해 주세요.";
-  const procedureTargets = form.procedure_targets.map((item) => item.trim()).filter(Boolean);
-  const procedureBenefits = form.procedure_benefits.map((item) => item.trim()).filter(Boolean);
-  const selectedDoctors = form.doctor_assignments.filter(
-    (assignment) => assignment.hospital_doctor_id && assignment.name.trim(),
-  );
   const options = form.has_options ? form.options.filter((option) => option.name.trim()) : [];
 
   return (
@@ -69,7 +71,12 @@ export function HospitalEventAppPreviewModal({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex h-14 items-center justify-between px-5 text-gray-500">
             <div className="flex items-center gap-5">
-              <button type="button" aria-label="뒤로가기" className="text-4xl leading-none text-gray-500">
+              <button
+                type="button"
+                aria-label="뒤로가기"
+                onClick={onClose}
+                className="text-4xl leading-none text-gray-500"
+              >
                 ‹
               </button>
               <span className="text-3xl leading-none">⌂</span>
@@ -91,7 +98,7 @@ export function HospitalEventAppPreviewModal({
             )}
           </div>
 
-          <div className="space-y-4 px-4 py-4">
+          <div className="space-y-8 px-4 py-4">
             <div>
               <h2 className="text-[15px] leading-6 font-bold break-keep text-gray-900">
                 {form.name.trim() || "이벤트명을 입력해 주세요."}
@@ -117,7 +124,7 @@ export function HospitalEventAppPreviewModal({
 
             <div>
               <h3 className="text-sm font-bold text-gray-900">이벤트 설명</h3>
-              <p className="mt-2 text-xs leading-5 break-keep text-gray-500">
+              <p className="mt-4 text-xs leading-5 break-keep text-gray-500">
                 {form.description.trim() || "이벤트 설명을 입력해 주세요."}
               </p>
             </div>
@@ -167,46 +174,15 @@ export function HospitalEventAppPreviewModal({
             ) : null}
 
             {form.event_type === "TEXT" ? (
-              <>
-                <AppPreviewListSection
-                  title="시술 대상"
-                  items={procedureTargets}
-                  emptyText="시술 대상을 입력해 주세요."
-                />
-                <AppPreviewListSection
-                  title="시술 장점"
-                  items={procedureBenefits}
-                  emptyText="시술 장점을 입력해 주세요."
-                />
-                <AppPreviewSection title="의료진 정보">
-                  {selectedDoctors.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedDoctors.map((doctor) => (
-                        <div key={doctor.hospital_doctor_id} className="rounded-xl bg-gray-50 px-3 py-2">
-                          <p className="text-xs font-bold text-gray-900">{doctor.name}</p>
-                          <div className="mt-1 flex flex-wrap gap-1.5">
-                            {doctor.is_career_visible ? <AppPreviewChip>경력사항</AppPreviewChip> : null}
-                            {doctor.is_activity_visible ? <AppPreviewChip>활동사항</AppPreviewChip> : null}
-                            {!doctor.is_career_visible && !doctor.is_activity_visible ? (
-                              <AppPreviewChip>정보 미노출</AppPreviewChip>
-                            ) : null}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400">의료진을 선택해 주세요.</p>
-                  )}
-                </AppPreviewSection>
-              </>
-            ) : null}
-
-            <AppPreviewSection title="부작용 안내">
-              <p className="text-xs leading-5 break-keep whitespace-pre-line text-gray-600">
-                {form.side_effect_notice.trim() ||
-                  "수술/시술 후 염증, 출혈, 감염 등 부작용이 발생할 수 있어 주의가 필요합니다."}
-              </p>
-            </AppPreviewSection>
+              <HospitalEventTextPage form={form} photos={beforeAfterPhotos} context={previewContext} />
+            ) : (
+              <AppPreviewSection title="부작용 안내">
+                <p className="text-xs leading-5 break-keep whitespace-pre-line text-gray-600">
+                  {form.side_effect_notice.trim() ||
+                    "수술/시술 후 염증, 출혈, 감염 등 부작용이 발생할 수 있어 주의가 필요합니다."}
+                </p>
+              </AppPreviewSection>
+            )}
           </div>
         </div>
 
@@ -225,34 +201,10 @@ export function HospitalEventAppPreviewModal({
 
 function AppPreviewSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-2">
+    <section className="space-y-4">
       <h3 className="text-sm font-bold text-gray-900">{title}</h3>
       {children}
     </section>
-  );
-}
-
-function AppPreviewListSection({ title, items, emptyText }: { title: string; items: string[]; emptyText: string }) {
-  return (
-    <AppPreviewSection title={title}>
-      {items.length > 0 ? (
-        <ul className="space-y-1.5">
-          {items.map((item, index) => (
-            <li key={`${item}-${index}`} className="rounded-xl bg-gray-50 px-3 py-2 text-xs leading-5 text-gray-700">
-              {item}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-xs text-gray-400">{emptyText}</p>
-      )}
-    </AppPreviewSection>
-  );
-}
-
-function AppPreviewChip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-500">{children}</span>
   );
 }
 

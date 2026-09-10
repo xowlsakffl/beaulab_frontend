@@ -30,6 +30,8 @@
 - 인라인 파일 입력은 `InlineFileSelect`의 액션 버튼, 파일명, `helperText` 규격 안내 영역을 사용한다. 파일명과 규격을 한 줄에 강제로 넣거나 페이지에서 안내 문구를 중복 렌더링하지 않는다.
 - table: `DataTable`, `DataTableSortHeader`, `Pagination`
 - modal/button/card/badge 계열 공통 UI
+- `SegmentedTabs`는 기본 세그먼트형과 `variant="buttons"` 버튼형을 제공한다. 버튼형 선택 상태는 브랜드색을 사용한다.
+- `HelpPopover`는 물음표 버튼 클릭으로 안내를 열고, 바깥 클릭/포커스 이동 및 Escape로 닫는다. 내용과 접근성 라벨은 호출자가 전달하며, 포털로 렌더링해 화면 경계와 부모의 overflow에 잘리지 않도록 한다.
 - 상태값 기본 렌더링: `StatusValueBadge`
 - error: `ErrorStatusPage`
 - alert context
@@ -63,6 +65,8 @@ staff 앱 전용 공통 UI다.
 - `AddCircleButton`
 - `guard`
 - `sidebar-menu`
+
+`AddCircleButton`은 기본 원형과 `fullWidth` 추가 영역을 제공한다. 사진 업로드처럼 이미 버튼인 영역 안에서는 `AddCircleIcon`으로 같은 원형 + 모양만 재사용한다.
 
 추가 기준:
 

@@ -5,7 +5,7 @@ import { Check, ChevronRight, Search, X } from "../../../icons";
 import { Button } from "../../ui/button/Button";
 import { Card } from "../../ui/card/Card";
 import { SpinnerBlock } from "../../ui/spinner/Spinner";
-import { SegmentedTabs } from "../../ui/tabs/SegmentedTabs";
+import { SegmentedTabs, type SegmentedTabsVariant } from "../../ui/tabs/SegmentedTabs";
 import { InputField } from "../input/InputField";
 import { CategoryColumn } from "./CategoryColumn";
 
@@ -60,7 +60,7 @@ type SelectorText = {
 
 type CategorySelectorSearchMode = "inline" | "dropdown";
 type CategorySelectorSelectionMode = "checkbox" | "leaf-click";
-type CategorySelectorSelectedDisplay = "badges" | "input";
+type CategorySelectorSelectedDisplay = "badges" | "input" | "primary";
 type CategorySelectorSectionTabsPlacement = "top" | "header";
 type CategorySelectorErrorPlacement = "bottom" | "header";
 
@@ -87,6 +87,8 @@ type HierarchicalCategorySelectorProps = {
   sectionTabsPlacement?: CategorySelectorSectionTabsPlacement;
   errorPlacement?: CategorySelectorErrorPlacement;
   compactSectionTabs?: boolean;
+  sectionTabsVariant?: SegmentedTabsVariant;
+  columnTitlePlacement?: "inside" | "outside";
   searchMode?: CategorySelectorSearchMode;
   showSearchActions?: boolean;
   showSearchTitle?: boolean;
@@ -184,6 +186,8 @@ export function HierarchicalCategorySelector({
   sectionTabsPlacement = "top",
   errorPlacement = "bottom",
   compactSectionTabs = false,
+  sectionTabsVariant = "segmented",
+  columnTitlePlacement = "inside",
   searchMode = "inline",
   showSearchActions = false,
   showSearchTitle = true,
@@ -308,6 +312,7 @@ export function HierarchicalCategorySelector({
   );
   const sectionTabs = (
     <SegmentedTabs
+      variant={sectionTabsVariant}
       items={sectionTabItems}
       value={activeSection?.key}
       onValueChange={(sectionKey) => {
@@ -326,8 +331,8 @@ export function HierarchicalCategorySelector({
         setSearchError(null);
         setIsSearchOpen(false);
       }}
-      className={compactSectionTabs ? "w-36 rounded-lg p-0.5" : undefined}
-      tabClassName={compactSectionTabs ? "rounded-md px-3 py-1.5 text-xs" : undefined}
+      className={compactSectionTabs ? "w-max min-w-36 shrink-0 rounded-lg p-0.5" : undefined}
+      tabClassName={compactSectionTabs ? "rounded-md px-3 py-1.5 text-xs whitespace-nowrap" : undefined}
     />
   );
 
@@ -759,6 +764,7 @@ export function HierarchicalCategorySelector({
             selectionMode={selectionMode}
             columnHeightClassName={columnHeightClassName}
             compact={compactSectionTabs}
+            titlePlacement={columnTitlePlacement}
             onActivate={(category) => {
               if (!activeSection) return;
 
@@ -801,6 +807,7 @@ export function HierarchicalCategorySelector({
               selectionMode={selectionMode}
               columnHeightClassName={columnHeightClassName}
               compact={compactSectionTabs}
+              titlePlacement={columnTitlePlacement}
               onActivate={(category) => {
                 if (!activeSection) return;
 
@@ -843,6 +850,7 @@ export function HierarchicalCategorySelector({
               selectionMode={selectionMode}
               columnHeightClassName={columnHeightClassName}
               compact={compactSectionTabs}
+              titlePlacement={columnTitlePlacement}
               onToggle={(category, checked) => onToggleCategory(category.id, checked)}
             />
           ) : null}
@@ -851,45 +859,48 @@ export function HierarchicalCategorySelector({
         {afterColumns}
       </div>
 
-      {selectedDisplay === "input" ? (
+      {selectedDisplay === "input" || selectedDisplay === "primary" ? (
         <div className="space-y-3">
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-500">{mergedText.selectedTitle}</p>
-            <div className="min-h-11 rounded-lg border border-gray-200 bg-white px-2 py-2">
-              {selectedNodes.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {selectedNodes.map((node) => {
-                    return (
-                      <span
-                        key={node.id}
-                        className="inline-flex max-w-full items-center rounded-full bg-brand-50 text-xs font-semibold text-brand-600"
-                      >
-                        <span className="max-w-[15rem] truncate px-2.5 py-1">{getNodeName(node)}</span>
-                        <button
-                          type="button"
-                          onClick={() => onToggleCategory(node.id, false)}
-                          className="pr-2 text-current"
-                          aria-label={`${getNodeName(node)} 제거`}
+          {selectedDisplay === "input" ? (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-500">{mergedText.selectedTitle}</p>
+              <div className="min-h-11 rounded-lg border border-gray-200 bg-white px-2 py-2">
+                {selectedNodes.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedNodes.map((node) => {
+                      return (
+                        <span
+                          key={node.id}
+                          className="inline-flex max-w-full items-center rounded-full bg-brand-50 text-xs font-semibold text-brand-600"
                         >
-                          <X className="size-3.5" />
-                        </button>
-                      </span>
-                    );
-                  })}
-                </div>
-              ) : (
-                <span className="text-sm text-gray-400">{mergedText.selectedPlaceholder}</span>
-              )}
+                          <span className="max-w-[15rem] truncate px-2.5 py-1">{getNodeName(node)}</span>
+                          <button
+                            type="button"
+                            onClick={() => onToggleCategory(node.id, false)}
+                            className="pr-2 text-current"
+                            aria-label={`${getNodeName(node)} 제거`}
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-400">{mergedText.selectedPlaceholder}</span>
+                )}
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <div className="space-y-2">
             <p className="text-xs font-medium text-gray-500">{mergedText.primaryTitle}</p>
             <div ref={primaryContainerRef} className="relative">
               <button
                 type="button"
+                disabled={!onPrimaryCategoryChange}
                 onClick={() => {
-                  if (selectedNodes.length > 0) {
+                  if (onPrimaryCategoryChange && selectedNodes.length > 0) {
                     setIsPrimaryOpen((prev) => !prev);
                   }
                 }}
@@ -905,10 +916,12 @@ export function HierarchicalCategorySelector({
                 ) : (
                   <span className="min-w-0 truncate text-sm text-gray-400">{mergedText.primaryPlaceholder}</span>
                 )}
-                {selectedNodes.length > 0 ? <ChevronRight className="size-4 shrink-0 rotate-90 text-gray-500" /> : null}
+                {onPrimaryCategoryChange && selectedNodes.length > 0 ? (
+                  <ChevronRight className="size-4 shrink-0 rotate-90 text-gray-500" />
+                ) : null}
               </button>
 
-              {isPrimaryOpen ? (
+              {onPrimaryCategoryChange && isPrimaryOpen ? (
                 <Card className="absolute top-full right-0 left-0 z-[80] mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
                   <div className="space-y-1">
                     {selectedNodes.map((node) => {

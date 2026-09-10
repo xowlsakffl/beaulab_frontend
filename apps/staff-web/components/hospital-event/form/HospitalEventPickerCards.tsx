@@ -188,7 +188,9 @@ export function CategoryDoctorPickerCard({
         primaryCategoryId={primaryCategoryId}
         activeSectionKey={activeSectionKey}
         onSectionChangeRequest={onSectionChangeRequest}
-        onPrimaryCategoryChange={(categoryId) => onPrimaryCategoryChange(String(categoryId))}
+        onPrimaryCategoryChange={
+          activeSectionKey === "promotion" ? undefined : (categoryId) => onPrimaryCategoryChange(String(categoryId))
+        }
         onToggleCategory={onToggleCategory}
         loadCategories={loadCategories}
         error={error}
@@ -197,11 +199,13 @@ export function CategoryDoctorPickerCard({
         initialSectionKey="surgery"
         sectionTabsPlacement="header"
         compactSectionTabs
+        sectionTabsVariant="buttons"
+        columnTitlePlacement="outside"
         searchMode="dropdown"
         showSearchTitle={false}
         showDirectTitle={false}
         selectionMode="leaf-click"
-        selectedDisplay="input"
+        selectedDisplay={activeSectionKey === "promotion" ? "primary" : "input"}
         searchInputClassName="h-11"
         columnHeightClassName="h-[232px]"
         headerTitle={<h3 className="text-sm font-bold text-gray-900">카테고리 설정</h3>}
@@ -217,8 +221,9 @@ export function CategoryDoctorPickerCard({
           </div>
         }
         text={{
+          smallTitle: "소카테고리",
           selectedTitle: "선택한 카테고리",
-          primaryTitle: "대표 카테고리 선택",
+          primaryTitle: activeSectionKey === "promotion" ? "대표 카테고리" : "대표 카테고리 선택",
           selectedPlaceholder: "카테고리를 선택해 주세요.",
           primaryPlaceholder: "대표 카테고리를 선택해 주세요.",
         }}
@@ -228,7 +233,7 @@ export function CategoryDoctorPickerCard({
         <h3 className="text-sm font-bold text-gray-900">의료진 선택</h3>
       </div>
       {visibleAssignments.length > 0 ? (
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <div className="mt-3 grid gap-2 sm:grid-cols-3" data-preview-section="doctor_assignments">
           {visibleAssignments.map((assignment, index) => (
             <Select
               key={index}
@@ -255,9 +260,8 @@ export function CategoryDoctorPickerCard({
       )}
       {loadError ? <p className="mt-2 text-xs text-error-500">{loadError}</p> : null}
       <div className="mt-4 rounded-xl bg-gray-50 px-3 py-3 text-xs leading-5 text-gray-600">
-        이벤트 접수는 병의원 기준 3시간 정도 소요될 수 있습니다.
-        <br />
-        이벤트명 및 지정한 카테고리를 등록 후 검수 단계에서 운영자에 의해 변경될 수 있습니다.
+        * 이벤트 접수는 병의원 기준 3시간 정도 소요될 수 있습니다.
+        <br />* 이벤트명 및 지정한 카테고리를 등록 후 검수 단계에서 운영자에 의해 변경될 수 있습니다.
       </div>
     </Card>
   );

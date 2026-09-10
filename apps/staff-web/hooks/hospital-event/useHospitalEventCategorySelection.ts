@@ -116,11 +116,13 @@ export function useHospitalEventCategorySelection({
       const nextUsage = category?.usage;
 
       if (checked && category?.has_children) {
-        setErrors((prev) => ({ ...prev, category_ids: "이벤트 카테고리는 소분류만 선택할 수 있습니다." }));
+        setErrors((prev) => ({ ...prev, category_ids: "이벤트 카테고리는 자식 없는 카테고리만 선택할 수 있습니다." }));
         return;
       }
 
-      if (checked && categoryIds.length >= 3 && !categoryIds.includes(categoryId)) {
+      const isPromotionCategory = nextUsage === "HOSPITAL_EVENT_PROMOTION";
+
+      if (checked && !isPromotionCategory && categoryIds.length >= 3 && !categoryIds.includes(categoryId)) {
         setErrors((prev) => ({ ...prev, category_ids: "카테고리는 최대 3개까지 선택할 수 있습니다." }));
         return;
       }
@@ -129,6 +131,14 @@ export function useHospitalEventCategorySelection({
 
       setForm((prev) => {
         if (checked) {
+          if (isPromotionCategory) {
+            return {
+              ...prev,
+              category_ids: [categoryId],
+              primary_category_id: categoryId,
+              has_options: false,
+            };
+          }
           if (prev.category_ids.includes(categoryId)) return prev;
 
           return {

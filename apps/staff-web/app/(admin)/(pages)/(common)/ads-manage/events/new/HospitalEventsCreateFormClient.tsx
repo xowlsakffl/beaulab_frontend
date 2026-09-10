@@ -19,6 +19,9 @@ import { isApiSuccess } from "@beaulab/types";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
 import { EventInfoCard } from "@/components/hospital-event/form/HospitalEventInfoCard";
 import { HospitalEventMediaCard } from "@/components/hospital-event/form/HospitalEventMediaFields";
+import { HospitalEventTextPagePreview } from "@/components/hospital-event/form/HospitalEventTextPagePreview";
+import { useHospitalEventPreviewContext } from "@/hooks/hospital-event/useHospitalEventPreviewContext";
+import { getHospitalEventPreviewSection, type HospitalEventPreviewFocus } from "@/lib/hospital-event/preview";
 import {
   CategoryDoctorPickerCard,
   HospitalPickerCard,
@@ -104,6 +107,8 @@ function HospitalEventsFormClient({
   const { focusFirstErrorField } = useHospitalEventFieldFocus();
   const {
     thumbnailImage,
+    beforeAfterPhotos,
+    setBeforeAfterPhotos,
     setThumbnailImage,
     eventPageImage,
     setEventPageImage,
@@ -122,6 +127,13 @@ function HospitalEventsFormClient({
   } = useHospitalEventMediaState();
 
   const [form, setForm] = React.useState<HospitalEventFormValues>(INITIAL_HOSPITAL_EVENT_FORM);
+  const [previewFocus, setPreviewFocus] = React.useState<HospitalEventPreviewFocus>(null);
+  const previewContext = useHospitalEventPreviewContext(form);
+  const trackPreviewFocus = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    if (form.event_type !== "TEXT") return;
+    const section = getHospitalEventPreviewSection(event.target);
+    setPreviewFocus((previous) => (previous?.section === section ? previous : section ? { section } : null));
+  };
   const [errors, setErrors] = React.useState<HospitalEventFormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(mode === "edit" || mode === "duplicate");
@@ -227,7 +239,7 @@ function HospitalEventsFormClient({
 
       const detail = response.data;
       setForm(mapHospitalEventDetailToForm(detail));
-      applyExistingMedia(detail.thumbnail_image, detail.event_page_image);
+      applyExistingMedia(detail.thumbnail_image, detail.event_page_image, detail.before_after_photos);
       setErrors({});
       applyDetailCategories(detail.categories);
     } catch {
@@ -303,6 +315,7 @@ function HospitalEventsFormClient({
     const nextErrors = validateCreateHospitalEventForm(form, thumbnailImage, eventPageImage, selectedCategoryUsage, {
       hasExistingThumbnailImage: Boolean(existingThumbnailImage),
       hasExistingEventPageImage: Boolean(existingEventPageImage),
+      beforeAfterPhotos,
     });
     if (eventPriceError) {
       nextErrors.event_price = eventPriceError;
@@ -317,6 +330,7 @@ function HospitalEventsFormClient({
     return true;
   }, [
     eventPageImage,
+    beforeAfterPhotos,
     eventPriceError,
     existingEventPageImage,
     existingThumbnailImage,
@@ -333,6 +347,7 @@ function HospitalEventsFormClient({
     if (mode === "duplicate" && (!sourceEventId || !Number.isFinite(sourceEventId) || sourceEventId <= 0)) return;
 
     const formData = buildHospitalEventFormData({
+      beforeAfterPhotos,
       form,
       thumbnailImage,
       eventPageImage,
@@ -426,7 +441,9 @@ function HospitalEventsFormClient({
         id={EVENT_CREATE_FORM_ID}
         onSubmit={handleSubmit}
         autoComplete="off"
-        className="grid min-w-0 gap-4 xl:grid-cols-[minmax(450px,1fr)_minmax(390px,0.9fr)_minmax(280px,0.55fr)]"
+        onFocus={trackPreviewFocus}
+        onChange={trackPreviewFocus}
+        className="grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(450px,1fr)_minmax(390px,0.9fr)_minmax(280px,0.55fr)]"
       >
         <div className="min-w-0 space-y-4">
           <HospitalPickerCard
@@ -459,6 +476,12 @@ function HospitalEventsFormClient({
         </div>
 
         <EventInfoCard
+          beforeAfterPhotos={beforeAfterPhotos}
+          onBeforeAfterPhotosChange={(update) => {
+            setBeforeAfterPhotos(update);
+            clearError("before_after_photos");
+          }}
+          onPreview={setPreviewMedia}
           form={form}
           errors={errors}
           isTreatmentEvent={isTreatmentEvent}
@@ -501,6 +524,15 @@ function HospitalEventsFormClient({
         />
 
         <HospitalEventMediaCard
+          textPagePreview={
+            <HospitalEventTextPagePreview
+              form={form}
+              photos={beforeAfterPhotos}
+              context={previewContext}
+              focus={previewFocus}
+              onPreview={setPreviewMedia}
+            />
+          }
           eventType={form.event_type}
           thumbnailImage={thumbnailImage}
           eventPageImage={eventPageImage}
@@ -549,6 +581,8 @@ function HospitalEventsFormClient({
 
       {isAppPreviewOpen ? (
         <HospitalEventAppPreviewModal
+          previewContext={previewContext}
+          beforeAfterPhotos={beforeAfterPhotos}
           isOpen
           onClose={closeAppPreview}
           form={form}

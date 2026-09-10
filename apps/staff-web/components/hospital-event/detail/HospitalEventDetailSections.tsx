@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { HospitalEventBeforeAfterPhotoPair } from "../form/HospitalEventBeforeAfterPhotos";
+import { mapBeforeAfterPhotos } from "@/lib/hospital-event/before-after-photos";
 
 import { AdminNoteCreateModal as NoteCreateModal } from "@/components/common/AdminNoteCreateModal";
 import { AdminNotesCard as CommonAdminNotesCard } from "@/components/common/AdminNotesCard";
@@ -22,7 +24,16 @@ import {
   type HospitalEventCategory,
   type HospitalEventMedia,
 } from "@/lib/hospital-event/list";
-import { Button, Card, CategoryBadgeList, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
+import {
+  Button,
+  Card,
+  CategoryBadgeList,
+  DataTable,
+  FormCheckbox,
+  type DataTableColumn,
+  type DataTableMeta,
+  StatusValueBadge,
+} from "@beaulab/ui-admin";
 
 export { NoteCreateModal };
 
@@ -66,11 +77,13 @@ export function EventMainCard({
   canUpdateStatus,
   updating,
   onAdminStatusChange,
+  onPreview,
 }: {
   detail: HospitalEventApiItem;
   canUpdateStatus: boolean;
   updating: boolean;
   onAdminStatusChange: (status: "NORMAL" | "FORCED_STOPPED") => void;
+  onPreview: (preview: MediaPreviewState) => void;
 }) {
   const categoryBadges = eventCategoryBadges(detail.categories);
   const primaryCategory = detail.categories?.find((category) => category.is_primary) ?? detail.categories?.[0] ?? null;
@@ -120,6 +133,39 @@ export function EventMainCard({
         <ReadonlyField label="이벤트설명" value={detail.description} />
         <ReadonlyField label="이벤트기간" value={eventPeriodLabel(detail)} />
         <PriceSummaryCard detail={detail} />
+        {detail.event_type === "TEXT" ? (
+          <>
+            <ReadonlyField label="시술 대상" customValue={<ReadonlyTextList items={detail.procedure_targets} />} />
+            <ReadonlyField label="시술 장점" customValue={<ReadonlyTextList items={detail.procedure_benefits} />} />
+            <ReadonlyField
+              label="전후사진"
+              customValue={
+                detail.before_after_photos?.length ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {mapBeforeAfterPhotos(detail.before_after_photos).map((photo, index) => (
+                      <HospitalEventBeforeAfterPhotoPair
+                        key={photo.key}
+                        photo={photo}
+                        index={index}
+                        onPreview={onPreview}
+                        labelVariant="overlay"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  "-"
+                )
+              }
+            />
+          </>
+        ) : null}
+        {detail.event_type === "IMAGE" && detail.has_options && Boolean(detail.options?.length) ? (
+          <EventOptionsTable options={detail.options ?? []} />
+        ) : null}
+        <ReadonlyField
+          label="부작용안내"
+          customValue={<p className="whitespace-pre-wrap">{displayValue(detail.side_effect_notice)}</p>}
+        />
       </div>
     </Card>
   );
@@ -215,9 +261,11 @@ export function OperationHistoryCard({
 export function EventMediaColumn({
   detail,
   onPreview,
+  textPreview,
 }: {
   detail: HospitalEventApiItem;
   onPreview: (preview: MediaPreviewState) => void;
+  textPreview?: React.ReactNode;
 }) {
   return (
     <div className="min-w-0 space-y-4">
@@ -235,6 +283,8 @@ export function EventMediaColumn({
           onPreview={onPreview}
           tall
         />
+      ) : detail.event_type === "TEXT" ? (
+        textPreview
       ) : null}
     </div>
   );
@@ -288,24 +338,118 @@ function PriceSummaryCard({ detail }: { detail: HospitalEventApiItem }) {
   const discountRate = Number(detail.discount_rate ?? 0);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
-      <div className="space-y-3">
-        <ReadonlyField label="VAT" value={detail.is_vat_included ? "VAT 포함" : "VAT 비대상"} compact />
-        <ReadonlyField label="정상 가격" value={formatHospitalEventPrice(Number(detail.normal_price ?? 0))} compact />
-        <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3">
-          <p className={labelClassName}>이벤트 가격</p>
-          <div className="min-w-0 text-sm leading-6 text-gray-800">
-            <span className="font-semibold">{formatHospitalEventPrice(Number(detail.event_price ?? 0))}</span>
-            <span className="ml-2 font-bold text-brand-500">할인율 {discountRate}%</span>
+    <ReadonlyField
+      label="가격"
+      customValue={
+        <div className="space-y-2 [&>label]:opacity-100">
+          <div className="grid grid-cols-[minmax(0,1fr)_4.75rem] items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
+            <div className="min-w-0 space-y-3">
+              <ReadonlyField
+                label="정상 가격"
+                value={formatHospitalEventPrice(Number(detail.normal_price ?? 0))}
+                compact
+              />
+              <ReadonlyField
+                label="이벤트 가격"
+                value={formatHospitalEventPrice(Number(detail.event_price ?? 0))}
+                compact
+              />
+              <ReadonlyField
+                label="상담신청단가"
+                value={formatHospitalEventPoint(Number(detail.consultation_price ?? 0))}
+                compact
+              />
+            </div>
+            <div className="flex h-11 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-xs font-semibold text-brand-500">
+              할인율 {discountRate}%
+            </div>
           </div>
+          <FormCheckbox
+            id={`event-${detail.id}-vat`}
+            checked
+            disabled
+            label={detail.is_vat_included ? "VAT 포함" : "VAT 비대상"}
+            onChange={() => {}}
+            className="disabled:checked:border-brand-500 disabled:checked:bg-brand-500!"
+          />
         </div>
-        <ReadonlyField
-          label="상담신청단가"
-          value={formatHospitalEventPoint(Number(detail.consultation_price ?? 0))}
-          compact
-        />
+      }
+    />
+  );
+}
+
+type EventOption = NonNullable<HospitalEventApiItem["options"]>[number];
+
+const optionColumns: DataTableColumn<EventOption>[] = [
+  {
+    key: "name",
+    header: "옵션명",
+    headerClassName: "bg-gray-50 px-2 py-2 text-left font-semibold text-gray-600",
+    cellClassName: "px-2 py-2 align-middle break-words text-gray-700",
+    render: (option) => displayValue(option.name),
+  },
+  {
+    key: "session_count",
+    header: "회차",
+    headerClassName: "w-10 bg-gray-50 px-1 py-2 text-center font-semibold text-gray-600",
+    cellClassName: "px-1 py-2 text-center align-middle text-gray-700",
+    render: (option) => (option.session_count == null ? "-" : `${option.session_count.toLocaleString()}회`),
+  },
+  {
+    key: "normal_price",
+    header: "정가",
+    headerClassName: "w-20 bg-gray-50 px-1 py-2 text-left font-semibold text-gray-600",
+    cellClassName: "px-1 py-2 align-middle break-words text-gray-700 tabular-nums",
+    render: (option) => (option.normal_price == null ? "-" : formatHospitalEventPrice(option.normal_price)),
+  },
+  {
+    key: "event_price",
+    header: "할인가",
+    headerClassName: "w-28 bg-gray-50 px-1 py-2 text-left font-semibold text-gray-600",
+    cellClassName: "px-1 py-2 align-middle break-words text-gray-700 tabular-nums",
+    render: (option) => (
+      <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-1">
+        <span>{option.event_price == null ? "-" : formatHospitalEventPrice(option.event_price)}</span>
+        {option.discount_rate != null ? (
+          <span className="text-right font-medium text-brand-500">{option.discount_rate}%</span>
+        ) : null}
       </div>
-    </div>
+    ),
+  },
+];
+
+function EventOptionsTable({ options }: { options: EventOption[] }) {
+  const rows = options.map((option, index) => ({ ...option, key: option.id ?? index }));
+
+  return (
+    <ReadonlyField
+      label="이벤트 옵션"
+      customValue={
+        <div className="[&>div]:rounded-lg">
+          <DataTable
+            columns={optionColumns}
+            rows={rows}
+            getRowKey={(row) => row.key}
+            tableClassName="w-full table-fixed text-left leading-5 [&_td]:h-10 [&_td]:text-[11px] [&_thead]:border-gray-200"
+          />
+        </div>
+      }
+    />
+  );
+}
+
+function ReadonlyTextList({ items }: { items?: string[] | null }) {
+  const values = (items ?? []).filter((item) => item.trim());
+  if (values.length === 0) return <>-</>;
+
+  return (
+    <ol className="list-decimal space-y-2 pl-5">
+      {values.map((item, index) => (
+        <li key={index} className="whitespace-pre-wrap">
+          {item}
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -324,7 +468,7 @@ function ReadonlyField({
     <div
       className={
         compact
-          ? "grid grid-cols-[7rem_minmax(0,1fr)] items-start gap-3"
+          ? "grid grid-cols-[5.5rem_minmax(0,1fr)] items-start gap-2"
           : "grid grid-cols-[8rem_minmax(0,1fr)] items-start gap-4"
       }
     >
@@ -361,6 +505,7 @@ function categoryFullPath(category: HospitalEventCategory) {
 
 function inferEventSectionLabel(categories?: HospitalEventCategory[] | null) {
   const usage = categories?.find((category) => category.usage)?.usage;
+  if (usage === "HOSPITAL_EVENT_PROMOTION") return "기획전";
   return usage === "HOSPITAL_EVENT_TREATMENT" ? "쁘띠/시술" : "성형";
 }
 

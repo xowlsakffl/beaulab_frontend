@@ -137,9 +137,7 @@ export function EventOptionsSection({
               </tbody>
             </table>
           </div>
-          <Button type="button" variant="outline" size="sm" className="h-8 w-full" onClick={onAddOption}>
-            + 옵션추가
-          </Button>
+          <AddCircleButton label="옵션 추가" fullWidth onClick={onAddOption} />
         </>
       ) : null}
       {error ? <p className="mt-2 text-xs text-error-500">{error}</p> : null}
@@ -149,6 +147,7 @@ export function EventOptionsSection({
 
 export function TextItemSection({
   title,
+  field,
   items,
   maxItems,
   error,
@@ -157,6 +156,7 @@ export function TextItemSection({
   onChange,
 }: {
   title: string;
+  field: "procedure_targets" | "procedure_benefits";
   items: string[];
   maxItems: number;
   error?: string;
@@ -168,7 +168,7 @@ export function TextItemSection({
   const canAddItem = displayItems.length < maxItems;
 
   return (
-    <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3">
+    <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3" data-field-target={field} tabIndex={-1}>
       <Label className={`${labelClassName} pt-2`}>
         <span className="block">{title}</span>
         <span className="mt-1 block text-[11px] font-normal text-gray-400">(최대 {maxItems}개)</span>
@@ -186,22 +186,19 @@ export function TextItemSection({
             </div>
             {index > 0 ? (
               <CircleRemoveButton onClick={() => onRemove(index)} className="size-7" aria-label={`${title} 삭제`} />
-            ) : (
-              <span className="size-7 shrink-0" aria-hidden="true" />
-            )}
+            ) : null}
           </div>
         ))}
-        <div className="flex justify-center">
-          <AddCircleButton
-            label={`${title} 추가`}
-            onClick={() => {
-              if (!canAddItem) return;
-              onAdd();
-            }}
-            disabled={!canAddItem}
-            className="disabled:cursor-not-allowed disabled:opacity-40"
-          />
-        </div>
+        <AddCircleButton
+          label={`${title} 추가`}
+          fullWidth
+          onClick={() => {
+            if (!canAddItem) return;
+            onAdd();
+          }}
+          disabled={!canAddItem}
+          className="disabled:cursor-not-allowed disabled:opacity-40"
+        />
         {error ? <p className="text-xs text-error-500">{error}</p> : null}
       </div>
     </div>
@@ -215,10 +212,10 @@ export function DoctorVisibilitySection({
   assignments: HospitalEventFormValues["doctor_assignments"];
   onChange: (index: number, patch: Partial<HospitalEventFormValues["doctor_assignments"][number]>) => void;
 }) {
-  const selectedAssignments = assignments.filter((assignment) => assignment.hospital_doctor_id);
+  if (!assignments.some((assignment) => assignment.hospital_doctor_id)) return null;
 
   return (
-    <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3">
+    <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-3" data-preview-section="doctor_assignments">
       <Label className={`${labelClassName} pt-2`}>
         <span className="block">의료진</span>
         <span className="block">정보노출선택</span>
@@ -246,12 +243,7 @@ export function DoctorVisibilitySection({
             </div>
           );
         })}
-        {selectedAssignments.length === 0 ? (
-          <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-500">
-            의료진 선택에서 의료진을 선택하면 노출 항목을 설정할 수 있습니다.
-          </div>
-        ) : null}
-        <p className="text-xs text-gray-500">* 공개여부 체크 시 원장님 경력 / 활동 사항은 자동 입력됩니다.</p>
+        <p className="text-xs text-gray-500">* 노출여부 체크시 원장님 경력 / 활동 사항은 자동 입력 됩니다.</p>
       </div>
     </div>
   );
