@@ -5,7 +5,7 @@ import { Button, Card, InputField, Mail, StatusValueBadge } from "@beaulab/ui-ad
 
 import { resolveAllowStatusValue } from "@/components/common/AllowStatusControls";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import { BUSINESS_NUMBER_FORMATTED_LENGTH, formatBusinessNumberInput } from "@/lib/common/business-number";
 import { reviewAllowStatusColor } from "@/lib/common/review-status";
 import {

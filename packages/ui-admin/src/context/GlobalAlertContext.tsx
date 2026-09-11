@@ -98,9 +98,10 @@ export function GlobalAlertProvider({ children }: { children: ReactNode }) {
   );
 
   React.useEffect(() => {
+    const timers = dismissTimerIdsRef.current;
     return () => {
-      dismissTimerIdsRef.current.forEach((timerId) => window.clearTimeout(timerId));
-      dismissTimerIdsRef.current.clear();
+      timers.forEach((timerId) => window.clearTimeout(timerId));
+      timers.clear();
     };
   }, []);
 

@@ -18,6 +18,7 @@ type HospitalEventCategoryFilterOptionsApiResponse = {
 
 const loadCategoryFilterOptions = createCachedRequest<HospitalEventCategoryFilterOptions>(
   HOSPITAL_EVENT_CATEGORY_FILTER_OPTIONS_CACHE_TTL_MS,
+  "categories",
 );
 
 export async function fetchHospitalEventCategoryFilterOptions(): Promise<HospitalEventCategoryFilterOptions> {

@@ -73,7 +73,7 @@ export function CheckboxFilterDropdown({
         </Button>
 
         {isOpen ? (
-          <Card className="absolute z-20 mt-1 w-full rounded-lg p-2 shadow-lg">
+          <Card className="absolute z-20 mt-1 max-h-80 w-full overflow-y-auto rounded-lg p-2 shadow-lg">
             <div className="px-1 py-1 text-sm">
               <Checkbox label={allLabel} checked={isAllSelected} onChange={onToggleAll} />
             </div>

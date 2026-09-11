@@ -134,7 +134,7 @@ export function HospitalFormLayout({
             existingLogo={existingLogo}
             hospitalName={form.name}
             error={errors.logo}
-            className="h-full xl:col-start-1 xl:row-start-1"
+            className="xl:col-start-1 xl:row-start-1"
             onChange={onLogoChange}
             onPreview={setPreviewMedia}
             onUploadValidationError={setImageUploadWarning}

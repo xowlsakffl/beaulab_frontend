@@ -1,22 +1,22 @@
 export type HospitalAccountCreateFieldName =
-  "nickname" | "password" | "password_confirmation" | "phone" | "code" | "phone_verification_token";
+  "nickname" | "password" | "password_confirmation" | "email" | "code" | "email_verification_token";
 
 export type HospitalAccountCreateFieldErrors = Partial<Record<HospitalAccountCreateFieldName, string>>;
 
-export const PHONE_VERIFICATION_TOKEN_PATTERN = /^[A-Za-z0-9]{64}$/;
+export const EMAIL_VERIFICATION_TOKEN_PATTERN = /^[A-Za-z0-9]{64}$/;
 
 export function validateHospitalAccountCreateForm({
   nickname,
   password,
   passwordConfirmation,
-  phone,
-  phoneVerificationToken,
+  email,
+  emailVerificationToken,
 }: {
   nickname: string;
   password: string;
   passwordConfirmation: string;
-  phone: string;
-  phoneVerificationToken: string;
+  email: string;
+  emailVerificationToken: string;
 }): HospitalAccountCreateFieldErrors {
   const errors: HospitalAccountCreateFieldErrors = {};
   const trimmedNickname = nickname.trim();
@@ -33,9 +33,9 @@ export function validateHospitalAccountCreateForm({
   if (!passwordConfirmation) errors.password_confirmation = "비밀번호 확인을 입력해 주세요.";
   else if (password !== passwordConfirmation) errors.password_confirmation = "비밀번호 확인이 일치하지 않습니다.";
 
-  if (!isValidPhone(phone)) errors.phone = "휴대폰 번호를 정확히 입력해 주세요.";
-  if (!PHONE_VERIFICATION_TOKEN_PATTERN.test(phoneVerificationToken)) {
-    errors.phone_verification_token = "휴대폰 인증을 완료해 주세요.";
+  if (!isValidEmail(email)) errors.email = "이메일 주소를 정확히 입력해 주세요.";
+  if (!EMAIL_VERIFICATION_TOKEN_PATTERN.test(emailVerificationToken)) {
+    errors.email_verification_token = "이메일 인증을 완료해 주세요.";
   }
 
   return errors;
@@ -54,9 +54,9 @@ export function extractHospitalAccountCreateFieldErrors(details: unknown): Hospi
     "nickname",
     "password",
     "password_confirmation",
-    "phone",
+    "email",
     "code",
-    "phone_verification_token",
+    "email_verification_token",
   ];
 
   fields.forEach((field) => {
@@ -68,14 +68,6 @@ export function extractHospitalAccountCreateFieldErrors(details: unknown): Hospi
   return result;
 }
 
-export function formatPhoneInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-}
-
-export function isValidPhone(value: string) {
-  return /^01[016789]-?\d{3,4}-?\d{4}$/.test(value);
+export function isValidEmail(value: string) {
+  return value.trim().length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }

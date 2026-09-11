@@ -6,7 +6,7 @@ import { buildUrl, type Query } from "./url";
  * Actor별 웹 세션과 CSRF를 처리하는 공통 HTTP client.
  *
  * 사용법 예)
- * import { createClient } from "@beaulab/api-client"; // client.ts가 export된 패키지 경로
+ * import { createClient } from "@beaulab/api-client/web"; // client.ts가 export된 패키지 경로
  * export const staffClient = createClient({
  *   baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api/v1/staff`,
  *   actor: "staff",

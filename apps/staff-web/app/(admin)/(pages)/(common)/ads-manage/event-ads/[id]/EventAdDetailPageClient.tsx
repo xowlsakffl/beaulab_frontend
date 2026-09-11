@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
+import { formatOperationHistoryValue } from "@/lib/common/operation-history";
+import { useOperationHistories } from "@/hooks/common/useOperationHistories";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, Card, SpinnerBlock, useGlobalAlert, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
+import { Button, Card, SpinnerBlock, useGlobalAlert, StatusValueBadge } from "@beaulab/ui-admin";
 
 import { AdminNoteCreateModal } from "@/components/common/AdminNoteCreateModal";
 import { AdminNotesCard } from "@/components/common/AdminNotesCard";
@@ -46,7 +48,6 @@ type PendingAllowStatusChange = {
 };
 
 const EVENT_AD_ADMIN_NOTE_TARGET = "hospital_event_ad";
-const HISTORY_PER_PAGE = 10;
 const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
 const valueClassName = "min-w-0 break-words text-sm leading-6 text-gray-800";
@@ -73,10 +74,16 @@ export default function EventAdDetailPageClient() {
   const [isNoteModalOpen, setIsNoteModalOpen] = React.useState(false);
   const [noteInput, setNoteInput] = React.useState("");
   const [savingNote, setSavingNote] = React.useState(false);
-  const [histories, setHistories] = React.useState<OperationHistoryListItem[]>([]);
-  const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
-  const [historyPage, setHistoryPage] = React.useState(1);
-  const [historiesLoading, setHistoriesLoading] = React.useState(false);
+  const {
+    histories,
+    meta: historyMeta,
+    loading: historiesLoading,
+    error: historiesError,
+    setPage: setHistoryPage,
+    refresh: fetchHistories,
+  } = useOperationHistories<OperationHistoryListItem>(
+    Number.isSafeInteger(adId) && adId > 0 ? `/hospital-event-ads/${adId}/operation-histories` : null,
+  );
   const [updatingAllowStatus, setUpdatingAllowStatus] = React.useState(false);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
   const [pendingAllowStatusError, setPendingAllowStatusError] = React.useState<string | null>(null);
@@ -148,26 +155,6 @@ export default function EventAdDetailPageClient() {
     }
   }, [adId]);
 
-  const fetchHistories = React.useCallback(async () => {
-    if (!Number.isFinite(adId) || adId <= 0) return;
-
-    setHistoriesLoading(true);
-
-    try {
-      const response = await api.get<OperationHistoryListItem[]>(`/hospital-event-ads/${adId}/operation-histories`, {
-        operation_histories_page: historyPage,
-        operation_histories_per_page: HISTORY_PER_PAGE,
-      });
-
-      if (isApiSuccess(response)) {
-        setHistories(response.data);
-        setHistoryMeta((response.meta as DataTableMeta | null) ?? null);
-      }
-    } finally {
-      setHistoriesLoading(false);
-    }
-  }, [adId, historyPage]);
-
   React.useEffect(() => {
     void fetchDetail();
   }, [fetchDetail]);
@@ -175,10 +162,6 @@ export default function EventAdDetailPageClient() {
   React.useEffect(() => {
     void fetchNotes();
   }, [fetchNotes]);
-
-  React.useEffect(() => {
-    void fetchHistories();
-  }, [fetchHistories]);
 
   const requestAllowStatus = React.useCallback(
     (allowStatus: string) => {
@@ -316,6 +299,7 @@ export default function EventAdDetailPageClient() {
             histories={histories}
             meta={historyMeta}
             loading={historiesLoading}
+            error={historiesError}
             onPageChange={setHistoryPage}
             cardClassName={cardClassName}
             formatDateTime={formatShortDateTime}
@@ -552,21 +536,5 @@ function historyChangeDisplay(change: OperationHistoryChangeLike, side: "before"
     );
   }
 
-  if (typeof display === "string" && display.trim() !== "") {
-    return display;
-  }
-
-  return stringifyHistoryValue(value);
-}
-
-function stringifyHistoryValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "예" : "아니오";
-  if (typeof value === "string" || typeof value === "number") return String(value);
-
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
+  return formatOperationHistoryValue(value, display);
 }

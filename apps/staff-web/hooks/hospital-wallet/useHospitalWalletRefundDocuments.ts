@@ -4,7 +4,7 @@ import React from "react";
 import { isApiSuccess } from "@beaulab/types";
 import { useGlobalAlert } from "@beaulab/ui-admin";
 
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import { api, downloadFile } from "@/lib/common/api";
 import type { WalletOperationRow } from "@/lib/hospital-wallet/history";
 import {

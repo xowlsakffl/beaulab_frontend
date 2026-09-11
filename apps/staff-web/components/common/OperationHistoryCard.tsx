@@ -4,6 +4,7 @@ import React, { type ReactNode } from "react";
 import { Button, Card, Pagination, type BadgeColor, type DataTableMeta } from "@beaulab/ui-admin";
 
 import { AddCircleButton } from "@/components/common/AddCircleButton";
+import { formatOperationHistoryValue } from "@/lib/common/operation-history";
 import {
   OperationHistoryActionBadge,
   OperationHistoryReason,
@@ -23,6 +24,7 @@ type OperationHistoryCardProps = {
   histories: OperationHistoryListItem[];
   meta: DataTableMeta | null;
   loading: boolean;
+  error?: string | null;
   onPageChange: (page: number) => void;
   cardClassName?: string;
   title?: string;
@@ -41,6 +43,7 @@ export function OperationHistoryCard({
   histories,
   meta,
   loading,
+  error = null,
   onPageChange,
   cardClassName = "rounded-xl border border-gray-200 bg-white p-5",
   title = "히스토리",
@@ -70,6 +73,11 @@ export function OperationHistoryCard({
   return (
     <Card className={cardClassName}>
       <h3 className="mb-4 border-b border-gray-200 pb-3 text-sm font-bold text-gray-900">{title}</h3>
+      {error ? (
+        <p role="alert" className="mb-3 text-center text-xs text-error-500">
+          {error}
+        </p>
+      ) : null}
       {hasHistories ? (
         <div
           className={["space-y-3", loading ? "pointer-events-none opacity-60" : ""].filter(Boolean).join(" ")}
@@ -162,9 +170,9 @@ export function OperationHistoryCard({
         </div>
       ) : loading ? (
         <div className={stateBoxClassName}>히스토리를 불러오는 중입니다.</div>
-      ) : (
+      ) : !error ? (
         <div className={stateBoxClassName}>등록된 히스토리가 없습니다.</div>
-      )}
+      ) : null}
     </Card>
   );
 }
@@ -173,21 +181,5 @@ function defaultChangeValueDisplay(change: OperationHistoryChangeLike, side: "be
   const display = side === "after" ? change.after_display : change.before_display;
   const value = side === "after" ? change.after_value : change.before_value;
 
-  if (typeof display === "string" && display.trim() !== "") {
-    return display;
-  }
-
-  return stringifyHistoryValue(value);
-}
-
-function stringifyHistoryValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "예" : "아니오";
-  if (typeof value === "string" || typeof value === "number") return String(value);
-
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
+  return formatOperationHistoryValue(value, display);
 }

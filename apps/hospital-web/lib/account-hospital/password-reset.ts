@@ -22,3 +22,11 @@ export function resetHospitalPassword(token: string, password: string, passwordC
     skipUnauthorizedHandler: true,
   });
 }
+
+export function requestHospitalPasswordReset(email: string) {
+  return hospitalApi.rawWithResponse<{ message: string }>("/auth/password-reset-link", {
+    method: "POST",
+    body: { email },
+    skipUnauthorizedHandler: true,
+  });
+}

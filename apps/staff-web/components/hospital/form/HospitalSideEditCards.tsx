@@ -25,7 +25,7 @@ export function HospitalVerifiedAccountContactEditCard({
   return (
     <Card className={[cardClassName, className].filter(Boolean).join(" ")}>
       <div className="mb-5 flex min-w-0 flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
+        <h3 className="text-sm font-bold text-gray-900">인증된 계정 정보</h3>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -44,7 +44,7 @@ export function HospitalVerifiedAccountContactEditCard({
         </div>
       </div>
       <div className="space-y-3">
-        <ReadonlyInfoField label="전화번호" value={accountHospital?.phone} compact />
+        <ReadonlyInfoField label="이메일" value={accountHospital?.email} compact />
       </div>
     </Card>
   );

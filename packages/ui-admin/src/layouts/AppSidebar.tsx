@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -61,7 +61,9 @@ export function AppSidebar({
   const mainItems = menu.main;
   const otherItems = menu.others ?? [];
 
-  const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
+  type Submenu = { type: "main" | "others"; index: number } | null;
+  const [selection, setSelection] = useState<{ pathname: string; value?: Submenu }>({ pathname });
+  if (selection.pathname !== pathname) setSelection({ pathname });
 
   const isActive = useCallback(
     (path: string) => {
@@ -71,11 +73,17 @@ export function AppSidebar({
     [pathname],
   );
 
+  let activeSubmenu: Submenu = null;
+  for (const type of ["main", "others"] as const) {
+    const items = type === "main" ? mainItems : otherItems;
+    const index = items.findIndex((nav) => nav.subItems?.some((item) => isActive(item.path)));
+    if (index !== -1) activeSubmenu = { type, index };
+  }
+  const openSubmenu =
+    selection.pathname === pathname && selection.value !== undefined ? selection.value : activeSubmenu;
   const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
-    setOpenSubmenu((previous) => {
-      if (previous && previous.type === menuType && previous.index === index) return null;
-      return { type: menuType, index };
-    });
+    const value = openSubmenu?.type === menuType && openSubmenu.index === index ? null : { type: menuType, index };
+    setSelection({ pathname, value });
   };
 
   const renderMenuItems = (items: SidebarNavItem[], menuType: "main" | "others") => (
@@ -154,24 +162,6 @@ export function AppSidebar({
       ))}
     </ul>
   );
-
-  useEffect(() => {
-    let submenuMatched = false;
-
-    (["main", "others"] as const).forEach((menuType) => {
-      const items = menuType === "main" ? mainItems : otherItems;
-      items.forEach((nav, index) => {
-        nav.subItems?.forEach((subItem) => {
-          if (isActive(subItem.path)) {
-            setOpenSubmenu({ type: menuType, index });
-            submenuMatched = true;
-          }
-        });
-      });
-    });
-
-    if (!submenuMatched) setOpenSubmenu(null);
-  }, [pathname, isActive, mainItems, otherItems]);
 
   return (
     <aside className="fixed top-0 left-0 z-50 flex h-dvh w-[290px] flex-col border-r border-[#302E3F] bg-[#302E3F] px-5 text-white">

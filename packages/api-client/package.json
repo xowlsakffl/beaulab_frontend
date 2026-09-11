@@ -3,12 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "lint": "eslint src",
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
+    "./web": {
+      "types": "./src/web.ts",
+      "default": "./src/web.ts"
+    },
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"

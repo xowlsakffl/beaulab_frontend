@@ -17,7 +17,7 @@ type FetchCategorySelectorItemsParams = {
   cacheTtlMs?: number;
 };
 
-const loadCategorySelectorItems = createCachedRequest<CategoryApiItem[]>(CATEGORY_SELECTOR_CACHE_TTL_MS);
+const loadCategorySelectorItems = createCachedRequest<CategoryApiItem[]>(CATEGORY_SELECTOR_CACHE_TTL_MS, "categories");
 
 function buildCategorySelectorCacheKey({
   domain,

@@ -4,7 +4,7 @@ import React from "react";
 import { Button, CircleRemoveButton, ImagePlus, Label } from "@beaulab/ui-admin";
 import { AddCircleButton, AddCircleIcon } from "@/components/common/AddCircleButton";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import {
   BEFORE_AFTER_PHOTO_HELPER,
   BEFORE_AFTER_PHOTO_MAX_COUNT,

@@ -7,7 +7,7 @@ import { api } from "@/lib/common/api";
 import { createTimedCache } from "@/lib/common/request-cache";
 import type { VideoDoctorOption } from "@/lib/video/form";
 
-const videoDoctorOptionsCache = createTimedCache<VideoDoctorOption[]>();
+const videoDoctorOptionsCache = createTimedCache<VideoDoctorOption[]>(["doctors", "hospitals"]);
 
 async function loadVideoDoctorOptions(hospitalId: string, signal: AbortSignal) {
   const response = await api.get<VideoDoctorOption[]>(

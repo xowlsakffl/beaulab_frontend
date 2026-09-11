@@ -3,7 +3,7 @@
 import React from "react";
 import { ArrowLeft, Button, Card, ChevronDown, FormCheckbox, InputField, Label, SpinnerBlock } from "@beaulab/ui-admin";
 
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import { useDoctorHospitalOptions } from "@/hooks/doctor/useDoctorHospitalOptions";
 import type { DoctorHospitalOption } from "@/lib/doctor/form";
 import { resolveHospitalEventMediaUrl } from "@/lib/hospital-event/list";

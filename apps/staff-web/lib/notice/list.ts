@@ -1,3 +1,4 @@
+import { cycleTableSort } from "@/lib/common/sort";
 import type { DateRange } from "react-day-picker";
 import {
   STANDARD_DATE_PRESET_OPTIONS,
@@ -124,17 +125,7 @@ export function normalizeNotice(item: NoticeApiItem): NoticeRow {
 }
 
 export function nextSortState(prev: SortState, field: SortField): SortState {
-  if (prev.field !== field) return { field, direction: "desc", enabled: true };
-  if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
-  if (prev.enabled && prev.direction === "asc") {
-    return {
-      field: DEFAULT_SORT.field,
-      direction: DEFAULT_SORT.direction,
-      enabled: false,
-    };
-  }
-
-  return { field, direction: "desc", enabled: true };
+  return cycleTableSort(prev, field, DEFAULT_SORT);
 }
 
 export function parseNoticesTableState(searchParams: URLSearchParams) {

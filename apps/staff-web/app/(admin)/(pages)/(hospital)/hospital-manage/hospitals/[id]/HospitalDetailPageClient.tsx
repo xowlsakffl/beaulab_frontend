@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useOperationHistories } from "@/hooks/common/useOperationHistories";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
@@ -34,10 +35,9 @@ import { type HospitalDetailResponse, type HospitalStatusChangeRequestAsset } fr
 import { HOSPITAL_PERMISSIONS, HOSPITAL_STATUS_PERMISSIONS } from "@/lib/hospital/permissions";
 import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
 import { labelApprovalStatus, labelReviewStatus } from "@/lib/hospital/list";
-import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
+import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 const HOSPITAL_ADMIN_NOTE_TARGET = "hospital";
-const HISTORY_PER_PAGE = 10;
 
 type AdminNoteItem = {
   id: number;
@@ -83,10 +83,16 @@ export default function HospitalDetailPageClient() {
   const [isNoteModalOpen, setIsNoteModalOpen] = React.useState(false);
   const [noteInput, setNoteInput] = React.useState("");
   const [savingNote, setSavingNote] = React.useState(false);
-  const [histories, setHistories] = React.useState<HospitalOperationHistoryItem[]>([]);
-  const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
-  const [historyPage, setHistoryPage] = React.useState(1);
-  const [historiesLoading, setHistoriesLoading] = React.useState(false);
+  const {
+    histories,
+    meta: historyMeta,
+    loading: historiesLoading,
+    error: historiesError,
+    setPage: setHistoryPage,
+    refresh: fetchHistories,
+  } = useOperationHistories<HospitalOperationHistoryItem>(
+    Number.isSafeInteger(hospitalId) && hospitalId > 0 ? `/hospitals/${hospitalId}/operation-histories` : null,
+  );
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<{
     allowStatus: string;
     reason: string;
@@ -178,37 +184,6 @@ export default function HospitalDetailPageClient() {
     }
   }, [hospitalId]);
 
-  const fetchHistories = React.useCallback(async () => {
-    if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
-
-    setHistoriesLoading(true);
-
-    try {
-      const response = await api.get<HospitalOperationHistoryItem[]>(`/hospitals/${hospitalId}/operation-histories`, {
-        operation_histories_page: historyPage,
-        operation_histories_per_page: HISTORY_PER_PAGE,
-      });
-
-      if (isApiSuccess(response)) {
-        setHistories(response.data);
-        setHistoryMeta((response.meta as DataTableMeta | null) ?? null);
-      }
-    } catch {
-      // Keep the current history list if only the refresh fails.
-    } finally {
-      setHistoriesLoading(false);
-    }
-  }, [hospitalId, historyPage]);
-
-  const refreshHistoriesFromFirstPage = React.useCallback(async () => {
-    if (historyPage !== 1) {
-      setHistoryPage(1);
-      return;
-    }
-
-    await fetchHistories();
-  }, [fetchHistories, historyPage]);
-
   React.useEffect(() => {
     void fetchHospital();
   }, [fetchHospital]);
@@ -216,10 +191,6 @@ export default function HospitalDetailPageClient() {
   React.useEffect(() => {
     void fetchNotes();
   }, [fetchNotes]);
-
-  React.useEffect(() => {
-    void fetchHistories();
-  }, [fetchHistories]);
 
   const openSuspendModal = React.useCallback(() => {
     setIsActionMenuOpen(false);
@@ -320,7 +291,7 @@ export default function HospitalDetailPageClient() {
       );
       setIsSuspendModalOpen(false);
       setSuspendReason("");
-      await refreshHistoriesFromFirstPage();
+      await fetchHistories();
     } catch {
       setHospitalStatusError(
         canUpdateHospitalStatus ? "운영중지 등록 중 오류가 발생했습니다." : "운영중지 신청 중 오류가 발생했습니다.",
@@ -328,7 +299,7 @@ export default function HospitalDetailPageClient() {
     } finally {
       setUpdatingHospitalStatus(false);
     }
-  }, [canUpdateHospitalStatus, hospitalId, refreshHistoriesFromFirstPage, showAlert, suspendReason]);
+  }, [canUpdateHospitalStatus, hospitalId, fetchHistories, showAlert, suspendReason]);
 
   const submitActivate = React.useCallback(async () => {
     if (!Number.isFinite(hospitalId) || hospitalId <= 0) return;
@@ -357,13 +328,13 @@ export default function HospitalDetailPageClient() {
           : response.data,
       );
       setIsActivateModalOpen(false);
-      await refreshHistoriesFromFirstPage();
+      await fetchHistories();
     } catch {
       setHospitalStatusError("정상노출 처리 중 오류가 발생했습니다.");
     } finally {
       setUpdatingHospitalStatus(false);
     }
-  }, [hospitalId, refreshHistoriesFromFirstPage]);
+  }, [hospitalId, fetchHistories]);
 
   const requestAllowStatusChange = React.useCallback(
     (allowStatus: string) => {
@@ -416,13 +387,13 @@ export default function HospitalDetailPageClient() {
 
       setDetail((prev) => (prev ? { ...prev, allow_status: pendingAllowStatusChange.allowStatus } : prev));
       setPendingAllowStatusChange(null);
-      await refreshHistoriesFromFirstPage();
+      await fetchHistories();
     } catch {
       setAllowStatusError("검수상태 변경 중 오류가 발생했습니다.");
     } finally {
       setUpdatingAllowStatus(false);
     }
-  }, [detail, pendingAllowStatusChange, refreshHistoriesFromFirstPage]);
+  }, [detail, pendingAllowStatusChange, fetchHistories]);
 
   const saveNote = React.useCallback(async () => {
     const note = noteInput.trim();
@@ -519,6 +490,7 @@ export default function HospitalDetailPageClient() {
           histories={histories}
           meta={historyMeta}
           loading={historiesLoading}
+          error={historiesError}
           onPageChange={setHistoryPage}
         />
         <AdminNotesCard

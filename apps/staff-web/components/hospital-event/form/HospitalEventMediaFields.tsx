@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { Card, InlineFileSelect, Label } from "@beaulab/ui-admin";
+import { InlineFileSelect, Label } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { ImageUploadPreviewCard } from "@/components/common/ImageUploadPreviewCard";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import {
   HOSPITAL_EVENT_IMAGE_ACCEPT,
   HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT,
@@ -15,7 +16,6 @@ import {
 } from "@/lib/hospital-event/form";
 import { resolveHospitalEventMediaUrl, type HospitalEventMedia } from "@/lib/hospital-event/list";
 
-const cardClassName = "rounded-xl border border-gray-200 bg-white p-5";
 const labelClassName = "text-xs font-semibold text-gray-500";
 
 export function HospitalEventMediaCard({
@@ -48,25 +48,36 @@ export function HospitalEventMediaCard({
 
   return (
     <div className="min-w-0 space-y-4">
-      <SingleImagePreviewPanel
+      <ImageUploadPreviewCard
         title="썸네일"
         helper={HOSPITAL_EVENT_THUMBNAIL_HELPER_TEXT}
+        accept={HOSPITAL_EVENT_IMAGE_ACCEPT}
+        emptyDescription="jpg, png 파일을 업로드할 수 있습니다."
         objectUrl={thumbnailUrl}
         onPreview={onPreview}
-        onFileChange={onThumbnailChange}
-        field="thumbnail_image"
-        onUploadWarning={onUploadWarning}
+        onFileChange={(file) =>
+          applyValidatedEventImageFile({ file, field: "thumbnail_image", onChange: onThumbnailChange, onUploadWarning })
+        }
       />
       {eventType === "IMAGE" ? (
-        <SingleImagePreviewPanel
+        <ImageUploadPreviewCard
           title="이벤트 페이지"
           helper={HOSPITAL_EVENT_PAGE_IMAGE_HELPER_TEXT}
+          accept={HOSPITAL_EVENT_IMAGE_ACCEPT}
+          emptyTitle="이벤트 이미지를 등록해 주세요."
+          emptyDescription="jpg, png 파일을 업로드할 수 있습니다."
           objectUrl={eventPageUrl}
           onPreview={onPreview}
-          onFileChange={onEventPageChange}
-          field="event_page_image"
-          onUploadWarning={onUploadWarning}
-          tall
+          onFileChange={(file) =>
+            applyValidatedEventImageFile({
+              file,
+              field: "event_page_image",
+              onChange: onEventPageChange,
+              onUploadWarning,
+            })
+          }
+          aspect="auto"
+          emptyAspect="square"
         />
       ) : (
         textPagePreview
@@ -125,91 +136,6 @@ export function HospitalEventInlineImageFileField({
         {error ? <p className="mt-1.5 text-xs text-error-500">{error}</p> : null}
       </div>
     </div>
-  );
-}
-
-function SingleImagePreviewPanel({
-  title,
-  helper,
-  objectUrl,
-  onPreview,
-  onFileChange,
-  field,
-  onUploadWarning,
-  tall = false,
-}: {
-  title: string;
-  helper: string;
-  objectUrl: string | null;
-  onPreview: (preview: MediaPreviewState) => void;
-  onFileChange: (file: File | null) => void;
-  field: HospitalEventImageFieldName;
-  onUploadWarning: (message: string) => void;
-  tall?: boolean;
-}) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
-  const emptyTitle = title === "이벤트 페이지" ? "이벤트 이미지를 등록해 주세요." : `${title} 이미지를 등록해 주세요.`;
-
-  return (
-    <Card className={cardClassName}>
-      <div className="mb-2">
-        <div>
-          <h3 className="text-sm font-bold text-gray-900">{title}</h3>
-          <p className="mt-1 text-xs text-gray-500">{helper}</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={() => {
-          if (objectUrl) {
-            onPreview({ url: objectUrl, title, isImage: true });
-            return;
-          }
-
-          inputRef.current?.click();
-        }}
-        className={[
-          "flex w-full items-center justify-center overflow-hidden rounded-xl",
-          tall ? (objectUrl ? "max-h-[32rem]" : "min-h-[18rem]") : "aspect-square",
-          objectUrl ? "cursor-pointer border border-gray-200 bg-gray-50" : "cursor-pointer",
-        ].join(" ")}
-      >
-        {objectUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-          <img
-            src={objectUrl}
-            alt={title}
-            className={tall ? "h-auto max-h-[32rem] w-full object-contain" : "h-full w-full object-cover"}
-          />
-        ) : (
-          <div className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-6 text-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-              <span className="text-2xl leading-none">+</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-gray-800">{emptyTitle}</p>
-              <p className="text-xs text-gray-500">jpg, png 파일을 업로드할 수 있습니다.</p>
-            </div>
-          </div>
-        )}
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept={HOSPITAL_EVENT_IMAGE_ACCEPT}
-        className="hidden"
-        onChange={async (event) => {
-          const selectedFile = event.target.files?.[0] ?? null;
-          event.currentTarget.value = "";
-          await applyValidatedEventImageFile({
-            file: selectedFile,
-            field,
-            onUploadWarning,
-            onChange: onFileChange,
-          });
-        }}
-      />
-    </Card>
   );
 }
 

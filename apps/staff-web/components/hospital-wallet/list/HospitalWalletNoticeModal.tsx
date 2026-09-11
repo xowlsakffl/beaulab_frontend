@@ -53,7 +53,6 @@ export function HospitalWalletNoticeModal({
     cloneHospitalWalletNoticeMessageParts(HOSPITAL_WALLET_NOTICE_DEFAULT_PARTS),
   );
   const [sendToManager, setSendToManager] = React.useState(true);
-  const [sendToRepresentative, setSendToRepresentative] = React.useState(true);
   const [messageError, setMessageError] = React.useState<string | null>(null);
   const [recipientError, setRecipientError] = React.useState<string | null>(null);
 
@@ -62,7 +61,6 @@ export function HospitalWalletNoticeModal({
 
     setMessageParts(cloneHospitalWalletNoticeMessageParts(HOSPITAL_WALLET_NOTICE_DEFAULT_PARTS));
     setSendToManager(true);
-    setSendToRepresentative(true);
     setMessageError(null);
     setRecipientError(null);
   }, [isOpen]);
@@ -81,7 +79,7 @@ export function HospitalWalletNoticeModal({
       (part) => part.type === "VARIABLE" || (part.type === "TEXT" && part.text.trim() !== ""),
     );
     const nextMessageError = !hasMessage ? "문자 내용을 입력해 주세요." : null;
-    const nextRecipientError = !sendToManager && !sendToRepresentative ? "수신자를 한 명 이상 선택해 주세요." : null;
+    const nextRecipientError = !sendToManager ? "수신자를 한 명 이상 선택해 주세요." : null;
 
     setMessageError(nextMessageError);
     setRecipientError(nextRecipientError);
@@ -91,7 +89,7 @@ export function HospitalWalletNoticeModal({
     onSubmit({
       messageParts,
       sendToManager,
-      sendToRepresentative,
+      sendToRepresentative: false,
     });
   };
 
@@ -147,25 +145,12 @@ export function HospitalWalletNoticeModal({
                 <div>
                   <FormCheckbox
                     id="hospital-wallet-notice-manager"
-                    label="담당자에게도 발송"
+                    label="담당자 광고 수신번호로 발송"
                     labelClassName="whitespace-nowrap text-sm font-medium text-gray-800"
                     checked={sendToManager}
                     disabled={disabled}
                     onChange={(checked) => {
                       setSendToManager(checked);
-                      setRecipientError(null);
-                    }}
-                  />
-                </div>
-                <div>
-                  <FormCheckbox
-                    id="hospital-wallet-notice-representative"
-                    label="대표자에게도 발송"
-                    labelClassName="whitespace-nowrap text-sm font-medium text-gray-800"
-                    checked={sendToRepresentative}
-                    disabled={disabled}
-                    onChange={(checked) => {
-                      setSendToRepresentative(checked);
                       setRecipientError(null);
                     }}
                   />

@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
+import { useOperationHistories } from "@/hooks/common/useOperationHistories";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, SpinnerBlock, useGlobalAlert, type DataTableMeta } from "@beaulab/ui-admin";
+import { Button, SpinnerBlock, useGlobalAlert } from "@beaulab/ui-admin";
 
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
@@ -44,7 +45,6 @@ type PendingAllowStatusChange = {
 };
 
 const EVENT_ADMIN_NOTE_TARGET = "hospital_event";
-const HISTORY_PER_PAGE = 10;
 
 export default function HospitalEventDetailPageClient() {
   const params = useParams<{ id: string }>();
@@ -68,10 +68,16 @@ export default function HospitalEventDetailPageClient() {
   const [isNoteModalOpen, setIsNoteModalOpen] = React.useState(false);
   const [noteInput, setNoteInput] = React.useState("");
   const [savingNote, setSavingNote] = React.useState(false);
-  const [histories, setHistories] = React.useState<OperationHistoryItem[]>([]);
-  const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
-  const [historyPage, setHistoryPage] = React.useState(1);
-  const [historiesLoading, setHistoriesLoading] = React.useState(false);
+  const {
+    histories,
+    meta: historyMeta,
+    loading: historiesLoading,
+    error: historiesError,
+    setPage: setHistoryPage,
+    refresh: fetchHistories,
+  } = useOperationHistories<OperationHistoryItem>(
+    Number.isSafeInteger(eventId) && eventId > 0 ? `/hospital-events/${eventId}/operation-histories` : null,
+  );
   const [pendingAdminStatusChange, setPendingAdminStatusChange] = React.useState<PendingAdminStatusChange | null>(null);
   const [pendingAdminStatusError, setPendingAdminStatusError] = React.useState<string | null>(null);
   const [pendingAllowStatusChange, setPendingAllowStatusChange] = React.useState<PendingAllowStatusChange | null>(null);
@@ -152,26 +158,6 @@ export default function HospitalEventDetailPageClient() {
     }
   }, [eventId]);
 
-  const fetchHistories = React.useCallback(async () => {
-    if (!Number.isFinite(eventId) || eventId <= 0) return;
-
-    setHistoriesLoading(true);
-
-    try {
-      const response = await api.get<OperationHistoryItem[]>(`/hospital-events/${eventId}/operation-histories`, {
-        operation_histories_page: historyPage,
-        operation_histories_per_page: HISTORY_PER_PAGE,
-      });
-
-      if (isApiSuccess(response)) {
-        setHistories(response.data);
-        setHistoryMeta((response.meta as DataTableMeta | null) ?? null);
-      }
-    } finally {
-      setHistoriesLoading(false);
-    }
-  }, [eventId, historyPage]);
-
   React.useEffect(() => {
     void fetchEvent();
   }, [fetchEvent]);
@@ -179,10 +165,6 @@ export default function HospitalEventDetailPageClient() {
   React.useEffect(() => {
     void fetchNotes();
   }, [fetchNotes]);
-
-  React.useEffect(() => {
-    void fetchHistories();
-  }, [fetchHistories]);
 
   const requestAdminStatusChange = React.useCallback(
     (adminStatus: "NORMAL" | "FORCED_STOPPED") => {
@@ -408,6 +390,7 @@ export default function HospitalEventDetailPageClient() {
             histories={histories}
             meta={historyMeta}
             loading={historiesLoading}
+            error={historiesError}
             onPageChange={setHistoryPage}
           />
         </div>

@@ -6,7 +6,7 @@ import { createTimedCache } from "@/lib/common/request-cache";
 import type { VideoHospitalOption } from "@/lib/video/form";
 import { isApiSuccess } from "@beaulab/types";
 
-const videoHospitalOptionsCache = createTimedCache<VideoHospitalOption[]>();
+const videoHospitalOptionsCache = createTimedCache<VideoHospitalOption[]>("hospitals");
 
 async function loadVideoHospitalOptions(query: string, signal: AbortSignal) {
   const response = await api.get<VideoHospitalOption[]>(

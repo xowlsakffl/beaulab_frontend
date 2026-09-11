@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { cn } from "../../lib/utils";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../ui/table";
 import { Spinner } from "../ui/spinner/Spinner";
 import Pagination from "./Pagination";
@@ -21,6 +22,7 @@ export type DataTableMeta = {
 };
 
 type DataTableProps<T> = {
+  headerClassName?: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
   rightActions?: React.ReactNode;
@@ -43,6 +45,7 @@ type DataTableProps<T> = {
   refreshing?: boolean;
   onRowClick?: (row: T) => void;
   getRowClassName?: (row: T) => string | undefined;
+  getRowPlaceholder?: (row: T) => React.ReactNode;
 };
 
 const DEFAULT_HEADER_CELL = "px-5 py-3 font-semibold text-gray-600 text-left text-theme-xs ";
@@ -64,6 +67,7 @@ type DataTableBodyContentProps<T> = {
   rowClickable: boolean;
   onRowClick: (row: T) => void;
   getRowClassName?: (row: T) => string | undefined;
+  getRowPlaceholder?: (row: T) => React.ReactNode;
 };
 
 function DataTableBodyContentComponent<T>({
@@ -79,6 +83,7 @@ function DataTableBodyContentComponent<T>({
   rowClickable,
   onRowClick,
   getRowClassName,
+  getRowPlaceholder,
 }: DataTableBodyContentProps<T>) {
   const colCount = Math.max(1, columns.length);
 
@@ -127,18 +132,30 @@ function DataTableBodyContentComponent<T>({
 
       {!loading && !error
         ? rows.map((row) => {
+            const placeholder = getRowPlaceholder?.(row);
+            const isPlaceholder = placeholder !== undefined && placeholder !== null;
             const rowClassName =
-              [rowClickable ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName?.(row) ?? ""]
+              [rowClickable && !isPlaceholder ? "cursor-pointer hover:bg-gray-50 " : "", getRowClassName?.(row) ?? ""]
                 .filter(Boolean)
                 .join(" ") || undefined;
 
             return (
-              <TableRow key={getRowKey(row)} className={rowClassName} onClick={() => onRowClick(row)}>
-                {columns.map((column) => (
-                  <TableCell key={column.key} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
-                    {column.render(row)}
+              <TableRow
+                key={getRowKey(row)}
+                className={rowClassName}
+                onClick={isPlaceholder ? undefined : () => onRowClick(row)}
+              >
+                {isPlaceholder ? (
+                  <TableCell colSpan={colCount} className="px-5 py-4 text-center text-theme-sm text-gray-400">
+                    {placeholder}
                   </TableCell>
-                ))}
+                ) : (
+                  columns.map((column) => (
+                    <TableCell key={column.key} className={column.cellClassName ?? "px-5 py-4 text-start sm:px-6"}>
+                      {column.render(row)}
+                    </TableCell>
+                  ))
+                )}
               </TableRow>
             );
           })
@@ -150,6 +167,7 @@ function DataTableBodyContentComponent<T>({
 const DataTableBodyContent = React.memo(DataTableBodyContentComponent) as typeof DataTableBodyContentComponent;
 
 export function DataTable<T>({
+  headerClassName,
   title,
   description,
   rightActions,
@@ -172,6 +190,7 @@ export function DataTable<T>({
   refreshing = false,
   onRowClick,
   getRowClassName,
+  getRowPlaceholder,
 }: DataTableProps<T>) {
   const totalPages = Number(meta?.last_page ?? 0);
   const shouldShowFooter =
@@ -180,7 +199,9 @@ export function DataTable<T>({
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
   const onRowClickRef = React.useRef(onRowClick);
   const [showRightScrollHint, setShowRightScrollHint] = React.useState(false);
-  onRowClickRef.current = onRowClick;
+  React.useLayoutEffect(() => {
+    onRowClickRef.current = onRowClick;
+  }, [onRowClick]);
   const handleRowClick = React.useCallback((row: T) => onRowClickRef.current?.(row), []);
   const defaultFooterSummary = meta ? (
     <div className="text-sm text-gray-500">
@@ -244,7 +265,7 @@ export function DataTable<T>({
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white">
       {(title || description || rightActions) && (
-        <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-4">
+        <div className={cn("flex items-center justify-between gap-3 px-4 py-4 sm:px-4", headerClassName)}>
           <div className="flex shrink-0 items-center gap-3">
             {title || description ? (
               <div>
@@ -288,6 +309,7 @@ export function DataTable<T>({
               rowClickable={Boolean(onRowClick)}
               onRowClick={handleRowClick}
               getRowClassName={getRowClassName}
+              getRowPlaceholder={getRowPlaceholder}
             />
           </Table>
         </div>

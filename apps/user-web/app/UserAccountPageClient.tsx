@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { monitorWebSession } from "@beaulab/api-client";
+import { monitorWebSession } from "@beaulab/api-client/web";
 import type { UserSession } from "@beaulab/types";
 import { userApi, userSession } from "../lib/api";
 import styles from "./account.module.css";

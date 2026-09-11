@@ -2,12 +2,7 @@
 
 import React from "react";
 
-import {
-  getTimedCache,
-  setTimedCache,
-  getRequestCacheVersion,
-  subscribeRequestCache,
-} from "@/lib/common/request-cache";
+import { getTimedCache, setTimedCache, getTimedCacheVersion, subscribeRequestCache } from "@/lib/common/request-cache";
 
 type RemoteOptionsCache<T> = Map<string, { expiresAt: number; value: T[] }>;
 
@@ -36,11 +31,8 @@ export function useDebouncedRemoteOptions<T>({
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const requestIdRef = React.useRef(0);
-  const cacheVersion = React.useSyncExternalStore(
-    subscribeRequestCache,
-    getRequestCacheVersion,
-    getRequestCacheVersion,
-  );
+  const getCacheVersion = React.useCallback(() => getTimedCacheVersion(cache), [cache]);
+  const cacheVersion = React.useSyncExternalStore(subscribeRequestCache, getCacheVersion, getCacheVersion);
 
   React.useEffect(() => {
     const requestId = ++requestIdRef.current;
@@ -71,16 +63,12 @@ export function useDebouncedRemoteOptions<T>({
       try {
         const nextOptions = await loadOptions(normalizedQuery, controller.signal);
 
-        if (requestId !== requestIdRef.current || cacheVersion !== getRequestCacheVersion()) return;
+        if (requestId !== requestIdRef.current || cacheVersion !== getCacheVersion()) return;
 
         setTimedCache(cache, normalizedQuery, nextOptions, cacheTtlMs, cacheVersion);
         setOptions(nextOptions);
       } catch (requestError) {
-        if (
-          requestId !== requestIdRef.current ||
-          controller.signal.aborted ||
-          cacheVersion !== getRequestCacheVersion()
-        )
+        if (requestId !== requestIdRef.current || controller.signal.aborted || cacheVersion !== getCacheVersion())
           return;
 
         setOptions([]);
@@ -95,7 +83,18 @@ export function useDebouncedRemoteOptions<T>({
       controller.abort();
       if (requestId === requestIdRef.current) requestIdRef.current += 1;
     };
-  }, [cache, cacheVersion, cacheTtlMs, debounceMs, enabled, errorMessage, loadOptions, normalizeQuery, query]);
+  }, [
+    cache,
+    cacheVersion,
+    cacheTtlMs,
+    debounceMs,
+    enabled,
+    errorMessage,
+    loadOptions,
+    normalizeQuery,
+    query,
+    getCacheVersion,
+  ]);
 
   return { options, isLoading, error };
 }

@@ -1,9 +1,10 @@
-import { createClient, type ApiUnauthorizedContext } from "@beaulab/api-client";
+import { createClient, type ApiUnauthorizedContext } from "@beaulab/api-client/web";
 import { sessionStorage } from "@beaulab/auth";
 import { invalidateListDataCache } from "@/lib/common/list-data-cache";
 import { invalidateRequestCaches } from "@/lib/common/request-cache";
+import { getMutationEffects } from "@/lib/common/mutation-effects";
 
-export { isApiRequestCanceledError } from "@beaulab/api-client";
+export { isApiRequestCanceledError } from "@beaulab/api-client/web";
 
 export const NAVIGATION_BADGE_REFRESH_EVENT = "staff:navigation-badges:refresh";
 
@@ -14,16 +15,19 @@ function dispatchNavigationBadgeRefresh() {
   window.dispatchEvent(new Event(NAVIGATION_BADGE_REFRESH_EVENT));
 }
 
-function wrapMutation<Args extends unknown[], Result extends { success?: boolean }>(
+function wrapMutation<Args extends [string, ...unknown[]], Result extends { success?: boolean }>(
   request: (...args: Args) => Promise<Result>,
 ) {
   return async (...args: Args): Promise<Result> => {
     const response = await request(...args);
 
     if (response.success) {
-      invalidateListDataCache();
-      invalidateRequestCaches();
-      dispatchNavigationBadgeRefresh();
+      const effects = getMutationEffects(args[0]);
+      if (effects.scopes === undefined || effects.scopes.length > 0) {
+        invalidateListDataCache(effects.scopes);
+        invalidateRequestCaches(effects.scopes);
+      }
+      if (effects.navigationBadges) dispatchNavigationBadgeRefresh();
     }
 
     return response;

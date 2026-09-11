@@ -8,7 +8,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { type DataTableMeta } from "@beaulab/ui-admin";
+import { fetchHospitalEventRows } from "@/lib/hospital-event/api";
 
 import { HospitalEventsDataTable } from "@/components/hospital-event/list/HospitalEventsDataTable";
 import { HospitalEventsFilterPanel } from "@/components/hospital-event/list/HospitalEventsFilterPanel";
@@ -34,7 +34,6 @@ import {
   buildHospitalEventsQueryString,
   mapDateRangeToHospitalEventFilter,
   nextHospitalEventSortState,
-  normalizeHospitalEvent,
   normalizeNumberBound,
   normalizeRangeDate,
   parseHospitalEventsTableState,
@@ -172,20 +171,6 @@ export default function HospitalEventsTableClient() {
 
   const queryString = React.useMemo(() => buildHospitalEventsQueryString(query), [query]);
   const activeSummaryKey = React.useMemo(() => resolveActiveSummaryKey(appliedFilters), [appliedFilters]);
-  const fetchEventRows = React.useCallback(async (nextQuery: typeof query, signal: AbortSignal) => {
-    const response = await api.get<HospitalEventApiItem[]>("/hospital-events", nextQuery, {
-      signal,
-      latestKey: "hospital-events:list",
-    });
-    if (!isApiSuccess(response)) {
-      throw new Error(response.error.message || "이벤트 목록 조회에 실패했습니다.");
-    }
-
-    return {
-      rows: response.data.map(normalizeHospitalEvent),
-      meta: (response.meta as DataTableMeta | null) ?? null,
-    };
-  }, []);
 
   const {
     rows,
@@ -197,7 +182,7 @@ export default function HospitalEventsTableClient() {
   } = useListData({
     cacheNamespace: "hospital-events",
     query,
-    fetchRows: fetchEventRows,
+    fetchRows: fetchHospitalEventRows,
     errorMessage: "이벤트 목록 조회 중 오류가 발생했습니다.",
   });
 

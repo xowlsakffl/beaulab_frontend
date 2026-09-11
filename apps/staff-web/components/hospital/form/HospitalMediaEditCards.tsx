@@ -4,7 +4,8 @@ import React from "react";
 import { Button, Card, MediaUploader, type ExistingMediaItem } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { ImageUploadPreviewCard } from "@/components/common/ImageUploadPreviewCard";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import {
   MEDIA_COLLECTIONS,
   validateHospitalGalleryUploadFiles,
@@ -35,7 +36,6 @@ export function HospitalLogoEditCard({
   onPreview: (preview: MediaPreviewState) => void;
   onUploadValidationError: (message: string) => void;
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(logo);
   const existingUrl = resolveMediaUrl(existingLogo);
   const previewUrl = fileUrl ?? existingUrl;
@@ -54,70 +54,21 @@ export function HospitalLogoEditCard({
   };
 
   return (
-    <Card
-      data-media-collection="logo"
-      tabIndex={-1}
-      className={[
-        "flex min-h-[14rem] flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white p-4",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        className="hidden"
-        onChange={(event) => {
-          const nextFile = event.target.files?.[0] ?? null;
-          event.currentTarget.value = "";
-          void handleSelectFile(nextFile);
-        }}
-      />
-      {previewUrl ? (
-        <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
-          <button
-            type="button"
-            className="flex h-full w-full cursor-zoom-in items-center justify-center"
-            onClick={() =>
-              onPreview({
-                url: previewUrl,
-                title: `${hospitalName || "병의원"} 로고`,
-                isImage: isPreviewImage,
-              })
-            }
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
-            <img src={previewUrl} alt={`${hospitalName || "병의원"} 로고`} className="h-full w-full object-cover" />
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white px-6 text-center transition-colors hover:border-brand-200 hover:bg-brand-50/30"
-          onClick={() => inputRef.current?.click()}
-        >
-          <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-            <span className="text-2xl leading-none">+</span>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-gray-800">로고 이미지를 등록해 주세요.</p>
-            <p className="text-xs text-gray-500">jpg, png, webp 파일을 업로드할 수 있습니다.</p>
-          </div>
-        </button>
-      )}
-      {previewUrl ? (
-        <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
-          이미지 수정하기
-        </Button>
-      ) : (
-        <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
-          이미지 등록하기
-        </Button>
-      )}
-      {error ? <p className="w-full text-left text-xs text-error-500">{error}</p> : null}
-    </Card>
+    <ImageUploadPreviewCard
+      title="병의원 로고"
+      accept="image/jpeg,image/png,image/webp"
+      emptyTitle="로고 이미지를 등록해 주세요."
+      emptyDescription="jpg, png, webp 파일을 업로드할 수 있습니다."
+      objectUrl={previewUrl}
+      onPreview={(preview) =>
+        onPreview({ ...preview, title: `${hospitalName || "병의원"} 로고`, isImage: isPreviewImage })
+      }
+      onFileChange={handleSelectFile}
+      error={error}
+      showHeader={false}
+      mediaCollection="logo"
+      className={["flex w-full flex-col self-start p-4", className].filter(Boolean).join(" ")}
+    />
   );
 }
 

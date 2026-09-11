@@ -8,7 +8,7 @@ import { createTimedCache } from "@/lib/common/request-cache";
 import { sanitizeHashtagName } from "@/lib/hashtag/list";
 import type { VideoHashtagOption } from "@/lib/video/form";
 
-const videoHashtagOptionsCache = createTimedCache<VideoHashtagOption[]>();
+const videoHashtagOptionsCache = createTimedCache<VideoHashtagOption[]>("hashtags");
 
 async function loadVideoHashtagOptions(query: string, signal: AbortSignal) {
   const response = await api.get<VideoHashtagOption[]>(

@@ -108,7 +108,8 @@ export function useReviewCategoryFilters(
 
 function useCategoryItems(usage: string | null, parentId: string | null) {
   const [state, setState] = React.useState<{ key: string; items: CategoryApiItem[] }>({ key: "", items: [] });
-  const version = React.useSyncExternalStore(subscribeRequestCache, getRequestCacheVersion, getRequestCacheVersion);
+  const getCategoryVersion = React.useCallback(() => getRequestCacheVersion("categories"), []);
+  const version = React.useSyncExternalStore(subscribeRequestCache, getCategoryVersion, getCategoryVersion);
   const key = JSON.stringify([usage, parentId, version]);
   React.useEffect(() => {
     let active = true;

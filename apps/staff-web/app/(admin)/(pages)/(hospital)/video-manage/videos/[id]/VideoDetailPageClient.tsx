@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
+import { useOperationHistories } from "@/hooks/common/useOperationHistories";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
+import { Button, SpinnerBlock } from "@beaulab/ui-admin";
 
 import { AllowStatusConfirmModal } from "@/components/common/AllowStatusControls";
 import { Can } from "@/components/common/guard";
@@ -24,8 +25,6 @@ import { STAFF_STATUS_PERMISSIONS } from "@/lib/common/status-permissions";
 import { usePageHeaderExtra } from "@/lib/common/routing/page-header-extra";
 import { type VideoDetailResponse } from "@/lib/video/detail";
 import { labelVideoAdminStatus, labelVideoReportStatus } from "@/lib/video/list";
-
-const HISTORY_PER_PAGE = 10;
 
 type ReportStatusResponse = {
   status?: string | null;
@@ -59,10 +58,16 @@ export default function VideoDetailPageClient() {
   const [reportStatusReasonError, setReportStatusReasonError] = React.useState<string | null>(null);
   const [reportStatusError, setReportStatusError] = React.useState<string | null>(null);
   const [updatingReportStatus, setUpdatingReportStatus] = React.useState<ReportActionStatus | null>(null);
-  const [histories, setHistories] = React.useState<VideoOperationHistoryItem[]>([]);
-  const [historyMeta, setHistoryMeta] = React.useState<DataTableMeta | null>(null);
-  const [historyPage, setHistoryPage] = React.useState(1);
-  const [historiesLoading, setHistoriesLoading] = React.useState(false);
+  const {
+    histories,
+    meta: historyMeta,
+    loading: historiesLoading,
+    error: historiesError,
+    setPage: setHistoryPage,
+    refresh: fetchHistories,
+  } = useOperationHistories<VideoOperationHistoryItem>(
+    Number.isSafeInteger(videoId) && videoId > 0 ? `/videos/${videoId}/operation-histories` : null,
+  );
 
   const editPath = React.useMemo(() => {
     const rawReturnTo = searchParams.get("returnTo");
@@ -112,42 +117,9 @@ export default function VideoDetailPageClient() {
     }
   }, [videoId]);
 
-  const fetchHistories = React.useCallback(async () => {
-    if (!Number.isFinite(videoId) || videoId <= 0) return;
-
-    setHistoriesLoading(true);
-
-    try {
-      const response = await api.get<VideoOperationHistoryItem[]>(`/videos/${videoId}/operation-histories`, {
-        operation_histories_page: historyPage,
-        operation_histories_per_page: HISTORY_PER_PAGE,
-      });
-
-      if (isApiSuccess(response)) {
-        setHistories(response.data);
-        setHistoryMeta((response.meta as DataTableMeta | null) ?? null);
-      }
-    } finally {
-      setHistoriesLoading(false);
-    }
-  }, [historyPage, videoId]);
-
-  const refreshHistoriesFromFirstPage = React.useCallback(async () => {
-    if (historyPage !== 1) {
-      setHistoryPage(1);
-      return;
-    }
-
-    await fetchHistories();
-  }, [fetchHistories, historyPage]);
-
   React.useEffect(() => {
     void fetchVideo();
   }, [fetchVideo]);
-
-  React.useEffect(() => {
-    void fetchHistories();
-  }, [fetchHistories]);
 
   usePageHeaderExtra(headerAction);
 
@@ -231,14 +203,14 @@ export default function VideoDetailPageClient() {
         setIsForcedStopModalOpen(false);
         setIsNormalizeModalOpen(false);
         setAdminStatusReason("");
-        await refreshHistoriesFromFirstPage();
+        await fetchHistories();
       } catch {
         setAdminStatusError("강제중지 상태 변경 중 오류가 발생했습니다.");
       } finally {
         setUpdatingAdminStatus(false);
       }
     },
-    [adminStatusReason, detail, refreshHistoriesFromFirstPage, updatingAdminStatus],
+    [adminStatusReason, detail, fetchHistories, updatingAdminStatus],
   );
 
   const openReportStatusModal = React.useCallback(
@@ -309,13 +281,13 @@ export default function VideoDetailPageClient() {
       );
       setPendingReportStatus(null);
       setReportStatusReason("");
-      await refreshHistoriesFromFirstPage();
+      await fetchHistories();
     } catch {
       setReportStatusError("신고상태 변경 중 오류가 발생했습니다.");
     } finally {
       setUpdatingReportStatus(null);
     }
-  }, [detail, pendingReportStatus, refreshHistoriesFromFirstPage, reportStatusReason, updatingReportStatus]);
+  }, [detail, pendingReportStatus, fetchHistories, reportStatusReason, updatingReportStatus]);
 
   if (isLoading) {
     return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" label="동영상 정보를 불러오는 중" />;
@@ -348,6 +320,7 @@ export default function VideoDetailPageClient() {
           histories={histories}
           meta={historyMeta}
           loading={historiesLoading}
+          error={historiesError}
           onPageChange={setHistoryPage}
         />
       </section>

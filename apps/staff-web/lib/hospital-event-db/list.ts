@@ -1,3 +1,4 @@
+import { formatLocalDateTime as formatCommonDateTime } from "@/lib/common/date-time";
 import type { BadgeColor, DatePresetOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
@@ -268,15 +269,7 @@ export function formatHospitalEventDBPrice(value: number) {
 }
 
 export function formatHospitalEventDBDateTime(value?: string | null) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${formatLocalDate(date)} ${hours}:${minutes}`;
+  return formatCommonDateTime(value);
 }
 
 export function normalizeHospitalEventDB(item: HospitalEventDBApiItem): HospitalEventDBRow {
@@ -453,14 +446,6 @@ function labelPreferredTime(value?: string | null) {
 
 function buildHospitalEventDBDateState(startDate: string, endDate: string) {
   return buildCommonFilterDateState(startDate, endDate);
-}
-
-function formatLocalDate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
 }
 
 function normalizeOptionValue(value: string | null | undefined, availableValues: Set<string>) {

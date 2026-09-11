@@ -27,6 +27,7 @@ type DateRangeFilterDropdownProps = {
   value: string;
   placeholder: string;
   selected?: DateRange;
+  minDate?: Date;
   isOpen: boolean;
   onToggleOpen: () => void;
   onSelect: (range?: DateRange, selectedDay?: Date) => void;
@@ -50,6 +51,7 @@ export function DateRangeFilterDropdown({
   value,
   placeholder,
   selected,
+  minDate,
   isOpen,
   onToggleOpen,
   onSelect,
@@ -73,7 +75,7 @@ export function DateRangeFilterDropdown({
       triggerContainerRef.current = node;
 
       if (containerRef) {
-        (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        containerRef.current = node;
       }
     },
     [containerRef],
@@ -205,6 +207,8 @@ export function DateRangeFilterDropdown({
         <DayPicker
           mode="range"
           selected={selected}
+          disabled={minDate ? { before: minDate } : undefined}
+          excludeDisabled={Boolean(minDate)}
           locale={locale}
           onSelect={(range, selectedDay) => onSelect(range, selectedDay)}
           classNames={dayPickerClassNames}

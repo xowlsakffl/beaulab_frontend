@@ -165,11 +165,13 @@ export function VideoOperationHistoryCard({
   histories,
   meta,
   loading,
+  error,
   onPageChange,
 }: {
   histories: VideoOperationHistoryItem[];
   meta: DataTableMeta | null;
   loading: boolean;
+  error?: string | null;
   onPageChange: (page: number) => void;
 }) {
   return (
@@ -177,6 +179,7 @@ export function VideoOperationHistoryCard({
       histories={histories}
       meta={meta}
       loading={loading}
+      error={error}
       onPageChange={onPageChange}
       cardClassName={videoDetailCardClassName}
       formatDateTime={formatLocalDateTime}

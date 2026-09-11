@@ -1,34 +1,15 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { useId } from "react";
 import { twMerge } from "tailwind-merge";
 
-interface InputProps {
-  type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
-  id?: string;
-  name?: string;
-  placeholder?: string;
-  value?: string | number;
-  defaultValue?: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  readOnly?: boolean;
-  className?: string;
-  min?: string;
-  max?: string;
-  maxLength?: number;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
-  step?: number;
-  disabled?: boolean;
+export interface InputProps extends React.ComponentPropsWithRef<"input"> {
   success?: boolean;
   error?: boolean;
   hint?: string;
-  autoComplete?: string;
 }
 
-export const InputField: FC<InputProps> = ({
+export const InputField = ({
   type = "text",
   id,
   name,
@@ -51,7 +32,13 @@ export const InputField: FC<InputProps> = ({
   error = false,
   hint,
   autoComplete = "off",
-}) => {
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
+  ...props
+}: InputProps) => {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const hintId = `${inputId}-hint`;
   const inputClasses = twMerge(
     "w-full appearance-none rounded-lg border px-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-hidden focus:ring-3",
     disabled
@@ -69,7 +56,7 @@ export const InputField: FC<InputProps> = ({
   const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {
     onClick?.(event);
 
-    if (disabled || readOnly) {
+    if (disabled || readOnly || event.defaultPrevented) {
       return;
     }
 
@@ -88,8 +75,11 @@ export const InputField: FC<InputProps> = ({
   return (
     <div className="relative">
       <input
+        {...props}
         type={type}
-        id={id}
+        id={inputId}
+        aria-invalid={error || ariaInvalid}
+        aria-describedby={[ariaDescribedBy, hint ? hintId : undefined].filter(Boolean).join(" ") || undefined}
         name={name}
         placeholder={placeholder}
         value={value}
@@ -110,7 +100,10 @@ export const InputField: FC<InputProps> = ({
       />
 
       {hint && (
-        <p className={`mt-1.5 text-xs ${error ? "text-error-500" : success ? "text-success-500" : "text-gray-500"}`}>
+        <p
+          id={hintId}
+          className={`mt-1.5 text-xs ${error ? "text-error-500" : success ? "text-success-500" : "text-gray-500"}`}
+        >
           {hint}
         </p>
       )}

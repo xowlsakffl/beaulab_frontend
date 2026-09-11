@@ -1,5 +1,6 @@
 "use client";
 
+import { formatOperationHistoryValue } from "@/lib/common/operation-history";
 import React from "react";
 import { HospitalEventBeforeAfterPhotoPair } from "../form/HospitalEventBeforeAfterPhotos";
 import { mapBeforeAfterPhotos } from "@/lib/hospital-event/before-after-photos";
@@ -238,11 +239,13 @@ export function OperationHistoryCard({
   histories,
   meta,
   loading,
+  error,
   onPageChange,
 }: {
   histories: OperationHistoryItem[];
   meta: DataTableMeta | null;
   loading: boolean;
+  error?: string | null;
   onPageChange: (page: number) => void;
 }) {
   return (
@@ -250,6 +253,7 @@ export function OperationHistoryCard({
       histories={histories}
       meta={meta}
       loading={loading}
+      error={error}
       onPageChange={onPageChange}
       cardClassName={cardClassName}
       formatDateTime={formatDateTime}
@@ -576,6 +580,18 @@ function historyChangeDisplay(change: OperationHistoryChangeItem, side: "before"
   const value = side === "after" ? change.after_value : change.before_value;
   const field = change.field_key ?? null;
 
+  if (Array.isArray(value) && value.length === 0) return "-";
+
+  if (
+    field === "consultation_price" &&
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  ) {
+    return `${Number(value).toLocaleString("ko-KR")}P`;
+  }
+
   if (isStatusHistoryField(field)) {
     return historyStatusBadge(field, value, display);
   }
@@ -632,20 +648,8 @@ function historyRawValueLabel(field: string | null, value: unknown) {
 
   if (field === "allow_status") {
     const label = labelHospitalEventAllowStatus(String(value ?? ""));
-    return label === "-" ? stringifyHistoryValue(value) : label;
+    return label === "-" ? formatOperationHistoryValue(value) : label;
   }
 
-  return stringifyHistoryValue(value);
-}
-
-function stringifyHistoryValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "예" : "아니오";
-  if (typeof value === "string" || typeof value === "number") return String(value);
-
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
+  return formatOperationHistoryValue(value);
 }

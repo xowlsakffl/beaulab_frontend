@@ -1,7 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useId } from "react";
 import { twMerge } from "tailwind-merge";
 
-interface TextareaProps {
+export interface TextareaProps extends Omit<React.ComponentPropsWithRef<"textarea">, "onChange" | "value"> {
   id?: string;
   name?: string;
   placeholder?: string; // Placeholder text
@@ -19,13 +21,19 @@ const TextArea: React.FC<TextareaProps> = ({
   name,
   placeholder = "Enter your message", // Default placeholder
   rows = 3, // Default number of rows
-  value = "", // Default value
+  value,
   onChange, // Callback for changes
   className = "", // Additional custom styles
   disabled = false, // Disabled state
   error = false, // Error state
   hint = "", // Default hint text
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
+  ...props
 }) => {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
+  const hintId = `${inputId}-hint`;
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (onChange) {
       onChange(e.target.value);
@@ -45,7 +53,10 @@ const TextArea: React.FC<TextareaProps> = ({
   return (
     <div className="relative">
       <textarea
-        id={id}
+        {...props}
+        id={inputId}
+        aria-invalid={error || ariaInvalid}
+        aria-describedby={[ariaDescribedBy, hint ? hintId : undefined].filter(Boolean).join(" ") || undefined}
         name={name}
         placeholder={placeholder}
         rows={rows}
@@ -54,7 +65,11 @@ const TextArea: React.FC<TextareaProps> = ({
         disabled={disabled}
         className={textareaClasses}
       />
-      {hint && <p className={`mt-1.5 text-xs ${error ? "text-error-500" : "text-gray-500"}`}>{hint}</p>}
+      {hint && (
+        <p id={hintId} className={`mt-1.5 text-xs ${error ? "text-error-500" : "text-gray-500"}`}>
+          {hint}
+        </p>
+      )}
     </div>
   );
 };

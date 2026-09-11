@@ -3,12 +3,18 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "lint": "eslint src",
     "build": "tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
+    "./styles/theme.css": "./src/styles/theme.css",
+    "./components/form": "./src/components/form/index.ts",
+    "./components/ui": "./src/components/ui/index.ts",
+    "./components/tables": "./src/components/tables/index.ts",
+    "./components/ui/chart": "./src/components/ui/chart/index.ts",
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"

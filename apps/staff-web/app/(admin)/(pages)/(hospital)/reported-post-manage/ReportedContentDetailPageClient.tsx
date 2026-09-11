@@ -3,10 +3,11 @@
 import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
 
 import React from "react";
+import { useOperationHistories } from "@/hooks/common/useOperationHistories";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { Card, CardContent, SpinnerBlock, type DataTableMeta } from "@beaulab/ui-admin";
+import { Card, CardContent, SpinnerBlock } from "@beaulab/ui-admin";
 
 import { ReportedEvaluationDetailView } from "@/components/reported-content/detail/ReportedEvaluationDetailView";
 import { ReportedReviewDetailView } from "@/components/reported-content/detail/ReportedReviewDetailView";
@@ -55,10 +56,6 @@ type ReportedContentDetailPageClientProps = {
 
 type DetailResponse = TalkDetailResponse | HospitalReviewDetailResponse | HospitalEvaluationDetailResponse;
 type DetailHistory = TalkOperationHistory | HospitalReviewOperationHistory | HospitalEvaluationOperationHistory;
-type DetailHistoryBlock = {
-  items?: DetailHistory[] | null;
-  meta?: DataTableMeta | null;
-};
 
 const historiesDefaultPage = 1;
 
@@ -124,14 +121,11 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
   const [detail, setDetail] = React.useState<DetailResponse | null>(null);
   const [reportedDetail, setReportedDetail] = React.useState<ReportedContentDetailResponse | null>(null);
   const [reportedReports, setReportedReports] = React.useState<ReportedContentReportsBlock | null>(null);
-  const [historyBlock, setHistoryBlock] = React.useState<DetailHistoryBlock | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
-  const [historiesPage, setHistoriesPage] = React.useState(() =>
-    parsePositivePage(searchParams.get("operation_histories_page"), historiesDefaultPage),
-  );
+  const historiesPage = parsePositivePage(searchParams.get("operation_histories_page"), historiesDefaultPage);
   const hasLoadedRef = React.useRef(false);
 
   const syncDetailQuery = React.useCallback(
@@ -160,6 +154,7 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
       }
 
       setError(null);
+      setActionError(null);
       setReportedDetail(null);
       setReportedReports(null);
 
@@ -211,55 +206,29 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     void fetchDetail(false);
   }, [fetchDetail]);
 
-  const fetchHistories = React.useCallback(
-    async (manualRefresh = false) => {
-      if (!Number.isFinite(targetId) || targetId <= 0) return;
-
-      if (manualRefresh || hasLoadedRef.current) {
-        setRefreshing(true);
-      }
-
-      try {
-        const response = await api.get<DetailHistory[]>(config.historyApiPath(targetId), {
-          operation_histories_page: historiesPage,
-          operation_histories_per_page: config.historyPerPage,
-        });
-
-        if (!isApiSuccess(response)) {
-          setActionError(response.error.message || "신고게시물 히스토리를 불러오지 못했습니다.");
-          return;
-        }
-
-        setHistoryBlock({
-          items: response.data,
-          meta: (response.meta as DataTableMeta | null) ?? null,
-        });
-      } catch {
-        setActionError("신고게시물 히스토리를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setRefreshing(false);
-      }
+  const changeHistoriesPage = React.useCallback(
+    (nextPage: number) => {
+      syncDetailQuery(nextPage);
     },
-    [config, historiesPage, targetId],
+    [syncDetailQuery],
+  );
+
+  const {
+    histories,
+    meta: historiesMeta,
+    loading: historiesLoading,
+    error: historiesError,
+    refresh: fetchHistories,
+  } = useOperationHistories<DetailHistory>(
+    Number.isSafeInteger(targetId) && targetId > 0 ? config.historyApiPath(targetId) : null,
+    { page: historiesPage, onPageChange: changeHistoriesPage, perPage: config.historyPerPage },
   );
 
   const refreshDetail = React.useCallback(
     async (manualRefresh = false) => {
-      await Promise.all([fetchDetail(manualRefresh), fetchHistories(manualRefresh)]);
+      await Promise.all([fetchDetail(manualRefresh), fetchHistories()]);
     },
     [fetchDetail, fetchHistories],
-  );
-
-  React.useEffect(() => {
-    void fetchHistories(false);
-  }, [fetchHistories]);
-
-  const changeHistoriesPage = React.useCallback(
-    (nextPage: number) => {
-      setHistoriesPage(nextPage);
-      syncDetailQuery(nextPage);
-    },
-    [syncDetailQuery],
   );
 
   if (loading && !detail) {
@@ -278,24 +247,21 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
     );
   }
 
-  const histories = historyBlock?.items ?? [];
-  const historiesMeta = historyBlock?.meta ?? null;
-
   if (config.kind === "talk") {
     return (
       <ReportedTalkDetailView
         detail={detail as TalkDetailResponse}
         histories={histories as TalkOperationHistory[]}
         historiesMeta={historiesMeta}
-        refreshing={refreshing}
+        refreshing={refreshing || historiesLoading}
         targetType={config.targetType}
         targetId={targetId}
         reportedDetail={reportedDetail}
         reportedReports={reportedReports}
-        actionError={actionError}
+        actionError={actionError || historiesError}
         onActionError={setActionError}
         onSaved={() => refreshDetail(true)}
-        onReportedStatusUpdated={() => void fetchHistories(true)}
+        onReportedStatusUpdated={() => void fetchHistories()}
         onHistoryPageChange={changeHistoriesPage}
         canUpdateReportedStatus={canUpdateReportedStatus}
         canUpdateOriginalStatus={canUpdateOriginalStatus}
@@ -310,15 +276,15 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         detail={detail as HospitalReviewDetailResponse}
         histories={histories as HospitalReviewOperationHistory[]}
         historiesMeta={historiesMeta}
-        refreshing={refreshing}
+        refreshing={refreshing || historiesLoading}
         targetType={config.targetType}
         targetId={targetId}
         reportedDetail={reportedDetail}
         reportedReports={reportedReports}
-        actionError={actionError}
+        actionError={actionError || historiesError}
         onActionError={setActionError}
         onSaved={() => refreshDetail(true)}
-        onReportedStatusUpdated={() => void fetchHistories(true)}
+        onReportedStatusUpdated={() => void fetchHistories()}
         onHistoryPageChange={changeHistoriesPage}
         canUpdateReportedStatus={canUpdateReportedStatus}
         canUpdateOriginalStatus={canUpdateOriginalStatus}
@@ -332,15 +298,15 @@ export default function ReportedContentDetailPageClient({ type }: ReportedConten
         detail={detail as HospitalEvaluationDetailResponse}
         histories={histories as HospitalEvaluationOperationHistory[]}
         historiesMeta={historiesMeta}
-        refreshing={refreshing}
+        refreshing={refreshing || historiesLoading}
         targetType={config.targetType}
         targetId={targetId}
         reportedDetail={reportedDetail}
         reportedReports={reportedReports}
-        actionError={actionError}
+        actionError={actionError || historiesError}
         onActionError={setActionError}
         onSaved={() => refreshDetail(true)}
-        onReportedStatusUpdated={() => void fetchHistories(true)}
+        onReportedStatusUpdated={() => void fetchHistories()}
         onHistoryPageChange={changeHistoriesPage}
         canUpdateReportedStatus={canUpdateReportedStatus}
         canUpdateReceiptStatus={canUpdateOriginalStatus}

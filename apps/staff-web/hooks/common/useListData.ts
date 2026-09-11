@@ -43,11 +43,8 @@ export function useListData<Query, Row, Meta = unknown>({
   enabled = true,
   cacheTtlMs = DEFAULT_CACHE_TTL_MS,
 }: UseListDataOptions<Query, Row, Meta>) {
-  const cacheVersion = React.useSyncExternalStore(
-    subscribeListDataCache,
-    getListDataCacheVersion,
-    getListDataCacheVersion,
-  );
+  const getCacheVersion = React.useCallback(() => getListDataCacheVersion(cacheNamespace), [cacheNamespace]);
+  const cacheVersion = React.useSyncExternalStore(subscribeListDataCache, getCacheVersion, getCacheVersion);
   const [initialCachedData] = React.useState(() =>
     getListDataCache<Row, Meta>(cacheNamespace, getRequestKey(query), cacheTtlMs),
   );
@@ -90,13 +87,13 @@ export function useListData<Query, Row, Meta = unknown>({
       controllerRef.current?.abort();
       const controller = new AbortController();
       controllerRef.current = controller;
-      const requestVersion = getListDataCacheVersion();
+      const requestVersion = getCacheVersion();
       activeRequestVersionRef.current = requestVersion;
       const isCurrent = () =>
         mountedRef.current &&
         !controller.signal.aborted &&
         requestSeq === requestSeqRef.current &&
-        requestVersion === getListDataCacheVersion() &&
+        requestVersion === getCacheVersion() &&
         requestKey === getRequestKey(currentQueryRef.current);
 
       if (!hasFetchedRef.current) setLoading(true);
@@ -128,7 +125,7 @@ export function useListData<Query, Row, Meta = unknown>({
         }
       }
     },
-    [cacheNamespace, enabled, errorMessage, fetchRows, getRequestKey],
+    [cacheNamespace, enabled, errorMessage, fetchRows, getRequestKey, getCacheVersion],
   );
 
   React.useEffect(() => {

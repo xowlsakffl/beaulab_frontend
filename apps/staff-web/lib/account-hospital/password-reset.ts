@@ -4,11 +4,13 @@ export const HOSPITAL_ACCOUNT_PASSWORD_RESET_PERMISSION = "beaulab.hospital_acco
 
 export type HospitalAccountPasswordResetSendResponse = {
   message: string;
-  phone: string;
+  email: string;
   expires_at: string | null;
   resend_after_seconds: number;
 };
 
-export function sendHospitalAccountPasswordResetLink(hospitalId: number) {
-  return api.post<HospitalAccountPasswordResetSendResponse>(`/hospitals/${hospitalId}/password-reset-link`, {});
+export function sendHospitalAccountPasswordResetLink(hospitalId: number, recipientEmail: string) {
+  return api.post<HospitalAccountPasswordResetSendResponse>(`/hospitals/${hospitalId}/password-reset-link`, {
+    recipient_email: recipientEmail,
+  });
 }

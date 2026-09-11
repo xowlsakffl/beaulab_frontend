@@ -43,7 +43,7 @@ export type HospitalOperationHours = Record<
 export type AccountHospitalAsset = {
   id?: number | null;
   nickname?: string | null;
-  phone?: string | null;
+  email?: string | null;
   status?: string | null;
   last_login_at?: string | null;
   created_at?: string | null;

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import React, { FormEvent, useState } from "react";
-import { ArrowLeft, Eye, EyeOff } from "../../icons";
+import React, { FormEvent, useId, useState } from "react";
+import { AuthFormPanel } from "./AuthFormPanel";
+import { Eye, EyeOff } from "../../icons";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
@@ -56,6 +56,7 @@ export function PasswordResetForm({
   onSubmit,
   onSuccess,
 }: PasswordResetFormProps) {
+  const formId = useId();
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -110,101 +111,92 @@ export function PasswordResetForm({
   };
 
   return (
-    <div className="flex w-full flex-1 flex-col lg:w-1/2">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
-        <div>
-          {loginHref ? (
-            <Link
-              href={loginHref}
-              className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand-500"
-            >
-              <ArrowLeft className="size-4" />
-              로그인으로 돌아가기
-            </Link>
-          ) : null}
-
-          <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md">{title}</h1>
-            <p className="text-sm text-gray-500">{description}</p>
-          </div>
-
-          {!hasRequiredLinkData ? (
-            <div className="rounded-md border border-error-200 bg-error-50 px-3 py-2 text-xs leading-4 text-error-600">
-              비밀번호 재설정 링크가 올바르지 않습니다. 다시 요청해 주세요.
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-6">
-                {maskedUsername ? (
-                  <div>
-                    <Label htmlFor="password-reset-username">아이디</Label>
-                    <Input
-                      id="password-reset-username"
-                      value={maskedUsername}
-                      readOnly
-                      className="border-gray-200 bg-gray-50"
-                    />
-                  </div>
-                ) : null}
-                <div>
-                  <Label>
-                    새 비밀번호 <span className="text-error-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="새 비밀번호를 입력하세요."
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      autoComplete="new-password"
-                      maxLength={255}
-                      disabled={isSubmitting || isCompleted}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((current) => !current)}
-                      className="absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
-                      aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
-                    >
-                      {showPassword ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>
-                    새 비밀번호 확인 <span className="text-error-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      type={showPasswordConfirmation ? "text" : "password"}
-                      placeholder="새 비밀번호를 다시 입력하세요."
-                      value={passwordConfirmation}
-                      onChange={(event) => setPasswordConfirmation(event.target.value)}
-                      autoComplete="new-password"
-                      maxLength={255}
-                      disabled={isSubmitting || isCompleted}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPasswordConfirmation((current) => !current)}
-                      className="absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
-                      aria-label={showPasswordConfirmation ? "비밀번호 확인 숨기기" : "비밀번호 확인 보기"}
-                    >
-                      {showPasswordConfirmation ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-                    </button>
-                  </div>
-                  {localError ? <p className="mt-1 text-[11px] leading-4 text-error-500">{localError}</p> : null}
-                </div>
-
-                <Button variant="brand" className="w-full" size="auth" disabled={isSubmitting || isCompleted}>
-                  {isSubmitting ? "변경 중..." : isCompleted ? "변경 완료" : "비밀번호 변경"}
-                </Button>
-              </div>
-            </form>
-          )}
+    <AuthFormPanel title={title} description={description} loginHref={loginHref}>
+      {!hasRequiredLinkData ? (
+        <div className="rounded-md border border-error-200 bg-error-50 px-3 py-2 text-xs leading-4 text-error-600">
+          비밀번호 재설정 링크가 올바르지 않습니다. 다시 요청해 주세요.
         </div>
-      </div>
-    </div>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-6">
+            {maskedUsername ? (
+              <div>
+                <Label htmlFor={`${formId}-username`}>아이디</Label>
+                <Input
+                  id={`${formId}-username`}
+                  value={maskedUsername}
+                  readOnly
+                  className="border-gray-200 bg-gray-50"
+                />
+              </div>
+            ) : null}
+            <div>
+              <Label htmlFor={`${formId}-password`}>
+                새 비밀번호 <span className="text-error-500">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id={`${formId}-password`}
+                  name="password"
+                  className="pr-11"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="새 비밀번호를 입력하세요."
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="new-password"
+                  maxLength={255}
+                  disabled={isSubmitting || isCompleted}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
+                  aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                >
+                  {showPassword ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor={`${formId}-confirmation`}>
+                새 비밀번호 확인 <span className="text-error-500">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id={`${formId}-confirmation`}
+                  name="password_confirmation"
+                  className="pr-11"
+                  type={showPasswordConfirmation ? "text" : "password"}
+                  placeholder="새 비밀번호를 다시 입력하세요."
+                  value={passwordConfirmation}
+                  onChange={(event) => setPasswordConfirmation(event.target.value)}
+                  autoComplete="new-password"
+                  maxLength={255}
+                  disabled={isSubmitting || isCompleted}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordConfirmation((current) => !current)}
+                  className="absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-400 transition hover:text-gray-600"
+                  aria-label={showPasswordConfirmation ? "비밀번호 확인 숨기기" : "비밀번호 확인 보기"}
+                >
+                  {showPasswordConfirmation ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                </button>
+              </div>
+              {localError ? (
+                <p role="alert" className="mt-1 text-[11px] leading-4 text-error-500">
+                  {localError}
+                </p>
+              ) : null}
+            </div>
+
+            <Button type="submit" variant="brand" className="w-full" size="auth" disabled={isSubmitting || isCompleted}>
+              {isSubmitting ? "변경 중..." : isCompleted ? "변경 완료" : "비밀번호 변경"}
+            </Button>
+          </div>
+        </form>
+      )}
+    </AuthFormPanel>
   );
 }

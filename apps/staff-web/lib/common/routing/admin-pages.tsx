@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 export type AdminPageDefinition = {
   slug: string[];
   title: string;
+  headerTitle?: string;
   group?: string;
 };
 
@@ -15,7 +16,8 @@ export const ADMIN_PAGE_DEFINITIONS: AdminPageDefinition[] = [
   },
   {
     slug: ["promotion-manage", "hospitals"],
-    title: "병의원",
+    title: "병의원 프로모션",
+    headerTitle: "병의원 프로모션",
     group: "프로모션 상품",
   },
   {

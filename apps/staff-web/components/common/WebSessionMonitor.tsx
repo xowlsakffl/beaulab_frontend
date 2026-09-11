@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { monitorWebSession } from "@beaulab/api-client";
+import { monitorWebSession } from "@beaulab/api-client/web";
 import { useGlobalAlert } from "@beaulab/ui-admin";
 import { api } from "@/lib/common/api";
 import { clearLocalSession } from "@/lib/common/auth/session";

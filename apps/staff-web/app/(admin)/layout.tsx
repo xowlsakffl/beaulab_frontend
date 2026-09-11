@@ -333,7 +333,7 @@ function resolveHeaderPageTitle(
     .sort((left, right) => right.path.length - left.path.length);
 
   if (menuMatches[0]) {
-    return menuMatches[0].title;
+    return resolveAdminPageByPath(menuMatches[0].path)?.headerTitle ?? menuMatches[0].title;
   }
 
   const segments = pathname.split("/").filter(Boolean);

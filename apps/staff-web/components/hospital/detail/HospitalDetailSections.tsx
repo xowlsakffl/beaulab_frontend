@@ -1,5 +1,6 @@
 "use client";
 
+import { formatOperationHistoryValue } from "@/lib/common/operation-history";
 import React from "react";
 
 import { AllowStatusActionButtons } from "@/components/common/AllowStatusControls";
@@ -240,9 +241,9 @@ export function VerifiedAccountContactCard({
 }) {
   return (
     <Card className={[hospitalDetailCardClassName, className].filter(Boolean).join(" ")}>
-      <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 연락처</h3>
+      <h3 className="mb-5 text-sm font-bold text-gray-900">인증된 계정 정보</h3>
       <div className="space-y-3">
-        <InfoField label="전화번호" value={detail.account_hospital?.phone} compact />
+        <InfoField label="이메일" value={detail.account_hospital?.email} compact />
       </div>
     </Card>
   );
@@ -401,11 +402,13 @@ export function OperationHistoryCard({
   histories,
   meta,
   loading,
+  error,
   onPageChange,
 }: {
   histories: HospitalOperationHistoryItem[];
   meta: DataTableMeta | null;
   loading: boolean;
+  error?: string | null;
   onPageChange: (page: number) => void;
 }) {
   return (
@@ -413,6 +416,7 @@ export function OperationHistoryCard({
       histories={histories}
       meta={meta}
       loading={loading}
+      error={error}
       onPageChange={onPageChange}
       cardClassName={hospitalDetailCardClassName}
       formatDateTime={formatHospitalDetailDateTime}
@@ -664,6 +668,8 @@ function historyChangeDisplay(change: HospitalOperationHistoryChangeItem, side: 
   const value = side === "after" ? change.after_value : change.before_value;
   const field = change.field_key ?? null;
 
+  if (Array.isArray(value) && value.length === 0) return "-";
+
   if (typeof display === "string" && display.trim() !== "") {
     return historyRawValueLabel(field, display);
   }
@@ -674,12 +680,12 @@ function historyChangeDisplay(change: HospitalOperationHistoryChangeItem, side: 
 function historyRawValueLabel(field: string | null, value: unknown) {
   if (field === "status") {
     const label = labelApprovalStatus(String(value ?? ""));
-    return label === "-" ? stringifyHistoryValue(value) : label;
+    return label === "-" ? formatOperationHistoryValue(value) : label;
   }
 
   if (field === "allow_status") {
     const label = labelReviewStatus(String(value ?? ""));
-    return label === "-" ? stringifyHistoryValue(value) : label;
+    return label === "-" ? formatOperationHistoryValue(value) : label;
   }
 
   if (field === "categories") {
@@ -690,7 +696,7 @@ function historyRawValueLabel(field: string | null, value: unknown) {
     return operationHoursHistoryValueLabel(value);
   }
 
-  return stringifyHistoryValue(value);
+  return formatOperationHistoryValue(value);
 }
 
 function categoryHistoryValueLabel(value: unknown) {
@@ -710,7 +716,7 @@ function categoryHistoryValueLabel(value: unknown) {
     return paths.length > 0 ? paths.join("\n") : "-";
   }
 
-  return stringifyHistoryValue(value);
+  return formatOperationHistoryValue(value);
 }
 
 function stripPrimaryMarker(value: string) {
@@ -720,7 +726,7 @@ function stripPrimaryMarker(value: string) {
 function operationHoursHistoryValueLabel(value: unknown) {
   const operationHours = parseOperationHoursHistoryValue(value);
   if (!operationHours) {
-    return stringifyHistoryValue(value);
+    return formatOperationHistoryValue(value);
   }
 
   const lines = dayLabels
@@ -766,18 +772,6 @@ function parseOperationHoursHistoryValue(value: unknown) {
       : null;
   } catch {
     return null;
-  }
-}
-
-function stringifyHistoryValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "boolean") return value ? "true" : "false";
-  if (typeof value === "string" || typeof value === "number") return String(value);
-
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
   }
 }
 

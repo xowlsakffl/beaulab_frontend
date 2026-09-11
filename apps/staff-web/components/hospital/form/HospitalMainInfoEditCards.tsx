@@ -4,7 +4,7 @@ import React from "react";
 import { Button, Card, InlineFileSelect, InputField, Select, StatusValueBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import { BUSINESS_NUMBER_FORMATTED_LENGTH, formatBusinessNumberInput } from "@/lib/common/business-number";
 import { BANK_OPTIONS } from "@/lib/common/banks";
 import { hospitalStatusBadgeColor, labelApprovalStatus } from "@/lib/hospital/list";

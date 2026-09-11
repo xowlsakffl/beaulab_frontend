@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import React, { FormEvent, useState } from "react";
-import { ArrowLeft, Mail } from "../../icons";
+import React, { FormEvent, useId, useState } from "react";
+import { AuthFormPanel } from "./AuthFormPanel";
+import { Mail } from "../../icons";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
@@ -51,6 +51,7 @@ export function PasswordResetRequestForm({
   successMessage = "재설정 링크 메일이 발송되었습니다. 메일함을 확인해 주세요.",
   onSubmit,
 }: PasswordResetRequestFormProps) {
+  const emailId = useId();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export function PasswordResetRequestForm({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!onSubmit) return;
+    if (!onSubmit || isSubmitting) return;
 
     const trimmedEmail = email.trim();
 
@@ -84,53 +85,44 @@ export function PasswordResetRequestForm({
   };
 
   return (
-    <div className="flex w-full flex-1 flex-col lg:w-1/2">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
-        <div>
-          <Link
-            href={loginHref}
-            className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-brand-500"
-          >
-            <ArrowLeft className="size-4" />
-            로그인으로 돌아가기
-          </Link>
-
-          <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md">{title}</h1>
-            <p className="text-sm text-gray-500">{description}</p>
+    <AuthFormPanel title={title} description={description} loginHref={loginHref}>
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-5">
+          <div>
+            <Label htmlFor={emailId}>
+              이메일 <span className="text-error-500">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                id={emailId}
+                name="email"
+                className="pr-11"
+                disabled={isSubmitting}
+                type="email"
+                placeholder={emailPlaceholder}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+              />
+              <Mail className="absolute top-1/2 right-4 size-4 -translate-y-1/2 text-gray-400" />
+            </div>
+            {localError ? (
+              <p role="alert" className="mt-1 text-[11px] leading-4 text-error-500">
+                {localError}
+              </p>
+            ) : null}
+            {localSuccess ? (
+              <p role="status" className="mt-2 rounded-md bg-brand-25 px-3 py-2 text-xs font-medium text-brand-700">
+                {localSuccess}
+              </p>
+            ) : null}
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-5">
-              <div>
-                <Label>
-                  이메일 <span className="text-error-500">*</span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="email"
-                    placeholder={emailPlaceholder}
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    autoComplete="email"
-                  />
-                  <Mail className="absolute top-1/2 right-4 size-4 -translate-y-1/2 text-gray-400" />
-                </div>
-                {localError ? <p className="mt-1 text-[11px] leading-4 text-error-500">{localError}</p> : null}
-                {localSuccess ? (
-                  <p className="mt-2 rounded-md bg-brand-25 px-3 py-2 text-xs font-medium text-brand-700">
-                    {localSuccess}
-                  </p>
-                ) : null}
-              </div>
-
-              <Button variant="brand" className="w-full" size="auth" disabled={isSubmitting}>
-                {isSubmitting ? "발송 중..." : submitText}
-              </Button>
-            </div>
-          </form>
+          <Button type="submit" variant="brand" className="w-full" size="auth" disabled={isSubmitting}>
+            {isSubmitting ? "발송 중..." : submitText}
+          </Button>
         </div>
-      </div>
-    </div>
+      </form>
+    </AuthFormPanel>
   );
 }

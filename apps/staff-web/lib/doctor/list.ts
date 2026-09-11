@@ -1,3 +1,4 @@
+import { cycleTableSort } from "@/lib/common/sort";
 import type { CheckboxFilterOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
@@ -346,17 +347,7 @@ export function normalizeDoctor(item: DoctorApiItem): DoctorRow {
 }
 
 export function nextSortState(prev: SortState, field: SortField): SortState {
-  if (prev.field !== field) return { field, direction: "desc", enabled: true };
-  if (prev.enabled && prev.direction === "desc") return { field, direction: "asc", enabled: true };
-  if (prev.enabled && prev.direction === "asc") {
-    return {
-      field: DEFAULT_SORT.field,
-      direction: DEFAULT_SORT.direction,
-      enabled: false,
-    };
-  }
-
-  return { field, direction: "desc", enabled: true };
+  return cycleTableSort(prev, field, DEFAULT_SORT);
 }
 
 export function parseDoctorsTableState(searchParams: URLSearchParams) {

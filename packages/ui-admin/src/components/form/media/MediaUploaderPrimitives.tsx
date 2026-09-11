@@ -12,23 +12,7 @@ export function isImageFile(file: File) {
   return file.type.startsWith("image/");
 }
 
-export function useObjectUrl(file: File | null) {
-  const [url, setUrl] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-
-  return url;
-}
+export { useObjectUrl } from "../../../hooks/useObjectUrl";
 
 function useImageDimensions(url: string | null, enabled = true) {
   const [dimensions, setDimensions] = React.useState<{ width: number; height: number } | null>(null);

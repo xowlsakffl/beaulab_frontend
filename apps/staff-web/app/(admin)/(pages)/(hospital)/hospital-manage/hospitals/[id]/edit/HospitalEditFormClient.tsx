@@ -111,7 +111,7 @@ export default function HospitalEditFormClient() {
   const [isAccountInvitationOpen, setIsAccountInvitationOpen] = React.useState(false);
   const [isPasswordResetOpen, setIsPasswordResetOpen] = React.useState(false);
   const canOpenPasswordReset =
-    canSendPasswordReset && accountHospital?.status === "ACTIVE" && Boolean(accountHospital?.phone);
+    canSendPasswordReset && accountHospital?.status === "ACTIVE" && Boolean(accountHospital?.email);
 
   const clearError = React.useCallback((field: HospitalFieldName) => {
     setErrors((prev) => {
@@ -395,7 +395,7 @@ export default function HospitalEditFormClient() {
         <HospitalAccountPasswordResetModal
           hospitalId={hospitalId}
           hospitalName={form.name}
-          phone={accountHospital?.phone ?? ""}
+          email={accountHospital?.email ?? ""}
           onClose={() => setIsPasswordResetOpen(false)}
         />
       ) : null}

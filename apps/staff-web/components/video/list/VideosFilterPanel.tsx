@@ -34,6 +34,10 @@ type VideosFilterPanelProps = {
   draftFilters: Filters;
   draftDateRange?: DateRange;
   categoryOptions: SelectOption[];
+  isCategoryDropdownOpen: boolean;
+  categoryDropdownRef: React.RefObject<HTMLDivElement | null>;
+  onToggleCategoryDropdown: () => void;
+  onToggleAllCategories: () => void;
   isDatePickerOpen: boolean;
   isReportStatusDropdownOpen: boolean;
   datePickerRef: React.RefObject<HTMLDivElement | null>;
@@ -60,6 +64,10 @@ export function VideosFilterPanel({
   draftFilters,
   draftDateRange,
   categoryOptions,
+  isCategoryDropdownOpen,
+  categoryDropdownRef,
+  onToggleCategoryDropdown,
+  onToggleAllCategories,
   isDatePickerOpen,
   isReportStatusDropdownOpen,
   datePickerRef,
@@ -125,12 +133,16 @@ export function VideosFilterPanel({
           <div className={`${filterRowClass} xl:col-span-3`}>
             <span className={inlineLabelClass}>카테고리</span>
             <div className="min-w-0 flex-1">
-              <Select
-                value={draftFilters.categoryId}
+              <CheckboxFilterDropdown
+                label="카테고리"
+                hideLabel
+                containerRef={categoryDropdownRef}
+                selectedValues={draftFilters.categoryIds}
                 options={categoryOptions}
-                showPlaceholderOption={false}
-                onChange={onCategoryChange}
-                className="h-11 px-4"
+                isOpen={isCategoryDropdownOpen}
+                onToggleOpen={onToggleCategoryDropdown}
+                onToggleValue={onCategoryChange}
+                onToggleAll={onToggleAllCategories}
               />
             </div>
           </div>

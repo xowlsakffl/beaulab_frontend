@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  Button,
   Card,
   ChevronDown,
   FormTextArea,
@@ -16,11 +15,12 @@ import {
   type ExistingMediaItem,
 } from "@beaulab/ui-admin";
 
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import { useVideoDoctorOptions } from "@/hooks/video/useVideoDoctorOptions";
 import { useVideoHashtagOptions } from "@/hooks/video/useVideoHashtagOptions";
 import { useVideoHospitalOptions } from "@/hooks/video/useVideoHospitalOptions";
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
+import { ImageUploadPreviewCard } from "@/components/common/ImageUploadPreviewCard";
 import { groupMedicalCategorySelectorItems } from "@/lib/common/category";
 import { normalizeHashtagName, sanitizeHashtagName, validateHashtagName } from "@/lib/hashtag/list";
 import type { VideoCategoryItem, VideoHashtagItem } from "@/lib/video/detail";
@@ -307,22 +307,13 @@ function VideoThumbnailPicker({
   onValidationError?: (message: string) => void;
   onPreview?: (preview: MediaPreviewState) => void;
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
   const fileUrl = useObjectUrl(file);
   const previewUrl = fileUrl ?? existingThumbnail?.url ?? null;
   const previewTitle = file?.name || existingThumbnail?.name || "동영상 썸네일";
   const isPreviewImage = file ? file.type.startsWith("image/") : (existingThumbnail?.isImage ?? true);
 
   const handleFileChange = React.useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const nextFile = event.target.files?.[0] ?? null;
-      event.currentTarget.value = "";
-
-      if (!nextFile) {
-        onChange(null);
-        return;
-      }
-
+    async (nextFile: File) => {
       const validationError = await validateVideoThumbnailFile(nextFile);
       if (validationError) {
         onValidationError?.(validationError);
@@ -335,64 +326,22 @@ function VideoThumbnailPicker({
   );
 
   return (
-    <Card
-      data-media-collection="thumbnail_file"
-      tabIndex={-1}
-      className="flex min-w-0 flex-col gap-3 border-0 bg-transparent p-0 shadow-none"
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept={VIDEO_THUMBNAIL_ACCEPT}
-        className="hidden"
-        onChange={(event) => void handleFileChange(event)}
-      />
-
-      {previewUrl ? (
-        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-gray-200">
-          {onPreview ? (
-            <button
-              type="button"
-              className="flex h-full w-full cursor-zoom-in items-center justify-center"
-              onClick={() =>
-                onPreview({
-                  url: previewUrl,
-                  title: previewTitle,
-                  isImage: isPreviewImage,
-                })
-              }
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
-              <img src={previewUrl} alt={previewTitle} className="h-full w-full object-cover" />
-            </button>
-          ) : (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element -- runtime storage URL or local object URL */}
-              <img src={previewUrl} alt={previewTitle} className="h-full w-full object-cover" />
-            </>
-          )}
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 px-6 text-center transition-colors hover:border-brand-200 hover:bg-brand-50/30"
-          onClick={() => inputRef.current?.click()}
-        >
-          <div className="flex size-12 items-center justify-center rounded-full bg-brand-50 text-brand-500">
-            <span className="text-2xl leading-none">+</span>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-gray-800">썸네일 이미지를 등록해 주세요.</p>
-            <p className="text-xs text-gray-500">{VIDEO_THUMBNAIL_HELPER_TEXT}</p>
-          </div>
-        </button>
-      )}
-
-      <Button type="button" variant="brand" size="sm" className="w-full" onClick={() => inputRef.current?.click()}>
-        {previewUrl ? "이미지 수정하기" : "이미지 등록하기"}
-      </Button>
-      {error ? <p className="w-full text-left text-xs text-error-500">{error}</p> : null}
-    </Card>
+    <ImageUploadPreviewCard
+      title="동영상 썸네일"
+      accept={VIDEO_THUMBNAIL_ACCEPT}
+      emptyTitle="썸네일 이미지를 등록해 주세요."
+      emptyDescription={VIDEO_THUMBNAIL_HELPER_TEXT}
+      objectUrl={previewUrl}
+      onPreview={
+        onPreview ? (preview) => onPreview({ ...preview, title: previewTitle, isImage: isPreviewImage }) : undefined
+      }
+      onFileChange={handleFileChange}
+      error={error}
+      aspect="video"
+      showHeader={false}
+      mediaCollection="thumbnail_file"
+      className="flex flex-col border-0 bg-transparent p-0 shadow-none"
+    />
   );
 }
 

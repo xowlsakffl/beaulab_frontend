@@ -1,4 +1,5 @@
 import { HOSPITAL_WALLET_PERMISSIONS } from "@/lib/hospital-wallet/permissions";
+import { PROMOTION_PERMISSIONS } from "@/lib/hospital-promotion/types";
 
 export type RoutePermissionRule = {
   path: string;
@@ -49,7 +50,7 @@ export const STATIC_ADMIN_ROUTE_PERMISSIONS = {
   "/content-manage/hashtags": ["beaulab.hashtag.manage"],
   "/content-manage/top-titles": ["beaulab.category.manage"],
   "/statistics-manage/statistics": ["common.dashboard.show"],
-  "/promotion-manage/hospitals": ["beaulab.hospital.show"],
+  "/promotion-manage/hospitals": [PROMOTION_PERMISSIONS.show],
   "/promotion-manage/users": ["beaulab.user.show"],
   "/category-hashtag-manage/categories": ["beaulab.category.manage"],
   "/category-hashtag-manage/hashtags": ["beaulab.hashtag.manage"],
@@ -87,6 +88,9 @@ export function getStaticRoutePermissions(path: StaticAdminRoutePath): string[] 
 }
 
 export const ADMIN_ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
+  { path: "/promotion-manage/hospitals/new", requiredPermissions: [PROMOTION_PERMISSIONS.create] },
+  { path: "/promotion-manage/hospitals/[id]", requiredPermissions: [PROMOTION_PERMISSIONS.show] },
+  { path: "/promotion-manage/hospitals/[id]/edit", requiredPermissions: [PROMOTION_PERMISSIONS.update] },
   { path: "/user-manage/users/[id]", requiredPermissions: ["beaulab.user.show"] },
   { path: "/hospital-manage/hospitals/[id]", requiredPermissions: ["beaulab.hospital.show"] },
   { path: "/hospital-manage/hospitals/[id]/edit", requiredPermissions: ["beaulab.hospital.update"] },

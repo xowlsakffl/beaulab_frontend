@@ -3,11 +3,12 @@
 import { replaceCurrentPageUrl } from "@/lib/common/navigation/replaceCurrentPageUrl";
 
 import React from "react";
+import { useOperationHistories } from "@/hooks/common/useOperationHistories";
 import dynamic from "next/dynamic";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { hasPermission } from "@beaulab/auth";
 import { isApiSuccess } from "@beaulab/types";
-import { SpinnerBlock, type DataTableMeta, StatusValueBadge } from "@beaulab/ui-admin";
+import { SpinnerBlock, StatusValueBadge } from "@beaulab/ui-admin";
 
 import type { MediaPreviewState } from "@/components/common/MediaPreviewModal";
 import { LoadErrorState } from "@/components/common/LoadErrorState";
@@ -34,7 +35,6 @@ import {
   type HospitalEvaluationDetailResponse,
   type HospitalEvaluationOperationHistory,
   type HospitalEvaluationReceiptDecision,
-  type PaginatedBlock,
 } from "@/lib/hospital-evaluation/detail";
 import { labelHospitalEvaluationVisibilityStatus } from "@/lib/hospital-evaluation/list";
 
@@ -117,15 +117,11 @@ export default function HospitalEvaluationDetailPageClient() {
   const evaluationId = Number(rawEvaluationId);
 
   const [detail, setDetail] = React.useState<HospitalEvaluationDetailResponse | null>(null);
-  const [operationHistoriesBlock, setOperationHistoriesBlock] =
-    React.useState<PaginatedBlock<HospitalEvaluationOperationHistory> | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
-  const [historiesPage, setHistoriesPage] = React.useState(() =>
-    parsePositivePage(searchParams.get("operation_histories_page"), historiesDefaultPage),
-  );
+  const historiesPage = parsePositivePage(searchParams.get("operation_histories_page"), historiesDefaultPage);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = React.useState(false);
   const [receiptDecision, setReceiptDecision] = React.useState<HospitalEvaluationReceiptDecision>("verify");
   const [receiptRejectReason, setReceiptRejectReason] = React.useState("");
@@ -189,51 +185,32 @@ export default function HospitalEvaluationDetailPageClient() {
     void fetchEvaluationDetail(false);
   }, [fetchEvaluationDetail]);
 
-  const fetchEvaluationOperationHistories = React.useCallback(
-    async (manualRefresh = false) => {
-      if (!Number.isFinite(evaluationId) || evaluationId <= 0) return;
-
-      if (manualRefresh || hasLoadedRef.current) {
-        setIsRefreshing(true);
-      }
-
-      try {
-        const response = await api.get<HospitalEvaluationOperationHistory[]>(
-          `/hospital-evaluations/${evaluationId}/operation-histories`,
-          {
-            operation_histories_page: historiesPage,
-            operation_histories_per_page: HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE,
-          },
-        );
-
-        if (!isApiSuccess(response)) {
-          setActionError(response.error.message || "평가 히스토리를 불러오지 못했습니다.");
-          return;
-        }
-
-        setOperationHistoriesBlock({
-          items: response.data,
-          meta: (response.meta as DataTableMeta | null) ?? null,
-        });
-      } catch {
-        setActionError("평가 히스토리를 불러오는 중 오류가 발생했습니다.");
-      } finally {
-        setIsRefreshing(false);
-      }
+  const changeHistoriesPage = React.useCallback(
+    (page: number) => {
+      syncDetailQuery({ nextHistoriesPage: page });
     },
-    [evaluationId, historiesPage],
+    [syncDetailQuery],
+  );
+
+  const {
+    histories: operationHistories,
+    meta: operationHistoriesMeta,
+    loading: historiesLoading,
+    error: historiesError,
+    refresh: fetchEvaluationOperationHistories,
+  } = useOperationHistories<HospitalEvaluationOperationHistory>(
+    Number.isSafeInteger(evaluationId) && evaluationId > 0
+      ? `/hospital-evaluations/${evaluationId}/operation-histories`
+      : null,
+    { page: historiesPage, onPageChange: changeHistoriesPage, perPage: HOSPITAL_EVALUATION_DETAIL_HISTORY_PER_PAGE },
   );
 
   const refreshEvaluationPage = React.useCallback(
     async (manualRefresh = false) => {
-      await Promise.all([fetchEvaluationDetail(manualRefresh), fetchEvaluationOperationHistories(manualRefresh)]);
+      await Promise.all([fetchEvaluationDetail(manualRefresh), fetchEvaluationOperationHistories()]);
     },
     [fetchEvaluationDetail, fetchEvaluationOperationHistories],
   );
-
-  React.useEffect(() => {
-    void fetchEvaluationOperationHistories(false);
-  }, [fetchEvaluationOperationHistories]);
 
   const requestVisibilityChange = React.useCallback(
     (status: "ACTIVE" | "INACTIVE") => {
@@ -377,14 +354,6 @@ export default function HospitalEvaluationDetailPageClient() {
     }
   }, [detail, receiptDecision, receiptRejectReason, receiptRejectReasonText, refreshEvaluationPage]);
 
-  const changeHistoriesPage = React.useCallback(
-    (page: number) => {
-      setHistoriesPage(page);
-      syncDetailQuery({ nextHistoriesPage: page });
-    },
-    [syncDetailQuery],
-  );
-
   if (isLoading) {
     return <SpinnerBlock className="min-h-[60vh]" spinnerClassName="size-10" />;
   }
@@ -398,8 +367,6 @@ export default function HospitalEvaluationDetailPageClient() {
     );
   }
 
-  const operationHistories = operationHistoriesBlock?.items ?? [];
-  const operationHistoriesMeta = operationHistoriesBlock?.meta ?? null;
   const receiptImages = detail.receipt_images ?? [];
   const receiptImage = receiptImages[0] ?? null;
   const receiptStatus = getHospitalEvaluationReceiptStatus(detail);
@@ -409,9 +376,9 @@ export default function HospitalEvaluationDetailPageClient() {
 
   return (
     <div className="space-y-6">
-      {actionError ? (
+      {actionError || historiesError ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {actionError}
+          {actionError || historiesError}
         </div>
       ) : null}
 
@@ -442,7 +409,7 @@ export default function HospitalEvaluationDetailPageClient() {
           <HospitalEvaluationHistoryCard
             histories={operationHistories}
             meta={operationHistoriesMeta}
-            refreshing={isRefreshing}
+            refreshing={isRefreshing || historiesLoading}
             onGoPage={changeHistoriesPage}
           />
         </div>

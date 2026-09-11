@@ -48,6 +48,7 @@ type SelectOption = {
 function cloneDefaultFilters(): Filters {
   return {
     ...DEFAULT_FILTERS,
+    categoryIds: [...DEFAULT_FILTERS.categoryIds],
     reportStatuses: [...DEFAULT_FILTERS.reportStatuses],
   };
 }
@@ -55,6 +56,7 @@ function cloneDefaultFilters(): Filters {
 function cloneFilters(filters: Filters): Filters {
   return {
     ...filters,
+    categoryIds: [...filters.categoryIds],
     reportStatuses: [...filters.reportStatuses],
   };
 }
@@ -83,6 +85,7 @@ export default function VideosTableClient() {
   const [draftDateRange, setDraftDateRange] = React.useState<DateRange | undefined>(initialTableState.draftDateRange);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [isReportStatusDropdownOpen, setIsReportStatusDropdownOpen] = React.useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = React.useState(false);
   const [sortState, setSortState] = React.useState<SortState>(initialTableState.sortState);
   const [page, setPage] = React.useState(initialTableState.page);
   const [summary, setSummary] = React.useState<VideoSummary | null>(null);
@@ -90,6 +93,7 @@ export default function VideosTableClient() {
   const [highlightedRowId, setHighlightedRowId] = React.useState<number | null>(null);
   const datePickerRef = React.useRef<HTMLDivElement | null>(null);
   const reportStatusDropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const categoryDropdownRef = React.useRef<HTMLDivElement | null>(null);
 
   const query = React.useMemo(
     () =>
@@ -108,7 +112,6 @@ export default function VideosTableClient() {
 
   const categoryOptions = React.useMemo<SelectOption[]>(
     () => [
-      { value: "", label: "전체" },
       ...categoryItems.map((item) => ({
         value: String(item.id),
         label: item.full_path?.trim() || item.name,
@@ -229,6 +232,9 @@ export default function VideosTableClient() {
       if (!reportStatusDropdownRef.current?.contains(event.target as Node)) {
         setIsReportStatusDropdownOpen(false);
       }
+      if (!categoryDropdownRef.current?.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", onOutsideClick);
@@ -236,6 +242,7 @@ export default function VideosTableClient() {
   }, []);
 
   const applyFilters = React.useCallback(() => {
+    setIsCategoryDropdownOpen(false);
     setPage(1);
     setSearchKeyword(searchInput.trim());
     setAppliedFilters({
@@ -256,6 +263,7 @@ export default function VideosTableClient() {
     setDraftDateRange(undefined);
     setIsDatePickerOpen(false);
     setIsReportStatusDropdownOpen(false);
+    setIsCategoryDropdownOpen(false);
   }, []);
 
   const applySummaryFilter = React.useCallback(
@@ -270,6 +278,7 @@ export default function VideosTableClient() {
       setDraftDateRange(undefined);
       setIsDatePickerOpen(false);
       setIsReportStatusDropdownOpen(false);
+      setIsCategoryDropdownOpen(false);
     },
     [activeSummaryKey],
   );
@@ -340,22 +349,46 @@ export default function VideosTableClient() {
         draftFilters={draftFilters}
         draftDateRange={draftDateRange}
         categoryOptions={categoryOptions}
+        isCategoryDropdownOpen={isCategoryDropdownOpen}
+        categoryDropdownRef={categoryDropdownRef}
+        onToggleCategoryDropdown={() => {
+          setIsDatePickerOpen(false);
+          setIsReportStatusDropdownOpen(false);
+          setIsCategoryDropdownOpen((open) => !open);
+        }}
         isDatePickerOpen={isDatePickerOpen}
         isReportStatusDropdownOpen={isReportStatusDropdownOpen}
         datePickerRef={datePickerRef}
         reportStatusDropdownRef={reportStatusDropdownRef}
         onSearchChange={setSearchInput}
         onToggleDatePicker={() => {
+          setIsCategoryDropdownOpen(false);
           setIsReportStatusDropdownOpen(false);
           setIsDatePickerOpen((prev) => !prev);
         }}
         onToggleReportStatusDropdown={() => {
+          setIsCategoryDropdownOpen(false);
           setIsDatePickerOpen(false);
           setIsReportStatusDropdownOpen((prev) => !prev);
         }}
         onApplyDateRange={applyDateRange}
         onApplyDatePreset={applyDatePreset}
-        onCategoryChange={(value) => setDraftFilters((prev) => ({ ...prev, categoryId: value }))}
+        onCategoryChange={(value) =>
+          setDraftFilters((prev) => ({
+            ...prev,
+            categoryIds: prev.categoryIds.includes(value)
+              ? prev.categoryIds.filter((id) => id !== value)
+              : [...prev.categoryIds, value],
+          }))
+        }
+        onToggleAllCategories={() =>
+          setDraftFilters((prev) => ({
+            ...prev,
+            categoryIds: categoryOptions.every((option) => prev.categoryIds.includes(option.value))
+              ? []
+              : categoryOptions.map((option) => option.value),
+          }))
+        }
         onHospitalStatusChange={(value) => setDraftFilters((prev) => ({ ...prev, hospitalStatus: value }))}
         onToggleReportStatus={toggleReportStatus}
         onToggleAllReportStatus={toggleAllReportStatus}

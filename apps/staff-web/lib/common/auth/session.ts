@@ -1,4 +1,4 @@
-import { createWebSession } from "@beaulab/api-client";
+import { createWebSession } from "@beaulab/api-client/web";
 import { sessionStorage } from "@beaulab/auth";
 import { api } from "@/lib/common/api";
 import { invalidateListDataCache } from "@/lib/common/list-data-cache";

@@ -1,3 +1,4 @@
+import { formatLocalDateTime as formatCommonDateTime } from "@/lib/common/date-time";
 import type { BadgeColor, CheckboxFilterOption } from "@beaulab/ui-admin";
 import type { DateRange } from "react-day-picker";
 
@@ -124,7 +125,7 @@ export type SortState = VideoSortState;
 export type VideosQuery = {
   q?: string;
   summary_filter?: VideoSummaryFilter;
-  category_id?: string;
+  category_ids?: string;
   hospital_status?: string;
   admin_status?: string;
   report_status?: string;
@@ -147,7 +148,7 @@ export type Filters = {
   dateRange: string;
   startDate: string;
   endDate: string;
-  categoryId: string;
+  categoryIds: string[];
   hospitalStatus: string;
   reportStatuses: string[];
   metric: VideoMetric;
@@ -169,7 +170,7 @@ export const DEFAULT_FILTERS: Filters = {
   dateRange: "",
   startDate: "",
   endDate: "",
-  categoryId: "",
+  categoryIds: [],
   hospitalStatus: "",
   reportStatuses: [],
   metric: "report_count",
@@ -229,15 +230,7 @@ export function formatLocalDate(date: Date) {
 }
 
 export function formatLocalDateTime(value?: string | null) {
-  if (!value) return "-";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${formatLocalDate(date)} ${hours}:${minutes}`;
+  return formatCommonDateTime(value);
 }
 
 export function formatDateRange(range?: DateRange) {
@@ -451,7 +444,13 @@ export function parseVideosTableState(searchParams: URLSearchParams) {
       dateRange: dateState.label,
       startDate,
       endDate,
-      categoryId: normalizePositiveId(searchParams.get("category_id")),
+      categoryIds: Array.from(
+        new Set(
+          normalizeListParam(searchParams.get("category_ids") ?? searchParams.get("category_id"))
+            .map(normalizePositiveId)
+            .filter(Boolean),
+        ),
+      ),
       hospitalStatus: VIDEO_HOSPITAL_STATUS_VALUE_SET.has(hospitalStatus) ? hospitalStatus : "",
       reportStatuses,
       metric,
@@ -490,7 +489,7 @@ export function buildVideosQuery({
   const trimmedSearch = searchKeyword.trim();
   if (trimmedSearch) query.q = trimmedSearch;
   if (appliedFilters.summaryFilter) query.summary_filter = appliedFilters.summaryFilter;
-  if (appliedFilters.categoryId) query.category_id = appliedFilters.categoryId;
+  if (appliedFilters.categoryIds.length) query.category_ids = appliedFilters.categoryIds.join(",");
   if (appliedFilters.hospitalStatus) query.hospital_status = appliedFilters.hospitalStatus;
   if (appliedFilters.adminStatus) query.admin_status = appliedFilters.adminStatus;
   if (appliedFilters.reportStatuses.length > 0) {
@@ -514,7 +513,7 @@ export function buildVideosQueryString(query: VideosQuery) {
 
   if (query.q) params.set("q", query.q);
   if (query.summary_filter) params.set("summary_filter", query.summary_filter);
-  if (query.category_id) params.set("category_id", query.category_id);
+  if (query.category_ids) params.set("category_ids", query.category_ids);
   if (query.hospital_status) params.set("hospital_status", query.hospital_status);
   if (query.admin_status) params.set("admin_status", query.admin_status);
   if (query.report_status) params.set("report_status", query.report_status);

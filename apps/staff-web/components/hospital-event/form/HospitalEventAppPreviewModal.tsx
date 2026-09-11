@@ -3,7 +3,7 @@
 import React from "react";
 import { Button, Modal } from "@beaulab/ui-admin";
 
-import { useObjectUrl } from "@/hooks/common/useObjectUrl";
+import { useObjectUrl } from "@beaulab/ui-admin/hooks";
 import { HospitalEventTextPage } from "./HospitalEventTextPagePreview";
 import type { HospitalEventBeforeAfterPhoto } from "@/lib/hospital-event/before-after-photos";
 import type { HospitalEventPreviewContextState } from "@/hooks/hospital-event/useHospitalEventPreviewContext";

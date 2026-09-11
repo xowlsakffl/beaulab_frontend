@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { isApiSuccess } from "@beaulab/types";
-import { Button, CheckCircle2, SpinnerBlock } from "@beaulab/ui-admin";
-import { PasswordResetForm, type PasswordResetFormValues } from "@beaulab/ui-admin/components/auth";
+import { Button, SpinnerBlock } from "@beaulab/ui-admin";
+import { AuthFormPanel, PasswordResetForm, type PasswordResetFormValues } from "@beaulab/ui-admin/components/auth";
 
 import { resetHospitalPassword, verifyHospitalPasswordResetToken } from "@/lib/account-hospital/password-reset";
 
@@ -14,6 +14,7 @@ type ResetPageState =
 
 export default function HospitalPasswordResetPageClient({ token }: { token: string }) {
   const router = useRouter();
+  const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<ResetPageState>({ status: "loading" });
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function HospitalPasswordResetPageClient({ token }: { token: stri
     return () => {
       active = false;
     };
-  }, [router, token]);
+  }, [router, token, attempt]);
 
   const handleSubmit = async ({ password, passwordConfirmation }: PasswordResetFormValues) => {
     const { response, payload } = await resetHospitalPassword(token, password, passwordConfirmation);
@@ -58,42 +59,57 @@ export default function HospitalPasswordResetPageClient({ token }: { token: stri
     return payload.data.message;
   };
 
-  if (state.status === "loading") return <SpinnerBlock className="min-h-screen" label="링크 확인 중" />;
+  if (state.status === "loading") {
+    return (
+      <AuthFormPanel>
+        <SpinnerBlock className="min-h-[360px]" label="링크 확인 중" />
+      </AuthFormPanel>
+    );
+  }
+
+  if (state.status === "ready") {
+    return (
+      <PasswordResetForm
+        token={token}
+        maskedUsername={state.maskedNickname}
+        title="병의원 비밀번호 재설정"
+        description={
+          <span className="block text-lg leading-7 font-semibold break-words text-brand-500">{state.hospitalName}</span>
+        }
+        onSubmit={handleSubmit}
+        onSuccess={() => setState({ status: "completed" })}
+      />
+    );
+  }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-6 py-10 sm:px-10">
-      {state.status === "ready" ? (
-        <PasswordResetForm
-          token={token}
-          maskedUsername={state.maskedNickname}
-          loginHref={null}
-          title="병의원 비밀번호 재설정"
-          description={
-            <span className="block text-lg leading-7 font-semibold break-words text-brand-500">
-              {state.hospitalName}
-            </span>
-          }
-          onSubmit={handleSubmit}
-          onSuccess={() => setState({ status: "completed" })}
-        />
+    <AuthFormPanel
+      loginHref="/login"
+      title={state.status === "completed" ? "비밀번호가 변경되었습니다." : "재설정 링크를 확인할 수 없습니다."}
+      description={
+        state.status === "completed"
+          ? "변경한 비밀번호로 로그인해 주세요."
+          : "일시적인 오류가 발생했습니다. 잠시 후 다시 확인해 주세요."
+      }
+    >
+      {state.status === "completed" ? (
+        <Button asChild variant="brand" size="auth" className="w-full">
+          <Link href="/login">로그인하러 가기</Link>
+        </Button>
       ) : (
-        <div className="mx-auto w-full max-w-md text-center">
-          {state.status === "completed" ? <CheckCircle2 className="mx-auto mb-5 size-12 text-brand-500" /> : null}
-          <h1 className="text-xl font-semibold text-gray-900">
-            {state.status === "completed" ? "비밀번호가 변경되었습니다." : "재설정 링크를 확인할 수 없습니다."}
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-gray-500">
-            {state.status === "completed"
-              ? "변경한 비밀번호로 로그인해 주세요."
-              : "일시적인 오류가 발생했습니다. 잠시 후 링크를 다시 열어 주세요."}
-          </p>
-          {state.status === "completed" ? (
-            <Button asChild variant="brand" className="mt-7 h-11 w-full max-w-xs">
-              <Link href="/login">로그인하러 가기</Link>
-            </Button>
-          ) : null}
-        </div>
+        <Button
+          type="button"
+          variant="brand"
+          size="auth"
+          className="w-full"
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((current) => current + 1);
+          }}
+        >
+          다시 확인
+        </Button>
       )}
-    </main>
+    </AuthFormPanel>
   );
 }

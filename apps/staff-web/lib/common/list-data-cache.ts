@@ -1,3 +1,5 @@
+import { createCacheInvalidation, matchesCacheScope, type CacheScope } from "./cache-invalidation";
+
 type ListDataCacheValue<Row, Meta> = {
   rows: Row[];
   meta: Meta | null;
@@ -10,16 +12,9 @@ type ListDataCacheEntry = {
 
 const MAX_CACHE_ENTRIES = 100;
 const listDataCache = new Map<string, ListDataCacheEntry>();
-let cacheVersion = 0;
-const listeners = new Set<() => void>();
-
-export const getListDataCacheVersion = () => cacheVersion;
-export function subscribeListDataCache(listener: () => void) {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-}
+const invalidation = createCacheInvalidation();
+export const getListDataCacheVersion = invalidation.getVersion;
+export const subscribeListDataCache = invalidation.subscribe;
 
 function buildCacheKey(namespace: string, requestKey: string) {
   return `${namespace}:${requestKey}`;
@@ -52,7 +47,7 @@ export function setListDataCache<Row, Meta>(
   value: ListDataCacheValue<Row, Meta>,
   requestVersion: number,
 ) {
-  if (requestVersion !== cacheVersion) return;
+  if (requestVersion !== getListDataCacheVersion(namespace)) return;
   const cacheKey = buildCacheKey(namespace, requestKey);
 
   listDataCache.delete(cacheKey);
@@ -68,15 +63,12 @@ export function setListDataCache<Row, Meta>(
   }
 }
 
-export function invalidateListDataCache(namespace?: string) {
-  cacheVersion += 1;
-  if (!namespace) {
-    listDataCache.clear();
-  } else {
-    const prefix = `${namespace}:`;
-    for (const cacheKey of listDataCache.keys()) {
-      if (cacheKey.startsWith(prefix)) listDataCache.delete(cacheKey);
-    }
-  }
-  listeners.forEach((listener) => listener());
+export function invalidateListDataCache(scope?: CacheScope) {
+  invalidation.invalidate(scope, () => {
+    if (scope === undefined) listDataCache.clear();
+    else
+      for (const key of listDataCache.keys()) {
+        if (matchesCacheScope(key, scope)) listDataCache.delete(key);
+      }
+  });
 }
